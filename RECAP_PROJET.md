@@ -136,6 +136,13 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
 - **Tableau** des séances visibles : en-têtes groupés (instrument · séance ±4 % · ratios · mois · trimestre · T2108), intensité
   de couleur relative au 95e centile de l'année, ratios colorés selon les seuils du bandeau ; ligne surlignée au survol.
 - Cartes : titres courts, ⓘ, lecture du jour toujours visible ; superposé = −X % au premier plan **translucide** (0,6).
+- **Séance sélectionnée** : survol (temporaire) ou clic / toucher (figée) sur un graphique → bandeau, case Indices, légende,
+  cartes et tableau affichent la même séance ; « ✕ Revenir à la dernière séance », re-clic ou Échap.
+- **Records sur 3 mois** (63 séances) : ▲ 3M = plus haut, ▼ 3M = plus bas ; pastille dans les cases, ▲/▼ dans le tableau,
+  triangles au-dessus des barres d'histogramme (▲ plein / ▽ contour). Couleur = sens pour le marché (bleu favorable, rouge
+  défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
+  les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.
 - La molette ne zoome **que** sur les graphiques de prix (sur les histogrammes elle fait défiler la page).
 
 ### Onglet « QQQ · IWM · BTC »
@@ -162,7 +169,7 @@ horizontal, graphique pleine largeur, légende réduite, barre d'onglets en bas 
 ### Clés `localStorage` (préférences, aucune donnée sensible)
 `mm.mas` (MM), `mm.pad` / `mm.top` (espaces), `mm.tab`, `mm.order` (cartes), `mm.raw4|raw25m|raw25` (détails),
 `mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.theme` (thème),
-`mm.hsolid` (histogrammes opaques).
+`mm.hsolid` (histogrammes opaques), `mm.hma` (moyenne mobile des histogrammes).
 
 ---
 

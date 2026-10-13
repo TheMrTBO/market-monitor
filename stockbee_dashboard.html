@@ -210,6 +210,10 @@
   .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
   .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; }
   .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
+  .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; }
+  .rec.ru { background: var(--upbg); color: var(--up); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 45%, transparent); }
+  .rec.rd { background: var(--downbg); color: var(--down); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 45%, transparent); }
+  .recn { font-weight: 700; } .recn.ru { color: var(--up); } .recn.rd { color: var(--down); }
   .selday { color: var(--up); font-size: 12px; } .selday b { font-weight: 600; }
   .selday button { margin-left: 6px; padding: 1px 8px; font-size: 11.5px; border-radius: 999px; color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--border)); }
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .irow { grid-template-columns: 36px 0 62px 76px; } .irow .px { visibility: hidden; } }
@@ -546,6 +550,7 @@
   <h4>Affichage</h4>
   <div class="optrow"><span>Thème</span><span class="seg sm" id="themeSeg"><button data-theme="">Système</button><button data-theme="light">Clair</button><button data-theme="dark">Sombre</button></span></div>
   <div class="optrow"><label><input type="checkbox" id="optAlpha"> Histogrammes : premier plan translucide</label></div>
+  <div class="optrow"><span>Moyenne mobile sur les histogrammes</span><span class="seg sm" id="hmaSeg"><button data-n="0">Aucune</button><button data-n="5">5 j</button><button data-n="10">10 j</button><button data-n="20">20 j</button></span></div>
   <div class="optrow"><span style="color:var(--muted)">Revenir à l'affichage par défaut</span><button id="resetView">Réinitialiser</button></div>
 </aside>
 <div class="pop" id="pop" role="dialog" hidden></div>
@@ -651,6 +656,59 @@
   let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
   // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
   const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
+  // Records sur 3 mois (63 séances) : ▲ = au-dessus du plus haut des 63 séances précédentes, ▼ = sous le plus bas.
+  // Couleur selon le sens pour le marché : bleu = favorable, rouge = défavorable (un record des baisses de 25 % est rouge).
+  let HMA = (() => { const v = store.get('mm.hma'); return v == null ? 10 : +v || 0; })();   // moyenne mobile sur les histogrammes (0 = aucune)
+  let _dates = null; const sbDates = () => _dates || (_dates = [...SB.keys()].sort());
+  const ratioOf = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
+  const netOf = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || b == null ? null : a - b; };
+  const SER = { net4: netOf('up4', 'down4'), rq: ratioOf('up25q', 'down25q'), rm: ratioOf('up25m', 'down25m') };
+  const serFn = k => SER[k] || (k.startsWith('net:') ? netOf(...k.slice(4).split('/')) : d => sb(d, k));
+  const REC = {}, BEAR = new Set(['down4', 'down25m', 'down25q']);
+  function recMap(k) {                  // date -> 1 (plus haut 3 mois) ou -1 (plus bas 3 mois)
+    if (!REC[k]) {
+      const D = sbDates(), v = D.map(serFn(k)), out = new Map();
+      for (let i = 63; i < v.length; i++) {
+        if (v[i] == null) continue; let hi = -Infinity, lo = Infinity;
+        for (let j = i - 63; j < i; j++) if (v[j] != null) { if (v[j] > hi) hi = v[j]; if (v[j] < lo) lo = v[j]; }
+        if (hi > -Infinity && v[i] > hi) out.set(D[i], 1); else if (lo < Infinity && v[i] < lo) out.set(D[i], -1);
+      }
+      REC[k] = out;
+    }
+    return REC[k];
+  }
+  const recOf = (k, d) => d ? recMap(k).get(d) || 0 : 0;
+  const recGood = (k, r) => (r > 0) !== BEAR.has(k);             // le record est-il favorable au marché ?
+  const recTitle = r => r > 0 ? 'Plus haut des 3 derniers mois (63 séances)' : 'Plus bas des 3 derniers mois (63 séances)';
+  const recTag = (k, d) => { const r = recOf(k, d); return r ? `<span class="rec ${recGood(k, r) ? 'ru' : 'rd'}" title="${recTitle(r)}">${r > 0 ? '▲' : '▼'} 3M</span>` : ''; };
+  const recNum = (k, d, txt) => { const r = recOf(k, d); return r ? `<span class="recn ${recGood(k, r) ? 'ru' : 'rd'}" title="${recTitle(r)}">${txt}${r > 0 ? '▲' : '▼'}</span>` : txt; };
+  const maCache = {};
+  function maMap(k, n) {                // moyenne mobile simple sur n séances, date -> valeur
+    const id = k + '|' + n; if (maCache[id]) return maCache[id];
+    const D = sbDates(), f = serFn(k), out = new Map(), q = [];
+    D.forEach(d => { const v = f(d); if (v == null) return; q.push(v); if (q.length > n) q.shift(); if (q.length === n) out.set(d, q.reduce((a, b) => a + b, 0) / n); });
+    return (maCache[id] = out);
+  }
+  function maLine(c, Y, k, col) {       // ligne de moyenne mobile sur un histogramme (liseré de la couleur du fond pour rester lisible)
+    if (!HMA) return;
+    const { g, X } = c, m = maMap(k, HMA);
+    for (const [w, sc] of [[3.5, css('--panel')], [1.8, col]]) {
+      g.strokeStyle = sc; g.lineWidth = w; g.lineJoin = 'round'; g.beginPath(); let pen = false;
+      T.forEach((d, i) => { const v = m.get(d); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
+      g.stroke();
+    }
+    g.lineWidth = 1;
+  }
+  function recMarks(c, Y, k, vals) {    // triangle au-dessus des barres record : ▲ plein = plus haut, ▽ contour = plus bas
+    const { g, X } = c;
+    T.forEach((d, i) => {
+      const r = recOf(k, d); if (vals[i] == null || !r) return;
+      const x = X(i), y = Y(vals[i]) - 3, col = css(recGood(k, r) ? '--up' : '--down');
+      g.beginPath();
+      if (r > 0) { g.moveTo(x, y - 7); g.lineTo(x - 4, y); g.lineTo(x + 4, y); g.closePath(); g.fillStyle = col; g.fill(); }        // ▲ plein
+      else { g.moveTo(x, y); g.lineTo(x - 4, y - 7); g.lineTo(x + 4, y - 7); g.closePath(); g.strokeStyle = col; g.lineWidth = 1.3; g.stroke(); g.lineWidth = 1; }   // ▽ contour
+    });
+  }
 
   // Calculées sur tout l'historique chargé (pas seulement la plage visible) : null tant qu'il y a moins de n clôtures.
   // EMA : amorcée par la SMA des n premières clôtures, puis lissage 2/(n+1), comme ta.ema de Pine.
@@ -951,6 +1009,8 @@
       vals.forEach((v, i) => { if (v == null) return; g.fillRect(X(i) - w / 2, Y(v), w, Math.max(1, Y(0) - Y(v))); });
     }
     g.globalAlpha = 1;
+    maLine(c, Y, upKey, css('--up')); maLine(c, Y, downKey, css('--down'));
+    recMarks(c, Y, upKey, ups); recMarks(c, Y, downKey, downs);
     if (upKey === 'up4' && OWNMAP.size) {      // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
       g.save(); g.setLineDash([3, 3]); g.lineWidth = 1.5; g.strokeStyle = css('--ctext');
       for (const key of [upKey, downKey]) {
@@ -989,6 +1049,7 @@
     });
     g.fillStyle = css('--muted'); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
     g.fillText('Solde net', PAD.l + 4, PAD.t + 10);
+    maLine(c, Y, `net:${upKey}/${downKey}`, css('--text'));
     cursor(c);
   }
 
@@ -1025,10 +1086,10 @@
       const b = bars.get(d), up = sb(d, 'up4'), dn = sb(d, 'down4'), net = up == null || dn == null ? null : up - dn;
       const uq = sb(d, 'up25q'), dq = sb(d, 'down25q'), rq = uq == null || !dq ? null : uq / dq, t2 = sb(d, 't2108');
       return `<tr data-d="${d}"><td>${fmtDate(d)}</td><td>${b ? nf(b.c, pxd(b.c)) : '—'}</td><td class="${cls(b && b.chg)}">${pct(b && b.chg)}</td><td>${vol(b && b.v)}</td>` +
-        `<td class="sep"${heat(up, 'up4', '--up')}>${nf(up)}</td><td${heat(dn, 'down4', '--down')}>${nf(dn)}</td><td class="${cls(net)}">${signed(net)}</td>` +
-        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${nf(sb(d, 'ratio5'), 2)}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${nf(sb(d, 'ratio10'), 2)}</td>` +
-        `<td class="sep"${heat(sb(d, 'up25m'), 'up25m', '--up')}>${nf(sb(d, 'up25m'))}</td><td${heat(sb(d, 'down25m'), 'down25m', '--down')}>${nf(sb(d, 'down25m'))}</td>` +
-        `<td class="sep"${heat(uq, 'up25q', '--up')}>${nf(uq)}</td><td${heat(dq, 'down25q', '--down')}>${nf(dq)}</td><td class="${rcls(rq, 'rq')}">${nf(rq, 2)}</td>` +
+        `<td class="sep"${heat(up, 'up4', '--up')}>${recNum('up4', d, nf(up))}</td><td${heat(dn, 'down4', '--down')}>${recNum('down4', d, nf(dn))}</td><td class="${cls(net)}">${recNum('net4', d, signed(net))}</td>` +
+        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${recNum('ratio5', d, nf(sb(d, 'ratio5'), 2))}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${recNum('ratio10', d, nf(sb(d, 'ratio10'), 2))}</td>` +
+        `<td class="sep"${heat(sb(d, 'up25m'), 'up25m', '--up')}>${recNum('up25m', d, nf(sb(d, 'up25m')))}</td><td${heat(sb(d, 'down25m'), 'down25m', '--down')}>${recNum('down25m', d, nf(sb(d, 'down25m')))}</td>` +
+        `<td class="sep"${heat(uq, 'up25q', '--up')}>${recNum('up25q', d, nf(uq))}</td><td${heat(dq, 'down25q', '--down')}>${recNum('down25q', d, nf(dq))}</td><td class="${rcls(rq, 'rq')}">${recNum('rq', d, nf(rq, 2))}</td>` +
         `<td class="sep">${t2 == null ? '—' : nf(t2, 1) + ' %'}</td></tr>`;
     }).join('');
   }
@@ -1939,18 +2000,18 @@
       idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
         `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}</span><span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
     const tiles = [
-      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
-      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${nf(r10v, 2)}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
-      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
-      ['rm', 'Ratio mois ±25 %', nf(rm, 2), `${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
-      ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
+      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>${recTag('net4', d4)}`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
+      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2) + recTag('ratio5', d4), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['rq', 'Ratio trim. ±25 %', nf(rq, 2) + recTag('rq', dq), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
+      ['rm', 'Ratio mois ±25 %', nf(rm, 2) + recTag('rm', dq), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
+      ['t2108', 'T2108', (t21 == null ? '—' : nf(t21, 1) + ' %') + recTag('t2108', dt), `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) =>
       `<div class="kpi"><div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div></div>`).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
-      '<span class="nhelp"> · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
+      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
       idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
@@ -1971,8 +2032,8 @@
         <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
       t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. C'est un indicateur d'<b>extrêmes</b>, pas de tendance : sous 20 % le marché est en survente, au-dessus de 70 % en surachat.</p>
         <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → ${t2S[1].toLowerCase()} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
-      c4: ['Séance : +4 % / −4 %', `<p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
-      c25m: ['Mois : +25 % / −25 %', `<p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
+      c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
+      c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = favorable, rouge = défavorable).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
   }
   $('kpinote').addEventListener('click', e => { if (e.target && e.target.id === 'unpin') setPinned(null); });
@@ -2083,6 +2144,7 @@
       `<select data-i="${i}" data-f="type" aria-label="Type"><option${m.type === 'SMA' ? ' selected' : ''}>SMA</option><option${m.type === 'EMA' ? ' selected' : ''}>EMA</option></select>` +
       `<input type="number" min="1" max="400" step="1" data-i="${i}" data-f="len" value="${m.len}" aria-label="Longueur"></div>`).join('');
     $('optTrend').checked = trendOn; $('optAlpha').checked = histAlpha < 1;
+    $('hmaSeg').querySelectorAll('button').forEach(b => { b.className = +b.dataset.n === HMA ? 'on' : ''; });
   }
   const openSheet = on => { $('sheet').hidden = !on; $('scrim').hidden = !on; if (on) { closeTip(); renderSheet(); } };
   $('gearBtn').addEventListener('click', () => openSheet(true));
@@ -2111,6 +2173,18 @@
   });
   $('optTrend').addEventListener('change', e => { trendOn = e.target.checked; renderBar(); render(); });
   $('optAlpha').addEventListener('change', e => { histAlpha = e.target.checked ? 0.6 : 1; store.set('mm.hsolid', histAlpha < 1 ? '0' : '1'); drawAll(); });
+  $('hmaSeg').addEventListener('click', e => {
+    const b = e.target && e.target.closest && e.target.closest('button'); if (!b) return;
+    HMA = +b.dataset.n; store.set('mm.hma', String(HMA)); renderSheet(); renderMaLegend(); drawAll();
+  });
+  // légende des cartes : « — moyenne N séances » quand la moyenne est affichée
+  function renderMaLegend() {
+    document.querySelectorAll('.hcard .legend').forEach(l => {
+      let sp = l.querySelector('.mmleg'); if (!sp) { sp = document.createElement('span'); sp.className = 'mmleg'; l.appendChild(sp); }
+      sp.textContent = HMA ? `— moyenne ${HMA} séances` : '';
+    });
+  }
+  renderMaLegend();
   $('themeSeg').addEventListener('click', e => {
     const b = e.target && e.target.closest && e.target.closest('button'); if (!b) return;
     applyTheme(b.dataset.theme || ''); setTimeout(() => { drawAll(); renderKpis(); if (tab === 'cmp') renderCmp(); }, 30);
