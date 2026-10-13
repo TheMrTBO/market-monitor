@@ -151,7 +151,6 @@
   th:first-child, td:first-child { text-align: left; }
   thead th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
   th.sep, td.sep { border-left: 1px solid var(--border); }
-  .rcard .chrow { padding-bottom: 4px; } .rcard .ttl { font-size: 13px; font-weight: 600; }
   .rcard canvas { height: 150px; }
   tbody tr:nth-child(even) { background: color-mix(in srgb, var(--grid) 40%, transparent); }
   tbody tr.hl { outline: 1px solid var(--up); }
@@ -211,6 +210,13 @@
   .chip { font-size: 11px; font-weight: 600; padding: 1px 0; border-radius: 999px; text-align: center; }
   .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
   .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
+  .datebar { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+  .datebar .dlab { color: var(--text); font-weight: 600; }
+  .datebar input[type=date] { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; height: 32px; color-scheme: light dark; }
+  .datebar .dnav { width: 32px; height: 32px; font-size: 18px; line-height: 1; }
+  .datebar #dToday { height: 32px; padding: 0 12px; }
+  .datebar #dToday.on { color: var(--up); border-color: var(--up); box-shadow: inset 0 0 0 1px var(--up); }
+  .datebar .dinfo { font-size: 12px; color: var(--faint); }
   .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
   .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; white-space: nowrap; display: inline-block; }
@@ -304,7 +310,8 @@
     .mtop .iconbtn { width: 40px; height: 40px; }
     .minst { font-weight: 650; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .minst span { font-weight: 500; font-size: 14px; }
-    .msub { display: flex; align-items: center; gap: 6px; padding: 0 12px 6px; font-size: 11.5px; color: var(--muted); }
+    .msub { display: flex; align-items: center; gap: 6px; padding: 0 12px 6px; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; }
+    .msub .fv { display: none; } .msub > span { flex: none; }
     .msub .dot { width: 6px; height: 6px; }
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 10px 6px; margin: 0; }
     .kpi { padding: 8px 9px 6px; }
@@ -319,7 +326,8 @@
     .kpi .ksub { font-size: 11px; }
     .kidx .rows { margin-top: 2px; }
     .irow { grid-template-columns: 40px minmax(0, 1fr) 66px 84px; padding: 4px 6px; } .irow .px { visibility: visible; }
-    .kpinote { display: none; padding: 0 12px; margin: 0 0 6px; } .kpinote.past { display: block; } .kpinote .nhelp { display: none; }
+    .kpinote { display: none; }
+    .datebar { padding: 4px 12px 2px; } .datebar .dinfo { width: 100%; }
     .card { border-radius: 0; border-left: 0; border-right: 0; padding-left: 10px; padding-right: 10px; }
     .chartbar { gap: 6px 10px; }
     .chartbar .instpx, .chartbar .spacer, #view-main .trendleg { display: none; }
@@ -463,6 +471,14 @@
   </div>
 
   <div id="view-main">
+  <div class="datebar" id="datebar">
+    <span class="dlab">Stats du</span>
+    <button class="iconbtn dnav" id="dPrev" aria-label="Séance précédente" title="Séance précédente">‹</button>
+    <input type="date" id="dPick" aria-label="Choisir la séance">
+    <button class="iconbtn dnav" id="dNext" aria-label="Séance suivante" title="Séance suivante">›</button>
+    <button id="dToday" title="Revenir à la dernière séance">Aujourd'hui</button>
+    <span class="dinfo" id="dInfo"></span>
+  </div>
   <section class="kpis" id="kpis" aria-label="État du marché"></section>
   <p class="kpinote" id="kpinote"></p>
   <div class="card">
@@ -532,20 +548,30 @@
     </div>
     </div>
   </div>
-
+  <div class="card hcard rcard" data-card="r5">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="r5" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio 5 j ±4 %</span></button><button class="tipbtn" data-tip="r5" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumR5"></span></div>
+    <div class="cbody">
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone haussière (≥ 1,5)</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone baissière (&lt; 1)</span></div>
+      <canvas id="rt5"></canvas>
+    </div>
   </div>
-
-  <div class="rcharts">
-    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio 5 j / 10 j ±4 %</span><button class="tipbtn" data-tip="r5" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumR5"></span></div>
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i class="ln" style="background:var(--muted)"></i>ratio 10 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone haussière (≥ 1,5)</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone baissière (&lt; 1)</span></div>
-      <canvas id="rt5"></canvas></div>
-    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio ±25 % mois</span><button class="tipbtn" data-tip="rm" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRm"></span></div>
+  <div class="card hcard rcard" data-card="rm">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rm" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % mois</span></button><button class="tipbtn" data-tip="rm" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRm"></span></div>
+    <div class="cbody">
       <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
-      <canvas id="rtm"></canvas></div>
-    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio ±25 % trimestre</span><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
-      <canvas id="rtq"></canvas></div>
+      <canvas id="rtm"></canvas>
+    </div>
   </div>
+  <div class="card hcard rcard" data-card="rq">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rq" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % trimestre</span></button><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
+    <div class="cbody">
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <canvas id="rtq"></canvas>
+    </div>
+  </div>
+
+  </div>
+
   </div>
 
   <details class="about" id="about"><summary>Sources et état des données</summary>
@@ -918,7 +944,7 @@
     drawHist(cvHist, 'up4', 'down4'); drawNet(cvNet4, 'up4', 'down4');
     drawHist(cvHistM, 'up25m', 'down25m'); drawNet(cvNetM, 'up25m', 'down25m');
     drawHist(cvHist2, 'up25q', 'down25q'); drawNet(cvNet25, 'up25q', 'down25q');
-    drawRatio(cvR5, 'ratio5', 'ratio10', TH.ratio5); drawRatio(cvRm, 'rm', null, TH.rm); drawRatio(cvRq, 'rq', null, TH.rq);
+    drawRatio(cvR5, 'ratio5', null, TH.ratio5); drawRatio(cvRm, 'rm', null, TH.rm); drawRatio(cvRq, 'rq', null, TH.rq);
     if (tab === 'cmp') renderCmp();
     if (tab === 'sec') { fitSecLayout(); secRedraw(); }
   };
@@ -1177,7 +1203,7 @@
     }
     // lectures des graphiques de ratio pour la séance affichée
     const rv = (k, dd) => { const v = serFn(k)(dd); return v == null ? '—' : recNum(k, dd, nf(v, 2)); };
-    $('sumR5').innerHTML = `${fmtDate(d)} · 5 j <b class="${rcls(sb(d, 'ratio5'), 'ratio5')}">${rv('ratio5', d)}</b> · 10 j <span class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${rv('ratio10', d)}</span>`;
+    $('sumR5').innerHTML = `${fmtDate(d)} · <b class="${rcls(sb(d, 'ratio5'), 'ratio5')}">${rv('ratio5', d)}</b> (séance : +${nf(sb(d, 'up4'))} / −${nf(sb(d, 'down4'))})`;
     $('sumRm').innerHTML = `${fmtDate(d)} · <b class="${rcls(serFn('rm')(d), 'rm')}">${rv('rm', d)}</b> (${nf(sb(d, 'up25m'))} / ${nf(sb(d, 'down25m'))})`;
     $('sumRq').innerHTML = `${fmtDate(d)} · <b class="${rcls(serFn('rq')(d), 'rq')}">${rv('rq', d)}</b> (${nf(sb(d, 'up25q'))} / ${nf(sb(d, 'down25q'))})`;
   }
@@ -1212,7 +1238,7 @@
     }
     if (kind === 'r5' || kind === 'rm' || kind === 'rq') {
       const f = serFn(kind === 'r5' ? 'ratio5' : kind), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
-      return kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div><div>Ratio 10 j : ${nf(sb(d, 'ratio10'), 2)}</div>`
+      return kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
         : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`;
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
@@ -1863,7 +1889,7 @@
     renderBar(); syncSlider();
     drawAll(); renderTable(); highlightRow(); updateSub();
     if (tab === 'cmp') renderCmp();
-    renderKpis();
+    renderKpis(); renderDatebar();
   }
   function selectRange(k) {
     range = k;
@@ -1977,7 +2003,11 @@
   function saveOrder() { store.set('mm.order', JSON.stringify([...hgroup.querySelectorAll('.hcard')].map(c => c.dataset.card))); }
   try {
     const order = JSON.parse(store.get('mm.order') || '[]');
-    if (Array.isArray(order)) order.forEach(k => { const c = hgroup.querySelector(`[data-card="${k}"]`); if (c) hgroup.appendChild(c); });
+    if (Array.isArray(order) && order.length) {
+      const all = [...hgroup.querySelectorAll('.hcard')].map(c => c.dataset.card);
+      order.filter(k => all.includes(k)).concat(all.filter(k => !order.includes(k)))
+        .forEach(k => { const c = hgroup.querySelector(`[data-card="${k}"]`); if (c) hgroup.appendChild(c); });
+    }
   } catch (e) { /* ordre illisible : ordre par défaut */ }
   let dragCard = null;
   hgroup.querySelectorAll('.hcard').forEach(card => {
@@ -2080,7 +2110,34 @@
   let kpiRaf = 0;
   const scheduleKpis = () => { cancelAnimationFrame(kpiRaf); kpiRaf = requestAnimationFrame(() => renderKpis()); };
   function setPinned(d) {
-    pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis();
+    pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis(); renderDatebar();
+  }
+  // ---- sélecteur de date : séance choisie (ou dernière), ‹ › = séance précédente / suivante, « Aujourd'hui » = dernière séance
+  const sessions = () => sbDates();
+  function renderDatebar() {
+    const D = sessions(), last = D[D.length - 1], d = pinned || last, inp = $('dPick');
+    inp.min = D[0]; inp.max = last; inp.value = d;
+    $('dToday').classList.toggle('on', !pinned);
+    $('dInfo').textContent = pinned ? fmtDate(pinned, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'dernière séance publiée';
+  }
+  function showDate(d) {                 // d = date ISO ; on retient la dernière séance ≤ d (week-end, jour férié)
+    const D = sessions(), last = D[D.length - 1]; if (!d) return;
+    let s = null; for (let i = D.length - 1; i >= 0; i--) if (D[i] <= d) { s = D[i]; break; }
+    if (!s) s = D[0];
+    if (s === last) { goToday(); return; }
+    // la séance est hors de la fenêtre du graphique : même zoom, fenêtre recentrée sur elle
+    if (!T.includes(s)) {
+      const i = ALLT.indexOf(s), span = vp.to - vp.from;
+      if (i >= 0) { vp.from = i - span / 2; vp.to = vp.from + span; clampViewport(); manual(); applyViewport(); }
+    }
+    setPinned(s);
+    if (s !== d) $('dInfo').textContent = `pas de séance le ${fmtDate(d, { day: 'numeric', month: 'long' })} → ${fmtDate(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+    render();
+  }
+  function goToday() { pinned = null; selectRange(isMobile() ? '3M' : '6M'); setPinned(null); }
+  function stepDate(k) {                 // séance précédente (k = −1) ou suivante (+1)
+    const D = sessions(), cur = pinned || D[D.length - 1], i = D.indexOf(cur), j = Math.max(0, Math.min(D.length - 1, i + k));
+    if (j === D.length - 1) goToday(); else showDate(D[j]);
   }
   const kState = (v, k) => v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', 'Baissier'] : v >= TH[k][1] ? ['up', 'Haussier'] : ['neutral', 'Neutre'];
   const kRule = k => `Baissier sous ${signedOr(k, TH[k][0])}, haussier à partir de ${signedOr(k, TH[k][1])}, neutre entre les deux.`;
@@ -2156,7 +2213,7 @@
     }).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
-    note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
+    note.innerHTML = (at ? `<span class="selday">${hover >= 0 ? 'Survol' : 'Séance choisie'} : <b>${day(at)}</b></span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
       '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
@@ -2183,7 +2240,10 @@
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = favorable, rouge = défavorable).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
   }
-  $('kpinote').addEventListener('click', e => { if (e.target && e.target.id === 'unpin') setPinned(null); });
+  $('dPick').addEventListener('change', e => { if (e.target.value) showDate(e.target.value); });
+  $('dPrev').addEventListener('click', () => stepDate(-1));
+  $('dNext').addEventListener('click', () => stepDate(1));
+  $('dToday').addEventListener('click', goToday);
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && pinned) setPinned(null); });
   $('kpis').addEventListener('click', e => {
     const r = e.target && e.target.closest && e.target.closest('.irow');
@@ -2329,7 +2389,7 @@
   });
   // légende des cartes : « — moyenne N séances » quand la moyenne est affichée
   function renderMaLegend() {
-    document.querySelectorAll('.hcard .legend').forEach(l => {
+    document.querySelectorAll('.hcard:not(.rcard) .legend').forEach(l => {   // pas de moyenne sur les graphiques de ratio
       let sp = l.querySelector('.mmleg'); if (!sp) { sp = document.createElement('span'); sp.className = 'mmleg'; l.appendChild(sp); }
       sp.textContent = HMA ? `— moyenne ${HMA} séances` : '';
     });

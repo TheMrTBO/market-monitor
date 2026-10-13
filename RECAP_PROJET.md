@@ -151,6 +151,11 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Retours du 13/10 (4e série)** : les 3 graphiques de ratio sont des **cartes comme les histogrammes** (même groupe, déplaçables
+  par la poignée ⠿ / Alt + ↑↓, repliables, ordre mémorisé ; une carte absente de l'ordre mémorisé garde sa place par défaut) ;
+  **ratio 10 j retiré du graphique** (gardé en sous-titre de la case) ; **sélecteur de date** au-dessus du bandeau : « Stats du ‹ [date] › 
+  [Aujourd'hui] » (date native, week-end / férié → séance précédente avec message, date hors fenêtre → graphique recentré au même
+  zoom, « Aujourd'hui » = dernière séance + période par défaut) ; fonctionne aussi sur mobile (seul moyen de choisir un jour ≤ 640 px).
 - **Retours du 13/10 (3e série)** : onglets renommés **MM** (ex-Marché) et **SA** (ex-QQQ · IWM · BTC) ; **aucun saut d'affichage au
   survol** (étiquette « record » posée sur le bord de la case, encadré en `outline`, hauteurs fixes des lignes, note et légende sur une
   ligne ; mesuré : 0 px de variation en 965 et 1440 px) ; titres courts « Ratio 5 j », « Ratio mois », « Ratio trim. » (libellé complet au
