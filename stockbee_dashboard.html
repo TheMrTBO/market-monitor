@@ -1831,13 +1831,14 @@
   // cartes d'histogrammes : un clic sur le titre replie la carte (résumé d'une ligne), l'état est mémorisé
   document.querySelectorAll('.chead').forEach(h => {
     const body = h.closest('.card').querySelector('.cbody'), key = 'mm.card.' + h.dataset.key, car = h.querySelector('.car');
-    const set = open => {
+    const set = (open, keep = true) => {          // keep = false : repli par défaut (mobile), non mémorisé
       body.hidden = !open; h.setAttribute('aria-expanded', String(open)); car.textContent = open ? '▾' : '▸';
-      h.classList.toggle('closed', !open); store.set(key, open ? '1' : '0');
+      h.classList.toggle('closed', !open); if (keep) store.set(key, open ? '1' : '0');
       if (open) drawAll();
     };
     h.addEventListener('click', () => set(body.hidden));
-    if (store.get(key) === '0' || (store.get(key) == null && isMobile() && h.dataset.key !== 'c4')) set(false);
+    if (store.get(key) === '0') set(false);
+    else if (store.get(key) == null && isMobile() && h.dataset.key !== 'c4') set(false, false);
   });
 
   // curseur « Espace à droite » : décale la fenêtre sans changer la largeur des barres (comme la poignée ▲)
