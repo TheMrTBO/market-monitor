@@ -48,14 +48,15 @@ const go=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
 
 // 1) dernier instantané : hausses triées par volume post-market, colonnes, badges, méta
 let A=boot({},PM); go(A);
-ok('hausses par volume AH', syms(A).join()==='BBB,AAA', syms(A).join());
-ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,pv,rv,cap,er', heads(A).join());
+ok('hausses par volume AH en dollars', syms(A).join()==='BBB,AAA', syms(A).join());
+ok('Vol AH $ = actions × cours post-market (BBB : 2 M × 10,50)', /data-s="BBB".*?<td title="2,0 M actions">21,0 M<\/td>/.test(A.$('pmRows')._h));
+ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,dv,rv,cap,er', heads(A).join());
 ok('badge AMC sur AAA', /data-s="AAA".*?class="erb"[^>]*>AMC/.test(A.$('pmRows')._h));
 ok('méta : séance, en cours, heure du relevé', /27 août 2026 · post-market en cours · relevé à/.test(A.$('pmMeta')._t), A.$('pmMeta')._t);
 ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les deux<span>4<\/span>.*Résultats<span>1<\/span>/.test(A.$('pmFilt')._h));
 // 2) fiche + graphique du titre sélectionné (1re ligne)
 ok('fiche : titre', A.$('pmTitle')._t==='BBB · BBB Inc.', A.$('pmTitle')._t);
-ok('fiche : post-market et lendemain pas encore joué', /Post-market.*\+5,00 %/.test(strip(A.$('pmFacts')._h)) && /séance pas encore jouée/.test(A.$('pmFacts')._h));
+ok('fiche : post-market et lendemain pas encore joué', /Post-market.*\+5,00 %/.test(strip(A.$('pmFacts')._h)) && /21,0 M \$ · 2,0 M actions/.test(strip(A.$('pmFacts')._h)) && /séance pas encore jouée/.test(A.$('pmFacts')._h));
 ok('graphique : bougies dessinées', (A.R.pmCanvas||[]).length>20, (A.R.pmCanvas||[]).length);
 ok('lien TradingView', /tradingview\.com\/chart\/\?symbol=NASDAQ%3ABBB/.test(A.$('pmNote')._h));
 // 3) filtres : Baisses, Résultats, Les deux ; tri par variation

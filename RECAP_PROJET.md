@@ -222,10 +222,10 @@ Même mise en page que Secteurs : « Stats du » en haut, liste à gauche, graph
 toucher un titre → graphique + fiche, « ‹ Scan » pour revenir.
 - Scan = preset TradingView de l'utilisateur : prix > 3 $, volume post-market > 100 000, variation post-market > +4 % ; on
   récupère aussi < −4 %. Filtres : **Hausses** (défaut) · Baisses · Les deux, et **Résultats** (seulement les titres qui ont
-  publié ce soir ou ce matin). Tri par défaut : volume post-market (clic sur un en-tête pour trier autrement, ↑ ↓ au clavier).
+  publié ce soir ou ce matin). Tri par défaut : **volume post-market en dollars** (clic sur un en-tête pour trier autrement, ↑ ↓ au clavier).
 - Colonnes : Symbole (secteur traduit dessous, industrie au survol) · Var AH (barre derrière le chiffre, échelle = 90e centile)
-  · Vol AH · RVol (vol. AH ÷ vol. journalier moyen 90 j) · Cap. · Lendemain (dès que la séance suivante est jouée) · Rés.
-  (AMC / BMO, champs `earnings_release_*` de TradingView). Mobile : Symbole · Var AH · Vol AH · Rés.
+  · **Vol AH $** (volume post-market en dollars ≈ actions × cours post-market, calculé dans le dashboard ; nombre d'actions au survol et dans la fiche) · RVol (vol. AH en actions ÷ vol. journalier moyen 90 j) · Cap. · Lendemain (dès que la séance suivante est jouée) · Rés.
+  (AMC / BMO, champs `earnings_release_*` de TradingView). Mobile : Symbole · Var AH · Vol AH $ · Rés.
 - Fiche : clôture, post-market, volume + RVol, capitalisation, flottant, résultats, lendemain (variation + gap), lien TradingView.
 - Graphique : moteur commun, contexte `pmCtx` ; point **AH** (cours post-market) une demi-barre après la séance du scan, relié
   à la clôture ; pas de fond de tendance. Graphiques seulement pour les titres du dernier instantané.
