@@ -18,7 +18,7 @@ for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInConte
 vm.runInContext(main,sb);
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const reset=()=>{for(const k of Object.keys(rects))delete rects[k];};
-const PL=8,PW=900-8-64,RIGHT=PL+PW;
+const PL=64,PW=900-64-8,RIGHT=PL+PW;   // axe des prix a gauche (PAD.l = 64)
 // derniere bougie dessinee et part d'espace libre a droite (sur le canvas des prix, barres de volume = rects alpha)
 function stats(label){
   const r=(rects.price||[]).filter(x=>x[3]>0&&x[3]<20);

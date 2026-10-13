@@ -21,18 +21,18 @@ for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInConte
 vm.runInContext(main,sb);
 const PT=8,PH=200-8-22;
 for(const i of [0,1,2,3]) L.maBar.click({target:{closest:q=>q==='.nm'?{dataset:{i:String(i)}}:null}});   // masque les MM : seules les bougies restent
-const topY=()=>{const m=(moves.price||[]).filter(x=>x[0]>20&&x[0]<840&&x[1]<190);return Math.min(...m.map(x=>x[1]));};
+const topY=()=>{const m=(moves.price||[]).filter(x=>x[0]>64.5&&x[0]<892&&x[1]<190);return Math.min(...m.map(x=>x[1]));};
 const reset=()=>{for(const k of Object.keys(rects))delete rects[k];for(const k of Object.keys(moves))delete moves[k];};
 const show=l=>console.log(l.padEnd(32),'| curseur haut:',$('topPad').value,$('topPadOut')._t,'| plus haut cours a y =',topY().toFixed(1),'(attendu',(PT+ +$('topPad').value/100*PH).toFixed(1)+')');
 reset();L.rightPad.input({target:{value:'15'}});show('defaut');
 for(const v of [30,0,60]){reset();L.topPad.input({target:{value:String(v)}});show('curseur haut -> '+v);}
 console.log('memorise mm.top =',ls['mm.top']);
-// poignee ◀ : en bas de la plage, tirer de 100 px vers le bas
+// poignee ▶ (axe des prix a gauche) : en bas de la plage, tirer de 100 px vers le bas
 reset();L.topPad.input({target:{value:'6'}});
 const hy=PT+0.06*PH;
-L.price.pointerdown({clientX:900-9,clientY:hy,pointerId:1});
-reset();L.price.pointermove({clientX:891,clientY:100,pageX:891,pageY:100});
-show('poignee ◀ tiree a y=100');L.price.pointerup({});
+L.price.pointerdown({clientX:9,clientY:hy,pointerId:1});
+reset();L.price.pointermove({clientX:9,clientY:100,pageX:9,pageY:100});
+show('poignee ▶ tiree a y=100');L.price.pointerup({});
 console.log('memorise mm.top =',ls['mm.top']);
 // repli de la carte +4 %
 console.log('--- carte +4 % : repli');

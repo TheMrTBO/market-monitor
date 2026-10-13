@@ -62,16 +62,29 @@
   /* onglet « Secteurs » : liste triable à gauche, graphique de l'ETF sélectionné à droite */
   #view-sec[hidden] { display: none; }
   body[data-tab="sec"] #sub { display: none; }
-  .secsplit { display: grid; grid-template-columns: minmax(480px, 44%) minmax(0, 1fr); gap: 8px; align-items: start; }
+  .secsplit { display: grid; grid-template-columns: minmax(560px, 46%) minmax(0, 1fr); gap: 8px; align-items: start; }
   @media (max-width: 1000px) { .secsplit { grid-template-columns: minmax(0, 1fr); } .secchart { position: static; } }
   .secsplit .card { margin-bottom: 0; }
   .sechead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 4px; }
   .secmeta { color: var(--muted); font-size: 12px; margin-left: auto; }
   .secnote { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
-  .secscroll { max-height: none; height: calc(100vh - 230px); margin-top: 0; }   /* la hauteur exacte est ajustée par fitSecLayout() */
-  .secchart { position: sticky; top: 8px; }
+  .tablewrap.secscroll { max-height: none; height: calc(100vh - 230px); margin-top: 0; }   /* hauteur exacte : fitSecLayout() ; .tablewrap seul limitait à 380 px */
+  #dslot-sec { margin-bottom: 10px; }                     /* même écart sous « Stats du » que MM et SA */
+  .seclist .sechead { margin-bottom: 8px; min-height: 32px; align-items: center; }   /* titres des deux cartes sur la même ligne */
+  .sechead .tipbtn { align-self: center; }
+  .secfilt { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .secfilt button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
+  .secfilt button span { color: var(--faint); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .secfilt button.on { background: color-mix(in srgb, var(--up) 18%, transparent); border-color: color-mix(in srgb, var(--up) 55%, transparent); color: var(--text); }
+  #view-sec .chartbar { min-height: 32px; margin-bottom: 8px; }
+  .seccol { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-width: 0; }   /* minmax : les canvas n'élargissent pas la colonne */   /* colonne de droite : graphique + carte du score */
+  .seccol .card { margin-bottom: 0; }
+  #secScoreNow b { color: var(--text); font-weight: 600; }
+  #secScoreCv { width: 100%; height: 150px; display: block; margin-bottom: 6px; }
+  .secback { display: none; }
+  #secTable td.sym .tsub { display: none; }
   #secCanvas { height: calc(100vh - 215px); min-height: 340px; }
-  .secinfo { color: var(--muted); font-size: 12px; margin: 2px 0 4px; }
+  .secinfo { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
   #secTable th, #secTable td { text-align: right; }
   #secTable th.l, #secTable td.l { text-align: left; }
   #secTable thead th[draggable] { cursor: grab; }
@@ -86,9 +99,16 @@
   #secTable tbody tr.sel td { background: color-mix(in srgb, var(--up) 22%, transparent); }
   #secTable td.rank { font-weight: 600; color: var(--text); }
   #secTable td.sym { font-weight: 600; }
-  #secTable td.nm { color: var(--muted); max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #secTable td.grp { color: var(--muted); }
-  #secTable td.desc { color: var(--muted); white-space: normal; min-width: 220px; max-width: 320px; line-height: 1.3; }
+  #secTable thead th { z-index: 3; }                      /* l'en-tête figé reste au-dessus des barres d'écart */
+  #secTable th, #secTable td { padding-left: 8px; padding-right: 8px; }
+  #secTable td { padding-top: 6px; padding-bottom: 6px; }
+  #secTable td.grp { color: var(--muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; }
+  /* écart : barre derrière le chiffre, ancrée à droite, longueur proportionnelle à |écart|, couleur selon le signe */
+  #secTable td.dev { padding-top: 3px; padding-bottom: 3px; width: 150px; }
+  #secTable .devc { position: relative; height: 22px; display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; }
+  #secTable .devc i { position: absolute; right: 0; top: 2px; bottom: 2px; border-radius: 4px; }
+  #secTable .devc i.u { background: color-mix(in srgb, var(--up) 30%, transparent); } #secTable .devc i.d { background: color-mix(in srgb, var(--down) 30%, transparent); }
+  #secTable .devc .v { position: relative; font-weight: 500; }
   #secTable tr.short td { color: var(--muted); }
   #secTable tr.sep td { border-top: 1px solid var(--border); }
   .tag { display: inline-block; font-size: 11px; padding: 0 6px; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); }
@@ -382,6 +402,21 @@
     .toast { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
     .secsplit { grid-template-columns: minmax(0, 1fr); }
     #view-sec .chartbar label { display: none; }
+    /* onglet Secteurs sur mobile : liste plein écran ; toucher un ticker ouvre le détail (graphique + score), « ‹ Classement » pour revenir */
+    #view-sec:not(.detail) .seccol { display: none; }
+    #view-sec.detail .seclist { display: none; }
+    .secback { display: inline-flex; align-items: center; border: 0; background: none; color: var(--up); font-size: 15px; padding: 6px 0; width: 100%; }
+    #view-sec .chartbar #secTitle { width: 100%; font-size: 15px; }
+    #secTable .c-grp { display: none; }
+    #secTable td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #secTable th, #secTable td { padding-left: 6px; padding-right: 6px; }
+    #secTable td { padding-top: 7px; padding-bottom: 7px; }
+    #secTable td.dev { width: 108px; }
+    #secTable th:first-child, #secTable td:first-child { position: static; }
+    .secfilt { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+    .secfilt button { flex: none; padding: 6px 12px; }
+    #secCanvas { height: 38vh; height: 38svh; min-height: 240px; }
+    #secScoreCv { height: 130px; }
     /* onglet SA sur mobile : graphiques moins hauts, légende repliée derrière un bouton */
     .cmpgrid canvas { height: 34vh; min-height: 220px; } #cmpB100 canvas { height: 42vh; min-height: 260px; }
     .cmpbottom canvas { height: 22vh; min-height: 160px; }
@@ -451,18 +486,14 @@
   </span>
 
   <div id="view-sec" hidden>
+    <div id="dslot-sec"></div>
     <div class="secsplit">
       <div class="card seclist">
         <div class="sechead">
-          <b>Classement momentum · avgC7 / avgC65</b>
+          <b>Classement · avgC7 / avgC65</b><button class="tipbtn" data-tip="secrank" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
           <span class="secmeta" id="secMeta"></span>
         </div>
-        <p class="secnote">
-          <b>avgC7 / avgC65</b> = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières.
-          <b>Écart avg</b> = avgC7 / avgC65 − 1, en %.
-          <b>Δ rang 5 j</b> = rang d'il y a 5 séances − rang actuel (▲ = progresse).
-          Clique sur un en-tête pour trier, glisse un en-tête pour déplacer la colonne, clique sur une ligne pour afficher son graphique (↑ ↓ au clavier).
-        </p>
+        <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="tablewrap secscroll" id="secScroll">
           <table id="secTable">
             <thead><tr id="secHead"></tr></thead>
@@ -470,21 +501,26 @@
           </table>
         </div>
       </div>
+      <div class="seccol">
       <div class="card secchart">
         <div class="chartbar">
+          <button class="secback" id="secBack" aria-label="Retour au classement">‹ Classement</button>
           <b id="secTitle"></b>
           <span class="rslot" id="rslot-sec"></span>
-          <span id="secMa" style="display:contents"></span>
           <span class="spacer"></span>
-          <label title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ◀)">Espace en haut
-            <input type="range" id="topPadS" min="0" max="60" step="1"><output id="topPadSOut"></output></label>
-          <label title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲)">Espace à droite
-            <input type="range" id="rightPadS" min="0" max="60" step="1"><output id="rightPadSOut"></output></label>
+          <button class="tipbtn" data-tip="sectrend" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
         </div>
-        <div class="legend" id="secTrend"></div>
         <div class="secinfo" id="secInfo"></div>
+        <div class="ovl"><span class="ohlc" id="secOhlc"></span><span class="mabar" id="secMa"></span></div>
         <div class="menu" id="menuSec" hidden></div>
         <canvas id="secCanvas"></canvas>
+        <!-- anciens réglages de l'onglet (espaces : Réglages ; fond de tendance retiré du graphique) : conservés masqués pour le code commun -->
+        <div hidden><input type="range" id="topPadS" min="0" max="60" step="1"><output id="topPadSOut"></output><input type="range" id="rightPadS" min="0" max="60" step="1"><output id="rightPadSOut"></output><div id="secTrend"></div></div>
+      </div>
+      <div class="card secscore" id="secScoreCard">
+        <div class="mini-title"><b>Score avgC7 / avgC65</b><button class="tipbtn" data-tip="secscore" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px" id="secScoreNow"></span></div>
+        <canvas id="secScoreCv"></canvas>
+      </div>
       </div>
     </div>
   </div>
@@ -644,7 +680,7 @@
   <div id="maRows"></div>
   <div class="optrow"><label><input type="checkbox" id="optTrend"> Fond de tendance (MM10 / MM20)</label></div>
   <h4>Espaces du graphique</h4>
-  <div class="slider" title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ◀ sur l'axe des prix)"><span>En haut</span>
+  <div class="slider" title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ▶ sur l'axe des prix)"><span>En haut</span>
     <input type="range" id="topPad" min="0" max="60" step="1"><output id="topPadOut"></output></div>
   <div class="slider" title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲ sous le graphique)"><span>À droite</span>
     <input type="range" id="rightPad" min="0" max="60" step="1"><output id="rightPadOut"></output></div>
@@ -943,7 +979,7 @@
   }
 
   // Contexte de graphique : le graphique de l'onglet Secteurs réutilise tout le moteur du graphique principal (zoom ancré,
-  // glisser, poignées ▲ ◀, curseurs, fond de tendance...) avec son propre état (dates, barres, fenêtre, survol).
+  // glisser, poignées ▲ ▶, curseurs, fond de tendance...) avec son propre état (dates, barres, fenêtre, survol).
   function inCtx(c, fn) {
     if (c.active) return fn();                     // appel imbriqué : les variables courantes sont déjà celles du contexte
     const sv = { ALLT, vp, T, offset, bars, hover };
@@ -987,7 +1023,7 @@
   }
 
   // ------------------------------------------------------------------ dessin
-  const PAD = { l: 8, r: 64, t: 8, b: 22 };
+  const PAD = { l: 64, r: 8, t: 8, b: 22 };   // axe des valeurs à gauche (préférence de l'utilisateur, tous les onglets)
   // records 3 mois du +4 % et du −4 % sur un graphique de prix (MM et SA) : étiquette au-dessus (côté hausses) ou au-dessous (côté baisses)
   function drawRecLabels(g, vis, X, Y) {
     g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -1038,11 +1074,11 @@
 
   function grid(c, ticks, Y, fmt) {
     const { g, W } = c;
-    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     for (const t of ticks) {
       const y = Math.round(Y(t)) + 0.5;
       g.strokeStyle = css(c.th.grid); g.beginPath(); g.moveTo(PAD.l, y); g.lineTo(W - PAD.r, y); g.stroke();
-      g.fillStyle = css(c.th.text); g.fillText(fmt(t), W - PAD.r + 6, y);
+      g.fillStyle = css(c.th.text); g.fillText(fmt(t), PAD.l - 6, y);
     }
   }
 
@@ -1065,7 +1101,7 @@
   }
 
   function cursor(c) {
-    const i = secCtx.active ? hover : selIdx();
+    const i = secCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
     if (i < 0 || i >= c.n) return;
     const { g, X, ph } = c, x = Math.round(X(i)) + 0.5;
     g.strokeStyle = css(c.th.cross); g.lineWidth = 1; g.setLineDash([3, 3]);
@@ -1083,12 +1119,12 @@
     let lo = Math.min(...have.map(b => b.l));
     const top = Math.max(...have.map(b => b.h));            // plus haut cours affiché
     lo -= (top - lo) * 0.05 || 1;
-    // le plus haut cours est placé à topPad de la hauteur du graphique (réglable : curseur ou poignée ◀ sur l'axe des prix)
+    // le plus haut cours est placé à topPad de la hauteur du graphique (réglable : curseur ou poignée ▶ sur l'axe des prix)
     const hi = lo + (top - lo) / (1 - topPad);
     const Y = v => PAD.t + (hi - v) / (hi - lo) * ph;
     grid(c, niceTicks(lo, hi, 5), Y, v => nf(v, pxd(v)));
     xLabels(c);
-    if (trendOn) trendBands(g, vis, X, bw, PAD.t, ph);      // fond de tendance, derrière les bougies
+    if (trendOn && cv !== cvSec) trendBands(g, vis, X, bw, PAD.t, ph);      // fond de tendance, derrière les bougies (pas sur l'onglet Secteurs)
     const maxV = Math.max(...have.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
     vis.forEach((b, i) => {
       if (!b) return;
@@ -1115,14 +1151,14 @@
     });
     g.restore();
     if (cv === cvPrice) drawRecLabels(g, vis, X, Y);
-    // dernier cours : ligne pointillée et étiquette colorée sur l'axe
+    // dernier cours : ligne pointillée de l'axe (à gauche) jusqu'à la dernière bougie, étiquette colorée sur l'axe
     const lastB = [...bars.values()].pop();
     if (lastB && Y(lastB.c) >= PAD.t && Y(lastB.c) <= PAD.t + ph) {
       const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown'), li = T.indexOf(lastB.d);
       g.save(); g.strokeStyle = col; g.globalAlpha = 0.55; g.setLineDash([2, 3]);
-      g.beginPath(); g.moveTo(li >= 0 ? X(li) : PAD.l, y); g.lineTo(c.W - PAD.r, y); g.stroke(); g.restore();
-      g.fillStyle = col; g.fillRect(c.W - PAD.r + 1, y - 9, PAD.r - 16, 18);
-      g.fillStyle = '#000'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), c.W - PAD.r + 5, y);
+      g.beginPath(); g.moveTo(PAD.l, y); g.lineTo(li >= 0 ? X(li) : c.W - PAD.r, y); g.stroke(); g.restore();
+      g.fillStyle = col; g.fillRect(PAD.l - 49, y - 9, 48, 18);
+      g.fillStyle = '#000'; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), PAD.l - 5, y);
     }
     // poignée ▲ à l'emplacement de la dernière séance : glisser pour régler l'espace vide à droite
     const hx = handleX(c);
@@ -1130,10 +1166,10 @@
       g.fillStyle = css(drag && drag.handle ? '--cup' : '--ctext');
       g.beginPath(); g.moveTo(hx, PAD.t + ph + 1); g.lineTo(hx - 6, PAD.t + ph + 11); g.lineTo(hx + 6, PAD.t + ph + 11); g.closePath(); g.fill();
     }
-    // poignée ◀ sur l'axe des prix, au niveau du plus haut cours : glisser pour régler l'espace au-dessus
-    const ty = PAD.t + topPad * ph, tx = c.W - 9;
+    // poignée ▶ sur l'axe des prix, au niveau du plus haut cours : glisser pour régler l'espace au-dessus
+    const ty = PAD.t + topPad * ph, tx = 9;
     g.fillStyle = css(drag && drag.handleTop ? '--cup' : '--ctext');
-    g.beginPath(); g.moveTo(tx - 6, ty); g.lineTo(tx + 2, ty - 6); g.lineTo(tx + 2, ty + 6); g.closePath(); g.fill();
+    g.beginPath(); g.moveTo(tx + 6, ty); g.lineTo(tx - 2, ty - 6); g.lineTo(tx - 2, ty + 6); g.closePath(); g.fill();
     cursor(c);
   }
 
@@ -1309,7 +1345,7 @@
   }
   function setHover(i, kind, e) {
     hover = i;
-    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
+    if (kind === 'sec' || kind === 'secscore') { drawPrice(cvSec); drawSecScore(); secOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
     const finger = e && e.pointerType === 'touch';
     if (i < 0 || (kind === 'price' && !finger)) { tip.style.display = 'none'; return; }   // prix à la souris : valeurs dans la légende
     const pb = (kind === 'price' || kind === 'sec') && finger ? bars.get(T[i]) : null;
@@ -1317,7 +1353,7 @@
     tip.innerHTML = pb ? `<b>${fmtDate(pb.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</b><div>C ${nf(pb.c, pxd(pb.c))} <span class="${cls(pb.chg)}">${pct(pb.chg)}</span></div>` +
         `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + `<div>MM ${trendShort(pb.tf)}</div>` +
         (sb(pb.d, 'up4') != null ? `<div>±4 % : +${nf(sb(pb.d, 'up4'))} / −${nf(sb(pb.d, 'down4'))}</div>` : '')
-      : tipHtml(kind === 'sec' ? 'price' : kind, T[i]);
+      : kind === 'secscore' ? secScoreTip(T[i]) : tipHtml(kind === 'sec' ? 'price' : kind, T[i]);
     tip.style.display = 'block';
     const tw = tip.offsetWidth, th = tip.offsetHeight, W = document.documentElement.scrollWidth;
     if (finger) {                                // au doigt : en haut du graphique, du côté opposé au doigt (jamais sous le pouce)
@@ -1354,9 +1390,9 @@
     const N = ALLT.length, span = vp.to - vp.from;
     return Math.max(0, Math.min(60, Math.round((vp.to - (N - 1)) / (span + 1) * 100)));
   }
-  function onTopHandle(cv, e) {                 // poignée ◀ sur l'axe des prix, au niveau du plus haut cours
+  function onTopHandle(cv, e) {                 // poignée ▶ sur l'axe des prix, au niveau du plus haut cours
     const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
-    return Math.abs(e.clientX - (r.left + r.width - 9)) <= 12 && Math.abs(e.clientY - (r.top + PAD.t + topPad * ph)) <= 10;
+    return Math.abs(e.clientX - (r.left + 9)) <= 12 && Math.abs(e.clientY - (r.top + PAD.t + topPad * ph)) <= 10;
   }
   function syncSlider() {
     const p = padPct(), t = Math.round(topPad * 100);
@@ -1371,9 +1407,9 @@
     vp.to = (N - 1) + rightPad * (span + 1); vp.from = vp.to - span;
     clampViewport(); manual(); render();
   }
-  const withCtx = (kind, fn) => kind === 'sec' ? inCtx(secCtx, fn) : fn();
+  const withCtx = (kind, fn) => kind === 'sec' || kind === 'secscore' ? inCtx(secCtx, fn) : fn();
   const isPrice = k => k === 'price' || k === 'sec';
-  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
+  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [$('secScoreCv'), 'secscore'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
     // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
     cv.addEventListener('pointerdown', e => withCtx(kind, () => {
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
@@ -1393,7 +1429,7 @@
     cv.addEventListener('pointermove', e => withCtx(kind, () => {
       if (drag && drag.cross) { setHover(idxAt(cv, e), kind, e); return; }   // réticule au doigt : suit le doigt, pas de déplacement
       if (drag && !drag.moved && e.pointerType === 'touch' && Math.abs(e.clientX - drag.x) > 8) lpClear();
-      if (drag && drag.handleTop) {             // poignée ◀ : le plus haut cours suit le curseur verticalement
+      if (drag && drag.handleTop) {             // poignée ▶ : le plus haut cours suit le curseur verticalement
         const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
         topPad = Math.min(0.6, Math.max(0, (e.clientY - r.top - PAD.t) / ph));
         tip.style.display = 'none'; hover = -1; syncSlider(); drawPrice(cv);
@@ -1427,7 +1463,7 @@
       lpClear();
       if (!drag) return;
       if (drag.cross) { drag = null; setHover(-1, kind); tip.style.display = 'none'; return; }   // on lâche : plus de réticule
-      if (kind !== 'sec' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
+      if (kind !== 'sec' && kind !== 'secscore' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
         const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
       }
       if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
@@ -1469,8 +1505,29 @@
     return new Map(rows.map((r, i) => [r.s, { rank: i + 1, score: r.score }]));
   }
   let secRows = [];            // une ligne par ETF : {x, rank, score, dev, delta, isNew, count}
+  // groupes (filtres) et libellé court du thème de chaque ETF, tiré de sa description (colonne « Groupe ») ; ETF inconnu : sa catégorie
+  const GRP = [['all', 'Tous'], ['Secteur', 'Secteurs'], ['Industrie', 'Industries'], ['Thème', 'Thèmes'], ['Matières', 'Matières'], ['Pays / région', 'Pays']];
+  const THEME = {
+    CIBR: 'Cybersécurité', CLOU: 'Cloud', XLK: 'Technologie', DRAM: 'Mémoire', XOP: 'Pétrole et gaz (E&P)', QTUM: 'Informatique quantique',
+    XLE: 'Énergie', DISK: 'Mémoire (active)', IYZ: 'Télécoms', HYDR: 'Hydrogène', XLV: 'Santé', XLC: 'Communication', GDX: 'Mines d\'or',
+    BKCH: 'Blockchain', PPH: 'Pharmaceutique', XBI: 'Biotech (équipondéré)', LIT: 'Lithium et batteries', SLV: 'Argent métal', UFO: 'Espace',
+    PBJ: 'Agroalimentaire', XLB: 'Matériaux', XRT: 'Distribution', XLF: 'Finance', XLU: 'Services aux collectivités', URA: 'Uranium',
+    KWEB: 'Internet chinois', XHB: 'Construction résidentielle', EWQ: 'France', TAN: 'Solaire', XAR: 'Aéronautique et défense',
+    NCLD: 'Neocloud (IA)', XLI: 'Industriels', XLY: 'Conso. discrétionnaire', XLP: 'Conso. de base', XLRE: 'Immobilier', SMH: 'Semi-conducteurs',
+    IGV: 'Logiciels', IBB: 'Biotech (grandes cap.)', IHI: 'Dispositifs médicaux', KRE: 'Banques régionales', KIE: 'Assurance',
+    JETS: 'Compagnies aériennes', IYT: 'Transport', OIH: 'Services pétroliers', XME: 'Métaux et mines', COPX: 'Mines de cuivre',
+    REMX: 'Terres rares', MOO: 'Agriculture', ICLN: 'Énergie propre', NLR: 'Nucléaire', BOTZ: 'Robotique et IA', ARKK: 'Innovation (ARK)',
+    FDN: 'Internet', PAVE: 'Infrastructures US', FINX: 'Fintech',
+  };
+  const theme = x => THEME[x.s] || x.g;
+  let secGroup = store.get('mm.secgrp') || 'all', secBuiltEnd = -1;
+  function secEnd() {                               // séance du classement : séance choisie dans « Stats du », sinon la dernière
+    const D = SEC.dates; if (!pinned) return D.length - 1;
+    for (let i = D.length - 1; i >= 0; i--) if (D[i] <= pinned) return i;
+    return D.length - 1;
+  }
   function secBuild() {
-    const end = SEC.dates.length - 1;
+    const end = secEnd(); secBuiltEnd = end;
     const now = secRanks(end), before = end >= 5 ? secRanks(end - 5) : new Map();
     secRows = SEC.symbols.map(x => {
       const n = now.get(x.s), b = before.get(x.s);
@@ -1483,26 +1540,18 @@
   const SEC_DEFS = {
     rank:  { label: 'Rang', k: 'rank', dir: 1 },
     sym:   { label: 'Symbole', k: 'sym', dir: 1, left: true },
-    nm:    { label: 'Nom', k: 'nm', dir: 1, left: true },
-    grp:   { label: 'Groupe', k: 'grp', dir: 1, left: true },
-    desc:  { label: 'Description', k: 'desc', dir: 1, left: true, title: 'Thème de l\'ETF' },
-    dev:   { label: 'Écart avg', k: 'dev', dir: -1, title: 'Écart avg = avgC7 / avgC65 − 1, en %' },
-    delta: { label: 'Δ rang 5 j', k: 'delta', dir: -1, title: 'Rang il y a 5 séances − rang actuel' },
+    grp:   { label: 'Groupe', k: 'grp', dir: 1, left: true, title: 'Thème de l\'ETF (description complète au survol)' },
+    dev:   { label: 'Écart', k: 'dev', dir: -1, title: 'Écart = avgC7 / avgC65 − 1, en %' },
+    delta: { label: 'Δ 5 j', k: 'delta', dir: -1, title: 'Rang il y a 5 séances − rang actuel' },
   };
-  const SEC_VAL = { rank: r => r.rank, sym: r => r.x.s, nm: r => r.x.n, grp: r => r.x.g, desc: r => r.x.d || '', dev: r => r.dev, delta: r => r.delta };
+  const SEC_VAL = { rank: r => r.rank, sym: r => r.x.s, nm: r => r.x.n, grp: r => theme(r.x), dev: r => r.dev, delta: r => r.delta };
   const SEC_ORDER0 = Object.keys(SEC_DEFS);
   let secCols = (() => {
     try {
       const a = JSON.parse(store.get('mm.seccols') || 'null');
-      if (Array.isArray(a)) {                       // ordre mémorisé : on garde les colonnes connues, on ajoute les nouvelles après « Groupe »
+      if (Array.isArray(a)) {                       // ordre mémorisé : on garde les colonnes connues (Nom, Description retirées), on ajoute les nouvelles à la fin
         const kept = a.filter((k, i) => SEC_ORDER0.includes(k) && a.indexOf(k) === i);
-        if (kept.length) {
-          SEC_ORDER0.filter(k => !kept.includes(k)).forEach(k => {
-            const at = k === 'desc' && kept.includes('grp') ? kept.indexOf('grp') + 1 : kept.length;
-            kept.splice(at, 0, k);
-          });
-          return kept;
-        }
+        if (kept.length) return kept.concat(SEC_ORDER0.filter(k => !kept.includes(k)));
       }
     } catch (e) { /* ordre illisible : ordre par défaut */ }
     return SEC_ORDER0.slice();
@@ -1511,7 +1560,7 @@
   let secSel = store.get('mm.secsel');                 // ETF sélectionné, mémorisé (continuité après « Actualiser »)
   function secSorted() {
     const val = SEC_VAL[secSort.k], dir = secSort.dir;
-    return secRows.slice().sort((a, b) => {
+    return secRows.filter(r => secGroup === 'all' || r.x.g === secGroup).sort((a, b) => {
       if ((a.rank == null) !== (b.rank == null)) return a.rank == null ? 1 : -1;   // sans rang : toujours en bas
       const va = val(a), vb = val(b);
       if (va == null || vb == null) return va == null && vb == null ? a.x.s.localeCompare(b.x.s) : va == null ? 1 : -1;
@@ -1525,7 +1574,9 @@
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
     const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
     wrap.style.height = free(wrap) + 'px';
-    cv.style.height = free(cv) + 'px';
+    if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }   // mobile : barre d'onglets en bas ; graphique en vh (CSS)
+    const sc = $('secScoreCard'), scoreH = (sc && sc.offsetHeight) || 200;
+    cv.style.height = Math.max(300, free(cv) - scoreH - 8 - 6) + 'px';   // la carte du score (et l'écart de 8 px) tient dans la fenêtre
   }
 
   function renderSectors() {
@@ -1535,14 +1586,15 @@
       body.innerHTML = '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_sectors.py</code> (fichier <code>sectors_data.js</code> à côté de ce HTML).</td></tr>';
       return;
     }
-    if (!secRows.length) secBuild();
+    if (!secRows.length || secBuiltEnd !== secEnd()) secBuild();
+    if (!GRP.some(([k]) => k === secGroup)) secGroup = 'all';
+    $('secFilt').innerHTML = GRP.map(([k, l]) => `<button data-g="${k}" class="${secGroup === k ? 'on' : ''}" aria-pressed="${secGroup === k}">${l}<span>${k === 'all' ? secRows.length : secRows.filter(r => r.x.g === k).length}</span></button>`).join('');
     const sorted = secSorted();
-    if (!secSel || !sorted.some(r => r.x.s === secSel)) secSel = (sorted.find(r => r.rank === 1) || sorted[0]).x.s;
+    if (!secSel || !sorted.some(r => r.x.s === secSel)) secSel = ((sorted.find(r => r.rank != null) || sorted[0]) || secRows[0]).x.s;
     store.set('mm.secsel', secSel);
-    const ranked = sorted.filter(r => r.rank != null);
     $('secHead').innerHTML = secCols.map(id => {
       const d = SEC_DEFS[id], arrow = secSort.k === d.k ? (secSort.dir > 0 ? '▲' : '▼') : '';
-      return `<th class="sortable${d.left ? ' l' : ''}" draggable="true" data-c="${id}" data-k="${d.k}" ` +
+      return `<th class="sortable c-${id}${d.left ? ' l' : ''}" draggable="true" data-c="${id}" data-k="${d.k}" ` +
         `title="${(d.title || 'Trier par ' + d.label) + ' · glisser pour déplacer'}">${d.label}<span class="arr">${arrow}</span></th>`;
     }).join('');
     const delta = r => {
@@ -1552,21 +1604,22 @@
     };
     const cell = {
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
-      sym: r => `<td class="sym l">${r.x.s}</td>`,
-      nm: r => `<td class="nm l" title="${r.x.n}">${r.x.n}</td>`,
-      grp: r => `<td class="grp l">${r.x.g}</td>`,
-      desc: r => `<td class="desc l" title="${(r.x.d || '').replace(/"/g, '&quot;')}">${r.x.d || ''}</td>`,
-      dev: r => r.dev != null ? `<td class="${cls(r.dev)}">${pct(r.dev)}</td>` : `<td><span class="tag">historique ${r.count}/65 séances</span></td>`,
+      sym: r => `<td class="sym l" title="${esc(r.x.n)}">${r.x.s}<span class="tsub">${theme(r.x)}</span></td>`,
+      grp: r => `<td class="grp l c-grp" title="${esc(r.x.d || r.x.n)}">${theme(r.x)}</td>`,
+      dev: r => r.dev != null ? `<td class="dev"><div class="devc">${dbar(r.dev)}<span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div></td>` : `<td><span class="tag">${r.count}/65 séances</span></td>`,
       delta: r => `<td>${delta(r)}</td>`,
     };
+    const esc = t => String(t).replace(/"/g, '&quot;');
+    const dmax = Math.max(1e-9, ...secRows.filter(r => r.dev != null).map(r => Math.abs(r.dev)));   // échelle commune à tous les filtres
+    const dbar = v => `<i class="${v >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.abs(v) / dmax * 100)}%"></i>`;
     let seenShort = false;
     body.innerHTML = sorted.map(r => {
       const cl = [r.x.s === secSel ? 'sel' : '', r.rank == null ? 'short' : '', r.rank == null && !seenShort ? 'sep' : ''].filter(Boolean).join(' ');
       if (r.rank == null) seenShort = true;
       return `<tr data-s="${r.x.s}" class="${cl}">${secCols.map(id => cell[id](r)).join('')}</tr>`;
     }).join('');
-    const short = secRows.length - ranked.length;
-    $('secMeta').textContent = `${fmtDate(SEC.asof)} · ${ranked.length} ETF classés${short ? ` · ${short} sans rang (moins de 65 séances)` : ''}`;
+    const nRanked = secRows.filter(r => r.rank != null).length, short = secRows.length - nRanked;
+    $('secMeta').textContent = `${fmtDate(SEC.dates[secBuiltEnd])} · ${nRanked} ETF classés${short ? ` · ${short} sans rang` : ''}`;
     const sel = body.querySelector && body.querySelector('tr.sel');
     fitSecLayout();
     if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
@@ -1577,7 +1630,7 @@
   let secDragCol = null;
   const secClearDrop = () => $('secHead').querySelectorAll && $('secHead').querySelectorAll('th').forEach(t => t.classList.remove('dropL', 'dropR', 'dragging'));
   $('secHead').addEventListener('click', e => {
-    const th = e.target.closest('th'); if (!th || !th.dataset.k) return;
+    const th = e.target.closest('th'); if (!th || !th.dataset.k || !SEC_DEFS[th.dataset.c || th.dataset.k]) return;   // colonne inconnue (retirée) : ignorée
     const k = th.dataset.k;
     secSort = secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: SEC_DEFS[th.dataset.c || k].dir };
     renderSectors();
@@ -1598,7 +1651,7 @@
     const th = e.target.closest('th'); if (!secDragCol || !th) return;
     e.preventDefault();
     const r = th.getBoundingClientRect(), after = e.clientX > r.left + r.width / 2, to = th.dataset.c;
-    if (to !== secDragCol) {
+    if (to !== secDragCol && SEC_DEFS[secDragCol] && secCols.includes(to)) {
       const order = secCols.filter(c => c !== secDragCol);
       order.splice(order.indexOf(to) + (after ? 1 : 0), 0, secDragCol);
       secCols = order; store.set('mm.seccols', JSON.stringify(secCols));
@@ -1609,7 +1662,14 @@
 
   $('secRows').addEventListener('click', e => {
     const tr = e.target.closest('tr'); if (!tr || !tr.dataset.s) return;
-    secSel = tr.dataset.s; renderSectors();
+    secSel = tr.dataset.s;
+    if (isMobile()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }   // mobile : vue détail
+    renderSectors();
+  });
+  $('secBack').addEventListener('click', () => { $('view-sec').classList.remove('detail'); renderSectors(); });
+  $('secFilt').addEventListener('click', e => {        // filtre par groupe : masque des lignes, les rangs restent ceux de l'ensemble
+    const b = e.target.closest('button'); if (!b || !b.dataset.g) return;
+    secGroup = b.dataset.g; store.set('mm.secgrp', secGroup); renderSectors();
   });
   document.addEventListener('keydown', e => {          // ↑ ↓ : ETF précédent / suivant dans l'ordre affiché
     if (tab !== 'sec' || !SEC || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
@@ -1667,20 +1727,58 @@
   function secHeader() {
     const row = secRows.find(r => r.x.s === secSel); if (!row) return;
     $('secTitle').textContent = `${row.x.s} · ${row.x.n}`;
-    $('secInfo').innerHTML = row.rank != null
-      ? `${row.x.g}${row.x.d ? ' · ' + row.x.d : ''}<br>rang ${row.rank} · avgC7 / avgC65 ${nf(row.score, 3)} · écart avg <span class="${cls(row.dev)}">${pct(row.dev)}</span>` +
-        ` · Δ rang ${row.isNew ? 'nouveau' : row.delta > 0 ? '▲ ' + row.delta : row.delta < 0 ? '▼ ' + (-row.delta) : '='}`
-      : `${row.x.g}${row.x.d ? ' · ' + row.x.d : ''}<br>sans rang (historique ${row.count}/65 séances)`;
+    const nR = secRows.filter(r => r.rank != null).length;
+    $('secInfo').textContent = `${row.x.g === 'Pays / région' ? 'Pays' : row.x.g}${row.x.d ? ' · ' + row.x.d : ''}`;
+    $('secScoreNow').innerHTML = row.rank != null
+      ? `${fmtDate(SEC.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.score, 3)}</b> · écart <span class="${cls(row.dev)}">${pct(row.dev)}</span> · rang <b>${row.rank}</b>/${nR}` +
+        ` · Δ 5 j ${row.isNew ? 'nouveau' : row.delta > 0 ? '<span class="pos">▲ ' + row.delta + '</span>' : row.delta < 0 ? '<span class="neg">▼ ' + (-row.delta) + '</span>' : '='}`
+      : `sans rang (historique ${row.count}/65 séances)`;
   }
   function secRedraw() {
     if (!SEC || !secRows.length) return;
     secLoad();
-    inCtx(secCtx, () => { applyViewport(); drawPrice(cvSec); syncSlider(); });
+    inCtx(secCtx, () => { applyViewport(); drawPrice(cvSec); drawSecScore(); secOverlay(); syncSlider(); });
     secHeader();
   }
+  const cvScore = $('secScoreCv');
+  function secOverlay() {                                // légende posée sur le graphique : OHLC + valeur de chaque MM (séance survolée, choisie ou dernière)
+    const d = hover >= 0 ? T[hover] : pinned && bars.get(pinned) ? pinned : null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) return;
+    $('secOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
+      `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
+    $('secMa').innerHTML = maChipsHtml(b);
+  }
+  function secScoreTip(d) {                              // infobulle de la carte du score
+    const b = bars.get(d); if (!b || b.r == null) return `<b>${fmtDate(d)}</b>Score indisponible (moins de 65 séances)`;
+    return `<b>${fmtDate(d)}</b><div>avgC7 / avgC65 : ${nf(b.r, 3)}</div><div>écart <span class="${cls((b.r - 1) * 100)}">${pct((b.r - 1) * 100)}</span></div>`;
+  }
+  function drawSecScore() {                              // score avgC7 / avgC65 dans le temps, même fenêtre de dates que le prix
+    if (!cvScore.clientWidth) return;
+    const c = setup(cvScore); if (!c.n) return;
+    const { g, ph, X, pw } = c, vals = T.map(d => { const b = bars.get(d); return b && b.r != null ? b.r : null; });
+    const have = vals.filter(v => v != null); if (!have.length) { xLabels(c); return; }
+    let lo = Math.min(1, ...have), hi = Math.max(1, ...have); const m = (hi - lo) * 0.12 || 0.01; lo -= m; hi += m;
+    const Y = v => PAD.t + (hi - v) / (hi - lo) * ph, y1 = Y(1);
+    grid(c, niceTicks(lo, hi, 4), Y, v => nf(v, 2)); xLabels(c);
+    for (const [above, col] of [[true, '--upbg'], [false, '--downbg']]) {   // aire entre la courbe et 1,00 : bleue au-dessus, rouge en dessous
+      g.save(); g.beginPath(); g.rect(PAD.l, above ? PAD.t : y1, pw, above ? y1 - PAD.t : PAD.t + ph - y1); g.clip();
+      g.fillStyle = css(col).replace(/[\d.]+\)$/, '0.32)'); g.beginPath(); let first = -1, last = -1;
+      vals.forEach((v, i) => { if (v == null) return; if (first < 0) { first = i; g.moveTo(X(i), y1); } g.lineTo(X(i), Y(v)); last = i; });
+      if (last >= 0) { g.lineTo(X(last), y1); g.closePath(); g.fill(); }
+      g.restore();
+    }
+    g.save(); g.setLineDash([4, 3]); g.strokeStyle = css('--muted'); g.beginPath(); g.moveTo(PAD.l, Math.round(y1) + .5); g.lineTo(PAD.l + pw, Math.round(y1) + .5); g.stroke(); g.restore();
+    g.strokeStyle = css('--text'); g.lineWidth = 1.6; g.lineJoin = 'round'; g.beginPath(); let pen = false;
+    vals.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
+    g.stroke(); g.lineWidth = 1;
+    cursor(c);
+    const si = T.indexOf(SEC.dates[secBuiltEnd]);         // séance du classement : point sur la courbe
+    if (si >= 0 && vals[si] != null) { g.fillStyle = css('--text'); g.beginPath(); g.arc(X(si), Y(vals[si]), 3.5, 0, 7); g.fill(); }
+  }
   function renderSecBar() {                              // moyennes mobiles (config partagée) + légendes
-    $('secMa').innerHTML = maChipsHtml();
     $('secTrend').innerHTML = trendLegendHtml();
+    if (SEC && secRows.length) inCtx(secCtx, secOverlay);
   }
   $('secTrend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); secRedraw(); }
@@ -1696,7 +1794,7 @@
   // La fenêtre est définie en dates (BTC trade le week-end, pas QQQ ni IWM) : préréglage 3M…Tout, ou zoom / déplacement manuel.
   const CMP = ['QQQ', 'IWM', 'BTC'].filter(n => NAMES.includes(n));
   const DAY = 86400000, ts = d => Date.parse(d + 'T00:00:00Z');
-  const MPAD = { l: 6, r: 54, t: 8, b: 22 };
+  const MPAD = { l: 54, r: 6, t: 8, b: 22 };   // axe des valeurs à gauche, comme le graphique principal
   let cmpWin = null;           // {start, end} en ms après un geste manuel ; sinon dérivée du préréglage actif
   let cmpHover = null;         // date survolée, partagée par les trois graphiques
   let mdrag = null;
@@ -1765,11 +1863,11 @@
     const hi = lo + (top - lo) / (1 - topPad);               // espace au-dessus du plus haut cours (réglage partagé)
     const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
 
-    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     for (const t of niceTicks(lo, hi, 5)) {
       const y = Math.round(Y(t)) + 0.5;
       g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
-      g.fillStyle = css('--ctext'); g.fillText(nf(t, pxd(t)), W - MPAD.r + 5, y);
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, pxd(t)), MPAD.l - 5, y);
     }
     g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css('--ctext');
     const step = Math.max(1, Math.round(n / 4)), long = (win.end - Math.max(win.start, ts(vis[0].d))) > 400 * DAY;
@@ -1808,9 +1906,9 @@
     if (lastB && Y(lastB.c) >= MPAD.t && Y(lastB.c) <= MPAD.t + ph) {
       const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown');
       g.save(); g.strokeStyle = col; g.globalAlpha = 0.55; g.setLineDash([2, 3]); g.lineWidth = 1;
-      g.beginPath(); g.moveTo(li >= 0 ? X(li) : MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke(); g.restore();
-      g.fillStyle = col; g.fillRect(W - MPAD.r + 1, y - 9, MPAD.r - 4, 18);
-      g.fillStyle = '#000'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), W - MPAD.r + 4, y);
+      g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(li >= 0 ? X(li) : W - MPAD.r, y); g.stroke(); g.restore();
+      g.fillStyle = col; g.fillRect(MPAD.l - 51, y - 9, 50, 18);
+      g.fillStyle = '#000'; g.textAlign = 'right'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), MPAD.l - 5, y);
     }
     const b = vis[hi_ >= 0 ? hi_ : n - 1], perf = 100 * (b.c / vis[0].c - 1);
     m.ma.innerHTML = maChipsHtml(b);
@@ -1863,11 +1961,11 @@
       ticks = niceTicks(lo, hi, 4); refs = [20, 30].filter(v => v > lo && v < hi);
     }
     const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
-    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     for (const t of ticks) {
       const y = Math.round(Y(t)) + 0.5;
       g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
-      g.fillStyle = css('--ctext'); g.fillText(nf(t, t % 1 ? 1 : 0), W - MPAD.r + 5, y);
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, t % 1 ? 1 : 0), MPAD.l - 5, y);
     }
     g.setLineDash([4, 4]); g.strokeStyle = css('--cref');
     for (const r of refs) { const y = Math.round(Y(r)) + 0.5; g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke(); }
@@ -1929,11 +2027,11 @@
     const val = (s, b) => b.c / s.base * 100, all = m.ser.flatMap(s => s.v.map(b => val(s, b)));
     let lo = Math.min(100, ...all), hi = Math.max(100, ...all); const p = (hi - lo) * 0.06 || 1; lo -= p; hi += p;
     const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
-    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
     for (const t of niceTicks(lo, hi, 5)) {
       const y = Math.round(Y(t)) + 0.5;
       g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
-      g.fillStyle = css('--ctext'); g.fillText(nf(t, 0), W - MPAD.r + 5, y);
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, 0), MPAD.l - 5, y);
     }
     g.setLineDash([4, 4]); g.strokeStyle = css('--cref');                  // repère 100 = niveau de départ
     const y100 = Math.round(Y(100)) + 0.5; g.beginPath(); g.moveTo(MPAD.l, y100); g.lineTo(W - MPAD.r, y100); g.stroke(); g.setLineDash([]);
@@ -2258,7 +2356,7 @@
     });
   });
 
-  // curseur « Espace en haut » : place le plus haut cours plus ou moins bas dans le graphique (comme la poignée ◀)
+  // curseur « Espace en haut » : place le plus haut cours plus ou moins bas dans le graphique (comme la poignée ▶)
   $('topPad').addEventListener('input', e => {
     topPad = Math.min(0.6, Math.max(0, +e.target.value / 100));
     store.set('mm.top', String(Math.round(topPad * 100)));
@@ -2318,7 +2416,7 @@
   // ------------------------------------------------------------------ plage de dates : dans la barre du graphique de l'onglet actif
   function placeRanges() {
     const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box);
-    const ds = $(tab === 'cmp' ? 'dslot-cmp' : 'dslot-main'), db = $('datebar'); if (ds && db && ds.appendChild) ds.appendChild(db);   // « Stats du » : MM et SA
+    const ds = $(tab === 'cmp' ? 'dslot-cmp' : tab === 'sec' ? 'dslot-sec' : 'dslot-main'), db = $('datebar'); if (ds && db && ds.appendChild) ds.appendChild(db);   // « Stats du » : MM, SA et Secteurs
   }
   placeRanges();
 
@@ -2331,7 +2429,7 @@
   let kpiRaf = 0;
   const scheduleKpis = () => { cancelAnimationFrame(kpiRaf); kpiRaf = requestAnimationFrame(() => renderKpis()); };
   function setPinned(d) {
-    pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis(); renderDatebar();
+    pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis(); renderDatebar(); if (tab === 'sec') renderSectors();
   }
   // ---- sélecteur de date : séance choisie (ou dernière), ‹ › = séance précédente / suivante, « Aujourd'hui » = dernière séance
   const sessions = () => sbDates();
@@ -2486,10 +2584,19 @@
   });
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
+  const SEC_TIPS = () => ({
+    secrank: ['Classement avgC7 / avgC65', `<p><b>Score</b> = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières (formule TC2000). Au-dessus de 1, les cours récents sont au-dessus de leur moyenne d'environ 3 mois.</p>
+      <p><b>Écart</b> = score − 1, en %. La barre derrière le chiffre est proportionnelle au plus grand écart de la séance. <b>Δ 5 j</b> = rang d'il y a 5 séances − rang du jour (▲ : l'ETF gagne des places).</p>
+      <p>Le classement suit la séance choisie dans <b>Stats du</b>. Les filtres masquent des lignes sans changer les rangs (rang sur l'ensemble des ETF).</p>
+      <p>Clic sur un en-tête : trier · glisser un en-tête : déplacer la colonne · ↑ ↓ : ETF précédent / suivant.</p><p class="src">Source : Yahoo Finance (clôtures non ajustées des dividendes, comme TC2000).</p>`],
+    sectrend: ['Graphique de l\'ETF', `<p>Bougies journalières et moyennes mobiles, mêmes réglages que l'onglet MM (Réglages). La légende donne les valeurs de la séance survolée, sinon de la séance choisie dans <b>Stats du</b>, sinon de la dernière.</p><p class="src">Source : Yahoo Finance.</p>`],
+    secscore: ['Score dans le temps', `<p>Courbe : avgC7 / avgC65 à chaque séance, la valeur qui fixe le rang du tableau. Ligne pointillée : <b>1,00</b> (moyenne courte = moyenne longue). Zone bleue : au-dessus ; rouge : en dessous.</p><p>Le point marque la séance du classement.</p>`],
+  });
   const pop = $('pop'); let tipOpen = null, tipHoverTimer = 0;
   const canHover = () => { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; } };
   function openTip(id, btn, how) {
     document.querySelectorAll('.tipbtn[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    if (id && !TIPS[id] && SEC_TIPS()[id]) TIPS[id] = SEC_TIPS()[id];
     if (!id || !TIPS[id] || (tipOpen && tipOpen.id === id && how === 'click' && tipOpen.how === 'click')) { pop.hidden = true; tipOpen = null; return; }
     tipOpen = { id, how }; btn.setAttribute('aria-expanded', 'true');
     pop.innerHTML = `<h5>${TIPS[id][0]}<button aria-label="Fermer"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button></h5>${TIPS[id][1]}`;
