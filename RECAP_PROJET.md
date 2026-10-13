@@ -151,6 +151,12 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Retours du 13/10 (3e série)** : onglets renommés **MM** (ex-Marché) et **SA** (ex-QQQ · IWM · BTC) ; **aucun saut d'affichage au
+  survol** (étiquette « record » posée sur le bord de la case, encadré en `outline`, hauteurs fixes des lignes, note et légende sur une
+  ligne ; mesuré : 0 px de variation en 965 et 1440 px) ; titres courts « Ratio 5 j », « Ratio mois », « Ratio trim. » (libellé complet au
+  survol) ; les 3 tableaux du bas remplacés par **3 graphiques de ratio** (5 j / 10 j ±4 %, mois ±25 %, trimestre ±25 %) alignés sur
+  l'axe des dates, zones haussière / baissière, seuils en pointillés, records 3 mois ; échec du calcul maison affiché discrètement
+  (« calcul maison indisponible », sans alerte orange : contrôle croisé non bloquant).
 - **Retours du 13/10 (2e série)** : PC = marges latérales 48 px + **molette seule = défilement de la page, Ctrl / ⌘ + molette (ou
   pincement trackpad) = zoom** (message au 1er essai) ; **glisser sur l'axe des dates = zoom** (droite = avant, gauche = arrière), aussi
   au doigt ; tableau du bas remplacé par **3 tableaux** (±4 % : +4, −4, 5 j, 10 j · mois ±25 % · trimestre ±25 % : +25, −25, ratio) ;

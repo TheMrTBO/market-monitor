@@ -151,11 +151,8 @@
   th:first-child, td:first-child { text-align: left; }
   thead th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
   th.sep, td.sep { border-left: 1px solid var(--border); }
-  .tables3 { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin-top: 12px; }
-  .tables3 .tablewrap { margin-top: 0; max-height: 420px; }
-  .tcap { position: sticky; top: 0; left: 0; z-index: 2; background: var(--panel); padding: 8px 10px 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
-  .tables3 thead th { top: 26px; }
-  @media (max-width: 900px) { .tables3 { grid-template-columns: minmax(0, 1fr); } }
+  .rcard .chrow { padding-bottom: 4px; } .rcard .ttl { font-size: 13px; font-weight: 600; }
+  .rcard canvas { height: 150px; }
   tbody tr:nth-child(even) { background: color-mix(in srgb, var(--grid) 40%, transparent); }
   tbody tr.hl { outline: 1px solid var(--up); }
   .pos { color: var(--up); } .neg { color: var(--down); }
@@ -193,11 +190,13 @@
   .toast .x { margin-left: auto; border: 0; background: none; padding: 0 2px; color: var(--muted); }
 
   /* ---- bandeau « état du marché » */
-  .kpis { display: grid; grid-template-columns: 1.55fr repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
+  .kpis { display: grid; grid-template-columns: 1.4fr repeat(5, minmax(0, 1fr)); gap: 14px 8px; margin: 10px 0 4px; }   /* place pour les étiquettes « record » */
   .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px 8px; min-width: 0; }
   .kpi .top { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .kpi .top { flex-wrap: wrap; row-gap: 3px; }      /* titre jamais tronqué : le badge passe à la ligne si besoin */
-  .kidx .top .lbl { overflow: hidden; text-overflow: ellipsis; }
+  .kpi .top .lbl { overflow: hidden; text-overflow: ellipsis; min-width: 0; }   /* une seule ligne : la case ne change pas de hauteur au survol */
+  /* hauteurs fixes : le contenu change au survol (valeurs, pastilles ▲ / ▼), pas la taille des cases */
+  .kpi .top { height: 20px; } .kpi .val { height: 30px; line-height: 30px; white-space: nowrap; } .kpi .ksub { height: 18px; line-height: 18px; }
+  .irow { height: 26px; } .irow .rec { line-height: 14px; padding-top: 0; padding-bottom: 0; } .g3 { height: 14px; }
   .kpi .val { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
@@ -206,32 +205,33 @@
   .b-up { background: var(--upbg); color: var(--up); } .b-down { background: var(--downbg); color: var(--down); }
   .b-warn { background: var(--warnbg); color: var(--warn); } .b-neutral { background: var(--neutralbg); color: var(--muted); }
   .kidx .rows { display: grid; gap: 2px; margin-top: 6px; }
-  .irow { display: grid; grid-template-columns: 36px minmax(0, 1fr) 62px 76px; align-items: center; gap: 6px; width: calc(100% + 12px); padding: 3px 6px;
+  .irow { display: grid; grid-template-columns: 36px minmax(0, 1fr) 74px 76px; align-items: center; gap: 6px; width: calc(100% + 12px); padding: 3px 6px;
           margin: 0 -6px; border: 0; background: none; border-radius: 6px; font-size: 12.5px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
   .irow b { text-align: left; font-weight: 600; } .irow:hover { background: var(--hover); } .irow.on { background: var(--hover); box-shadow: inset 2px 0 0 var(--up); }
   .chip { font-size: 11px; font-weight: 600; padding: 1px 0; border-radius: 999px; text-align: center; }
   .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
   .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
-  .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; }
+  .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
   .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; white-space: nowrap; display: inline-block; }
   .rec.ru { background: var(--upbg); color: var(--up); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 45%, transparent); }
   .rec.rd { background: var(--downbg); color: var(--down); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 45%, transparent); }
   /* case dont le chiffre principal bat son plus haut / plus bas des 3 mois : fond teinté, bordure, bandeau */
-  .kpi.hot-up, .kpi.hot-dn, .kpi.hot-warn { border-width: 2px; padding: 0 11px 7px; }
+  .kpi { position: relative; }
+  .kpi.hot-up, .kpi.hot-dn, .kpi.hot-warn { outline: 2px solid; outline-offset: -1px; }
   /* indicateur retardé (±25 %, T2108) à un extrême 3 mois : information, en orange et en pointillés */
-  .kpi.hot-warn { border-color: var(--warn); border-style: dashed; }
-  .hot-warn .kban { background: var(--warnbg); color: var(--warn); border-bottom: 1px dashed var(--warn); }
-  .kban { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kpi.hot-up { border-color: var(--up); background: color-mix(in srgb, var(--up) 11%, var(--panel)); }
-  .kpi.hot-dn { border-color: var(--down); background: color-mix(in srgb, var(--down) 11%, var(--panel)); }
-  .kban { margin: 0 -11px 7px; padding: 3px 11px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #fff; border-radius: 7px 7px 0 0; }
+  .kpi.hot-warn { outline-style: dashed; outline-color: var(--warn); }
+  .hot-warn .kban { background: var(--panel); color: var(--warn); box-shadow: inset 0 0 0 1.5px var(--warn); }
+  .kpi.hot-up { outline-color: var(--up); background: color-mix(in srgb, var(--up) 11%, var(--panel)); }
+  .kpi.hot-dn { outline-color: var(--down); background: color-mix(in srgb, var(--down) 11%, var(--panel)); }
+  .kban { position: absolute; top: -10px; left: 10px; max-width: calc(100% - 20px); height: 19px; line-height: 19px; padding: 0 9px; border-radius: 999px;
+          font-size: 10.5px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; z-index: 1; }
   .hot-up .kban { background: var(--up); } .hot-dn .kban { background: var(--down); }
   .g3 { display: flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
   .g3 .gt { color: var(--muted); font-weight: 600; } .g3 .gb { flex: 1; height: 4px; border-radius: 2px; background: var(--border); position: relative; }
   .g3 i { position: absolute; top: -3px; width: 4px; height: 10px; margin-left: -2px; border-radius: 2px; background: var(--text); }
   .g3 i.ru { background: var(--up); box-shadow: 0 0 0 3px var(--upbg); } .g3 i.rd { background: var(--down); box-shadow: 0 0 0 3px var(--downbg); }
-  .kidx.r3 .irow { grid-template-columns: 36px minmax(0, 1fr) 62px 48px 76px; } .irow .rt .rec { margin-left: 0; vertical-align: 0; }
+  .irow > span:nth-child(3) { white-space: nowrap; }
   .recn { font-weight: 700; } .recn.ru { color: var(--up); } .recn.rd { color: var(--down); } .recn.rw { color: var(--warn); }
   .rec.rw { background: var(--warnbg); color: var(--warn); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 45%, transparent); }
   .g3 i.rw { background: var(--warn); box-shadow: 0 0 0 3px var(--warnbg); }
@@ -355,11 +355,11 @@
   .rangebox { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .trendleg { margin: 0; font-size: 11px; }
   .trendleg i { width: 9px; height: 9px; }
-  .ovl { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 14px; background: var(--cbg); color: var(--ctext); padding: 7px 10px 2px;
+  .ovl { display: flex; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; align-items: center; gap: 3px 14px; background: var(--cbg); color: var(--ctext); padding: 7px 10px 2px;
          border-radius: 6px 6px 0 0; font-size: 12px; font-variant-numeric: tabular-nums; }
   .ovl b { color: #e3e7ee; font-weight: 500; }
-  .ohlc { display: inline-flex; gap: 10px; flex-wrap: wrap; } .ohlc .d { color: #e3e7ee; font-weight: 600; }
-  .mabar { display: inline-flex; gap: 3px 12px; flex-wrap: wrap; }
+  .ohlc { display: inline-flex; gap: 10px; flex-wrap: nowrap; } .ohlc .d { color: #e3e7ee; font-weight: 600; }
+  .mabar { display: inline-flex; gap: 3px 12px; flex-wrap: nowrap; }
   .mabar .ma { display: inline-flex; align-items: center; gap: 5px; user-select: none; }
   .mabar .ma i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; }
   .mabar .ma .nm { cursor: pointer; } .mabar .ma.off { opacity: .45; } .mabar .ma.off .nm { text-decoration: line-through; }
@@ -386,8 +386,8 @@
   <header>
     <div class="brand"><span class="logo" aria-hidden="true"><svg class="i" style="stroke:#fff;width:14px;height:14px"><use href="#i-candle"/></svg></span>Market Monitor</div>
     <div class="group tabs seg" id="tabs" role="tablist">
-      <button data-tab="main" role="tab" class="on">Marché</button>
-      <button data-tab="cmp" role="tab">QQQ · IWM · BTC</button>
+      <button data-tab="main" role="tab" class="on" title="Market Monitor : état du marché, prix et breadth">MM</button>
+      <button data-tab="cmp" role="tab" title="QQQ · IWM · BTC côte à côte, T2108 et VIX">SA</button>
       <button data-tab="sec" role="tab">Secteurs</button>
     </div>
     <span class="hspacer"></span>
@@ -535,10 +535,16 @@
 
   </div>
 
-  <div class="tables3">
-    <div class="tablewrap"><div class="tcap">Séance ±4 %</div><table><thead><tr id="thead"></tr></thead><tbody id="rows"></tbody></table></div>
-    <div class="tablewrap"><div class="tcap">Mois ±25 %</div><table><thead><tr id="theadM"></tr></thead><tbody id="rowsM"></tbody></table></div>
-    <div class="tablewrap"><div class="tcap">Trimestre ±25 %</div><table><thead><tr id="theadQ"></tr></thead><tbody id="rowsQ"></tbody></table></div>
+  <div class="rcharts">
+    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio 5 j / 10 j ±4 %</span><button class="tipbtn" data-tip="r5" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumR5"></span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i class="ln" style="background:var(--muted)"></i>ratio 10 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone haussière (≥ 1,5)</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone baissière (&lt; 1)</span></div>
+      <canvas id="rt5"></canvas></div>
+    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio ±25 % mois</span><button class="tipbtn" data-tip="rm" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRm"></span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <canvas id="rtm"></canvas></div>
+    <div class="card rcard"><div class="chrow"><span class="ttl">Ratio ±25 % trimestre</span><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <canvas id="rtq"></canvas></div>
   </div>
   </div>
 
@@ -552,8 +558,8 @@
 </div>
 
 <nav class="tabbar" id="tabbar" aria-label="Onglets">
-  <button data-tab="main" class="on"><svg class="i"><use href="#i-candle"/></svg>Marché</button>
-  <button data-tab="cmp"><svg class="i"><use href="#i-cols"/></svg>Comparer</button>
+  <button data-tab="main" class="on"><svg class="i"><use href="#i-candle"/></svg>MM</button>
+  <button data-tab="cmp"><svg class="i"><use href="#i-cols"/></svg>SA</button>
   <button data-tab="sec"><svg class="i"><use href="#i-list"/></svg>Secteurs</button>
   <button id="moreBtn" aria-haspopup="dialog"><svg class="i"><use href="#i-dots"/></svg>Plus</button>
 </nav>
@@ -912,6 +918,7 @@
     drawHist(cvHist, 'up4', 'down4'); drawNet(cvNet4, 'up4', 'down4');
     drawHist(cvHistM, 'up25m', 'down25m'); drawNet(cvNetM, 'up25m', 'down25m');
     drawHist(cvHist2, 'up25q', 'down25q'); drawNet(cvNet25, 'up25q', 'down25q');
+    drawRatio(cvR5, 'ratio5', 'ratio10', TH.ratio5); drawRatio(cvRm, 'rm', null, TH.rm); drawRatio(cvRq, 'rq', null, TH.rq);
     if (tab === 'cmp') renderCmp();
     if (tab === 'sec') { fitSecLayout(); secRedraw(); }
   };
@@ -1135,6 +1142,28 @@
     cursor(c);
   }
 
+  // graphique d'un ratio (même axe des dates que le prix) : zones haussière / baissière, seuils, records 3 mois
+  const cvR5 = $('rt5'), cvRm = $('rtm'), cvRq = $('rtq');
+  function drawRatio(cv, k, k2, thr) {
+    if (!cv.clientWidth) return;
+    const c = setup(cv); if (!c.n) return;
+    const { g, ph, X, pw } = c, f = serFn(k), vals = T.map(f), vals2 = k2 ? T.map(serFn(k2)) : [];
+    const all = vals.concat(vals2).filter(v => v != null); if (!all.length) return;
+    const top = Math.max(thr[1] * 1.15, ...all) * 1.05, ticks = niceTicks(0, top, 4).filter(t => t <= top), hi = top, Y = v => PAD.t + (hi - v) / hi * ph;
+    g.fillStyle = css('--downbg'); g.fillRect(PAD.l, Y(thr[0]), pw, Y(0) - Y(thr[0]));          // zone baissière
+    g.fillStyle = css('--upbg'); g.fillRect(PAD.l, Y(hi), pw, Y(thr[1]) - Y(hi));               // zone haussière
+    grid(c, ticks, Y, v => nf(v, v % 1 ? 1 : 0)); xLabels(c);
+    g.save(); g.setLineDash([4, 3]);
+    for (const [t, col] of [[thr[0], '--down'], [thr[1], '--up']]) { g.strokeStyle = css(col); g.beginPath(); g.moveTo(PAD.l, Math.round(Y(t)) + .5); g.lineTo(PAD.l + pw, Math.round(Y(t)) + .5); g.stroke(); }
+    g.restore();
+    const line = (vv, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.lineJoin = 'round'; g.beginPath(); let pen = false;
+      vv.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; }); g.stroke(); g.lineWidth = 1; };
+    if (k2) line(vals2, css('--muted'), 1.3);
+    line(vals, css('--text'), 1.8);
+    T.forEach((d, i) => { const r = vals[i] == null ? 0 : recOf(k, d); if (r) tri(g, X(i), r > 0 ? Y(vals[i]) - 4 : Y(vals[i]) + 4, r > 0, true, recCol(k, r)); });
+    cursor(c);
+  }
+
   // ------------------------------------------------------------------ tuiles, tableau, infobulle
   function lastIdx() { for (let i = T.length - 1; i >= 0; i--) if (SB.has(T[i])) return i; return T.length - 1; }
 
@@ -1146,18 +1175,13 @@
       const a = sb(d, u), b = sb(d, dn);
       $(id).innerHTML = a == null ? '' : `${fmtDate(d)} · <span class="pos">+${nf(a)}</span> / <span class="neg">−${nf(b)}</span> · solde <b class="${cls(a - b)}">${signed(a - b)}</b>`;
     }
-    for (const id of ['rows', 'rowsM', 'rowsQ']) {             // ligne de la séance affichée surlignée dans les trois tableaux
-      $(id).querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
-      const row = $(id).querySelector(`tr[data-d="${d}"]`); if (row) row.classList.add('hl');
-    }
+    // lectures des graphiques de ratio pour la séance affichée
+    const rv = (k, dd) => { const v = serFn(k)(dd); return v == null ? '—' : recNum(k, dd, nf(v, 2)); };
+    $('sumR5').innerHTML = `${fmtDate(d)} · 5 j <b class="${rcls(sb(d, 'ratio5'), 'ratio5')}">${rv('ratio5', d)}</b> · 10 j <span class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${rv('ratio10', d)}</span>`;
+    $('sumRm').innerHTML = `${fmtDate(d)} · <b class="${rcls(serFn('rm')(d), 'rm')}">${rv('rm', d)}</b> (${nf(sb(d, 'up25m'))} / ${nf(sb(d, 'down25m'))})`;
+    $('sumRq').innerHTML = `${fmtDate(d)} · <b class="${rcls(serFn('rq')(d), 'rq')}">${rv('rq', d)}</b> (${nf(sb(d, 'up25q'))} / ${nf(sb(d, 'down25q'))})`;
   }
 
-  // trois tableaux : ±4 % (hausse, baisse, ratios 5 et 10 j), mois ±25 % et trimestre ±25 % (hausse, baisse, ratio) ;
-  // intensité du fond = valeur rapportée au 95e centile de l'année écoulée
-  const th = cols => cols.map(([h, sep]) => `<th${sep ? ' class="sep"' : ''}>${h}</th>`).join('');
-  $('thead').innerHTML = th([['Date'], ['+4 %'], ['−4 %'], ['5 j', 1], ['10 j']]);
-  $('theadM').innerHTML = th([['Date'], ['+25 %'], ['−25 %'], ['Ratio', 1]]);
-  $('theadQ').innerHTML = th([['Date'], ['+25 %'], ['−25 %'], ['Ratio', 1]]);
   const P95 = {};
   const p95 = k => {
     if (P95[k] == null) { const a = STOCKBEE.rows.slice(-252).map(r => r[COL[k]]).filter(v => v != null).sort((x, y) => x - y); P95[k] = a.length ? a[Math.floor(a.length * 0.95)] || 1 : 1; }
@@ -1165,21 +1189,8 @@
   };
   const heat = (v, k, col) => v == null ? '' : ` style="background:color-mix(in srgb, var(${col}) ${Math.round(Math.min(1, v / p95(k)) * 30)}%, transparent)"`;
   const rcls = (v, k) => v == null ? '' : v < TH[k][0] ? 'neg' : v >= TH[k][1] ? 'pos' : '';
-  function renderTable() {
-    const dates = T.filter(d => SB.has(d)).reverse().slice(0, 400), day = d => fmtDate(d, { day: 'numeric', month: 'short', year: '2-digit' });
-    $('rows').innerHTML = dates.map(d => {
-      const up = sb(d, 'up4'), dn = sb(d, 'down4');
-      return `<tr data-d="${d}"><td>${day(d)}</td><td${heat(up, 'up4', '--up')}>${recNum('up4', d, nf(up))}</td><td${heat(dn, 'down4', '--down')}>${recNum('down4', d, nf(dn))}</td>` +
-        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${recNum('ratio5', d, nf(sb(d, 'ratio5'), 2))}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${recNum('ratio10', d, nf(sb(d, 'ratio10'), 2))}</td></tr>`;
-    }).join('');
-    for (const [id, u, v, rk, tk] of [['rowsM', 'up25m', 'down25m', 'rm', 'rm'], ['rowsQ', 'up25q', 'down25q', 'rq', 'rq']]) {
-      $(id).innerHTML = dates.filter(d => sb(d, u) != null).map(d => {
-        const a = sb(d, u), b = sb(d, v), r = a == null || !b ? null : a / b;
-        return `<tr data-d="${d}"><td>${day(d)}</td><td${heat(a, u, '--up')}>${recNum(u, d, nf(a))}</td><td${heat(b, v, '--down')}>${recNum(v, d, nf(b))}</td>` +
-          `<td class="sep ${rcls(r, tk)}">${recNum(rk, d, nf(r, 2))}</td></tr>`;
-      }).join('');
-    }
-  }
+  function renderTable() { /* tableaux remplacés par les graphiques des ratios (drawRatio) */ }
+
 
 
   const tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip);
@@ -1198,6 +1209,11 @@
       const trend = `<div style="margin-top:2px">Tendance : ${b.st ? trendLabel(b.st) : 'aucune couleur'}</div>`;
       const avg = b.a7 === undefined ? '' : `<div style="margin-top:2px">avgC7 / avgC65 : ${b.r == null ? '—' : nf(b.r, 3)}</div>`;
       return `<b>${fmtDate(d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div><div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${smaRows}${trend}${avg}`;
+    }
+    if (kind === 'r5' || kind === 'rm' || kind === 'rq') {
+      const f = serFn(kind === 'r5' ? 'ratio5' : kind), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
+      return kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div><div>Ratio 10 j : ${nf(sb(d, 'ratio10'), 2)}</div>`
+        : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`;
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
@@ -1260,7 +1276,7 @@
   }
   const withCtx = (kind, fn) => kind === 'sec' ? inCtx(secCtx, fn) : fn();
   const isPrice = k => k === 'price' || k === 'sec';
-  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2']]) {
+  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
     // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
     cv.addEventListener('pointerdown', e => withCtx(kind, () => {
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
@@ -1906,7 +1922,7 @@
   function renderMtop() {
     const lb = [...bars.values()].pop();
     $('minst').innerHTML = tab === 'main' ? `${current} ${lb ? `<span>${nf(lb.c, pxd(lb.c))} <span class="${cls(lb.chg)}">${pct(lb.chg)}</span></span>` : ''}`
-      : tab === 'cmp' ? 'QQQ · IWM · BTC' : 'Secteurs';
+      : tab === 'cmp' ? 'SA · QQQ · IWM · BTC' : 'Secteurs';
   }
   function renderBar() {
     const lb = [...bars.values()].pop();
@@ -2108,16 +2124,16 @@
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
     const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
     const idx = CMP.map(n => { const b = barAt(n); return b ? { n, b } : null; }).filter(Boolean);
-    const idxHtml = `<div class="kpi kidx r3"><div class="top"><span class="lbl">Indices · tendance MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
+    const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · tendance MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
       idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
-        `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
-        (r => `<span class="rt">${r ? `<span class="rec ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances">${r > 0 ? '▲' : '▼'} 3M</span>` : ''}</span>`)(priceRec(n).all.get(b.d) || 0) +
+        `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}` +
+        (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
         `<span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
     const tiles = [
       ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
-      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
-      ['rm', 'Ratio mois ±25 %', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
-      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
+      ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
+      ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
@@ -2135,14 +2151,14 @@
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
       const h = hotOf(id);
       return `<div class="kpi ${h ? h.cls : ''}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
-        `<div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
+        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         gauge(...G[id]) + '</div>';
     }).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
-      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
+      '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
       idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
@@ -2216,20 +2232,22 @@
   }
   function renderFresh() {
     const f = freshInfo(), b = $('refreshBtn');
-    const warn = f.stale ? '· ⚠ données en retard' : f.failed.length ? `· ⚠ ${f.failed.length} source${f.failed.length > 1 ? 's' : ''} en échec` : '';
+    // le calcul maison ne fait que compléter / contrôler Stockbee : son échec est signalé discrètement, sans alerte orange
+    const main = f.failed.filter(x => x !== 'calcul maison'), side = f.failed.length > main.length;
+    const warn = f.stale ? '· ⚠ données en retard' : main.length ? `· ⚠ ${main.join(', ')} en échec` : '';
     b.innerHTML = `<span class="dot"></span>Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` +
-      `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
-    b.classList.toggle('stale', !!f.stale || f.failed.length > 0);   // point orange : données en retard ou source en échec
+      `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : side ? '<span class="fw" style="color:var(--faint)">· calcul maison indisponible</span>' : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
+    b.classList.toggle('stale', !!f.stale || main.length > 0);       // point orange : données en retard ou source principale en échec
     b.title = (f.when ? `Données publiées le ${f.when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' })}. ` : '') +
       `Mise à jour automatique chaque jour (prochaine vers ${hm(nextRun())}). ` + (f.failed.length ? `Non mis à jour : ${f.failed.join(', ')}. ` : '') + 'Clique pour vérifier maintenant.';
-    const ms = $('msub'); if (ms) { ms.innerHTML = b.innerHTML.replace(/<span class="rf">[\s\S]*$/, ''); ms.classList.toggle('stale', !!f.stale || f.failed.length > 0); }
+    const ms = $('msub'); if (ms) { ms.innerHTML = b.innerHTML.replace(/<span class="rf">[\s\S]*$/, ''); ms.classList.toggle('stale', !!f.stale || main.length > 0); }
     const mf = $('moreFresh'); if (mf) mf.textContent = 'vérifié à ' + hm(checkedAt);
   }
   function showToast(kind) {
     const t = $('toast'), f = freshInfo(), day = f.last ? fmtDate(f.last, { weekday: 'long', day: 'numeric', month: 'long' }) : '?';
     const M = {
       ok: ['ok', '✓', `<b>Déjà à jour.</b> Séance du ${day}${f.when ? `, publiée à ${hm(f.when)}` : ''}. Prochaine mise à jour automatique vers ${hm(nextRun())}.` +
-        (f.failed.length ? ` <span class="warnc">⚠ Non mis à jour : ${f.failed.join(', ')}.</span>` : ''), ''],
+        (f.failed.length ? ` <span style="color:var(--faint)">Non mis à jour : ${f.failed.join(', ')}${f.failed.every(x => x === 'calcul maison') ? ' (contrôle croisé, sans effet sur les chiffres affichés)' : ''}.</span>` : ''), ''],
       new: ['nw', '↑', '<b>Nouvelles données publiées.</b>', '<div class="act"><button class="pri" data-act="reload">Afficher</button><button data-act="close">Plus tard</button></div>'],
       err: ['er', '!', `<b>Vérification impossible</b> (connexion ?). Les données affichées sont celles de la séance du ${day}.`, '<div class="act"><button data-act="retry">Réessayer</button></div>'] }[kind];
     t.innerHTML = `<span class="ic ${M[0]}">${M[1]}</span><div>${M[2]}${M[3]}</div><button class="x" data-act="close" aria-label="Fermer"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button>`;
