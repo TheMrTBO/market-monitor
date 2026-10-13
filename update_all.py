@@ -107,6 +107,11 @@ def main():
     t0 = time.time()
     sources = {name: run_step(name, script, out, restore, att, waits) for name, script, out, restore, att, waits in STEPS}
     status = {"updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "sources": sources}
+    try:                                            # heure du dernier scan post-market (bouton « Actualiser », voir fetch_postmarket.py)
+        pm = json.loads((lambda t: t[t.index("=") + 1:].strip().rstrip(";"))((HERE / "postmarket_data.js").read_text()))["snaps"]
+        status["pm"] = pm[-1]["at"] if pm else None
+    except (OSError, ValueError, KeyError):
+        status["pm"] = None
     STATUS.write_text("window.STATUS = " + json.dumps(status, separators=(",", ":"), ensure_ascii=False) + ";\n")
     failed = [n for n, s in sources.items() if not s["ok"]]
     print(f"\nTermine en {time.time() - t0:.0f}s : " + ("tout est a jour." if not failed else "ECHEC pour " + ", ".join(failed) + " (anciennes donnees conservees)."))

@@ -206,6 +206,22 @@ def load():
 
 def save(data):
     OUT.write_text("window.POSTMARKET = " + json.dumps(data, separators=(",", ":"), ensure_ascii=False) + ";\n")
+    stamp_status(data)
+
+
+def stamp_status(data):
+    """Note l'heure du dernier releve dans status_data.js (cle "pm") : le bouton « Actualiser » du dashboard compare ce
+    fichier a la version affichee, et le workflow du soir ne lance pas update_all.py (qui ecrit les autres cles)."""
+    path = OUT.parent / "status_data.js"
+    if not path.exists():
+        return
+    try:
+        text = path.read_text()
+        st = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
+    except (OSError, ValueError):
+        return
+    st["pm"] = data["snaps"][-1]["at"] if data.get("snaps") else None
+    path.write_text("window.STATUS = " + json.dumps(st, separators=(",", ":"), ensure_ascii=False) + ";\n")
 
 
 def main():
