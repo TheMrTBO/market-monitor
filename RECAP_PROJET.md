@@ -2,7 +2,7 @@
 
 > Document de reprise. À lire en premier dans une nouvelle discussion : il contient l'état exact du projet, les décisions
 > prises (et pourquoi), les pièges rencontrés, et le plan des prochains travaux.
-> Dernière mise à jour : 13 octobre 2026 (lot 1 du calcul maison : +4 %/−4 % et ratios). Dépôt : https://github.com/TheMrTBO/market-monitor · Site : https://themrtbo.github.io/market-monitor/
+> Dernière mise à jour : 13 octobre 2026 (refonte UX de l'onglet principal + mobile, branche `feat/ux-onglet-principal`). Dépôt : https://github.com/TheMrTBO/market-monitor · Site : https://themrtbo.github.io/market-monitor/
 
 ---
 
@@ -101,10 +101,27 @@ Contraintes connues :
 
 ## 4. Le dashboard (fonctionnalités)
 
-Trois onglets (barre en haut), thème « graphique » noir : bougies **jaunes** (hausse) / **rouges** (baisse), grille sombre.
-Histogrammes et soldes nets : **bleu** = haussiers, **rouge** = baissiers.
+Trois onglets (barre en haut ; barre d'onglets en bas sur mobile), thème « graphique » noir : bougies **jaunes** (hausse) /
+**rouges** (baisse), grille sombre. Histogrammes et soldes nets : **bleu** = haussiers, **rouge** = baissiers.
 
-### Onglet « Détail » (QQQ / IWM / BTC + breadth)
+**En-tête (refonte UX du 13/10/2026)** : marque, onglets segmentés (Marché · QQQ · IWM · BTC · Secteurs), **pastille de
+fraîcheur** = bouton Actualiser (« Séance du … · vérifié à … », ⚠ si source en échec ou données > 30 h ; le clic relit
+`status_data.js` sans cache et compare l'horodatage → message « Déjà à jour, prochaine MAJ vers … » ou « Nouvelles données →
+Afficher » ; vérification auto au retour sur l'onglet après 15 min et toutes les 30 min), bouton **Réglages** (panneau unique :
+MM, fond de tendance, espaces haut/droite, thème clair/sombre/système, opacité des histogrammes, réinitialiser). La plage de
+dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la barre du graphique de l'onglet actif (`placeRanges`).
+**Bulles d'information** ⓘ (clic/toucher/Entrée, et survol à la souris) : définition, règle de couleur, échelle, lecture du jour.
+
+### Onglet « Marché » (ex-« Détail » : bandeau d'état + QQQ / IWM / BTC + breadth)
+- **Bandeau d'état** (`renderKpis`) : case **Indices** QQQ/IWM/BTC (cours, variation, état du filtre de tendance des graphiques :
+  forte / haussière / essoufflée / **baissière = MM10 sous MM20** ; clic = change l'instrument du graphique) + 5 cases colorées
+  (Haussier / Neutre / Baissier) : solde ±4 % (couleur = somme 5 j : < −200 / ≥ +400), ratio 5 j (< 1 / ≥ 1,5 ; 10 j en
+  sous-titre), ratio trimestre ±25 % (< 1 / ≥ 1,5), ratio mois ±25 % (< 1 / ≥ 2), T2108 (survente < 20 %, surachat > 70 %).
+  Seuils **calibrés sur la tendance d'IWM 2019-2026** (C > SMA10, C > SMA20, SMA10 > SMA20), changement **immédiat**
+  (décision utilisateur). Analyse : exactitude équilibrée 82-91 % sur IWM, seuil 1 stable hors échantillon (2023+).
+- Légende du graphique **posée sur le fond noir** (date, OHLC, variation, état de tendance, valeur de chaque MM à la séance
+  survolée, sinon la dernière) ; remplace l'infobulle flottante sur le graphique principal. Étiquette du dernier cours sur l'axe.
+- Fond de tendance adouci, une zone par série d'états (plus de stries), noms explicites. Axe des dates : un repère par mois.
 - **Graphique de prix** (≈ 50 % de la hauteur de fenêtre) : bougies + volume, 6 moyennes mobiles (SMA 5, 10, 20, 50, 100, 200)
   configurables (longueur, SMA/EMA, couleur, masquer) via le menu ▾ de la barre du graphique ; fond de tendance **ChillLax**
   (voir §6) ; sélecteur d'instrument « QQQ Daily ▾ ».
@@ -116,7 +133,26 @@ Histogrammes et soldes nets : **bleu** = haussiers, **rouge** = baissiers.
   - +4 % / −4 % sur la séance : **solde net** en vue principale, histogrammes bruts en divulgation progressive ;
   - +25 % / −25 % sur un mois et sur un trimestre : **histogramme brut** en vue principale, solde net en détail.
   - Histogramme « même plan » : −x % au premier plan, +x % derrière, axe uniquement positif.
-- **Tableau** des séances visibles (toutes colonnes breadth), ligne surlignée au survol.
+- **Tableau** des séances visibles : en-têtes groupés (instrument · séance ±4 % · ratios · mois · trimestre · T2108), intensité
+  de couleur relative au 95e centile de l'année, ratios colorés selon les seuils du bandeau ; ligne surlignée au survol.
+- Cartes : titres courts, ⓘ, lecture du jour toujours visible ; superposé = −X % au premier plan **translucide** (0,6).
+- **Séance sélectionnée** : survol (temporaire) ou clic / toucher (figée) sur un graphique → bandeau, case Indices, légende,
+  cartes et tableau affichent la même séance ; « ✕ Revenir à la dernière séance », re-clic ou Échap.
+- **Records sur 3 mois** (63 séances) : ▲ 3M = plus haut, ▼ 3M = plus bas ; pastille dans les cases, ▲/▼ dans le tableau,
+  triangles au-dessus des barres d'histogramme (▲ plein / ▽ contour). **Version retenue (13/10, décision utilisateur)** : case dont le chiffre
+  principal bat son record = **fond teinté, bordure 2 px et bandeau « ▲ Plus haut 3 mois » / « ▼ Plus bas 3 mois »** ; jauge 3M en bas de
+  chaque case ; pastille ▲/▼ 3M sur QQQ/IWM/BTC dans la case Indices ; sur le **graphique de prix, uniquement les records 3 mois du
+  +4 % et du −4 %** (étiquettes « +4▲ », « +4▼ », « −4▲ », « −4▼ » au-dessus de la bougie si favorable, en dessous si défavorable) ;
+  triangles sur les soldes nets et les histogrammes. **Pas de lignes « Plus haut / Plus bas 3M »** (essayées puis retirées).
+  Mobile : mini-courbes masquées, la jauge suffit.
+- **Extrêmes 3 mois, signal vs information (13/10, décision utilisateur)** : une case s'encadre dès qu'**un de ses chiffres**
+  (principal ou secondaire) atteint un extrême 3 mois. **±4 %** = signal → bleu (favorable) / rouge (défavorable), case pleine.
+  **±25 % (mois, trimestre), leurs ratios et soldes, et le T2108** = indicateurs **retardés** → **orange, bordure en pointillés,
+  bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
+  triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
+  défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
+  les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.
 - La molette ne zoome **que** sur les graphiques de prix (sur les histogrammes elle fait défiler la page).
 
 ### Onglet « QQQ · IWM · BTC »
@@ -134,12 +170,16 @@ Liste à gauche, graphique de l'ETF sélectionné à droite (même moteur que le
   industries, mines, thèmes). Liste et descriptions dans `fetch_sectors.py`.
 
 ### Autres
-Pied de page de statut (date de la dernière mise à jour, ✓/⚠ par source, avertissement si > 30 h), bouton « ↻ Actualiser »,
-mode clair/sombre système pour le cadre (les graphiques de prix restent noirs).
+Pied de page de statut dans un bloc repliable « Sources et état des données » (date, ✓/⚠ par source, écart calcul maison /
+Stockbee). Thème clair/sombre/système pour le cadre (les graphiques de prix restent noirs).
+**Mobile (≤ 640 px)** : barre du haut compacte (instrument + cours, ↻, ⚙), ligne de fraîcheur, indicateurs en défilement
+horizontal, graphique pleine largeur, légende réduite, barre d'onglets en bas + « Plus » (réglages, vérifier, sources, lien
+« Run workflow »), Réglages en feuille, période 3M et cartes ±25 % repliées par défaut. ≤ 1000 px : pastille réduite.
 
 ### Clés `localStorage` (préférences, aucune donnée sensible)
 `mm.mas` (MM), `mm.pad` / `mm.top` (espaces), `mm.tab`, `mm.order` (cartes), `mm.raw4|raw25m|raw25` (détails),
-`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné).
+`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.theme` (thème),
+`mm.hsolid` (histogrammes opaques), `mm.hma` (moyenne mobile des histogrammes).
 
 ---
 
@@ -230,9 +270,12 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 
 ## 10. Travail à venir (priorités fixées par l'utilisateur)
 
-> **Priorité actuelle (décision du 13/10/2026) : le point 3, l'UX.** Le lot 1 du point 1 est livré (PR n°8) ; les lots 2 et 3 sont
-> repoussés après l'UX. Ordre : (a) valider en production le premier passage du workflow, (b) UX (point 3), (c) mobile (point 2),
-> (d) lots 2 et 3 du calcul maison.
+> **État au 13/10/2026 (fin de journée)** : PR n°8 fusionnée, mais le **premier passage en production du calcul maison a échoué**
+> (`status_data.js` : « Historique insuffisant : 0 séances en cache ») — journaux Actions à lire (étape `fetch_history.py`,
+> Secret, restauration du cache). UX de l'onglet principal + mobile (points 3 et 2) **faite** en 4 lots sur la branche
+> `feat/ux-onglet-principal` (commits ec41929, bbe233b, 3c3321e, 495909f), **non poussée** : à publier après accord.
+> Maquettes, analyse des seuils et sources UX : conservées hors dépôt (espace de travail de l'utilisateur).
+> Reste : (a) corriger le calcul maison en production, (b) suite mobile ci-dessous, (c) lots 2 et 3 du calcul maison.
 
 ### Point 1 — Calculer les indicateurs nous-mêmes, sans dépendre de Stockbee
 > **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j) ; lots 2 (±25 % mois, T2108) et 3 (±25 % trimestre) à faire — voir « Avancement du point 1 » plus haut.
@@ -270,7 +313,11 @@ Critères d'acceptation : mêmes colonnes que Stockbee ; écart absolu moyen ≤
 exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes données conservées (mécanique existante).
 
 ### Point 2 — Affichage mobile, inspiré de TradingView
-État actuel : mise en page pensée pour le bureau ; seuls quelques `@media` (grilles) ; événements pointeur sans **pincement** ;
+> **Fait (13/10/2026)** : gabarit ≤ 640 px, barre du haut, barre d'onglets en bas + « Plus », feuilles (Réglages, Plus), cibles
+> ≥ 44 px, zones sûres, cartes repliées par défaut, tableau défilant (1re colonne fixe). **Reste** : gestes (pincement,
+> appui long = réticule, double-tap), Secteurs en maître/détail, onglet Comparer en mobile, PWA, essai sur un vrai téléphone.
+
+Constat initial : mise en page pensée pour le bureau ; seuls quelques `@media` (grilles) ; événements pointeur sans **pincement** ;
 zoom à la molette ; menus déroulants ; en-tête qui se replie sur plusieurs lignes ; tableaux larges.
 À faire :
 - Gabarit mobile (≤ 600 px) : **graphique plein écran**, barre supérieure compacte (symbole + période), **barre d'onglets en
@@ -284,7 +331,13 @@ zoom à la molette ; menus déroulants ; en-tête qui se replie sur plusieurs li
 - Contrôle : émulation 375×812 sur le site https (captures), puis vrai téléphone.
 
 ### Point 3 — UX plus propre
-Constats : en-tête surchargé (titre, onglets, préréglages, zoom, actualiser, résumé) ; réglages dupliqués à 3 endroits
+> **Fait pour l'onglet Marché (13/10/2026)** : en-tête une ligne, réglages unifiés, bulles d'information, Actualiser avec
+> retour, thème, vocabulaire (« Marché », « tendance forte / haussière / essoufflée »). Navigation : burger écarté au profit
+> d'onglets visibles + « Plus » (NN/g : navigation cachée −20 % de découvrabilité ; Material/Apple : barre d'onglets pour 3-5
+> sections). **Reste** : harmoniser les onglets Comparer et Secteurs (curseurs d'espaces encore dans leurs barres), états
+> vides/chargement, raccourcis clavier, première visite (indices d'usage).
+
+Constats initiaux : en-tête surchargé (titre, onglets, préréglages, zoom, actualiser, résumé) ; réglages dupliqués à 3 endroits
 (curseurs ▲/◀ dans chaque onglet) ; mélange français/anglais (« Daily », « SMA ») ; légendes denses ; peu de découvrabilité
 des gestes (poignées, glisser-déposer) ; sémantique des couleurs hétérogène (jaune/rouge bougies vs bleu/rouge breadth) ;
 pas d'états de chargement/vide/erreur soignés ; style de cartes/menus à unifier.
