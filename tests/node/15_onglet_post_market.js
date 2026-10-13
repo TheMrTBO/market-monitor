@@ -3,7 +3,8 @@
 const fs=require('fs'),vm=require('vm');
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
-function boot(ls,pm){
+const SS={};
+function boot(ls,pm,status){
   const L={},els={},DL={};let fillC='',strokeC='';const R={},Sx={},M={};
   const mkCtx=id=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):
     k==='fillRect'?(x,y,w,h)=>{(R[id]=R[id]||[]).push([fillC,x,y,w,h]);}:
@@ -25,7 +26,7 @@ function boot(ls,pm){
   sb.window=sb;vm.createContext(sb);
   for(const f of ['stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(pm)sb.POSTMARKET=JSON.parse(JSON.stringify(pm));
-  sb.STATUS={updated:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:17:00+00:00',sources:{}};sb.location={search:''};sb.clearTimeout=()=>{};
+  sb.STATUS=status||{updated:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:17:00+00:00',sources:{}};sb.location={search:''};sb.clearTimeout=()=>{};sb.sessionStorage={getItem:k=>SS[k]??null,setItem:(k,v)=>{SS[k]=v;},removeItem:k=>{delete SS[k];}};
   vm.runInContext(main,sb);
   return {L,els,DL,R,Sx,M,sb,$,document};
 }
@@ -49,9 +50,9 @@ const go=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
 // 1) dernier instantané : hausses triées par volume post-market, colonnes, badges, méta
 let A=boot({},PM); go(A);
 ok('hausses par volume AH en dollars', syms(A).join()==='BBB,AAA', syms(A).join());
-ok('Vol AH $ = actions × cours post-market (BBB : 2 M × 10,50)', /data-s="BBB".*?<td title="2,0 M actions">21,0 M<\/td>/.test(A.$('pmRows')._h));
-ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,dv,rv,cap,er', heads(A).join());
-ok('badge AMC sur AAA', /data-s="AAA".*?class="erb"[^>]*>AMC/.test(A.$('pmRows')._h));
+ok('Vol AH $ = actions × cours post-market (BBB : 2 M × 10,50)', /data-s="BBB".*?<td>21,0 M<\/td><td>2,0 M<\/td>/.test(A.$('pmRows')._h));
+ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,dv,pv,rv,cap', heads(A).join());
+ok('plus de colonne Rés. ni de badge dans la liste', !/erb|AMC|BMO/.test(A.$('pmRows')._h));
 ok('méta : séance, en cours, heure du relevé', /27 août 2026 · post-market en cours · relevé à/.test(A.$('pmMeta')._t), A.$('pmMeta')._t);
 ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les deux<span>4<\/span>.*Résultats<span>1<\/span>/.test(A.$('pmFilt')._h));
 // 2) fiche + graphique du titre sélectionné (1re ligne)
@@ -83,6 +84,20 @@ A.L.dPick.change({target:{value:'2026-08-03'}});
 ok('séance sans scan : message', /Pas de scan pour cette séance/.test(A.$('pmRows')._h));
 A.L.dToday.click();
 ok('Aujourd\'hui : dernier instantané', syms(A).length===4);
+// 5 bis) « Stats du » sur Post-market : le scan du soir (plus récent que Stockbee) est la séance affichée et sélectionnable
+{
+  const lastSb=A.sb.STOCKBEE.rows[A.sb.STOCKBEE.rows.length-1][0], nd=new Date(lastSb+'T00:00:00Z'); do nd.setUTCDate(nd.getUTCDate()+1); while(nd.getUTCDay()%6===0);
+  const nxt=nd.toISOString().slice(0,10), P2=JSON.parse(JSON.stringify(PM)); P2.snaps[1].d=nxt;
+  const E=boot({},P2); E.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
+  ok('Stats du = date du scan du soir', E.$('dPick').value===nxt && E.$('dPick').max===nxt, E.$('dPick').value+' (Stockbee : '+lastSb+')');
+  ok('libellé « dernier scan publié »', E.$('dInfo')._t==='dernier scan publié', E.$('dInfo')._t);
+  ok('badge du haut = scan affiché (pas la séance Stockbee)', /Scan du .* · relevé à/.test(strip(E.$('refreshBtn')._h)), strip(E.$('refreshBtn')._h));
+  E.L.dPrev.click(); ok('‹ : séance Stockbee précédente', E.$('dPick').value===lastSb && /Pas de scan|<tr data-s=/.test(E.$('pmRows')._h), E.$('dPick').value);
+  E.L.dNext.click(); ok('› : retour au scan du soir', E.$('dPick').value===nxt && /BBB/.test(E.$('pmRows')._h));
+  E.L.tabs.click({target:{closest:()=>({dataset:{tab:'main'}})}});
+  ok('onglet MM : Stats du revient aux séances Stockbee', E.$('dPick').max===lastSb, E.$('dPick').max);
+  ok('onglet MM : badge = séance Stockbee', /^Séance du/.test(strip(E.$('refreshBtn')._h)), strip(E.$('refreshBtn')._h));
+}
 // 6) mobile : toucher une ligne ouvre la fiche, « ‹ Scan » revient
 A.sb.innerWidth=375;
 A.L.pmRows.click({target:{closest:()=>({dataset:{s:'AAA'}})}});
@@ -97,14 +112,17 @@ ok('sans instantané : message', /Aucun scan relevé/.test(C.$('pmRows')._h));
 // 8) les autres onglets ne sont pas touchés : retour à Secteurs
 A.sb.innerWidth=1200; A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
 ok('retour Secteurs', /<tr data-s=/.test(A.$('secRows')._h));
-// 9) bouton « Actualiser » : un nouveau scan post-market (clé pm de status_data.js) est signalé même sans passage quotidien
+// 9) bouton « Actualiser » : recharge la page avec des fichiers frais ; après rechargement, message selon ce qui a changé
 (async()=>{
-  const st=(u,p)=>`window.STATUS = {"updated":"${u}","pm":"${p}","sources":{}};`;
-  A.sb.fetch=async()=>({text:async()=>st('2026-10-13T22:17:00+00:00','2026-10-13T22:47:00+00:00')});
+  A.sb.fetch=async()=>({text:async()=>'window.STATUS = {"updated":"2026-10-13T22:17:00+00:00","pm":"2026-10-13T22:17:00+00:00","sources":{}};'});
+  A.sb.location.search='';
   await A.L.refreshBtn.click();
-  ok('nouveau scan post-market : « Nouvelles données publiées »', /Nouvelles données publiées/.test(A.$('toast')._h), strip(A.$('toast')._h).slice(0,60));
-  A.sb.fetch=async()=>({text:async()=>st('2026-10-13T22:17:00+00:00','2026-10-13T22:17:00+00:00')});
-  await A.L.refreshBtn.click();
-  ok('rien de nouveau : « Déjà à jour »', /Déjà à jour/.test(A.$('toast')._h), strip(A.$('toast')._h).slice(0,160));
+  ok('clic : rechargement avec fichiers frais', /^\?v=\d+$/.test(A.sb.location.search), A.sb.location.search);
+  ok('clic : état d\'avant mémorisé pour la session', JSON.parse(SS['mm.reload']||'{}').pm==='2026-10-13T22:17:00+00:00');
+  const F=boot({'mm.tab':'pm'},PM,{updated:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:47:00+00:00',sources:{}});
+  ok('après rechargement, nouveau scan : « Actualisé : nouvelles données chargées »', /Actualisé : nouvelles données chargées/.test(F.$('toast')._h) && /dernier scan post-market relevé à/.test(F.$('toast')._h), strip(F.$('toast')._h).slice(0,140));
+  SS['mm.reload']=JSON.stringify({u:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:47:00+00:00'});
+  const G=boot({'mm.tab':'pm'},PM,{updated:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:47:00+00:00',sources:{}});
+  ok('après rechargement, rien de neuf : « Déjà à jour »', /Déjà à jour/.test(G.$('toast')._h) && !SS['mm.reload'], strip(G.$('toast')._h).slice(0,140));
   if(bad)process.exit(1);
 })();

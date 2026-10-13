@@ -78,7 +78,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `postmarket_data.js` | `window.POSTMARKET` | `{cols, filters, snaps:[{d, at, closed, nextd?, rows:[[t, s, n, sec, ind, c, ch, pc, pch, pv, rv, cap, flt, er, nx, ng]]}], hist:{dates, bars:{symbole:[i0, [o,h,l,c,v]…]}}}` ; `er` = `amc` / `bmo` / vide ; `nx`, `ng` = variation et gap du lendemain |
 | `status_data.js` | `window.STATUS` | `{updated, pm, sources:{stockbee, breadth, vix, prices, sectors, postmarket:{ok, attempts, last, error?}}}` ; `pm` = heure du dernier scan post-market (écrite aussi par le workflow du soir) : le bouton « Actualiser » signale un nouveau scan même sans passage quotidien |
 
-Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
+Le bouton « ↻ Actualiser » recharge toujours la page avec `?v=<horodatage>` (fichiers frais, onglet conservé), puis affiche « Actualisé : nouvelles données chargées » ou « Déjà à jour » ; un petit chargeur inline ajoute ce paramètre aux
 fichiers de données (GitHub Pages met les fichiers en cache 10 min).
 
 ---
@@ -224,11 +224,14 @@ toucher un titre → graphique + fiche, « ‹ Scan » pour revenir.
   récupère aussi < −4 %. Filtres : **Hausses** (défaut) · Baisses · Les deux, et **Résultats** (seulement les titres qui ont
   publié ce soir ou ce matin). Tri par défaut : **volume post-market en dollars** (clic sur un en-tête pour trier autrement, ↑ ↓ au clavier).
 - Colonnes : Symbole (secteur traduit dessous, industrie au survol) · Var AH (barre derrière le chiffre, échelle = 90e centile)
-  · **Vol AH $** (volume post-market en dollars ≈ actions × cours post-market, calculé dans le dashboard ; nombre d'actions au survol et dans la fiche) · RVol (vol. AH en actions ÷ vol. journalier moyen 90 j) · Cap. · Lendemain (dès que la séance suivante est jouée) · Rés.
-  (AMC / BMO, champs `earnings_release_*` de TradingView). Mobile : Symbole · Var AH · Vol AH $ · Rés.
+  · **Vol AH $** (≈ actions × cours post-market, calculé dans le dashboard ; tri par défaut) · **Vol AH** (actions) · RVol (vol. AH en
+  actions ÷ vol. journalier moyen 90 j) · Cap. · Lendemain (dès que la séance suivante est jouée). Colonne Rés. retirée (demande
+  user) : AMC / BMO restent dans le filtre « Résultats » et la fiche. Mobile : Symbole · Var AH · Vol AH $ · Vol AH.
 - Fiche : clôture, post-market, volume + RVol, capitalisation, flottant, résultats, lendemain (variation + gap), lien TradingView.
 - Graphique : moteur commun, contexte `pmCtx` ; point **AH** (cours post-market) une demi-barre après la séance du scan, relié
   à la clôture ; pas de fond de tendance. Graphiques seulement pour les titres du dernier instantané.
+- « Stats du » : sur cet onglet, les dates des scans s'ajoutent aux séances Stockbee (le scan du soir arrive avant Stockbee) ;
+  libellé « dernier scan publié ». Hors post-market (pre-market, journée), le dernier scan reste affiché ; un instantané par séance.
 - Méta : date de la séance, « post-market en cours / terminé », heure du relevé (heure locale).
 - Prévu : vue « Résultats » (Benzinga : BPA, CA, surprise), masquée tant que la source n'est pas branchée.
 

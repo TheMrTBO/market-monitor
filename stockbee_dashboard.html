@@ -66,11 +66,9 @@
   #view-pm .chartbar { min-height: 32px; margin-bottom: 8px; }
   #pmCanvas { height: calc(100vh - 330px); min-height: 300px; }
   #pmTable td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  #pmTable td.empty { text-align: left; color: var(--muted); padding: 16px 8px; cursor: default; }
+  #pmTable td.empty { text-align: left; color: var(--muted); padding: 16px 8px; cursor: default; white-space: normal; }
+  #view-pm.nodata .seccol { display: none; }                 /* pas de scan : pas de graphique vide */
   .secfilt .fsep { width: 1px; background: var(--border); margin: 2px 4px; }
-  .erb { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 6px; border-radius: 8px; color: var(--text);
-         background: color-mix(in srgb, var(--up) 22%, transparent); border: 1px solid color-mix(in srgb, var(--up) 45%, transparent); }
-  .erb.bmo { background: none; color: var(--muted); border-color: var(--border); }
   .pmfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; margin: 6px 0 0; }
   .pmfacts div { min-width: 0; } .pmfacts dt { color: var(--muted); font-size: 11px; margin-bottom: 1px; }
   .pmfacts dd { margin: 0; font-variant-numeric: tabular-nums; }
@@ -422,7 +420,7 @@
     #view-pm:not(.detail) .seccol { display: none; }
     #view-pm.detail .seclist { display: none; }
     #view-pm .chartbar #pmTitle { width: 100%; font-size: 15px; }
-    #pmTable .c-cap, #pmTable .c-nx, #pmTable .c-rv { display: none; }   /* mobile : Symbole · Var AH · Vol AH $ · Rés. (le reste dans la fiche) */
+    #pmTable .c-cap, #pmTable .c-nx, #pmTable .c-rv { display: none; }   /* mobile : Symbole · Var AH · Vol AH $ · Vol AH (le reste dans la fiche) */
     #pmTable td.sym .tsub { max-width: 120px; }
     #pmCanvas { height: 38vh; height: 38svh; min-height: 240px; }
     .secback { display: inline-flex; align-items: center; border: 0; background: none; color: var(--up); font-size: 15px; padding: 6px 0; width: 100%; }
@@ -1890,19 +1888,17 @@
     { id: 'sym', label: 'Symbole', l: true, dir: 1, v: r => r.s },
     { id: 'pch', label: 'Var AH', dir: -1, v: r => r.pch, title: 'Variation post-market par rapport à la clôture de la séance' },
     { id: 'dv', label: 'Vol AH $', dir: -1, v: r => r.dv, title: 'Volume post-market en dollars ≈ actions échangées × cours post-market' },
+    { id: 'pv', label: 'Vol AH', dir: -1, v: r => r.pv, title: 'Nombre d\'actions échangées en post-market' },
     { id: 'rv', label: 'RVol', dir: -1, v: r => r.rv, title: 'Volume post-market ÷ volume journalier moyen sur 90 jours' },
     { id: 'cap', label: 'Cap.', dir: -1, v: r => r.cap, title: 'Capitalisation boursière (dollars)' },
     { id: 'nx', label: 'Lendemain', dir: -1, v: r => r.nx, title: 'Variation de la séance suivante, clôture à clôture', when: s => !!s.nextd },
-    { id: 'er', label: 'Rés.', dir: -1, v: r => r.er === 'amc' ? 2 : r.er === 'bmo' ? 1 : 0, title: 'Résultats trimestriels : AMC = publiés ce soir après la clôture · BMO = publiés ce matin avant l\'ouverture' },
   ];
-  const pmBadge = er => er === 'amc' ? '<span class="erb" title="Résultats publiés ce soir, après la clôture">AMC</span>'
-    : er === 'bmo' ? '<span class="erb bmo" title="Résultats publiés ce matin, avant l\'ouverture">BMO</span>' : '';
   const big = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 1) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : v >= 1e3 ? nf(v / 1e3, 0) + ' k' : nf(v);
   const pmTime = snap => new Date(snap.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   function pmEmpty(msg) {
     $('pmFilt').innerHTML = ''; $('pmHead').innerHTML = ''; $('pmMeta').textContent = '';
     $('pmRows').innerHTML = `<tr><td class="empty">${msg}</td></tr>`;
-    pmCur = null; pmShown = []; pmDetail(null);
+    pmCur = null; pmShown = []; pmDetail(null); $('view-pm').classList.add('nodata');
   }
   function renderPM() {
     if (!PM) { pmEmpty('Données introuvables : lance <code>python fetch_postmarket.py</code> (fichier <code>postmarket_data.js</code> à côté de ce HTML).'); return; }
@@ -1912,7 +1908,7 @@
         : 'Aucun scan relevé pour l\'instant : le robot passe pendant le post-market (16 h – 20 h à New York, 22 h – 2 h à Paris).');
       return;
     }
-    pmCur = snap;
+    pmCur = snap; $('view-pm').classList.remove('nodata');
     const all = snap.rows.map(pmRowOf), side = r => pmDir === 'all' || (pmDir === 'up' ? r.pch > 0 : r.pch < 0);
     const nUp = all.filter(r => r.pch > 0).length, nEr = all.filter(r => r.er && side(r)).length;
     $('pmFilt').innerHTML = [['up', 'Hausses', nUp], ['down', 'Baisses', all.length - nUp], ['all', 'Les deux', all.length]]
@@ -1934,11 +1930,11 @@
     const cell = {
       sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
       pch: r => `<td class="dev"><div class="devc"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
-      dv: r => `<td title="${big(r.pv)} actions">${big(r.dv)}</td>`,
+      dv: r => `<td>${big(r.dv)}</td>`,
+      pv: r => `<td>${big(r.pv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
       cap: r => `<td class="c-cap">${r.cap == null ? '—' : big(r.cap)}</td>`,
       nx: r => `<td class="c-nx"><span class="${cls(r.nx)}">${pct(r.nx)}</span></td>`,
-      er: r => `<td>${pmBadge(r.er)}</td>`,
     };
     if (!pmSel || !rows.some(r => r.s === pmSel)) pmSel = rows.length ? rows[0].s : null;
     if (pmSel) store.set('mm.pmsel', pmSel);
@@ -2447,7 +2443,7 @@
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec'; $('view-pm').hidden = t !== 'pm';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
-    placeRanges(); renderMtop();
+    placeRanges(); renderMtop(); renderDatebar(); renderFresh();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
     document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
@@ -2702,12 +2698,13 @@
     pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis(); renderDatebar(); if (tab === 'sec') renderSectors(); if (tab === 'pm') renderPM();
   }
   // ---- sélecteur de date : séance choisie (ou dernière), ‹ › = séance précédente / suivante, « Aujourd'hui » = dernière séance
-  const sessions = () => sbDates();
+  // séances proposées : celles de Stockbee ; sur l'onglet Post-market, aussi celles des scans (le scan du soir arrive avant Stockbee)
+  const sessions = () => tab === 'pm' && PM && PM.snaps.length ? [...new Set(sbDates().concat(PM.snaps.map(s => s.d)))].sort() : sbDates();
   function renderDatebar() {
     const D = sessions(), last = D[D.length - 1], d = pinned || last, inp = $('dPick');
     inp.min = D[0]; inp.max = last; inp.value = d;
     $('dToday').classList.toggle('on', !pinned);
-    $('dInfo').textContent = pinned ? fmtDate(pinned, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'dernière séance publiée';
+    $('dInfo').textContent = pinned ? fmtDate(pinned, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : tab === 'pm' ? 'dernier scan publié' : 'dernière séance publiée';
   }
   function showDate(d) {                 // d = date ISO ; on retient la dernière séance ≤ d (week-end, jour férié)
     const D = sessions(), last = D[D.length - 1]; if (!d) return;
@@ -2856,8 +2853,8 @@
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
     pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; 3 $</b>, <b>volume post-market &gt; 100 000</b> et <b>variation post-market &gt; +4 %</b> (Hausses) ou <b>&lt; −4 %</b> (Baisses).</p>
-      <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. Le nombre d'actions est au survol et dans la fiche.</p>
-      <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. <b>Rés.</b> : résultats trimestriels publiés ce soir après la clôture (<b>AMC</b>) ou ce matin avant l'ouverture (<b>BMO</b>). <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
+      <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. <b>Vol AH</b> = nombre d'actions échangées.</p>
+      <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. Filtre <b>Résultats</b> : titres qui ont publié leurs résultats trimestriels ce soir après la clôture (AMC) ou ce matin avant l'ouverture (BMO), indiqué aussi dans la fiche. <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
       <p>Le robot relève le scan toutes les 30 min pendant le post-market, puis une dernière fois dans la nuit (données TradingView différées de 15 min). Un instantané par séance, 20 séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
       <p>Clic sur un en-tête : trier · ↑ ↓ : titre précédent / suivant.</p><p class="src">Source : TradingView (screener public) · graphiques : Yahoo Finance.</p>`],
     pmchart: ['Graphique du titre', `<p>Bougies journalières sur environ 3 mois et moyennes mobiles (réglages de l'onglet MM). Le point <b>AH</b> marque le cours post-market relevé, juste après la séance du scan.</p><p class="src">Source : Yahoo Finance · TradingView.</p>`],
@@ -2930,7 +2927,11 @@
     // le calcul maison ne fait que compléter / contrôler Stockbee : son échec est signalé discrètement, sans alerte orange
     const main = f.failed.filter(x => x !== 'calcul maison'), side = f.failed.length > main.length;
     const warn = f.stale ? '· ⚠ données en retard' : main.length ? `· ⚠ ${main.join(', ')} en échec` : '';
-    b.innerHTML = `<span class="dot"></span>Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` +
+    // onglet Post-market : le badge donne le scan affiché (date de la séance + heure du relevé), pas la séance du breadth Stockbee
+    const ps = tab === 'pm' && PM && PM.snaps.length ? PM.snaps[PM.snaps.length - 1] : null;
+    const label = ps ? `Scan du ${fmtDate(ps.d, { weekday: 'short', day: 'numeric', month: 'short' })} · ${ps.closed ? 'post-market terminé' : 'relevé à ' + hm(new Date(ps.at))}`
+      : `Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}`;
+    b.innerHTML = `<span class="dot"></span>${label}` +
       `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : side ? '<span class="fw" style="color:var(--faint)">· calcul maison indisponible</span>' : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
     b.classList.toggle('stale', !!f.stale || main.length > 0);       // point orange : données en retard ou source principale en échec
     b.title = (f.when ? `Données publiées le ${f.when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' })}. ` : '') +
@@ -2939,15 +2940,18 @@
     const mf = $('moreFresh'); if (mf) mf.textContent = 'vérifié à ' + hm(checkedAt);
   }
   function showToast(kind) {
+    const pmAt = window.STATUS && window.STATUS.pm ? new Date(window.STATUS.pm) : null;
+    const pmTxt = tab === 'pm' && pmAt && !isNaN(pmAt) ? ` ; dernier scan post-market relevé à ${hm(pmAt)}` : '';
     const t = $('toast'), f = freshInfo(), day = f.last ? fmtDate(f.last, { weekday: 'long', day: 'numeric', month: 'long' }) : '?';
     const M = {
-      ok: ['ok', '✓', `<b>Déjà à jour.</b> Séance du ${day}${f.when ? `, publiée à ${hm(f.when)}` : ''}. Prochaine mise à jour automatique vers ${nextTxt()}.` +
+      ok: ['ok', '✓', `<b>Déjà à jour.</b> Séance du ${day}${f.when ? `, publiée à ${hm(f.when)}` : ''}${pmTxt}. Prochaine mise à jour automatique vers ${nextTxt()}.` +
         (f.failed.length ? ` <span style="color:var(--faint)">Non mis à jour : ${f.failed.join(', ')}${f.failed.every(x => x === 'calcul maison') ? ' (contrôle croisé, sans effet sur les chiffres affichés)' : ''}.</span>` : ''), ''],
+      reloaded: ['ok', '✓', `<b>Actualisé : nouvelles données chargées.</b> Séance du ${day}${pmTxt}. Prochaine mise à jour automatique vers ${nextTxt()}.`, ''],
       new: ['nw', '↑', '<b>Nouvelles données publiées.</b>', '<div class="act"><button class="pri" data-act="reload">Afficher</button><button data-act="close">Plus tard</button></div>'],
       err: ['er', '!', `<b>Vérification impossible</b> (connexion ?). Les données affichées sont celles de la séance du ${day}.`, '<div class="act"><button data-act="retry">Réessayer</button></div>'] }[kind];
     t.innerHTML = `<span class="ic ${M[0]}">${M[1]}</span><div>${M[2]}${M[3]}</div><button class="x" data-act="close" aria-label="Fermer"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button>`;
     t.hidden = false; clearTimeout(showToast.timer);
-    if (kind === 'ok') showToast.timer = setTimeout(() => { t.hidden = true; }, 8000);
+    if (kind === 'ok' || kind === 'reloaded') showToast.timer = setTimeout(() => { t.hidden = true; }, 8000);
   }
   $('toast').addEventListener('click', e => {
     const a = e.target && e.target.closest && e.target.closest('[data-act]'); if (!a) return;
@@ -2965,7 +2969,11 @@
       const txt = await (await fetch('status_data.js?v=' + Date.now(), { cache: 'no-store' })).text();
       const m = txt.match(/"updated"\s*:\s*"([^"]+)"/), p = txt.match(/"pm"\s*:\s*"([^"]+)"/);
       const fresh = window.STATUS && ((m && m[1] !== window.STATUS.updated) || (p && p[1] !== window.STATUS.pm));   // passage quotidien ou nouveau scan post-market
-      if (fresh || manual) showToast(fresh ? 'new' : 'ok');          // automatique : message seulement s'il y a du nouveau
+      if (manual) {                                    // bouton : on recharge la page avec des fichiers frais (onglet, titre et réglages conservés)
+        try { sessionStorage.setItem('mm.reload', JSON.stringify({ u: window.STATUS ? window.STATUS.updated : null, pm: window.STATUS ? window.STATUS.pm || null : null })); } catch (e) { /* pas de stockage : rechargement sans message */ }
+        location.search = '?v=' + Date.now(); return;
+      }
+      if (fresh) showToast('new');                     // vérification automatique : message seulement s'il y a du nouveau
     } catch (e) { if (manual) showToast('err'); }                   // automatique (retour sur l'onglet, réseau pas encore revenu) : silencieux
     finally { b.classList.remove('busy'); if (mb) mb.classList.remove('busy'); checkedAt = new Date(); renderFresh(); }
   }
@@ -2974,7 +2982,6 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - checkedAt > 15 * 60000) setTimeout(() => checkUpdates(false), 2000); });
   if (typeof setInterval === 'function') setInterval(() => { if (!document.hidden) checkUpdates(false); }, 30 * 60000);
   renderFresh();
-
   // ------------------------------------------------------------------ panneau « Réglages » (moyennes mobiles, fond, espaces, thème, histogrammes)
   function applyTheme(t) {
     const de = document.documentElement;
@@ -3044,6 +3051,10 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(() => { drawAll(); renderKpis(); }, 50));
   refresh();
   { const st = store.get('mm.tab'); if (st === 'cmp' || st === 'sec' || st === 'pm') setTab(st); }
+  try {                                                // après « Actualiser » : dire si de nouvelles données ont été chargées
+    const r = JSON.parse(sessionStorage.getItem('mm.reload') || 'null');
+    if (r) { sessionStorage.removeItem('mm.reload'); const st = window.STATUS || {}; showToast(r.u !== st.updated || r.pm !== (st.pm || null) ? 'reloaded' : 'ok'); }
+  } catch (e) { /* pas de stockage de session */ }
 })();
 </script>
 </body>
