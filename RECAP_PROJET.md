@@ -2,7 +2,7 @@
 
 > Document de reprise. À lire en premier dans une nouvelle discussion : il contient l'état exact du projet, les décisions
 > prises (et pourquoi), les pièges rencontrés, et le plan des prochains travaux.
-> Dernière mise à jour : 13 octobre 2026. Dépôt : https://github.com/TheMrTBO/market-monitor · Site : https://themrtbo.github.io/market-monitor/
+> Dernière mise à jour : 13 octobre 2026 (lot 1 du calcul maison : +4 %/−4 % et ratios). Dépôt : https://github.com/TheMrTBO/market-monitor · Site : https://themrtbo.github.io/market-monitor/
 
 ---
 
@@ -16,8 +16,8 @@ T2108 en bougies japonaises.
 **Pour qui.** Alexandre (usage personnel de trading / suivi de marché, éventuellement visuels de carrousels LinkedIn avec
 attribution). Pas de service multi-utilisateurs.
 
-**Où ça tourne.** Mise à jour automatique sur GitHub Actions (gratuit), publication sur GitHub Pages. Aucun serveur, aucune
-clé API, aucun secret dans le dépôt.
+**Où ça tourne.** Mise à jour automatique sur GitHub Actions (gratuit), publication sur GitHub Pages. Aucun serveur ; aucune
+clé ni secret dans le dépôt (une seule clé, `POLYGON_API_KEY`, vit dans les GitHub Secrets pour le calcul maison du breadth).
 
 **État.** Production personnelle opérationnelle depuis le 13/10/2026 (premier run réussi : update 46 s + deploy 51 s).
 Toutes les sources sont publiques et gratuites.
@@ -28,8 +28,10 @@ Toutes les sources sont publiques et gratuites.
 
 ```
 GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
-   └─ update_all.py  ── lance 4 scripts, contrôle chaque fichier (validate_data.py), restaure l'ancien si invalide
+   ├─ fetch_history.py (clé POLYGON_API_KEY en Secret) → cache/history/ + cache/splits.json   (hors dépôt, cache Actions)
+   └─ update_all.py  ── lance 5 scripts, contrôle chaque fichier (validate_data.py), restaure l'ancien si invalide
         ├─ fetch_stockbee.py → stockbee_data.js + stockbee_market_monitor.csv   (Google Sheet public de Stockbee)
+        ├─ breadth_own.py    → breadth_data.js                                  (calcul maison +4 %/−4 %, ratios 5/10 j)
         ├─ fetch_vix.py      → vix_data.js                                      (CSV public du CBOE)
         ├─ fetch_prices.py   → prices_data.js                                   (QQQ, IWM : Yahoo ; BTC : Coinbase)
         └─ fetch_sectors.py  → sectors_data.js                                  (55 ETF : Yahoo)
@@ -48,11 +50,13 @@ GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
 | `fetch_vix.py` | CSV CBOE `VIX_History.csv` (redirige vers `cdn-api.cboe.com`), depuis 2018 |
 | `fetch_prices.py` | QQQ/IWM Yahoo (yfinance) ; BTC Coinbase `BTC-USD` en fenêtres de 299 jours ; option `--source polygon` |
 | `fetch_sectors.py` | Liste d'ETF (`UNIVERSE`), descriptions (`DESC`), données OHLCV sur 900 jours |
-| `fetch_data.py` | **Ancien** calcul du breadth +4 %/−4 % depuis Polygon (grouped daily). Toujours importé par `fetch_prices.py` ; base du point 1 du plan |
+| `fetch_data.py` | **Ancien** calcul du breadth +4 %/−4 % depuis Polygon (grouped daily). Toujours importé par `fetch_prices.py` et `fetch_history.py` (client Polygon, univers, splits) |
+| `fetch_history.py` | **Calcul maison, lot 1.** Télécharge les clôtures/volumes bruts (1 appel `grouped daily` par séance), les splits à part et l'univers ; cache `cache/history/` (hors dépôt), reprenable, élagué à 400 séances |
+| `breadth_own.py` | **Calcul maison, lot 1.** Formules TC2000 (+4 %/−4 %, volume ≥ 100 000 et croissant, splits) et ratios 5/10 j → `breadth_data.js` (agrégats seuls, lignes déjà publiées conservées) |
 | `.github/workflows/update.yml` | Planification, validation, commit, publication ; actions épinglées par SHA ; runner `ubuntu-24.04` |
 | `.github/dependabot.yml` | Propose chaque semaine les mises à jour pip et actions |
 | `requirements.txt` | `requests==2.33.1`, `yfinance==1.2.1` |
-| `tests/` | `run_all.sh`, 11 tests Node (DOM simulé) et un test Python d'annulation (voir §8) |
+| `tests/` | `run_all.sh`, 12 tests Node (DOM simulé), un test Python d'annulation et un test Python du calcul maison (voir §8) |
 | `AUTOMATISATION.md` | Guide de mise en place et d'exploitation du pipeline |
 | `RECAP_PROJET.md`, `CLAUDE.md` | Ce document ; consignes de travail auto-chargées par Claude Code |
 
@@ -62,10 +66,11 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | Fichier | Variable | Contenu |
 |---|---|---|
 | `stockbee_data.js` | `window.STOCKBEE` | `{columns, rows}` ; colonnes : `date, up4, down4, ratio5, ratio10, up25q, down25q, up25m, down25m, up50m, down50m, up13_34d, down13_34d, universe, t2108, sp500` ; 1 964 séances depuis 2018-12-18 |
+| `breadth_data.js` | `window.BREADTH_OWN` | `{columns:[date, up4, down4, ratio5, ratio10], rows, asof, universe}` ; calcul maison, depuis 2026-07 (séries cumulées au fil des jours) |
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
 | `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
-| `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, vix, prices, sectors:{ok, attempts, last, error?}}}` |
+| `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, breadth, vix, prices, sectors:{ok, attempts, last, error?}}}` |
 
 Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
 fichiers de données (GitHub Pages met les fichiers en cache 10 min).
@@ -282,6 +287,20 @@ Pistes : panneau « Réglages » unique (MM, espaces, thème, colonnes, réiniti
 (espacements 4/8 px, échelle typographique, rayons), icônes cohérentes, légendes compactes cliquables, indices d'usage
 (info-bulles à la première visite), états vides/chargement, raccourcis clavier, contraste et focus (accessibilité),
 option palette daltonien, bascule thème clair/sombre/système, nettoyage du vocabulaire technique.
+
+### Avancement du point 1 (calcul maison) — lots
+**Décisions de l'utilisateur (13/10/2026)** : source = Polygon/Massive plan gratuit, clé en GitHub Secret uniquement ; historique brut
+dans le cache Actions, seuls les agrégats sont committés ; Stockbee = base historique et contrôle croisé ; on vise la **tendance**
+(corrélation ≥ 0,95 en test, biais stable), pas le chiffre exact ; mois = 20 séances.
+- **Lot 1 (fait, cette PR)** : +4 %/−4 % et ratios 5/10 j. Validé sur 42 séances (juil.–sept. 2026) : écart abs. moyen 2,6 / 2,7 titres,
+  corrélation 0,9998. Stockbee reste affiché ; notre calcul est en pointillé et complète une séance non publiée.
+- **Lot 2 (à faire)** : ±25 % mois (piste : filtre « prix de base ≥ 5 $ », corr. 1,00 / 0,96) et T2108 (corr. 0,98, mais biais +1 à +5 pts qui dérive :
+  univers Worden ≈ 6 555 titres non reproductible ; échecs documentés : filtres prix/volume, SMA 30/50, décalage 1 j, ADR, correction affine).
+- **Lot 3 (à faire)** : ±25 % trimestre (piste : référence min/max sur 60-65 séances ; seulement 12 séances testées ; −25 % trim. = 0,82). Nécessite
+  ~12 mois d'historique avec open/high/low pour valider hors échantillon. Abandonnés : +50 % mois et +13 %/34 j (non utilisés par le dashboard).
+- Le cache d'historique stocke des clôtures **non ajustées** + un journal des splits (comme `fetch_data.py`) : une mise à jour incrémentale ne
+  peut pas mélanger données ajustées et brutes. Pour les fenêtres longues il faudra cumuler les facteurs de split (à implémenter au lot 2).
+- Le premier passage du workflow télécharge ~72 séances à 5 appels/min (~15 min) ; ensuite 1 à 2 appels par jour (+ univers chaque semaine).
 
 ### Backlog technique
 - Tester puis fusionner (ou fermer) les 7 PR Dependabot ; tester yfinance 1.7.0 avant de lever l'épinglage.

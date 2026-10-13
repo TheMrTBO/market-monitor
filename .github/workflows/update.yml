@@ -1,6 +1,7 @@
 name: Mise à jour des données et publication
 
-# Gratuit sur un dépôt public (Actions illimité, GitHub Pages inclus). Aucune clé API : toutes les sources sont publiques.
+# Gratuit sur un dépôt public (Actions illimité, GitHub Pages inclus). Une seule clé : POLYGON_API_KEY (GitHub Secret,
+# plan gratuit Polygon / Massive), utilisée par fetch_history.py pour le calcul maison du breadth. Toutes les autres sources sont publiques.
 on:
   schedule:
     - cron: '17 22 * * *'     # 22:17 UTC, tous les jours : 1 h 17 à 2 h 17 après la clôture US (minute décalée : moins de retards) ; le BTC cote le week-end
@@ -22,7 +23,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-24.04   # version fixe : « ubuntu-latest » migre vers Ubuntu 26 à partir du 19 oct. 2026
-    timeout-minutes: 30
+    timeout-minutes: 60       # premier passage : téléchargement de ~72 séances à 5 appels/min (~15 min) ; ensuite 1-2 appels
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
@@ -34,7 +35,29 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r requirements.txt
 
-      - name: Récupérer les données (Stockbee, VIX, prix, ETF sectoriels)
+      # Historique des clôtures (agrégé en breadth_data.js) : jamais committé, seulement mis en cache entre deux exécutions.
+      - name: Restaurer l'historique des clôtures (cache hors dépôt)
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}
+          restore-keys: historique-
+
+      - name: Compléter l'historique des clôtures (Polygon / Massive)
+        id: history
+        continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: python fetch_history.py --sessions 72
+
+      - name: Sauvegarder l'historique des clôtures
+        if: always()
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}
+
+      - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels)
         id: fetch
         continue-on-error: true            # on publie quand même ce qui a été mis à jour ; l'échec reste signalé plus bas
         run: python update_all.py
@@ -46,13 +69,13 @@ jobs:
 
       - name: Annuler les fichiers invalides (retour aux dernières données valides du dépôt)
         if: steps.validate.outcome == 'failure'
-        run: git checkout -- stockbee_data.js stockbee_market_monitor.csv prices_data.js vix_data.js sectors_data.js
+        run: git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add stockbee_data.js stockbee_market_monitor.csv prices_data.js vix_data.js sectors_data.js status_data.js
+          git add stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js status_data.js
           if git diff --cached --quiet; then
             echo "Aucun changement de données."
           else
@@ -63,7 +86,7 @@ jobs:
       - name: Préparer le site
         run: |
           mkdir -p _site
-          cp index.html stockbee_dashboard.html stockbee_data.js prices_data.js vix_data.js sectors_data.js status_data.js _site/
+          cp index.html stockbee_dashboard.html stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js status_data.js _site/
           touch _site/.nojekyll
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
@@ -72,9 +95,9 @@ jobs:
           path: _site
 
       - name: Signaler un échec de source (le site est publié avec les dernières données valides)
-        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure'
+        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.history.outcome == 'failure'
         run: |
-          echo "::error::Au moins une source n'a pas pu être mise à jour (voir l'étape « Récupérer les données »)."
+          echo "::error::Au moins une source n'a pas pu être mise à jour (voir les étapes « Compléter l'historique » et « Récupérer les données »)."
           exit 1
 
   deploy:

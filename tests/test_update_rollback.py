@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Test : une etape de mise a jour qui produit des donnees invalides doit etre annulee (anciennes donnees restaurees).
 
-Simule, dans un dossier temporaire, quatre scripts de recuperation factices :
+Simule, dans un dossier temporaire, cinq scripts de recuperation factices :
   - stockbee, prices : ne changent rien (donnees deja valides)        -> doivent rester "ok"
   - vix     : tronque la serie (donnees trop anciennes)               -> doit etre annule et restaure a l'identique
   - sectors : ecrit un fichier quasi vide (1 ETF au lieu de 55)       -> doit etre annule et restaure a l'identique
+  - breadth : ecrit un calcul maison tronque (3 seances)              -> doit etre annule et restaure a l'identique
 Aucun acces reseau. Sortie : code 0 si le comportement est conforme.
 """
 import json
@@ -15,7 +16,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "vix_data.js", "prices_data.js", "sectors_data.js"]
+DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "breadth_data.js", "vix_data.js", "prices_data.js", "sectors_data.js"]
 
 STUBS = {
     "fetch_stockbee.py": 'print("stub stockbee : donnees deja a jour")\n',
@@ -23,6 +24,11 @@ STUBS = {
     "fetch_sectors.py": (
         'open("sectors_data.js", "w").write(\'window.SECTORS = {"asof":"2026-10-12","dates":["2026-10-12"],'
         '"symbols":[{"s":"XLK","n":"x","g":"y","c":[1]}]};\\n\')\nprint("Ecrit : sectors_data.js")\n'
+    ),
+    "breadth_own.py": (
+        'import json\ntxt = open("breadth_data.js").read()\nd = json.loads(txt.split("=", 1)[1].strip().rstrip(";"))\n'
+        'd["rows"] = d["rows"][:3]\nopen("breadth_data.js", "w").write("window.BREADTH_OWN = " + json.dumps(d) + ";\\n")\n'
+        'print("Ecrit : breadth_data.js")\n'
     ),
     "fetch_vix.py": (
         'import json\nrows = json.loads(open("vix_data.js").read().split("=", 1)[1].strip().rstrip(";"))\n'
@@ -54,6 +60,8 @@ def main():
         checks = {
             "stockbee ok": status["stockbee"]["ok"] is True,
             "prices ok": status["prices"]["ok"] is True,
+            "breadth en echec": status["breadth"]["ok"] is False,
+            "breadth restaure a l'identique": (work / "breadth_data.js").read_bytes() == before["breadth_data.js"],
             "vix en echec": status["vix"]["ok"] is False,
             "sectors en echec": status["sectors"]["ok"] is False,
             "vix restaure a l'identique": (work / "vix_data.js").read_bytes() == before["vix_data.js"],
