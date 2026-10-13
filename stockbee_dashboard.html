@@ -1351,7 +1351,7 @@
         const d0 = drag, ev0 = { clientX: e.clientX, clientY: e.clientY, pageX: e.pageX, pageY: e.pageY, pointerType: 'touch', target: cv };
         lpTimer = setTimeout(() => withCtx(kind, () => {
           if (drag !== d0 || d0.moved) return;
-          d0.cross = true; if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) { /* ignoré */ }
+          d0.cross = true; try { if (window.navigator && navigator.vibrate) navigator.vibrate(8); } catch (x) { /* ignoré */ }
           setHover(idxAt(cv, ev0), kind, ev0);
         }), 350);
       }
