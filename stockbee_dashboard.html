@@ -103,7 +103,17 @@
   @media (max-width: 900px) { .cmpbottom { grid-template-columns: minmax(0, 1fr); } }
   .cmpbottom .card { margin-bottom: 0; }
   .cmpbottom canvas { height: 26vh; min-height: 200px; }
-  .mini-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding-bottom: 4px; }
+  #cmpGrid[hidden], #cmpB100[hidden] { display: none; }
+  #cmpB100 canvas { height: 46vh; min-height: 300px; }
+  .mini-title .nw { white-space: nowrap; }
+  .mini-title .perf { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .mini-title .tipbtn { align-self: center; }
+  .b100leg { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .b100leg i { display: inline-block; width: 12px; height: 2px; border-radius: 1px; margin-right: 5px; vertical-align: 3px; }
+  .b100leg b { color: var(--text); font-weight: 600; }
+  .legbtn { display: none; }
+  #cmpHead.b100 #cmpMa, #cmpHead.b100 #cmpTrend, #cmpHead.b100 .legbtn { display: none !important; }
+  .mini-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; padding-bottom: 4px; }
   .mini-title b { font-weight: 600; }
   .mini-title .px { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
   .chrow .chead { flex: none; padding-bottom: 6px; }
@@ -368,7 +378,13 @@
              padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.35); }
     .toast { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
     .secsplit { grid-template-columns: minmax(0, 1fr); }
-    #view-cmp .chartbar label, #view-sec .chartbar label { display: none; }
+    #view-sec .chartbar label { display: none; }
+    /* onglet SA sur mobile : graphiques moins hauts, légende repliée derrière un bouton */
+    .cmpgrid canvas { height: 34vh; min-height: 220px; } #cmpB100 canvas { height: 42vh; min-height: 260px; }
+    .cmpbottom canvas { height: 22vh; min-height: 160px; }
+    .legbtn { display: inline-block; padding: 5px 10px; }
+    #cmpHead:not(.legopen) #cmpMa, #cmpHead:not(.legopen) #cmpTrend { display: none !important; }
+    .mini-title { flex-wrap: wrap; row-gap: 0; } .mini-title .px { font-size: 12px; }
   }
 
   /* ---- graphique de prix : barre d'outils, légende OHLC / MM posée sur le fond du graphique (style TradingView) */
@@ -471,29 +487,33 @@
   </div>
 
   <div id="view-cmp" hidden>
-    <div class="card">
+    <div id="dslot-cmp"></div>
+    <div class="card" id="cmpHead">
       <div class="chartbar">
         <span class="rslot" id="rslot-cmp"></span>
+        <span class="group seg sm" id="cmpMode" role="group" aria-label="Affichage"><button data-m="side" title="Trois graphiques de prix">Côte à côte</button><button data-m="b100" title="Les trois courbes rebasées à 100 au début de la période">Base 100</button></span>
+        <button class="legbtn" id="cmpLegBtn" aria-expanded="false">Légende ▾</button>
         <span id="cmpMa" style="display:contents"></span>
-        <span class="spacer"></span>
-        <label>Espace en haut <input type="range" id="topPad2" min="0" max="60" step="1"><output id="topPad2Out"></output></label>
-        <label>Espace à droite <input type="range" id="rightPad2" min="0" max="60" step="1"><output id="rightPad2Out"></output></label>
       </div>
       <div class="legend" id="cmpTrend"></div>
     </div>
     <div class="cmpgrid" id="cmpGrid"></div>
+    <div class="card" id="cmpB100" hidden>
+      <div class="mini-title"><b>Base 100</b><button class="tipbtn" data-tip="b100" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="b100leg" id="b100leg"></span><span class="px" id="b100px"></span></div>
+      <canvas id="b100cv"></canvas>
+    </div>
     <div class="cmpbottom" id="cmpBottom"></div>
   </div>
 
   <div id="view-main">
-  <div class="datebar" id="datebar">
+  <div id="dslot-main"><div class="datebar" id="datebar">
     <span class="dlab">Stats du</span>
     <button class="iconbtn dnav" id="dPrev" aria-label="Séance précédente" title="Séance précédente">‹</button>
     <input type="date" id="dPick" aria-label="Choisir la séance">
     <button class="iconbtn dnav" id="dNext" aria-label="Séance suivante" title="Séance suivante">›</button>
     <button id="dToday" title="Revenir à la dernière séance">Aujourd'hui</button>
     <span class="dinfo" id="dInfo"></span>
-  </div>
+  </div></div>
   <section class="kpis" id="kpis" aria-label="État du marché"></section>
   <p class="kpinote" id="kpinote"></p>
   <div class="card">
@@ -1326,9 +1346,6 @@
     const p = padPct(), t = Math.round(topPad * 100);
     $('rightPad').value = String(p); $('rightPadOut').textContent = p + ' %';
     $('topPad').value = String(t); $('topPadOut').textContent = t + ' %';
-    const r2 = Math.round(rightPad * 100);                    // curseurs de l'onglet QQQ · IWM · BTC
-    $('rightPad2').value = String(r2); $('rightPad2Out').textContent = r2 + ' %';
-    $('topPad2').value = String(t); $('topPad2Out').textContent = t + ' %';
     $('rightPadS').value = String(p); $('rightPadSOut').textContent = p + ' %';      // curseurs de l'onglet Secteurs
     $('topPadS').value = String(t); $('topPadSOut').textContent = t + ' %';
   }
@@ -1669,11 +1686,26 @@
   let mdrag = null;
   const minis = CMP.map(name => {
     const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<div class="mini-title"><b>${name} Daily</b><span class="px"></span></div>` +
+    card.innerHTML = `<div class="mini-title"><b>${name}</b><span class="perf"></span><span class="px"></span></div>` +
       `<canvas></canvas>`;
     $('cmpGrid').appendChild(card);
-    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 };
+    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), perf: card.querySelector('.perf'), vis: [], bw: 0 };
   });
+  // séance mise en avant sur les graphiques de l'onglet : survolée, sinon la séance figée (partagée avec l'onglet MM)
+  const cmpSel = () => cmpHover || pinned;
+  // index de la dernière barre ≤ date (BTC cote le week-end, pas QQQ ni IWM : on retient la séance précédente)
+  function idxAtOrBefore(vis, d) {
+    if (!d || !vis.length || d < vis[0].d) return -1;
+    for (let i = vis.length - 1; i >= 0; i--) if (vis[i].d <= d) return i;
+    return -1;
+  }
+  const sinceLbl = d => 'depuis le ' + fmtDate(d, { day: 'numeric', month: 'short', year: '2-digit' });
+  // une séance figée hors de la fenêtre affichée : même largeur, fenêtre recentrée sur elle
+  function cmpReveal(d) {
+    const w = cmpWindow(), t = ts(d), s = isFinite(w.start) ? w.start : cmpFirst();
+    if (t >= s && t <= w.end) return;
+    const span = w.end - s; setCmpWin(t - span / 2, t + span / 2);
+  }
 
   const cmpFirst = () => Math.min(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[0].d) : Infinity; }));
   const cmpLast = () => Math.max(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[b.length - 1].d) : 0; }));
@@ -1748,13 +1780,15 @@
       g.stroke();
     });
     g.restore();
-    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
+    const hi_ = idxAtOrBefore(vis, cmpSel());
     if (hi_ >= 0) {
       g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
-    const b = vis[hi_ >= 0 ? hi_ : n - 1];
-    m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))}`;
+    const b = vis[hi_ >= 0 ? hi_ : n - 1], perf = 100 * (b.c / vis[0].c - 1);
+    // variation depuis le début de la période affichée (jusqu'à la séance mise en avant) : un fait, sans qualificatif
+    m.perf.innerHTML = `<span class="${cls(perf)}">${pct(perf)}</span> ${sinceLbl(vis[0].d)}`;
+    m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))} · <span class="nw" title="${trendLong(b.tf)}">MM ${trendShort(b.tf)}</span>`;
   }
   // deux boîtes en bas de l'onglet : T2108 et VIX en bougies japonaises, sur la même fenêtre de dates que les graphiques de prix.
   //  - VIX : vraies bougies OHLC (CBOE).
@@ -1764,10 +1798,10 @@
     return rows.map((r, i) => { const c = r[COL.t2108], o = i ? rows[i - 1][COL.t2108] : c; return { d: r[0], o, h: Math.max(o, c), l: Math.min(o, c), c }; });
   })();
   const VIX_SERIES = (window.VIX || []).map(r => ({ d: r[0], o: r[1], h: r[2], l: r[3], c: r[4] }));
-  const boxes = [{ kind: 'T2108', series: T2108_SERIES, hint: '% de titres au-dessus de leur MM 40 jours (Stockbee)', d: 1 },
-                 { kind: 'VIX', series: VIX_SERIES, hint: 'indice de volatilité (CBOE)', d: 2 }].map(bx => {
+  const boxes = [{ kind: 'T2108', series: T2108_SERIES, tip: 'sat2108', d: 1 },
+                 { kind: 'VIX', series: VIX_SERIES, tip: 'savix', d: 2 }].map(bx => {
     const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><span class="hint" style="color:var(--muted);font-size:12px">${bx.hint}</span><span class="px"></span></div><canvas></canvas>`;
+    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><button class="tipbtn" data-tip="${bx.tip}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px"></span></div><canvas></canvas>`;
     $('cmpBottom').appendChild(card);
     return Object.assign(bx, { cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 });
   });
@@ -1792,7 +1826,7 @@
     const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
     const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
     bx.bw = bw;
-    let lo = 0, hi = 100, ticks = [20, 50, 80], refs = [20, 80];
+    let lo = 0, hi = 100, ticks = [20, 50, 70], refs = [20, 70];        // T2108 : mêmes repères 20 / 70 que l'onglet MM
     if (!isT) {
       lo = Math.min(...vis.map(b => b.l)); hi = Math.max(...vis.map(b => b.h));
       const p = (hi - lo) * 0.08 || 1; lo = Math.max(0, lo - p); hi += p;
@@ -1812,26 +1846,104 @@
     const step = Math.max(1, Math.round(n / 5)), long = (win.end - Math.max(win.start, ts(vis[0].d))) > 400 * DAY;
     for (let i = Math.floor(step / 2); i < n; i += step)
       g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
-    const w = Math.max(1, Math.min(12, bw * 0.7));
-    vis.forEach((b, i) => {                                         // bougies japonaises : bleu = clôture ≥ ouverture, rouge sinon
+    const w = Math.max(1, Math.min(12, bw * 0.7)), hi_ = idxAtOrBefore(vis, cmpSel());
+    if (isT) {                                                      // T2108 : Stockbee ne publie que la clôture → une ligne, pas de bougie inventée
+      g.strokeStyle = css('--t2108'); g.lineWidth = 1.5; g.lineJoin = g.lineCap = 'round'; g.beginPath();
+      vis.forEach((b, i) => i ? g.lineTo(X(i), Y(b.c)) : g.moveTo(X(i), Y(b.c))); g.stroke();
+      if (hi_ >= 0) { g.fillStyle = css('--t2108'); g.beginPath(); g.arc(X(hi_), Y(vis[hi_].c), 3, 0, 2 * Math.PI); g.fill(); }
+    } else vis.forEach((b, i) => {                                  // VIX : bougies japonaises (OHLC du CBOE)
       const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
       g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
       g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
       g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
     });
-    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
     if (hi_ >= 0) {
-      g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
+      g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
     const b = vis[hi_ >= 0 ? hi_ : n - 1], dv = b.c - b.o;
-    bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
+    bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)}${isT ? ' %' : ''} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
   }
   const boxTip = (bx, b) => bx.kind === 'T2108'
-    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>Veille ${nf(b.o, 1)} → ${nf(b.c, 1)} (${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)})</div>`
+    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>`
     : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
-  function renderCmp() { minis.forEach(drawMini); boxes.forEach(drawBox); }
+  // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
+  // Couleurs catégorielles (ni bleu ni rouge, réservés aux hausses / baisses), validées sur le fond noir des graphiques.
+  const B100_COL = { QQQ: '#199e70', IWM: '#d95926', BTC: '#9085e9' };
+  let cmpMode = store.get('mm.cmpmode') === 'b100' ? 'b100' : 'side';
+  const B100 = { name: 'Base 100', cv: $('b100cv'), vis: [], bw: 0, ser: [] };
+  const b100At = (s, d) => { let v = null; for (const b of s.v) { if (b.d > d) break; v = b; } return v; };   // dernière clôture ≤ d
+  function drawB100() {
+    const m = B100, cv = m.cv, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H);
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    const win = cmpWindow();
+    m.ser = CMP.map(n => { const v = barsFor(n).filter(b => { const t = ts(b.d); return t >= win.start && t <= win.end; }); return { n, v, base: v.length ? v[0].c : null }; })
+      .filter(s => s.v.length);
+    const dates = [...new Set(m.ser.flatMap(s => s.v.map(b => b.d)))].sort(), n = dates.length;
+    m.vis = dates.map(d => ({ d }));
+    if (!n) { g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Pas de données sur cette période', W / 2, H / 2); $('b100leg').innerHTML = ''; return; }
+    const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
+    const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
+    m.bw = bw;
+    const val = (s, b) => b.c / s.base * 100, all = m.ser.flatMap(s => s.v.map(b => val(s, b)));
+    let lo = Math.min(100, ...all), hi = Math.max(100, ...all); const p = (hi - lo) * 0.06 || 1; lo -= p; hi += p;
+    const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
+    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const t of niceTicks(lo, hi, 5)) {
+      const y = Math.round(Y(t)) + 0.5;
+      g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, 0), W - MPAD.r + 5, y);
+    }
+    g.setLineDash([4, 4]); g.strokeStyle = css('--cref');                  // repère 100 = niveau de départ
+    const y100 = Math.round(Y(100)) + 0.5; g.beginPath(); g.moveTo(MPAD.l, y100); g.lineTo(W - MPAD.r, y100); g.stroke(); g.setLineDash([]);
+    g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css('--ctext');
+    const step = Math.max(1, Math.round(n / 6)), long = (ts(dates[n - 1]) - ts(dates[0])) > 400 * DAY;
+    for (let i = Math.floor(step / 2); i < n; i += step)
+      g.fillText(fmtDate(dates[i], long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+    const xi = new Map(dates.map((d, i) => [d, i]));
+    g.save(); g.beginPath(); g.rect(MPAD.l, MPAD.t, pw, ph); g.clip();
+    g.lineWidth = 2; g.lineJoin = g.lineCap = 'round';
+    m.ser.forEach(s => {                                                 // les trous (week-end pour QQQ / IWM) sont reliés
+      g.strokeStyle = B100_COL[s.n] || css('--ctext'); g.beginPath();
+      s.v.forEach((b, k) => { const x = X(xi.get(b.d)), y = Y(val(s, b)); k ? g.lineTo(x, y) : g.moveTo(x, y); });
+      g.stroke();
+    });
+    g.restore();
+    const hi_ = idxAtOrBefore(m.vis, cmpSel()), dSel = dates[hi_ >= 0 ? hi_ : n - 1];
+    if (hi_ >= 0) {
+      g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
+      m.ser.forEach(s => { const b = b100At(s, dSel); if (!b) return;
+        g.fillStyle = B100_COL[s.n]; g.beginPath(); g.arc(X(xi.get(b.d)), Y(val(s, b)), 3.5, 0, 2 * Math.PI); g.fill(); });
+    }
+    // légende = valeurs à la séance mise en avant (ou la dernière), classées par niveau ; le nom porte l'identité, pas seulement la couleur
+    const rows = m.ser.map(s => { const b = b100At(s, dSel); return { n: s.n, v: b ? val(s, b) : null }; }).sort((a, b) => (b.v ?? -1e9) - (a.v ?? -1e9));
+    $('b100leg').innerHTML = rows.map(r => `<span><i style="background:${B100_COL[r.n]}"></i><b>${r.n}</b> ${r.v == null ? '—' : nf(r.v, 1)} <span class="${cls(r.v - 100)}">(${r.v == null ? '—' : pct(r.v - 100)})</span></span>`).join('');
+    $('b100px').textContent = `${sinceLbl(dates[0])} → ${fmtDate(dSel)}`;
+  }
+  const b100Tip = (m, v) => `<b>${fmtDate(v.d)}</b>` + m.ser.map(s => { const b = b100At(s, v.d); if (!b) return '';
+    const x = b.c / s.base * 100; return `<div><i class="sw" style="background:${B100_COL[s.n]};margin-right:6px"></i>${s.n} : ${nf(x, 1)} (${pct(x - 100)})${b.d !== v.d ? ' · clôture du ' + fmtDate(b.d, { day: 'numeric', month: 'short' }) : ''}</div>`; }).join('');
+  function renderCmp() {
+    const b = cmpMode === 'b100';
+    $('cmpGrid').hidden = b; $('cmpB100').hidden = !b; $('cmpHead').classList.toggle('b100', b);   // Base 100 : pas de MM ni de fond
+    [...$('cmpMode').children].forEach(x => { x.className = x.dataset.m === cmpMode ? 'on' : ''; });
+    if (b) drawB100(); else minis.forEach(drawMini);
+    boxes.forEach(drawBox);
+  }
+  $('cmpMode').addEventListener('click', e => {
+    const x = e.target.closest && e.target.closest('button'); if (!x) return;
+    cmpMode = x.dataset.m; store.set('mm.cmpmode', cmpMode); tip.style.display = 'none'; renderCmp();
+  });
+  $('cmpLegBtn').addEventListener('click', () => {
+    const open = !$('cmpHead').classList.contains('legopen');
+    $('cmpHead').classList.toggle('legopen', open); $('cmpLegBtn').setAttribute('aria-expanded', String(open));
+    $('cmpLegBtn').textContent = open ? 'Légende ▴' : 'Légende ▾';
+  });
 
   function miniTip(m, b) {
     const rows = MAS.map((mm, j) => b.s[j] == null || !mm.on ? '' :
@@ -1845,13 +1957,34 @@
     return i >= 0 && i < m.vis.length ? i : -1;
   };
 
+  let cmpLp = 0;                               // minuterie de l'appui prolongé (réticule au doigt)
+  function cmpTipAt(m, i, e, tipFn) {
+    if (i < 0) { tip.style.display = 'none'; return; }
+    tip.innerHTML = tipFn(m, m.vis[i]); tip.style.display = 'block';
+    const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
+    tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - (e.pointerType === 'touch' ? 90 : 10)) + 'px';
+  }
+  // séance de breadth (Stockbee) la plus proche ≤ d : un clic sur un week-end de BTC fige le vendredi
+  const snapSession = d => { const D = sbDates(); for (let i = D.length - 1; i >= 0; i--) if (D[i] <= d) return D[i]; return D[0]; };
   function wireCmp(m, cv, tipFn) {
     cv.style.touchAction = 'pan-y';
     cv.addEventListener('pointerdown', e => {
       mdrag = { m, x: e.clientX, win: cmpWindow(), moved: false };
-      if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+      try { if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId); } catch (x) { /* pointeur déjà relâché */ }
+      clearTimeout(cmpLp);
+      if (e.pointerType === 'touch') {           // appui prolongé : réticule qui suit le doigt (la fenêtre ne bouge pas)
+        const d0 = mdrag, ev0 = { clientX: e.clientX, clientY: e.clientY, pageX: e.pageX, pageY: e.pageY, pointerType: 'touch' };
+        cmpLp = setTimeout(() => {
+          if (mdrag !== d0 || d0.moved) return;
+          d0.cross = true; try { if (window.navigator && navigator.vibrate) navigator.vibrate(8); } catch (x) { /* ignoré */ }
+          const i = miniIdx(m, ev0); cmpHover = i >= 0 ? m.vis[i].d : null; renderCmp(); cmpTipAt(m, i, ev0, tipFn);
+        }, 350);
+      }
     });
     cv.addEventListener('pointermove', e => {
+      if (mdrag && mdrag.m === m && mdrag.cross) {
+        const i = miniIdx(m, e); cmpHover = i >= 0 ? m.vis[i].d : null; renderCmp(); cmpTipAt(m, i, e, tipFn); return;
+      }
       if (mdrag && mdrag.m === m) {              // glisser : déplace la fenêtre de dates des trois graphiques
         const dx = e.clientX - mdrag.x; if (!mdrag.moved && Math.abs(dx) < 3) return;
         mdrag.moved = true; cv.style.cursor = 'grabbing'; tip.style.display = 'none'; cmpHover = null;
@@ -1860,16 +1993,24 @@
         setCmpWin(s + shift, w.end + shift);
         return;
       }
+      if (e.pointerType === 'touch') return;     // au doigt : pas de survol (appui prolongé pour le réticule)
       const i = miniIdx(m, e);
       cmpHover = i >= 0 ? m.vis[i].d : null;
-      renderCmp();
-      if (i < 0) { tip.style.display = 'none'; return; }
-      tip.innerHTML = tipFn(m, m.vis[i]); tip.style.display = 'block';
-      const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
-      tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
+      renderCmp(); cmpTipAt(m, i, e, tipFn);
     });
-    const end = () => { if (mdrag) { mdrag = null; cv.style.cursor = ''; } };
+    const end = e => {
+      clearTimeout(cmpLp);
+      if (!mdrag) return;
+      const d = mdrag; mdrag = null; cv.style.cursor = '';
+      if (d.cross) { cmpHover = null; tip.style.display = 'none'; renderCmp(); return; }   // on lâche : plus de réticule
+      // clic sans glisser (souris, grand écran) : fige la séance ou la libère ; partagée avec l'onglet MM
+      if (e && e.type === 'pointerup' && !d.moved && e.pointerType !== 'touch' && !isMobile()) {
+        const i = miniIdx(m, e); if (i >= 0) { const s = snapSession(m.vis[i].d); setPinned(s === pinned ? null : s); }
+      }
+    };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    cv.addEventListener('touchmove', e => { if (mdrag && mdrag.cross) e.preventDefault(); }, { passive: false });
+    cv.addEventListener('contextmenu', e => e.preventDefault());
     cv.addEventListener('mouseleave', () => { if (!mdrag) { cmpHover = null; tip.style.display = 'none'; renderCmp(); } });
     cv.addEventListener('wheel', e => {          // Ctrl / ⌘ + molette : zoom (molette seule = défilement de la page)
       if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
@@ -1886,6 +2027,7 @@
     cv.addEventListener('dblclick', () => selectRange('6M'));
   }
   minis.forEach(m => wireCmp(m, m.cv, miniTip));
+  wireCmp(B100, B100.cv, b100Tip);
   function cmpZoomBy(f) { const w = cmpWindow(), s = isFinite(w.start) ? w.start : cmpFirst(); setCmpWin(w.end - (w.end - s) * f, w.end); }
 
   // légende (mêmes moyennes mobiles et fond de tendance que la barre du graphique principal) et curseurs d'espaces
@@ -1899,14 +2041,6 @@
   });
   $('cmpTrend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); renderCmp(); }
-  });
-  $('topPad2').addEventListener('input', e => {
-    topPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.top', String(Math.round(topPad * 100)));
-    syncSlider(); drawPrice(); renderCmp();
-  });
-  $('rightPad2').addEventListener('input', e => {
-    rightPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.pad', String(Math.round(rightPad * 100)));
-    syncSlider(); renderCmp();
   });
 
   // onglets
@@ -2097,7 +2231,7 @@
   $('topPad').addEventListener('input', e => {
     topPad = Math.min(0.6, Math.max(0, +e.target.value / 100));
     store.set('mm.top', String(Math.round(topPad * 100)));
-    syncSlider(); drawPrice();
+    syncSlider(); drawPrice(); if (tab === 'cmp') renderCmp();
   });
 
   // cartes d'histogrammes : un clic sur le titre replie la carte (résumé d'une ligne), l'état est mémorisé
@@ -2151,7 +2285,10 @@
   })();
 
   // ------------------------------------------------------------------ plage de dates : dans la barre du graphique de l'onglet actif
-  function placeRanges() { const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box); }
+  function placeRanges() {
+    const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box);
+    const ds = $(tab === 'cmp' ? 'dslot-cmp' : 'dslot-main'), db = $('datebar'); if (ds && db && ds.appendChild) ds.appendChild(db);   // « Stats du » : MM et SA
+  }
   placeRanges();
 
   // ------------------------------------------------------------------ bandeau « état du marché »
@@ -2184,6 +2321,7 @@
       if (i >= 0) { vp.from = i - span / 2; vp.to = vp.from + span; clampViewport(); manual(); applyViewport(); }
     }
     setPinned(s);
+    if (tab === 'cmp') cmpReveal(s);
     if (s !== d) $('dInfo').textContent = `pas de séance le ${fmtDate(d, { day: 'numeric', month: 'long' })} → ${fmtDate(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
     render();
   }
@@ -2295,6 +2433,12 @@
         <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
+      sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
+        <p>Lignes pointillées : <b>20 %</b> et <b>70 %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p><p class="src">Source : Stockbee.</p>`],
+      savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
+        <p>Lignes pointillées : <b>20</b> et <b>30</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
+      b100: ['Base 100', `<p>Chaque courbe vaut <b>100</b> à sa première clôture de la période affichée ; 108 = +8 % depuis ce point. On compare ainsi QQQ, IWM et BTC sur une même échelle, quel que soit leur prix.</p>
+        <p>BTC cote aussi le week-end : les séances manquantes de QQQ et IWM sont reliées. La légende donne les valeurs à la séance survolée ou figée (sinon la dernière).</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
   }
   $('dPick').addEventListener('change', e => { if (e.target.value) showDate(e.target.value); });
