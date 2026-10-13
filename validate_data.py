@@ -21,6 +21,7 @@ FILES = {
     "vix": "vix_data.js",
     "prices": "prices_data.js",
     "sectors": "sectors_data.js",
+    "postmarket": "postmarket_data.js",
 }
 
 
@@ -162,7 +163,38 @@ def check_sectors(data, today):
     return errors
 
 
-CHECKS = {"stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors}
+def check_postmarket(data, today):
+    """Scan post-market (fetch_postmarket.py) : structure, filtres respectes, fraicheur. Un fichier sans instantane est valide
+    (aucun passage du robot pendant un post-market pour l'instant)."""
+    errors = []
+    cols = data["cols"]
+    need = {"t", "s", "pch", "pv", "c", "pc", "er", "nx", "ng"}
+    if not need <= set(cols):
+        return [f"postmarket : colonnes manquantes ({', '.join(sorted(need - set(cols)))})"]
+    snaps = data["snaps"]
+    if not snaps:
+        return errors
+    dates = [s["d"] for s in snaps]
+    if len(snaps) > 30:
+        errors.append(f"postmarket : {len(snaps)} instantanes (maximum 30)")
+    _check_dates(dates, "postmarket", today, 7, 20, errors)
+    ich, iv, n = cols.index("pch"), cols.index("pv"), len(cols)
+    f = data.get("filters", {})
+    for s in snaps:
+        bad = [r for r in s["rows"] if len(r) != n or r[ich] is None or abs(r[ich]) < f.get("chg", 4) - 1e-9 or (r[iv] or 0) < f.get("vol", 100_000)]
+        if bad:
+            errors.append(f"postmarket : {len(bad)} ligne(s) hors filtres ou incompletes le {s['d']} (ex. {bad[0][:2]})")
+        if not s["rows"]:
+            errors.append(f"postmarket : instantane vide le {s['d']}")
+    h = data.get("hist") or {}
+    hd = h.get("dates", [])
+    over = [k for k, v in h.get("bars", {}).items() if not v or v[0] + len(v) - 1 > len(hd)]
+    if over:
+        errors.append(f"postmarket : graphiques hors des dates communes ({', '.join(over[:3])})")
+    return errors
+
+
+CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors}
 
 
 def validate(name, path=None, today=None):
@@ -180,9 +212,9 @@ def validate(name, path=None, today=None):
         return [f"{name} : structure inattendue ({e.__class__.__name__}: {e})"]
 
 
-def main():
+def main(names=None):
     bad = 0
-    for name in FILES:
+    for name in names or FILES:
         errs = validate(name)
         print(f"[{name}] " + ("valide" if not errs else "INVALIDE"))
         for e in errs:
@@ -192,4 +224,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:]))   # sans argument : tous les fichiers ; sinon les sources nommees (ex. postmarket)

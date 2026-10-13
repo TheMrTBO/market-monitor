@@ -8,6 +8,8 @@ Etapes (chacune est un script independant ; si une etape echoue, les anciennes d
   vix       -> vix_data.js        (fichier CSV public du CBOE)
   prices    -> prices_data.js     (QQQ, IWM : Yahoo Finance ; BTC : Coinbase)
   sectors   -> sectors_data.js    (ETF sectoriels : Yahoo Finance)
+  postmarket-> postmarket_data.js (scan post-market du screener public TradingView ; ne fait rien hors du post-market ;
+                                   aussi lance seul toutes les 30 min le soir par .github/workflows/postmarket.yml)
 
 Chaque fichier produit est controle (validate_data.py) avant d'etre conserve : s'il est invalide, ou plus ancien que
 la version precedente, il est annule et les anciennes donnees sont restaurees.
@@ -35,6 +37,7 @@ STEPS = [
     ("vix", "fetch_vix.py", "vix_data.js", ("vix_data.js",), 3, (30, 90)),
     ("prices", "fetch_prices.py", "prices_data.js", ("prices_data.js",), 3, (60, 180)),   # Yahoo : 429 possibles depuis une IP de serveur
     ("sectors", "fetch_sectors.py", "sectors_data.js", ("sectors_data.js",), 3, (60, 180)),
+    ("postmarket", "fetch_postmarket.py", "postmarket_data.js", ("postmarket_data.js",), 2, (30,)),
 ]
 
 
@@ -53,6 +56,8 @@ def last_date(name, path):
             return min(v[-1][0] for v in data.values() if v)        # la serie la plus en retard
         if name == "sectors":
             return data["asof"]
+        if name == "postmarket":
+            return data["snaps"][-1]["d"] if data["snaps"] else None
     except (OSError, ValueError, KeyError, IndexError):
         pass
     return None

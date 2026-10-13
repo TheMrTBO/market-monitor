@@ -29,12 +29,15 @@ Toutes les sources sont publiques et gratuites.
 ```
 GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
    ├─ fetch_history.py (clé POLYGON_API_KEY en Secret) → cache/history/ + cache/splits.json   (hors dépôt, cache Actions)
-   └─ update_all.py  ── lance 5 scripts, contrôle chaque fichier (validate_data.py), restaure l'ancien si invalide
+   └─ update_all.py  ── lance 6 scripts, contrôle chaque fichier (validate_data.py), restaure l'ancien si invalide
         ├─ fetch_stockbee.py → stockbee_data.js + stockbee_market_monitor.csv   (Google Sheet public de Stockbee)
         ├─ breadth_own.py    → breadth_data.js                                  (calcul maison +4 %/−4 %, ratios 5/10 j)
         ├─ fetch_vix.py      → vix_data.js                                      (CSV public du CBOE)
         ├─ fetch_prices.py   → prices_data.js                                   (QQQ, IWM : Yahoo ; BTC : Coinbase)
-        └─ fetch_sectors.py  → sectors_data.js                                  (55 ETF : Yahoo)
+        ├─ fetch_sectors.py  → sectors_data.js                                  (55 ETF : Yahoo)
+        └─ fetch_postmarket.py → postmarket_data.js                             (scan post-market : TradingView ; graphiques : Yahoo)
+GitHub Actions « Scan post-market » (postmarket.yml, toutes les 30 min de 20:15 à 01:15 UTC en semaine)
+   └─ fetch_postmarket.py seul → commit de postmarket_data.js si changé → déploiement
    └─ status_data.js (horodatage + dernière séance par source)
    └─ commit des fichiers de données dans main, puis déploiement de _site/ sur GitHub Pages
 ```
@@ -50,6 +53,8 @@ GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
 | `fetch_vix.py` | CSV CBOE `VIX_History.csv` (redirige vers `cdn-api.cboe.com`), depuis 2018 |
 | `fetch_prices.py` | QQQ/IWM Yahoo (yfinance) ; BTC Coinbase `BTC-USD` en fenêtres de 299 jours ; option `--source polygon` |
 | `fetch_sectors.py` | Liste d'ETF (`UNIVERSE`), descriptions (`DESC`), données OHLCV sur 900 jours |
+| `fetch_postmarket.py` | Scan post-market (screener public TradingView, sans clé, différé 15 min) : prix > 3 $, vol. AH > 100 000, \|var. AH\| > 4 %, 60 titres max par sens ; un instantané par séance (heure de New York, fenêtre 16 h → 4 h), 20 séances ; complète le « lendemain » (variation, gap) de l'instantané précédent ; bougies 3 mois (Yahoo) des titres du dernier instantané. Hors fenêtre : ne fait rien |
+| `.github/workflows/postmarket.yml` | Relevé du scan post-market toutes les 30 min le soir (couvre heure d'été et d'hiver), commit + déploiement seulement si le fichier change |
 | `fetch_data.py` | **Ancien** calcul du breadth +4 %/−4 % depuis Polygon (grouped daily). Toujours importé par `fetch_prices.py` et `fetch_history.py` (client Polygon, univers, splits) |
 | `fetch_history.py` | **Calcul maison, lot 1.** Télécharge les clôtures/volumes bruts (1 appel `grouped daily` par séance), les splits à part et l'univers ; cache `cache/history/` (hors dépôt), reprenable, élagué à 400 séances |
 | `breadth_own.py` | **Calcul maison, lot 1.** Formules TC2000 (+4 %/−4 %, volume ≥ 100 000 et croissant, splits) et ratios 5/10 j → `breadth_data.js` (agrégats seuls, lignes déjà publiées conservées) |
@@ -70,6 +75,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
 | `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
+| `postmarket_data.js` | `window.POSTMARKET` | `{cols, filters, snaps:[{d, at, closed, nextd?, rows:[[t, s, n, sec, ind, c, ch, pc, pch, pv, rv, cap, flt, er, nx, ng]]}], hist:{dates, bars:{symbole:[i0, [o,h,l,c,v]…]}}}` ; `er` = `amc` / `bmo` / vide ; `nx`, `ng` = variation et gap du lendemain |
 | `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, breadth, vix, prices, sectors:{ok, attempts, last, error?}}}` |
 
 Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
@@ -86,6 +92,7 @@ fichiers de données (GitHub Pages met les fichiers en cache 10 min).
 | BTC | **Coinbase Exchange `BTC-USD`** (300 bougies/appel, pagination par dates) | Binance : refuse les IP américaines (GitHub) ; Kraken : ne renvoie que ~720 bougies |
 | VIX | **CBOE CSV officiel** | Polygon : indices non inclus dans le plan gratuit |
 | ETF sectoriels | **Yahoo Finance** (un seul `yf.download` groupé) | — |
+| Scan post-market | **Screener public TradingView** (`scanner.tradingview.com`, sans compte : différé 15 min ; champs post-market vides pendant la séance régulière) | Benzinga : clé API, prévu plus tard pour le détail des résultats (BPA, CA) |
 
 Contraintes connues :
 - **Yahoo** : pas d'API officielle, erreurs 429 fréquentes depuis des IP de serveurs, usage « personnel » selon yfinance. Le
@@ -210,6 +217,21 @@ graphique principal, contexte propre `secCtx`), carte individuelle **Score avgC7
 - 55 ETF : les 31 symboles TC2000 de l'utilisateur (YINN, ETF à levier ×3, **retiré**) + 24 ajouts (SPDR manquants,
   industries, mines, thèmes). Liste et descriptions dans `fetch_sectors.py`.
 
+### Onglet « Post-market » (13/10/2026)
+Même mise en page que Secteurs : « Stats du » en haut, liste à gauche, graphique + fiche à droite ; mobile = liste plein écran,
+toucher un titre → graphique + fiche, « ‹ Scan » pour revenir.
+- Scan = preset TradingView de l'utilisateur : prix > 3 $, volume post-market > 100 000, variation post-market > +4 % ; on
+  récupère aussi < −4 %. Filtres : **Hausses** (défaut) · Baisses · Les deux, et **Résultats** (seulement les titres qui ont
+  publié ce soir ou ce matin). Tri par défaut : volume post-market (clic sur un en-tête pour trier autrement, ↑ ↓ au clavier).
+- Colonnes : Symbole (secteur traduit dessous, industrie au survol) · Var AH (barre derrière le chiffre, échelle = 90e centile)
+  · Vol AH · RVol (vol. AH ÷ vol. journalier moyen 90 j) · Cap. · Lendemain (dès que la séance suivante est jouée) · Rés.
+  (AMC / BMO, champs `earnings_release_*` de TradingView). Mobile : Symbole · Var AH · Vol AH · Rés.
+- Fiche : clôture, post-market, volume + RVol, capitalisation, flottant, résultats, lendemain (variation + gap), lien TradingView.
+- Graphique : moteur commun, contexte `pmCtx` ; point **AH** (cours post-market) une demi-barre après la séance du scan, relié
+  à la clôture ; pas de fond de tendance. Graphiques seulement pour les titres du dernier instantané.
+- Méta : date de la séance, « post-market en cours / terminé », heure du relevé (heure locale).
+- Prévu : vue « Résultats » (Benzinga : BPA, CA, surprise), masquée tant que la source n'est pas branchée.
+
 ### Autres
 Pied de page de statut dans un bloc repliable « Sources et état des données » (date, ✓/⚠ par source, écart calcul maison /
 Stockbee). Thème clair/sombre/système pour le cadre (les graphiques de prix restent noirs).
@@ -219,7 +241,7 @@ horizontal, graphique pleine largeur, légende réduite, barre d'onglets en bas 
 
 ### Clés `localStorage` (préférences, aucune donnée sensible)
 `mm.mas` (MM), `mm.pad` / `mm.top` (espaces), `mm.tab`, `mm.order` (cartes), `mm.raw4|raw25m|raw25` (détails),
-`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.secgrp` (filtre de groupe), `mm.theme` (thème),
+`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.secgrp` (filtre de groupe), `mm.pmdir` / `mm.pmer` / `mm.pmsel` (Post-market : sens, filtre résultats, titre), `mm.theme` (thème),
 `mm.hsolid` (histogrammes opaques), `mm.hma` (moyenne mobile des histogrammes).
 
 ---
