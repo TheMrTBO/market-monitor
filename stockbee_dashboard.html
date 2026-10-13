@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Market Monitor</title>
 <meta name="theme-color" content="#0d1016">
 <style>
@@ -248,6 +248,68 @@
   .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
   details.about { margin-top: 12px; }
 
+  /* ---- largeurs intermédiaires : la pastille de fraîcheur se réduit */
+  .mtop, .msub, .tabbar { display: none; }
+  .more { position: fixed; z-index: 41; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--border); border-radius: 16px 16px 0 0;
+          padding: 10px 12px calc(14px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.35); }
+  .more[hidden] { display: none; }
+  .grab { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto 10px; }
+  .navitem { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px; min-height: 46px; border: 0; background: none; border-radius: 9px;
+             font-size: 15px; text-align: left; color: var(--text); text-decoration: none; }
+  .navitem:hover { background: var(--hover); } .navitem svg.i { width: 20px; height: 20px; color: var(--muted); }
+  .navitem .hint { margin-left: auto; font-size: 12px; color: var(--faint); }
+  .navsep { height: 1px; background: var(--border); margin: 6px 4px; }
+  @media (max-width: 1000px) { header { gap: 10px; } .fresh .fv, .fresh .fw { display: none; } }
+
+  /* ---- mobile : graphique d'abord, barre d'onglets en bas, réglages en feuille */
+  @media (max-width: 640px) {
+    body { font-size: 14px; }
+    .wrap { padding: 0 0 calc(70px + env(safe-area-inset-bottom)); }
+    header { display: none; }
+    .mtop { display: flex; align-items: center; gap: 8px; padding: calc(8px + env(safe-area-inset-top)) 12px 2px; position: sticky; top: 0; z-index: 6; background: var(--bg); }
+    .mtop .iconbtn { width: 40px; height: 40px; }
+    .minst { font-weight: 650; font-size: 16px; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .minst span { font-weight: 500; font-size: 14px; }
+    .msub { display: flex; align-items: center; gap: 6px; padding: 0 12px 6px; font-size: 11.5px; color: var(--muted); }
+    .msub .dot { width: 6px; height: 6px; }
+    .kpis { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; padding: 4px 12px 8px; margin: 0; scrollbar-width: none; }
+    .kpis::-webkit-scrollbar { display: none; }
+    .kpi { flex: 0 0 136px; scroll-snap-align: start; padding: 9px 10px 8px; }
+    .kpi.kidx { flex-basis: 214px; }
+    .kpi .top { font-size: 11px; }
+    .kpi .badge { font-size: 0; width: 8px; height: 8px; padding: 0; background: currentColor; }
+    .kpi .val { font-size: 20px; }
+    .kpi .body { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .kpi svg.spark { height: 18px; margin: 4px 0 0; }
+    .irow { grid-template-columns: 36px 0 60px 76px; padding: 5px 6px; } .irow .px { visibility: hidden; }
+    .kpinote { display: none; }
+    .card { border-radius: 0; border-left: 0; border-right: 0; padding-left: 10px; padding-right: 10px; }
+    .chartbar { gap: 6px 10px; }
+    .chartbar .instpx, .chartbar .spacer, #view-main .trendleg { display: none; }
+    .rangebox { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+    .rangebox .seg button { padding: 7px 11px; }
+    .zoom { display: none !important; }
+    .ovl { font-size: 11px; gap: 2px 10px; padding: 6px 8px 2px; }
+    .ohlc { gap: 8px; } .mabar { gap: 2px 10px; } .mabar .car { display: none; }
+    #price { height: 52vh; min-height: 300px; }
+    .grip { display: none; }
+    .chrow { flex-wrap: wrap; row-gap: 0; } .chrow .sum { order: 5; width: 100%; margin-left: 0; padding: 0 0 6px 18px; }
+    .chead { min-height: 40px; }
+    .tablewrap { border-radius: 0; border-left: 0; border-right: 0; max-height: 420px; }
+    th:first-child, td:first-child { position: sticky; left: 0; background: var(--panel); z-index: 1; }
+    details.about { padding: 0 12px; }
+    .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: color-mix(in srgb, var(--panel) 94%, transparent);
+              -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border); padding: 4px 0 calc(4px + env(safe-area-inset-bottom)); }
+    .tabbar button { flex: 1; display: grid; justify-items: center; gap: 2px; border: 0; background: none; font-size: 11px; color: var(--muted); min-height: 50px; padding: 4px 0; }
+    .tabbar button.on { color: var(--up); border: 0; box-shadow: none; } .tabbar svg.i { width: 22px; height: 22px; }
+    .ohlc .oh { display: none; }
+    .sheet { top: auto; left: 0; width: auto; max-height: 85vh; border-left: 0; border-top: 1px solid var(--border); border-radius: 16px 16px 0 0;
+             padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.35); }
+    .toast { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .secsplit { grid-template-columns: minmax(0, 1fr); }
+    #view-cmp .chartbar label, #view-sec .chartbar label { display: none; }
+  }
+
   /* ---- graphique de prix : barre d'outils, légende OHLC / MM posée sur le fond du graphique (style TradingView) */
   .chartbar .inst { font-size: 15px; }
   .instpx { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -295,6 +357,13 @@
     <button class="iconbtn" id="gearBtn" aria-label="Réglages" title="Réglages de l'affichage"><svg class="i"><use href="#i-gear"/></svg></button>
     <div class="sub" id="sub" hidden></div>
   </header>
+  <div class="mtop">
+    <span class="minst" id="minst"></span>
+    <span class="hspacer"></span>
+    <button class="iconbtn" id="refresh2" aria-label="Vérifier si de nouvelles données sont publiées"><svg class="i"><use href="#i-refresh"/></svg></button>
+    <button class="iconbtn" id="gear2" aria-label="Réglages"><svg class="i"><use href="#i-gear"/></svg></button>
+  </div>
+  <div class="msub" id="msub"></div>
   <!-- plage de dates et zoom : déplacés dans la barre du graphique de l'onglet actif (voir setTab) -->
   <span class="rangebox" id="rangebox">
     <span class="group seg sm" id="ranges"></span>
@@ -445,6 +514,20 @@
   </details>
 </div>
 
+<nav class="tabbar" id="tabbar" aria-label="Onglets">
+  <button data-tab="main" class="on"><svg class="i"><use href="#i-candle"/></svg>Marché</button>
+  <button data-tab="cmp"><svg class="i"><use href="#i-cols"/></svg>Comparer</button>
+  <button data-tab="sec"><svg class="i"><use href="#i-list"/></svg>Secteurs</button>
+  <button id="moreBtn" aria-haspopup="dialog"><svg class="i"><use href="#i-dots"/></svg>Plus</button>
+</nav>
+<aside class="more" id="more" hidden aria-label="Plus">
+  <div class="grab"></div>
+  <button class="navitem" data-a="settings"><svg class="i"><use href="#i-gear"/></svg>Réglages de l'affichage</button>
+  <button class="navitem" data-a="refresh"><svg class="i"><use href="#i-refresh"/></svg>Vérifier les mises à jour<span class="hint" id="moreFresh"></span></button>
+  <button class="navitem" data-a="about"><svg class="i"><use href="#i-db"/></svg>Sources et état des données</button>
+  <div class="navsep"></div>
+  <a class="navitem" href="https://github.com/TheMrTBO/market-monitor/actions/workflows/update.yml" target="_blank" rel="noopener"><svg class="i"><use href="#i-ext"/></svg>Lancer une mise à jour (GitHub)<span class="hint">propriétaire</span></a>
+</aside>
 <div class="scrim" id="scrim" hidden></div>
 <aside class="sheet" id="sheet" hidden aria-label="Réglages">
   <h3>Réglages<button class="iconbtn" id="sheetClose" aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button></h3>
@@ -519,7 +602,8 @@
   // ------------------------------------------------------------------ état
   let current = NAMES.includes('QQQ') ? 'QQQ' : NAMES[0];
   let tab = 'main';        // onglet affiché : 'main' (détail) ou 'cmp' (QQQ · IWM · BTC côte à côte)
-  let range = '6M';        // préréglage actif ; null dès qu'on zoome ou déplace à la main
+  const isMobile = () => (window.innerWidth || 1200) <= 640;
+  let range = isMobile() ? '3M' : '6M';   // préréglage actif ; null dès qu'on zoome ou déplace à la main
   const MONTHS = { '3M': 3, '6M': 6, 'YTD': 'YTD', '1A': 12, '2A': 24, '5A': 60, 'Tout': null };   // YTD = depuis le 1er janvier
   let ALLT = [];           // toutes les dates (union breadth + bougies : même axe pour tous les graphiques)
   let vp = { from: 0, to: 0 };  // fenêtre visible en index de ALLT ; `to` peut dépasser la dernière séance (espace à droite)
@@ -1053,7 +1137,7 @@
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { panBars(e.deltaX * k / (pw / (vp.to - vp.from + 1))); return; }
       zoomAt(anchorFrac((e.clientX - r.left - PAD.l) / pw), Math.exp(e.deltaY * k * 0.0015));   // molette vers le bas = dézoom
     }), { passive: false });
-    cv.addEventListener('dblclick', () => selectRange('6M'));
+    cv.addEventListener('dblclick', () => selectRange(isMobile() ? '3M' : '6M'));
   }
 
   // ------------------------------------------------------------------ onglet « Secteurs » : classement avgC7 / avgC65
@@ -1551,7 +1635,8 @@
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
-    placeRanges();
+    placeRanges(); renderMtop();
+    document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
     else if (t === 'cmp') { renderCmpLegend(); renderCmp(); } else { drawAll(); syncSlider(); }
@@ -1629,15 +1714,21 @@
   function updateLegend() {
     const d = T[hover] || null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
     $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
-      `<span>O <b>${nf(b.o, pxd(b.o))}</b></span><span>H <b>${nf(b.h, pxd(b.h))}</b></span><span>B <b>${nf(b.l, pxd(b.l))}</b></span>` +
+      `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
       `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
       (b.st ? `<span>· ${trendLabel(b.st).split(' :')[0]}</span>` : '');
     $('maBar').innerHTML = maChipsHtml(b);
+  }
+  function renderMtop() {
+    const lb = [...bars.values()].pop();
+    $('minst').innerHTML = tab === 'main' ? `${current} ${lb ? `<span>${nf(lb.c, pxd(lb.c))} <span class="${cls(lb.chg)}">${pct(lb.chg)}</span></span>` : ''}`
+      : tab === 'cmp' ? 'QQQ · IWM · BTC' : 'Secteurs';
   }
   function renderBar() {
     const lb = [...bars.values()].pop();
     $('instBtn').textContent = `${current} ▾`;
     $('instPx').innerHTML = lb ? `${nf(lb.c, pxd(lb.c))} <span class="${cls(lb.chg)}">${pct(lb.chg)}</span>` : '';
+    renderMtop();
     updateLegend();
     $('trendLegend').innerHTML = trendLegendHtml();
     renderCmpLegend();
@@ -1734,7 +1825,7 @@
       if (open) drawAll();
     };
     h.addEventListener('click', () => set(body.hidden));
-    if (store.get(key) === '0') set(false);
+    if (store.get(key) === '0' || (store.get(key) == null && isMobile() && h.dataset.key !== 'c4')) set(false);
   });
 
   // curseur « Espace à droite » : décale la fenêtre sans changer la largeur des barres (comme la poignée ▲)
@@ -1909,11 +2000,12 @@
     const f = freshInfo(), b = $('refreshBtn');
     const warn = f.stale ? '· ⚠ données en retard' : f.failed.length ? `· ⚠ ${f.failed.length} source${f.failed.length > 1 ? 's' : ''} en échec` : '';
     b.innerHTML = `<span class="dot"></span>Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` +
-      `<span style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc">${warn}</span>` : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
-    b.classList.toggle('stale', !!f.stale);
+      `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
+    b.classList.toggle('stale', !!f.stale || f.failed.length > 0);   // point orange : données en retard ou source en échec
     b.title = (f.when ? `Données publiées le ${f.when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' })}. ` : '') +
       `Mise à jour automatique chaque jour (prochaine vers ${hm(nextRun())}). ` + (f.failed.length ? `Non mis à jour : ${f.failed.join(', ')}. ` : '') + 'Clique pour vérifier maintenant.';
-    const ms = $('msub'); if (ms) { ms.innerHTML = b.innerHTML.replace(/<span class="rf">[\s\S]*$/, ''); ms.classList.toggle('stale', !!f.stale); }
+    const ms = $('msub'); if (ms) { ms.innerHTML = b.innerHTML.replace(/<span class="rf">[\s\S]*$/, ''); ms.classList.toggle('stale', !!f.stale || f.failed.length > 0); }
+    const mf = $('moreFresh'); if (mf) mf.textContent = 'vérifié à ' + hm(checkedAt);
   }
   function showToast(kind) {
     const t = $('toast'), f = freshInfo(), day = f.last ? fmtDate(f.last, { weekday: 'long', day: 'numeric', month: 'long' }) : '?';
@@ -1946,6 +2038,7 @@
     finally { b.classList.remove('busy'); if (mb) mb.classList.remove('busy'); checkedAt = new Date(); renderFresh(); }
   }
   $('refreshBtn').addEventListener('click', checkUpdates);
+  $('refresh2').addEventListener('click', checkUpdates);
   document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - checkedAt > 15 * 60000) checkUpdates(); });
   if (typeof setInterval === 'function') setInterval(() => { if (!document.hidden) checkUpdates(); }, 30 * 60000);
   renderFresh();
@@ -1967,9 +2060,21 @@
   }
   const openSheet = on => { $('sheet').hidden = !on; $('scrim').hidden = !on; if (on) { closeTip(); renderSheet(); } };
   $('gearBtn').addEventListener('click', () => openSheet(true));
+  $('gear2').addEventListener('click', () => openSheet(true));
+  // mobile : barre d'onglets en bas (même navigation que les onglets de l'en-tête) et feuille « Plus » pour les outils secondaires
+  $('tabbar').addEventListener('click', e => { const b = e.target && e.target.closest && e.target.closest('button[data-tab]'); if (b) setTab(b.dataset.tab); });
+  const closeMore = () => { $('more').hidden = true; if ($('sheet').hidden) $('scrim').hidden = true; };
+  $('moreBtn').addEventListener('click', () => { closeTip(); $('more').hidden = false; $('scrim').hidden = false; });
+  $('more').addEventListener('click', e => {
+    const a = e.target && e.target.closest && e.target.closest('[data-a]'); if (!a) return;
+    closeMore();
+    if (a.dataset.a === 'settings') openSheet(true);
+    else if (a.dataset.a === 'refresh') checkUpdates();
+    else if (a.dataset.a === 'about') { $('about').open = true; $('about').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
   $('sheetClose').addEventListener('click', () => openSheet(false));
   $('scrim').addEventListener('click', () => { openSheet(false); if (typeof closeMore === 'function') closeMore(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') { openSheet(false); closeTip(); } });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { openSheet(false); closeTip(); closeMore(); } });
   $('maRows').addEventListener('change', e => {
     const el = e.target, i = +el.dataset.i, f = el.dataset.f; if (!MAS[i]) return;
     if (f === 'on') MAS[i].on = el.checked;
