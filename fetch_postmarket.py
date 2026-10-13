@@ -28,7 +28,7 @@ NY = ZoneInfo("America/New_York")
 URL = "https://scanner.tradingview.com/america/scan"
 HEADERS = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (market-monitor; +github.com/TheMrTBO/market-monitor)"}
 KEEP = 20                      # seances conservees
-LIMIT = 60                     # titres par sens (hausses, baisses)
+LIMIT = 150                    # titres par sens (hausses, baisses) ; limite atteinte = liste tronquee, signalee ("trunc")
 FILTERS = {"price": 3, "vol": 100_000, "chg": 4}
 HIST_BARS = 65                 # ~3 mois de bougies pour la fiche detail
 
@@ -240,7 +240,9 @@ def main():
             save(data)
         return 0
 
-    rows = build_rows(movers(+1) + movers(-1), d)
+    up_raw, down_raw = movers(+1), movers(-1)
+    trunc = len(up_raw) >= LIMIT or len(down_raw) >= LIMIT
+    rows = build_rows(up_raw + down_raw, d)
     if not rows:                                # jour ferie, champs deja vides : on ne cree pas d'instantane vide
         print(f"Seance {d} : aucun titre post-market (jour ferie ou donnees videes) ; fichier inchange.")
         if not OUT.exists():
@@ -254,7 +256,11 @@ def main():
             fill_next(prev[-1], d)
         except RuntimeError as e:
             print(f"  Lendemain non complete : {e}")
-    snaps.append({"d": d.isoformat(), "at": now.isoformat(timespec="seconds"), "closed": closed, "rows": rows})
+    snap = {"d": d.isoformat(), "at": now.isoformat(timespec="seconds"), "closed": closed, "rows": rows}
+    if trunc:                                   # ne devrait pas arriver (150 titres par sens) : signale dans l'onglet
+        snap["trunc"] = True
+        print(f"  ATTENTION : {LIMIT} titres atteints dans un sens, liste tronquee")
+    snaps.append(snap)
     snaps = sorted(snaps, key=lambda s: s["d"])[-KEEP:]
     last = snaps[-1]
     syms = [r[1] for r in last["rows"]]

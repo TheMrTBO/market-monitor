@@ -13,7 +13,7 @@ import argparse
 import json
 import math
 import sys
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -145,6 +145,14 @@ DESC = {
 }
 
 
+def session_still_open(day_iso):
+    """Vrai si `day_iso` est aujourd'hui a New York et que la seance n'est pas finie (avant 16 h) : sa bougie est partielle,
+    on ne l'enregistre pas (un passage du workflow pendant la seance ecrivait une bougie du jour incomplete)."""
+    from zoneinfo import ZoneInfo
+    t = datetime.now(ZoneInfo("America/New_York"))
+    return day_iso == t.date().isoformat() and t.hour < 16
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--days", type=int, default=900, help="historique en jours calendaires (900 = environ 620 seances : de quoi afficher la SMA 200)")
@@ -172,6 +180,8 @@ def main():
             series[s] = {ts.date().isoformat(): row for ts, row in sub.iterrows()}
 
     dates = sorted({d for ser in series.values() for d in ser})
+    if dates and session_still_open(dates[-1]):        # seance du jour pas finie : bougie partielle, non enregistree
+        dates = dates[:-1]
     out = []
     for sym, name, grp, origin in UNIVERSE:
         ser = series.get(sym)

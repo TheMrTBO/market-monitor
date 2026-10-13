@@ -48,6 +48,14 @@ def yahoo_candles(symbol, start):
     return out
 
 
+def session_still_open(day_iso):
+    """Vrai si `day_iso` est aujourd'hui a New York et que la seance n'est pas finie (avant 16 h) : sa bougie est partielle,
+    on ne l'enregistre pas (un passage du workflow pendant la seance ecrivait une bougie du jour incomplete)."""
+    from zoneinfo import ZoneInfo
+    t = datetime.now(ZoneInfo("America/New_York"))
+    return day_iso == t.date().isoformat() and t.hour < 16
+
+
 COINBASE = "https://api.exchange.coinbase.com/products/BTC-USD/candles"
 
 
@@ -110,6 +118,8 @@ def main():
         except fd.PlanError as e:
             print(f"{name}: acces refuse par ton plan Polygon ({e})")
             bars = []
+        if name != "BTC" and bars and session_still_open(bars[-1]["time"]):   # QQQ / IWM : pas de bougie du jour avant la cloture
+            bars = bars[:-1]
         # format compact : [date, open, high, low, close, volume]
         out[name] = [[b["time"], b["open"], b["high"], b["low"], b["close"], b["volume"]] for b in bars]
         first = out[name][0][0] if out[name] else "-"
