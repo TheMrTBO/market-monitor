@@ -11,11 +11,10 @@ Ratio 5 / 10 j = somme des haussiers / somme des baissiers sur 5 / 10 seances.
 
 Fenetres longues (definitions de Stockbee inconnues : approximations calibrees contre sa serie, voir RECAP_PROJET.md).
 Les clotures sont ajustees des splits sur toute la fenetre (sinon un split 2-pour-1 compterait comme -50 %).
-    Mois (20 seances)  : C / C[20] >= 1,25 (hausse) ou <= 0,75 (baisse) ; V >= 100 000 ; cloture brute de depart >= 5 $.
-                         Mesure (52 seances, juil.-oct. 2026) : correlation 0,999 / 0,983, niveaux 13 % / 27 % sous Stockbee.
+    Pas de filtre de volume (il appartient au scan +4 % / -4 % ; l'appliquer ici retirait ~1/4 des titres).
+    Mois (20 seances)  : C / C[20] >= 1,25 (hausse) ou <= 0,75 (baisse) ; cloture brute de depart >= 5 $.
     Trimestre (63 s.)  : EXPERIMENTAL. C / plus bas des 63 clotures precedentes >= 1,25, C / plus haut <= 0,75 ;
-                         V >= 100 000 ; present sur 90 % de la fenetre ; premiere cloture brute >= 5 $.
-                         Mesure sur 9 seances seulement : comptes 40 a 70 % sous Stockbee, a recaler.
+                         present sur 90 % de la fenetre ; premiere cloture brute >= 1 $ (calibre sur 9 seances seulement).
     T2108              : % des titres de l'univers (40 clotures presentes) dont C > SMA 40 (C incluse).
                          Mesure (33 seances) : correlation 0,98, biais +0 a +6 points selon la periode.
 
@@ -35,7 +34,8 @@ OUT = HERE / "breadth_data.js"
 COLUMNS = ["date", "up4", "down4", "ratio5", "ratio10", "up25m", "down25m", "up25q", "down25q", "t2108"]
 LONG = COLUMNS[5:]           # fenetres longues : absentes tant que l'historique en cache est trop court
 MONTH, QUARTER, SMA = 20, 63, 40
-MIN_PRICE = 5.0              # cloture brute de depart minimale (sans ce filtre : ~2 fois trop de titres sur le mois)
+MIN_PRICE = 5.0              # mois : cloture brute de depart minimale (sans ce filtre : ~2 fois trop de titres)
+MIN_PRICE_Q = 1.0            # trimestre : idem (calibrage provisoire, a reverifier sur ~60 seances)
 THRESHOLD = 4
 MIN_VOL = 100_000
 MIN_SESSIONS = 12          # 11 variations de seance pour le ratio 10 j + la seance de depart
@@ -99,24 +99,22 @@ def compute_long(dates, history, universe, splits):
     adj, raw = adjusted_series(dates, history, universe, splits)
     out = {}
     for i, d in enumerate(dates):
-        vol = history[d]
         um = dm = uq = dq = above = total = 0
         for t, a in adj.items():
             c = a[i]
             if c is None:
                 continue
-            v = vol[t][1] if t in vol else 0
-            if i >= MONTH and v >= MIN_VOL:
+            if i >= MONTH:
                 b, rb = a[i - MONTH], raw[t][i - MONTH]
                 if b and rb is not None and rb >= MIN_PRICE:
                     if c / b >= 1.25:
                         um += 1
                     elif c / b <= 0.75:
                         dm += 1
-            if i >= QUARTER and v >= MIN_VOL:
+            if i >= QUARTER:
                 w = [x for x in a[i - QUARTER:i] if x is not None]
                 first = next((x for x in raw[t][i - QUARTER:i] if x is not None), None)
-                if len(w) >= 0.9 * QUARTER and first is not None and first >= MIN_PRICE:
+                if len(w) >= 0.9 * QUARTER and first is not None and first >= MIN_PRICE_Q:
                     if c / min(w) >= 1.25:
                         uq += 1
                     if c / max(w) <= 0.75:

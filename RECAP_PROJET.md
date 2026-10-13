@@ -306,9 +306,10 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 
 ### Point 1 — Calculer les indicateurs nous-mêmes, sans dépendre de Stockbee
 > **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j). **Lots 2 et 3 branchés le 2026-10-13 en pointillé** (cases et seuils restent
-> Stockbee) : ±25 % mois (C/C[20], prix de départ ≥ 5 $, V ≥ 100 000 ; corrélation 0,999 / 0,988, niveaux 13 % / 29 % sous Stockbee ;
-> ratio mois corrélé à 0,996), T2108 (SMA 40 ; corrélation 0,98, biais +0 à +6 pts), ±25 % trimestre **expérimental** (C / plus bas ou plus
-> haut des 63 séances ; 9 séances comparables, comptes 40-70 % sous Stockbee : définition à retrouver). Clôtures ajustées des splits sur
+> Stockbee) : ±25 % mois (C/C[20], prix de départ ≥ 5 $, **sans filtre de volume** ; corrélation 1,000 / 0,992, écart 1,7 % / 8,2 % ;
+> ratio mois corrélé à 0,999), T2108 (SMA 40 ; corrélation 0,98, biais +0 à +6 pts, cause probable : univers ~5 170 titres cotés/jour vs
+> 6 554 Worden), ±25 % trimestre **expérimental** (C / plus bas ou plus haut des 63 séances, prix ≥ 1 $, sans filtre de volume ; écart
+> 2,6 % / 1,0 % sur 9 séances seulement, à reconfirmer sur ~60). Le filtre V ≥ 100 000 ne s'applique qu'au ±4 %. Clôtures ajustées des splits sur
 > toute la fenêtre. Historique téléchargé : 130 séances. Mesures sur le cache local 2026-07-01 → 2026-10-12.
 **Objectif** : produire `up4/down4, ratio5/10, up25q/down25q, up25m/down25m, up50m/down50m, up13_34d/down13_34d, T2108,
 univers` à partir de données de marché brutes, avec le même format que `stockbee_data.js`, et garder Stockbee comme

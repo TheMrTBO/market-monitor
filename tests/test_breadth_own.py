@@ -63,18 +63,18 @@ def _day(k):
     up = 10.0 if k < 50 else 13.0                                   # UP : +30 % a partir de la seance 50
     dn = 10.0 if k < 50 else 7.0                                    # DN : -30 %
     return {"UP": [up, 200_000], "DN": [dn, 200_000], "FLAT": [10.0, 200_000],
-            "CHEAP": [2.0 if k < 50 else 3.0, 200_000],                # +50 % mais cloture de depart < 5 $ : ignore
-            "LOWV": [10.0 if k < 50 else 13.0, 50_000],                 # +30 % mais volume < 100 000 : ignore
+            "CHEAP": [2.0 if k < 50 else 3.0, 200_000],                # +50 %, depart a 2 $ : ignore sur le mois (< 5 $), compte sur le trimestre (>= 1 $)
+            "LOWV": [10.0 if k < 50 else 13.0, 50_000],                 # +30 % avec un faible volume : compte (pas de filtre de volume)
             "SPLT": [100.0 if k < 60 else 50.0, 200_000]}               # split 2-pour-1 a la seance 60 : pas une baisse
 LH = {d: _day(k) for k, d in enumerate(LD)}
 long_ = bo.compute_long(LD, LH, LU, {LD[60]: {"SPLT": 2.0}})
 checks["mois : absent avant 20 seances"] = long_[LD[19]]["up25m"] is None and long_[LD[20]]["up25m"] == 0
-checks["mois : +25 % / -25 % sur 20 seances, filtres 5 $ et volume"] = (long_[LD[60]]["up25m"], long_[LD[60]]["down25m"]) == (1, 1)
-checks["mois : split 2-pour-1 ajuste (pas de faux -50 %)"] = (long_[LD[65]]["up25m"], long_[LD[65]]["down25m"]) == (1, 1)
+checks["mois : +25 % / -25 % sur 20 seances, prix de depart >= 5 $, sans filtre de volume"] = (long_[LD[60]]["up25m"], long_[LD[60]]["down25m"]) == (2, 1)
+checks["mois : split 2-pour-1 ajuste (pas de faux -50 %)"] = (long_[LD[65]]["up25m"], long_[LD[65]]["down25m"]) == (2, 1)
 checks["mois : sans declarer le split, faux -50 % (le test verifie bien l'ajustement)"] = \
     bo.compute_long(LD, LH, LU, {})[LD[65]]["down25m"] == 2
-checks["trimestre : absent avant 63 seances, puis plus bas / plus haut de la fenetre"] = \
-    long_[LD[62]]["up25q"] is None and (long_[LD[63]]["up25q"], long_[LD[63]]["down25q"]) == (1, 1)
+checks["trimestre : absent avant 63 seances, puis plus bas / plus haut de la fenetre, prix >= 1 $"] = \
+    long_[LD[62]]["up25q"] is None and (long_[LD[63]]["up25q"], long_[LD[63]]["down25q"]) == (3, 1)
 t = long_[LD[50]]["t2108"]            # seance 50 : UP, LOWV, CHEAP au-dessus de leur SMA 40 ; DN dessous ; FLAT et SPLT egaux
 checks["T2108 : absent avant 40 seances, puis % au-dessus de la SMA 40"] = \
     long_[LD[38]]["t2108"] is None and t == round(100 * 3 / 6, 2)
