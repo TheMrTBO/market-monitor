@@ -1,1 +1,1 @@
-window.STATUS = {"updated":"2026-10-13T06:57:22+00:00","sources":{"stockbee":{"ok":true,"attempts":1,"last":"2026-10-12"},"vix":{"ok":true,"attempts":1,"last":"2026-10-12"},"prices":{"ok":true,"attempts":1,"last":"2026-10-12"},"sectors":{"ok":true,"attempts":1,"last":"2026-10-12"}}};
+window.STATUS = {"updated":"2026-10-13T07:21:43+00:00","sources":{"stockbee":{"ok":true,"attempts":1,"last":"2026-10-12"},"vix":{"ok":true,"attempts":1,"last":"2026-10-12"},"prices":{"ok":true,"attempts":1,"last":"2026-10-12"},"sectors":{"ok":true,"attempts":1,"last":"2026-10-12"}}};
