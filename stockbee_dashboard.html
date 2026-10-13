@@ -197,6 +197,7 @@
   .kpi .top { height: 20px; } .kpi .val { height: 30px; line-height: 30px; white-space: nowrap; } .kpi .ksub { height: 18px; line-height: 18px; }
   .irow { height: 26px; } .irow .rec { line-height: 14px; padding-top: 0; padding-bottom: 0; } .g3 { height: 14px; }
   .kpi .val { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .kpi .vsep { color: var(--faint); font-weight: 400; }   /* « +312 / −584 » de la case ±4 % du jour */
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
   .kpi svg.spark { width: 100%; height: 34px; margin-bottom: 3px; }
@@ -210,11 +211,8 @@
   .t3 { background: rgba(46,160,67,.42); } .t2 { background: rgba(46,160,67,.18); } .t1 { background: rgba(234,179,8,.32); }
   .t0 { box-shadow: inset 0 0 0 1px var(--border); color: var(--muted); }
   /* hiérarchie des cases par la couleur (une seule rangée, tailles identiques) :
-     Solde = Ratio 5 j (pleine couleur, liseré de l'état à gauche) > Ratio mois (atténué) > Ratio trim. = T2108 (en retrait).
+     ±4 % du jour = Ratio 5 j (pleine couleur, titre en gras) > Ratio mois (atténué) > Ratio trim. = T2108 (en retrait).
      Les encadrés « extrême 3 mois » restent pleinement visibles quel que soit le niveau. */
-  .kpi[data-k=solde], .kpi[data-k=r5] { box-shadow: inset 3px 0 0 var(--prio, var(--faint)); }
-  .kpi[data-k=solde].st-down, .kpi[data-k=r5].st-down { --prio: var(--down); }
-  .kpi[data-k=solde].st-up, .kpi[data-k=r5].st-up { --prio: var(--up); }
   .kpi[data-k=solde] .lbl, .kpi[data-k=r5] .lbl { color: var(--text); font-weight: 600; }
   .kpi[data-k=rm] .val { color: color-mix(in srgb, var(--text) 78%, var(--panel)); }
   .kpi[data-k=rm] .lbl, .kpi[data-k=rm] .ksub { color: color-mix(in srgb, var(--muted) 85%, var(--panel)); }
@@ -331,7 +329,6 @@
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; padding: 14px 12px 8px; margin: 0; }
     .kpi { padding: 11px 12px 9px; border-radius: 12px; }
     .kpi .kban { top: -10px; left: 8px; font-size: 9.5px; height: 18px; line-height: 18px; padding: 0 8px; }
-    .kpi[data-k=solde], .kpi[data-k=r5] { box-shadow: none; }      /* pas de liseré sur mobile : le titre en gras suffit */
     .kpi .g3 { font-size: 10px; gap: 5px; } .kpi .g3 .gb { height: 3px; }
     .datebar .dinfo { display: none; }
     .kpi.kidx, .kpi[data-k=t2108] { grid-column: 1 / -1; }   /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
@@ -735,7 +732,7 @@
   const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
   let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
   // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
-  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
+  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2] };
   // Records sur 3 mois (63 séances) : ▲ = au-dessus du plus haut des 63 séances précédentes, ▼ = sous le plus bas.
   // Couleur selon le côté : bleu = côté hausses, rouge = côté baisses (un record du nombre de baisses de 25 % est rouge).
   let HMA = (() => { const v = store.get('mm.hma'); return v == null ? 10 : +v || 0; })();   // moyenne mobile sur les histogrammes (0 = aucune)
@@ -2200,7 +2197,7 @@
   const kState = (v, k) => { const a = signedOr(k, TH[k][0]), b = signedOr(k, TH[k][1]);
     return v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', `< ${a}`] : v >= TH[k][1] ? ['up', `≥ ${b}`] : ['neutral', `${a} à ${b}`]; };
   const kRule = k => `Couleur : rouge sous ${signedOr(k, TH[k][0])}, bleue à partir de ${signedOr(k, TH[k][1])}, grise entre les deux.`;
-  const signedOr = (k, v) => k === 'net5' ? signed(v) : nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 », « 2 »
+  const signedOr = (k, v) => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 », « 2 »
   const stCol = st => css(st[0] === 'neutral' ? '--muted' : st[0] === 'warn' ? '--warn' : '--' + st[0]);
   function spark(vals, kind, col) {
     const w = 100, h = 30, v = vals.filter(x => x != null && !isNaN(x)); if (v.length < 2) return '';
@@ -2230,11 +2227,11 @@
     if (!d4 || !dq) { box.innerHTML = ''; return; }
     box.classList.toggle('past', !!at);
     const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
-    const D4 = D.filter(d => net(d) != null), net5 = D4.slice(-5).reduce((a, d) => a + net(d), 0), net4 = net(d4);
+    const D4 = D.filter(d => net(d) != null), net4 = net(d4);
     const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
-    const n5S = kState(net5, 'net5'), r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
+    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
     const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', '< 20 %'] : t21 > 70 ? ['warn', '> 70 %'] : ['neutral', '20 à 70 %'];
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
     const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
@@ -2245,14 +2242,15 @@
         (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
         `<span class="chip t${b.st}" title="${trendLong(b.tf)}" aria-label="${trendLong(b.tf)}">${trendShort(b.tf)}</span></button>`).join('') + '</div></div>';
     const tiles = [
-      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
+      ['solde', '±4 % du jour', `<span class="pos">+${recNum('up4', d4, nf(sb(d4, 'up4')))}</span> <span class="vsep">/</span> <span class="neg">−${recNum('down4', d4, nf(sb(d4, 'down4')))}</span>`,
+        `solde <span class="${cl(n4S)}">${signed(net4)}</span>`, n4S, spark(D4.slice(-40).map(net), 'bars')],
       ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
-    const NUMS = { solde: [['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
+    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
       rq: [['rq', dq, 'ratio'], ['up25q', dq, '+25 %'], ['down25q', dq, '−25 %']], rm: [['rm', dq, 'ratio'], ['up25m', dq, '+25 %'], ['down25m', dq, '−25 %']],
       t2108: [['t2108', dt, 'T2108']] };
     const hotOf = id => {
@@ -2269,6 +2267,8 @@
         `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         gauge(...G[id]) + '</div>';
     }).join('');
+    // un chiffre trop large pour sa colonne (« +1 024 / −1 312 » sur mobile) est réduit jusqu'à tenir, sans toucher à la mise en page
+    try { box.querySelectorAll('.kpi .val').forEach(v => { let f = parseFloat(getComputedStyle(v).fontSize); while (v.scrollWidth > v.clientWidth && f > 12) v.style.fontSize = (f -= 1) + 'px'; }); } catch (e) { /* DOM simulé */ }
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">${hover >= 0 ? 'Survol' : 'Séance choisie'} : <b>${day(at)}</b></span>`
@@ -2280,9 +2280,9 @@
         <p><span class="chip t3" style="padding:0 6px">vert soutenu</span> ${trendWhy(3)} · <span class="chip t2" style="padding:0 6px">vert clair</span> ${trendWhy(2)} ·
         <span class="chip t1" style="padding:0 6px">jaune</span> ${trendWhy(1)} · <span class="chip t0" style="padding:0 6px">sans couleur</span> MM${MAS[TR1].len} sous la MM${MAS[TR2].len}, ou seule la MM${MAS[TR2].len} monte.</p>
         <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
-      solde: ['Solde ±4 %', `<p>Nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> sur la séance, moins celles en baisse d'au moins 4 % (volume ≥ 100 000 et en hausse).</p>
-        <p>Le grand chiffre est celui du ${fmtDate(d4)} ; la <b>couleur</b> suit la somme des 5 dernières séances. ${kRule('net5')}</p>${scaleHtml(-1200, 1200, TH.net5[0], TH.net5[1], net5, signed)}
-        <div class="now">Somme 5 j : <b>${signed(net5)}</b> → zone ${n5S[1]}.</div><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
+      solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> (en bleu) et en baisse d'au moins <b>4 %</b> (en rouge), avec un volume ≥ 100 000 et en hausse.</p>
+        <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le <b>solde</b> (hausses − baisses) est en dessous ; la mini-courbe et la jauge 3M le suivent sur la durée.</p>
+        <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
       r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
         ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
         <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p><p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
