@@ -44,7 +44,7 @@
   .card h2 { font-size: 13px; font-weight: 600; margin: 0; }
   .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 12px; margin: 2px 0 0; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
-  canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; user-select: none; }
+  canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
   #price { height: 50vh; min-height: 300px; }      /* le graphique de prix occupe la moitié de la hauteur de l'écran */
   /* cartes d'histogrammes repliables : titre + résumé d'une ligne quand elles sont réduites */
   .chead { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-radius: 0;
@@ -142,7 +142,7 @@
   .menu input[type=number] { width: 70px; }
   .menu input, .menu select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 2px 4px; }
   .menu input[type=color] { padding: 0; width: 34px; height: 24px; }
-  .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+  .tip { position: absolute; z-index: 20; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
          font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.18); display: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
   .tip b { display: block; margin-bottom: 2px; }
   .tablewrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; max-height: 380px; overflow: auto; margin-top: 12px; }
@@ -1273,12 +1273,28 @@
   function setHover(i, kind, e) {
     hover = i;
     if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
-    if (i < 0 || kind === 'price') { tip.style.display = 'none'; return; }   // prix : valeurs dans la légende du graphique
-    tip.innerHTML = tipHtml(kind === 'sec' ? 'price' : kind, T[i]); tip.style.display = 'block';
-    const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
+    const finger = e && e.pointerType === 'touch';
+    if (i < 0 || (kind === 'price' && !finger)) { tip.style.display = 'none'; return; }   // prix à la souris : valeurs dans la légende
+    const pb = (kind === 'price' || kind === 'sec') && finger ? bars.get(T[i]) : null;
+    // au doigt sur un graphique de prix : infobulle compacte (la légende OHLC / MM est masquée sur mobile)
+    tip.innerHTML = pb ? `<b>${fmtDate(pb.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</b><div>C ${nf(pb.c, pxd(pb.c))} <span class="${cls(pb.chg)}">${pct(pb.chg)}</span></div>` +
+        `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + (pb.st ? `<div>Tendance ${trendLabel(pb.st).split(' :')[0]}</div>` : '') +
+        (sb(pb.d, 'up4') != null ? `<div>±4 % : +${nf(sb(pb.d, 'up4'))} / −${nf(sb(pb.d, 'down4'))}</div>` : '')
+      : tipHtml(kind === 'sec' ? 'price' : kind, T[i]);
+    tip.style.display = 'block';
+    const tw = tip.offsetWidth, th = tip.offsetHeight, W = document.documentElement.scrollWidth;
+    if (finger) {                                // au doigt : en haut du graphique, du côté opposé au doigt (jamais sous le pouce)
+      const cr = e.target && e.target.getBoundingClientRect ? e.target.getBoundingClientRect() : null, sy = window.scrollY || 0;
+      const leftSide = cr ? e.clientX > cr.left + cr.width / 2 : false;
+      tip.style.left = (leftSide ? 10 : Math.max(10, W - tw - 10)) + 'px';
+      tip.style.top = (cr ? Math.max(cr.top + sy + 6, sy + 64) : e.pageY - th - 44) + 'px';
+      return;
+    }
+    const right = e.pageX + 14 + tw > W;
     tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
   }
-  let drag = null;
+  let drag = null, lpTimer = 0;
+  const lpClear = () => { if (lpTimer && typeof clearTimeout === 'function') clearTimeout(lpTimer); lpTimer = 0; };
   // message « Ctrl + molette pour zoomer », affiché brièvement sur le graphique quand on fait défiler la page par-dessus
   let hintTimer = 0, hintShown = 0;
   function wheelHint(cv) {
@@ -1329,9 +1345,20 @@
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
            : isPrice(kind) && onTimeAxis(cv, e) ? { axis: true, x: e.clientX, from: vp.from, to: vp.to, moved: false }
            : { x: e.clientX, from: vp.from, to: vp.to, moved: false };
-      if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+      try { if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId); } catch (x) { /* pointeur déjà relâché */ }
+      lpClear();
+      if (e.pointerType === 'touch' && !drag.handle && !drag.handleTop && !drag.axis) {
+        const d0 = drag, ev0 = { clientX: e.clientX, clientY: e.clientY, pageX: e.pageX, pageY: e.pageY, pointerType: 'touch', target: cv };
+        lpTimer = setTimeout(() => withCtx(kind, () => {
+          if (drag !== d0 || d0.moved) return;
+          d0.cross = true; if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) { /* ignoré */ }
+          setHover(idxAt(cv, ev0), kind, ev0);
+        }), 350);
+      }
     }));
     cv.addEventListener('pointermove', e => withCtx(kind, () => {
+      if (drag && drag.cross) { setHover(idxAt(cv, e), kind, e); return; }   // réticule au doigt : suit le doigt, pas de déplacement
+      if (drag && !drag.moved && e.pointerType === 'touch' && Math.abs(e.clientX - drag.x) > 8) lpClear();
       if (drag && drag.handleTop) {             // poignée ◀ : le plus haut cours suit le curseur verticalement
         const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
         topPad = Math.min(0.6, Math.max(0, (e.clientY - r.top - PAD.t) / ph));
@@ -1363,7 +1390,9 @@
       setHover(idxAt(cv, e), kind, e);
     }));
     const endDrag = e => withCtx(kind, () => {
+      lpClear();
       if (!drag) return;
+      if (drag.cross) { drag = null; setHover(-1, kind); tip.style.display = 'none'; return; }   // on lâche : plus de réticule
       if (kind !== 'sec' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
         const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
       }
@@ -1374,6 +1403,9 @@
     });
     cv.addEventListener('pointerup', endDrag);
     cv.addEventListener('pointercancel', endDrag);
+    // pendant le réticule au doigt, la page ne défile pas ; pas de menu contextuel sur appui prolongé
+    cv.addEventListener('touchmove', e => { if (drag && drag.cross) e.preventDefault(); }, { passive: false });
+    cv.addEventListener('contextmenu', e => e.preventDefault());
     cv.addEventListener('mouseleave', () => withCtx(kind, () => { if (!drag) setHover(-1, kind); }));
     if (isPrice(kind)) cv.addEventListener('wheel', e => withCtx(kind, () => {   // seuls les graphiques de prix zooment
       // molette verticale seule = défilement de la page ; Ctrl / ⌘ + molette (ou pincement du trackpad) = zoom ; molette horizontale = déplacement

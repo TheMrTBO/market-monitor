@@ -151,6 +151,10 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Réticule au doigt (13/10)** : appui prolongé (~0,35 s sans bouger) sur un graphique de l'onglet MM → réticule + infobulle
+  compacte (date, clôture, variation, H / B, tendance, ±4 %) en haut du graphique, côté opposé au doigt ; tous les chiffres suivent ;
+  la page ne défile pas tant que le doigt est posé ; on lâche → retour à la dernière séance. Sans appui prolongé, un glisser horizontal
+  déplace le graphique dans le temps. Pas de menu contextuel ni de sélection de texte sur appui prolongé.
 - **Hiérarchie des cases (13/10, révisée)** : une seule rangée, tailles identiques (deux rangées essayées puis rejetées : trop grand sur PC) ;
   priorité **par la couleur** : Solde = Ratio 5 j (titre en gras, chiffres pleine couleur, liseré gauche de la couleur de l'état) >
   Ratio mois (atténué) > Ratio trim. = T2108 (en retrait : fond creux, chiffre et titre gris, mini-courbe pâle, badge contour).
