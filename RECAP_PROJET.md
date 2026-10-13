@@ -151,6 +151,14 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Retours du 13/10 (2e série)** : PC = marges latérales 48 px + **molette seule = défilement de la page, Ctrl / ⌘ + molette (ou
+  pincement trackpad) = zoom** (message au 1er essai) ; **glisser sur l'axe des dates = zoom** (droite = avant, gauche = arrière), aussi
+  au doigt ; tableau du bas remplacé par **3 tableaux** (±4 % : +4, −4, 5 j, 10 j · mois ±25 % · trimestre ±25 % : +25, −25, ratio) ;
+  cases : ratio mois avant ratio trimestre, titres jamais tronqués ; mobile : cases complètes (mini-courbes et badges), pas de légende
+  sur le graphique, **pas de sélection de séance ≤ 640 px** (possible sur tablette / pliable ouvert), barre d'onglets opaque sans
+  backdrop-filter + hauteur en `svh` (bug iOS de la barre au milieu de l'écran, à confirmer sur téléphone) ; vérification automatique
+  silencieuse (seul le clic affiche « Déjà à jour » / erreur). **« 1 source en échec » = clé Polygon refusée (401)** : Secret
+  `POLYGON_API_KEY` à corriger par l'utilisateur ; workflow : sauvegarde du cache seulement si le dossier existe.
 - **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
   les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.
 - La molette ne zoome **que** sur les graphiques de prix (sur les histogrammes elle fait défiler la page).

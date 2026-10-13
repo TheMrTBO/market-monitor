@@ -150,9 +150,12 @@
   th, td { padding: 5px 10px; text-align: right; white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
   thead th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
-  thead tr.grp th { position: static; color: var(--faint); font-size: 11px; text-align: center; border-bottom: 0; padding-bottom: 0; }
-  thead tr.grp th.g { border-bottom: 1px solid var(--border); }
   th.sep, td.sep { border-left: 1px solid var(--border); }
+  .tables3 { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .tables3 .tablewrap { margin-top: 0; max-height: 420px; }
+  .tcap { position: sticky; top: 0; left: 0; z-index: 2; background: var(--panel); padding: 8px 10px 2px; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .tables3 thead th { top: 26px; }
+  @media (max-width: 900px) { .tables3 { grid-template-columns: minmax(0, 1fr); } }
   tbody tr:nth-child(even) { background: color-mix(in srgb, var(--grid) 40%, transparent); }
   tbody tr.hl { outline: 1px solid var(--up); }
   .pos { color: var(--up); } .neg { color: var(--down); }
@@ -193,7 +196,8 @@
   .kpis { display: grid; grid-template-columns: 1.55fr repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
   .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px 8px; min-width: 0; }
   .kpi .top { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .kpi .top .lbl { overflow: hidden; text-overflow: ellipsis; }
+  .kpi .top { flex-wrap: wrap; row-gap: 3px; }      /* titre jamais tronqué : le badge passe à la ligne si besoin */
+  .kidx .top .lbl { overflow: hidden; text-overflow: ellipsis; }
   .kpi .val { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
@@ -272,6 +276,12 @@
   .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
   details.about { margin-top: 12px; }
 
+  /* ---- PC : marges latérales où la molette fait toujours défiler la page */
+  @media (min-width: 1001px) { .wrap { padding-left: 48px; padding-right: 48px; } }
+  .whint { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); z-index: 4; pointer-events: none; padding: 8px 14px; border-radius: 8px;
+           background: rgba(13,16,22,.88); color: #e3e7ee; font-size: 13px; opacity: 0; transition: opacity .25s; white-space: nowrap; }
+  .whint.on { opacity: 1; }
+
   /* ---- largeurs intermédiaires : la pastille de fraîcheur se réduit */
   .mtop, .msub, .tabbar { display: none; }
   .more { position: fixed; z-index: 41; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--border); border-radius: 16px 16px 0 0;
@@ -300,10 +310,10 @@
     .kpi { padding: 8px 9px 6px; }
     .kpi.kidx, .kpi:last-child { grid-column: 1 / -1; }       /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
     .kpi .top { font-size: 11px; }
-    .kpi .badge { font-size: 0; width: 8px; height: 8px; padding: 0; background: currentColor; }
     .kpi .val { font-size: 19px; }
-    .kpi .body { grid-template-columns: minmax(0, 1fr); gap: 0; }
-    .kpi svg.spark { display: none; }                  /* mobile : la jauge 3M remplace la mini-courbe (cases moins hautes) */
+    .kpi .top { flex-wrap: wrap; row-gap: 3px; } .kpi .badge { font-size: 10px; padding: 1px 6px; }
+    .kpi .body { grid-template-columns: minmax(0, 1fr) 42%; gap: 6px; }
+    .kpi svg.spark { height: 26px; margin: 0 0 2px; }
     .kpi .rec { font-size: 9.5px; padding: 0 4px; margin-left: 4px; vertical-align: 3px; }
     .g3 { margin-top: 5px; }
     .kpi .ksub { font-size: 11px; }
@@ -316,17 +326,18 @@
     .rangebox { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; scrollbar-width: none; }
     .rangebox .seg button { padding: 7px 11px; }
     .zoom { display: none !important; }
-    .ovl { font-size: 11px; gap: 2px 10px; padding: 6px 8px 2px; }
+    .card .ovl { display: none; }                      /* mobile : pas de liste des indicateurs sur le graphique */
     .ohlc { gap: 8px; } .mabar { gap: 2px 10px; } .mabar .car { display: none; }
-    #price { height: 52vh; min-height: 300px; }
+    #price { height: 52vh; height: 52svh; min-height: 300px; }   /* svh : hauteur stable quand la barre d'adresse se replie */
     .grip { display: none; }
     .chrow { flex-wrap: wrap; row-gap: 0; } .chrow .sum { order: 5; width: 100%; margin-left: 0; padding: 0 0 6px 18px; }
     .chead { min-height: 40px; }
     .tablewrap { border-radius: 0; border-left: 0; border-right: 0; max-height: 420px; }
     th:first-child, td:first-child { position: sticky; left: 0; background: var(--panel); z-index: 1; }
     details.about { padding: 0 12px; }
-    .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: color-mix(in srgb, var(--panel) 94%, transparent);
-              -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--border); padding: 4px 0 calc(4px + env(safe-area-inset-bottom)); }
+    /* barre d'onglets : fond opaque, sans backdrop-filter (cause d'une barre « bloquée » au milieu de l'écran au 1er défilement sur iOS) */
+    .tabbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--panel); transform: translate3d(0, 0, 0);
+              will-change: transform; border-top: 1px solid var(--border); padding: 4px 0 calc(4px + env(safe-area-inset-bottom)); }
     .tabbar button { flex: 1; display: grid; justify-items: center; gap: 2px; border: 0; background: none; font-size: 11px; color: var(--muted); min-height: 50px; padding: 4px 0; }
     .tabbar button.on { color: var(--up); border: 0; box-shadow: none; } .tabbar svg.i { width: 22px; height: 22px; }
     .ohlc .oh { display: none; }
@@ -524,11 +535,10 @@
 
   </div>
 
-  <div class="tablewrap">
-    <table>
-      <thead><tr class="grp" id="theadGrp"></tr><tr id="thead"></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
+  <div class="tables3">
+    <div class="tablewrap"><div class="tcap">Séance ±4 %</div><table><thead><tr id="thead"></tr></thead><tbody id="rows"></tbody></table></div>
+    <div class="tablewrap"><div class="tcap">Mois ±25 %</div><table><thead><tr id="theadM"></tr></thead><tbody id="rowsM"></tbody></table></div>
+    <div class="tablewrap"><div class="tcap">Trimestre ±25 %</div><table><thead><tr id="theadQ"></tr></thead><tbody id="rowsQ"></tbody></table></div>
   </div>
   </div>
 
@@ -1136,13 +1146,18 @@
       const a = sb(d, u), b = sb(d, dn);
       $(id).innerHTML = a == null ? '' : `${fmtDate(d)} · <span class="pos">+${nf(a)}</span> / <span class="neg">−${nf(b)}</span> · solde <b class="${cls(a - b)}">${signed(a - b)}</b>`;
     }
-    $('rows').querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
-    const row = $('rows').querySelector(`tr[data-d="${d}"]`); if (row) row.classList.add('hl');
+    for (const id of ['rows', 'rowsM', 'rowsQ']) {             // ligne de la séance affichée surlignée dans les trois tableaux
+      $(id).querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
+      const row = $(id).querySelector(`tr[data-d="${d}"]`); if (row) row.classList.add('hl');
+    }
   }
 
-  // colonnes groupées par famille ; intensité du fond = valeur rapportée au 95e centile de l'année écoulée
-  $('thead').innerHTML = [['Date'], ['Clôture'], ['Var.'], ['Volume'], ['Hausse', 1], ['Baisse'], ['Solde'], ['5 j', 1], ['10 j'],
-    ['Hausse', 1], ['Baisse'], ['Hausse', 1], ['Baisse'], ['Ratio'], ['T2108', 1]].map(([h, sep]) => `<th${sep ? ' class="sep"' : ''}>${h}</th>`).join('');
+  // trois tableaux : ±4 % (hausse, baisse, ratios 5 et 10 j), mois ±25 % et trimestre ±25 % (hausse, baisse, ratio) ;
+  // intensité du fond = valeur rapportée au 95e centile de l'année écoulée
+  const th = cols => cols.map(([h, sep]) => `<th${sep ? ' class="sep"' : ''}>${h}</th>`).join('');
+  $('thead').innerHTML = th([['Date'], ['+4 %'], ['−4 %'], ['5 j', 1], ['10 j']]);
+  $('theadM').innerHTML = th([['Date'], ['+25 %'], ['−25 %'], ['Ratio', 1]]);
+  $('theadQ').innerHTML = th([['Date'], ['+25 %'], ['−25 %'], ['Ratio', 1]]);
   const P95 = {};
   const p95 = k => {
     if (P95[k] == null) { const a = STOCKBEE.rows.slice(-252).map(r => r[COL[k]]).filter(v => v != null).sort((x, y) => x - y); P95[k] = a.length ? a[Math.floor(a.length * 0.95)] || 1 : 1; }
@@ -1151,20 +1166,21 @@
   const heat = (v, k, col) => v == null ? '' : ` style="background:color-mix(in srgb, var(${col}) ${Math.round(Math.min(1, v / p95(k)) * 30)}%, transparent)"`;
   const rcls = (v, k) => v == null ? '' : v < TH[k][0] ? 'neg' : v >= TH[k][1] ? 'pos' : '';
   function renderTable() {
-    $('theadGrp').innerHTML = `<th></th><th class="g" colspan="3">${current}</th><th class="g sep" colspan="3">Séance ±4 %</th><th class="g sep" colspan="2">Ratios ±4 %</th>` +
-      `<th class="g sep" colspan="2">Mois ±25 %</th><th class="g sep" colspan="3">Trimestre ±25 %</th><th class="g sep">Breadth</th>`;
-    const dates = T.filter(d => SB.has(d)).reverse().slice(0, 400);
+    const dates = T.filter(d => SB.has(d)).reverse().slice(0, 400), day = d => fmtDate(d, { day: 'numeric', month: 'short', year: '2-digit' });
     $('rows').innerHTML = dates.map(d => {
-      const b = bars.get(d), up = sb(d, 'up4'), dn = sb(d, 'down4'), net = up == null || dn == null ? null : up - dn;
-      const uq = sb(d, 'up25q'), dq = sb(d, 'down25q'), rq = uq == null || !dq ? null : uq / dq, t2 = sb(d, 't2108');
-      return `<tr data-d="${d}"><td>${fmtDate(d)}</td><td>${b ? nf(b.c, pxd(b.c)) : '—'}</td><td class="${cls(b && b.chg)}">${pct(b && b.chg)}</td><td>${vol(b && b.v)}</td>` +
-        `<td class="sep"${heat(up, 'up4', '--up')}>${recNum('up4', d, nf(up))}</td><td${heat(dn, 'down4', '--down')}>${recNum('down4', d, nf(dn))}</td><td class="${cls(net)}">${recNum('net4', d, signed(net))}</td>` +
-        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${recNum('ratio5', d, nf(sb(d, 'ratio5'), 2))}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${recNum('ratio10', d, nf(sb(d, 'ratio10'), 2))}</td>` +
-        `<td class="sep"${heat(sb(d, 'up25m'), 'up25m', '--up')}>${recNum('up25m', d, nf(sb(d, 'up25m')))}</td><td${heat(sb(d, 'down25m'), 'down25m', '--down')}>${recNum('down25m', d, nf(sb(d, 'down25m')))}</td>` +
-        `<td class="sep"${heat(uq, 'up25q', '--up')}>${recNum('up25q', d, nf(uq))}</td><td${heat(dq, 'down25q', '--down')}>${recNum('down25q', d, nf(dq))}</td><td class="${rcls(rq, 'rq')}">${recNum('rq', d, nf(rq, 2))}</td>` +
-        `<td class="sep">${t2 == null ? '—' : recNum('t2108', d, nf(t2, 1) + ' %')}</td></tr>`;
+      const up = sb(d, 'up4'), dn = sb(d, 'down4');
+      return `<tr data-d="${d}"><td>${day(d)}</td><td${heat(up, 'up4', '--up')}>${recNum('up4', d, nf(up))}</td><td${heat(dn, 'down4', '--down')}>${recNum('down4', d, nf(dn))}</td>` +
+        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${recNum('ratio5', d, nf(sb(d, 'ratio5'), 2))}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${recNum('ratio10', d, nf(sb(d, 'ratio10'), 2))}</td></tr>`;
     }).join('');
+    for (const [id, u, v, rk, tk] of [['rowsM', 'up25m', 'down25m', 'rm', 'rm'], ['rowsQ', 'up25q', 'down25q', 'rq', 'rq']]) {
+      $(id).innerHTML = dates.filter(d => sb(d, u) != null).map(d => {
+        const a = sb(d, u), b = sb(d, v), r = a == null || !b ? null : a / b;
+        return `<tr data-d="${d}"><td>${day(d)}</td><td${heat(a, u, '--up')}>${recNum(u, d, nf(a))}</td><td${heat(b, v, '--down')}>${recNum(v, d, nf(b))}</td>` +
+          `<td class="sep ${rcls(r, tk)}">${recNum(rk, d, nf(r, 2))}</td></tr>`;
+      }).join('');
+    }
   }
+
 
   const tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip);
   function idxAt(cv, e) {     // index dans T, ou -1 si le curseur est dans l'espace vide
@@ -1200,6 +1216,18 @@
     tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
   }
   let drag = null;
+  // message « Ctrl + molette pour zoomer », affiché brièvement sur le graphique quand on fait défiler la page par-dessus
+  let hintTimer = 0, hintShown = 0;
+  function wheelHint(cv) {
+    const card = cv.parentElement; if (!card || !card.appendChild || Date.now() - hintShown < 4000) return;
+    let h = card.querySelector('.whint');
+    if (!h) { h = document.createElement('div'); h.className = 'whint'; card.appendChild(h); }
+    const mac = /Mac|iPhone|iPad/.test((window.navigator && navigator.platform) || '');
+    h.textContent = `${mac ? '⌘' : 'Ctrl'} + molette (ou pincement) pour zoomer`;
+    h.classList.add('on'); hintShown = Date.now(); clearTimeout(hintTimer); hintTimer = setTimeout(() => h.classList.remove('on'), 1600);
+  }
+  // axe des dates : glisser horizontalement dessus = zoom (droite = zoom avant, gauche = zoom arrière), comme sur TradingView
+  function onTimeAxis(cv, e) { const r = cv.getBoundingClientRect(); return e.clientY >= r.top + r.height - PAD.b - 6 && e.clientY <= r.top + r.height + 2; }
   function onHandle(cv, e) {                    // le pointeur est-il sur la poignée ▲ (sous l'axe, à la dernière séance) ?
     const N = ALLT.length; if (!N) return false;
     const r = cv.getBoundingClientRect(), bw = (r.width - PAD.l - PAD.r) / (vp.to - vp.from + 1);
@@ -1236,6 +1264,7 @@
     // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
     cv.addEventListener('pointerdown', e => withCtx(kind, () => {
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
+           : isPrice(kind) && onTimeAxis(cv, e) ? { axis: true, x: e.clientX, from: vp.from, to: vp.to, moved: false }
            : { x: e.clientX, from: vp.from, to: vp.to, moved: false };
       if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
     }));
@@ -1244,6 +1273,12 @@
         const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
         topPad = Math.min(0.6, Math.max(0, (e.clientY - r.top - PAD.t) / ph));
         tip.style.display = 'none'; hover = -1; syncSlider(); drawPrice(cv);
+        return;
+      }
+      if (drag && drag.axis) {                  // axe des dates : zoom ancré sur la dernière séance (ou le centre si elle est hors champ)
+        const dx = e.clientX - drag.x; if (!drag.moved && Math.abs(dx) < 3) return;
+        drag.moved = true; tip.style.display = 'none'; hover = -1;
+        vp.from = drag.from; vp.to = drag.to; zoomAt(anchorFrac(0.5), Math.exp(-dx * 0.006));
         return;
       }
       if (drag && drag.handle) {                // poignée ▲ : la dernière séance suit le curseur, la largeur des barres ne change pas
@@ -1260,12 +1295,13 @@
         vp.from = drag.from - dx / bw; vp.to = drag.to - dx / bw; clampViewport(); manual(); render();
         return;
       }
-      if (isPrice(kind)) cv.style.cursor = onHandle(cv, e) ? 'ew-resize' : onTopHandle(cv, e) ? 'ns-resize' : '';
+      if (isPrice(kind)) cv.style.cursor = onHandle(cv, e) ? 'ew-resize' : onTopHandle(cv, e) ? 'ns-resize' : onTimeAxis(cv, e) ? 'col-resize' : '';
+      if (e.pointerType === 'touch' && isMobile()) return;     // petit écran : pas de sélection de séance au doigt
       setHover(idxAt(cv, e), kind, e);
     }));
     const endDrag = e => withCtx(kind, () => {
       if (!drag) return;
-      if (kind !== 'sec' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.moved) {
+      if (kind !== 'sec' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
         const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
       }
       if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
@@ -1277,6 +1313,8 @@
     cv.addEventListener('pointercancel', endDrag);
     cv.addEventListener('mouseleave', () => withCtx(kind, () => { if (!drag) setHover(-1, kind); }));
     if (isPrice(kind)) cv.addEventListener('wheel', e => withCtx(kind, () => {   // seuls les graphiques de prix zooment
+      // molette verticale seule = défilement de la page ; Ctrl / ⌘ + molette (ou pincement du trackpad) = zoom ; molette horizontale = déplacement
+      if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
       e.preventDefault();
       const r = cv.getBoundingClientRect(), pw = r.width - PAD.l - PAD.r, k = e.deltaMode === 1 ? 33 : 1;
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { panBars(e.deltaX * k / (pw / (vp.to - vp.from + 1))); return; }
@@ -1737,7 +1775,8 @@
     const end = () => { if (mdrag) { mdrag = null; cv.style.cursor = ''; } };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
     cv.addEventListener('mouseleave', () => { if (!mdrag) { cmpHover = null; tip.style.display = 'none'; renderCmp(); } });
-    cv.addEventListener('wheel', e => {          // molette : zoom ; en gardant la fin des données fixe tant qu'elle est visible
+    cv.addEventListener('wheel', e => {          // Ctrl / ⌘ + molette : zoom (molette seule = défilement de la page)
+      if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
       e.preventDefault();
       const w = cmpWindow(), s = isFinite(w.start) ? w.start : cmpFirst(), k = e.deltaMode === 1 ? 33 : 1;
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
@@ -2077,8 +2116,8 @@
     const tiles = [
       ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
       ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
-      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['rm', 'Ratio mois ±25 %', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
+      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
@@ -2103,7 +2142,7 @@
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
-      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
+      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
       idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
@@ -2200,10 +2239,10 @@
   $('toast').addEventListener('click', e => {
     const a = e.target && e.target.closest && e.target.closest('[data-act]'); if (!a) return;
     if (a.dataset.act === 'reload') location.search = '?v=' + Date.now();
-    else if (a.dataset.act === 'retry') checkUpdates();
+    else if (a.dataset.act === 'retry') checkUpdates(true);
     else $('toast').hidden = true;
   });
-  async function checkUpdates() {
+  async function checkUpdates(manual = true) {
     const b = $('refreshBtn');
     if (typeof fetch !== 'function') {                   // navigateur très ancien : rechargement complet sans cache
       b.disabled = true; b.textContent = '↻ Actualisation…'; location.search = '?v=' + Date.now(); return;
@@ -2212,14 +2251,15 @@
     try {
       const txt = await (await fetch('status_data.js?v=' + Date.now(), { cache: 'no-store' })).text();
       const m = txt.match(/"updated"\s*:\s*"([^"]+)"/);
-      showToast(m && window.STATUS && m[1] !== window.STATUS.updated ? 'new' : 'ok');
-    } catch (e) { showToast('err'); }
+      const fresh = m && window.STATUS && m[1] !== window.STATUS.updated;
+      if (fresh || manual) showToast(fresh ? 'new' : 'ok');          // automatique : message seulement s'il y a du nouveau
+    } catch (e) { if (manual) showToast('err'); }                   // automatique (retour sur l'onglet, réseau pas encore revenu) : silencieux
     finally { b.classList.remove('busy'); if (mb) mb.classList.remove('busy'); checkedAt = new Date(); renderFresh(); }
   }
-  $('refreshBtn').addEventListener('click', checkUpdates);
-  $('refresh2').addEventListener('click', checkUpdates);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - checkedAt > 15 * 60000) checkUpdates(); });
-  if (typeof setInterval === 'function') setInterval(() => { if (!document.hidden) checkUpdates(); }, 30 * 60000);
+  $('refreshBtn').addEventListener('click', () => checkUpdates(true));
+  $('refresh2').addEventListener('click', () => checkUpdates(true));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - checkedAt > 15 * 60000) setTimeout(() => checkUpdates(false), 2000); });
+  if (typeof setInterval === 'function') setInterval(() => { if (!document.hidden) checkUpdates(false); }, 30 * 60000);
   renderFresh();
 
   // ------------------------------------------------------------------ panneau « Réglages » (moyennes mobiles, fond, espaces, thème, histogrammes)
@@ -2249,7 +2289,7 @@
     const a = e.target && e.target.closest && e.target.closest('[data-a]'); if (!a) return;
     closeMore();
     if (a.dataset.a === 'settings') openSheet(true);
-    else if (a.dataset.a === 'refresh') checkUpdates();
+    else if (a.dataset.a === 'refresh') checkUpdates(true);
     else if (a.dataset.a === 'about') { $('about').open = true; $('about').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
   });
   $('sheetClose').addEventListener('click', () => openSheet(false));
