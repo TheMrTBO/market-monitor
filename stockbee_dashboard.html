@@ -197,7 +197,6 @@
   .kpi .top { height: 20px; } .kpi .val { height: 30px; line-height: 30px; white-space: nowrap; } .kpi .ksub { height: 18px; line-height: 18px; }
   .irow { height: 26px; } .irow .rec { line-height: 14px; padding-top: 0; padding-bottom: 0; } .g3 { height: 14px; }
   .kpi .val { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
-  .kpi .vsep { color: var(--faint); font-weight: 400; }   /* « +312 / −584 » de la case ±4 % du jour */
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
   .kpi svg.spark { width: 100%; height: 34px; margin-bottom: 3px; }
@@ -2242,8 +2241,8 @@
         (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
         `<span class="chip t${b.st}" title="${trendLong(b.tf)}" aria-label="${trendLong(b.tf)}">${trendShort(b.tf)}</span></button>`).join('') + '</div></div>';
     const tiles = [
-      ['solde', '±4 % du jour', `<span class="pos">+${recNum('up4', d4, nf(sb(d4, 'up4')))}</span> <span class="vsep">/</span> <span class="neg">−${recNum('down4', d4, nf(sb(d4, 'down4')))}</span>`,
-        `solde <span class="${cl(n4S)}">${signed(net4)}</span>`, n4S, spark(D4.slice(-40).map(net), 'bars')],
+      ['solde', '±4 % du jour', `<span class="${cl(n4S)}">${recNum('net4', d4, signed(net4))}</span>`,
+        `+${recNum('up4', d4, nf(sb(d4, 'up4')))} / −${recNum('down4', d4, nf(sb(d4, 'down4')))}`, n4S, spark(D4.slice(-40).map(net), 'bars')],
       ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
@@ -2280,8 +2279,8 @@
         <p><span class="chip t3" style="padding:0 6px">vert soutenu</span> ${trendWhy(3)} · <span class="chip t2" style="padding:0 6px">vert clair</span> ${trendWhy(2)} ·
         <span class="chip t1" style="padding:0 6px">jaune</span> ${trendWhy(1)} · <span class="chip t0" style="padding:0 6px">sans couleur</span> MM${MAS[TR1].len} sous la MM${MAS[TR2].len}, ou seule la MM${MAS[TR2].len} monte.</p>
         <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
-      solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> (en bleu) et en baisse d'au moins <b>4 %</b> (en rouge), avec un volume ≥ 100 000 et en hausse.</p>
-        <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le <b>solde</b> (hausses − baisses) est en dessous ; la mini-courbe et la jauge 3M le suivent sur la durée.</p>
+      solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
+        <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
         <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
       r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
         ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
