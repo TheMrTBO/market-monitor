@@ -1,4 +1,4 @@
 # Versions epinglees (celles testees) : une mise a jour automatique d'une dependance ne peut pas casser le pipeline
 # sans que tu le decides. Dependabot (.github/dependabot.yml) propose les mises a jour sous forme de pull requests.
-requests==2.33.1
+requests==2.34.2
 yfinance==1.2.1
