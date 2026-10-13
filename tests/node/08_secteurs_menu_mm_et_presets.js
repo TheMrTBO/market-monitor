@@ -31,7 +31,7 @@ const ls={};
 const A=boot(ls);
 A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
 const cv='secCanvas';
-const ev=(x,dY)=>({clientX:x,clientY:100,pageX:x,pageY:100,deltaY:dY,deltaX:0,deltaMode:0,preventDefault(){}});
+const ev=(x,dY)=>({clientX:x,clientY:100,pageX:x,pageY:100,deltaY:dY,deltaX:0,deltaMode:0,ctrlKey:true,preventDefault(){}});   // Ctrl + molette = zoom
 const sel=s=>A.L.secRows.click({target:{closest:()=>({dataset:{s}})}});
 sel('SMH');
 console.log('barre MM (secteurs) :',strip(A.$('secMa')._h));

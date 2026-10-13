@@ -52,8 +52,8 @@ const next=new Date(lastSb+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);
 const nd=next.toISOString().slice(0,10);
 const extra=`window.BREADTH_OWN={columns:${JSON.stringify(own.columns)},rows:${JSON.stringify(own.rows.concat([[nd,321,123,1.5,1.2]]))},asof:'${nd}',universe:${own.universe}};`;
 const B=boot(extra+STATUS_BREADTH);
-const tab=B.$('rows')._h;
-assert(tab.includes(`data-d="${nd}"`),`séance ${nd} complétée par le calcul maison absente du tableau`);
-const row=(tab.match(new RegExp(`<tr data-d="${nd}">[\\s\\S]*?</tr>`))||[''])[0];
-assert(/>321<\/td><td[^>]*>123<\/td>/.test(row),'valeurs du calcul maison absentes de la ligne complétée');
+// la séance non publiée par Stockbee est complétée par le calcul maison : le bandeau l'affiche (solde 321 − 123 = +198) et le signale
+const kp=B.$('kpis')._h, note=strip(B.$('kpinote')._h);
+assert(kp.includes('+198'),`séance ${nd} complétée par le calcul maison absente du bandeau (solde +198 attendu)`);
+assert(note.includes('calcul maison'),'la note du bandeau ne signale pas la séance complétée par le calcul maison');
 console.log('ok : surimpression',strokesOwn-strokesBase,'traits | séance complétée',nd,'| pied de page :',foot.slice(-140));

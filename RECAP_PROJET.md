@@ -151,6 +151,33 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
+- **Réticule au doigt (13/10)** : appui prolongé (~0,35 s sans bouger) sur un graphique de l'onglet MM → réticule + infobulle
+  compacte (date, clôture, variation, H / B, tendance, ±4 %) en haut du graphique, côté opposé au doigt ; tous les chiffres suivent ;
+  la page ne défile pas tant que le doigt est posé ; on lâche → retour à la dernière séance. Sans appui prolongé, un glisser horizontal
+  déplace le graphique dans le temps. Pas de menu contextuel ni de sélection de texte sur appui prolongé.
+- **Hiérarchie des cases (13/10, révisée)** : une seule rangée, tailles identiques (deux rangées essayées puis rejetées : trop grand sur PC) ;
+  priorité **par la couleur** : Solde = Ratio 5 j (titre en gras, chiffres pleine couleur, liseré gauche de la couleur de l'état) >
+  Ratio mois (atténué) > Ratio trim. = T2108 (en retrait : fond creux, chiffre et titre gris, mini-courbe pâle, badge contour).
+  Les encadrés « extrême 3 mois » restent pleinement visibles.
+- **Retours du 13/10 (4e série)** : les 3 graphiques de ratio sont des **cartes comme les histogrammes** (même groupe, déplaçables
+  par la poignée ⠿ / Alt + ↑↓, repliables, ordre mémorisé ; une carte absente de l'ordre mémorisé garde sa place par défaut) ;
+  **ratio 10 j retiré du graphique** (gardé en sous-titre de la case) ; **sélecteur de date** au-dessus du bandeau : « Stats du ‹ [date] › 
+  [Aujourd'hui] » (date native, week-end / férié → séance précédente avec message, date hors fenêtre → graphique recentré au même
+  zoom, « Aujourd'hui » = dernière séance + période par défaut) ; fonctionne aussi sur mobile (seul moyen de choisir un jour ≤ 640 px).
+- **Retours du 13/10 (3e série)** : onglets renommés **MM** (ex-Marché) et **SA** (ex-QQQ · IWM · BTC) ; **aucun saut d'affichage au
+  survol** (étiquette « record » posée sur le bord de la case, encadré en `outline`, hauteurs fixes des lignes, note et légende sur une
+  ligne ; mesuré : 0 px de variation en 965 et 1440 px) ; titres courts « Ratio 5 j », « Ratio mois », « Ratio trim. » (libellé complet au
+  survol) ; les 3 tableaux du bas remplacés par **3 graphiques de ratio** (5 j / 10 j ±4 %, mois ±25 %, trimestre ±25 %) alignés sur
+  l'axe des dates, zones haussière / baissière, seuils en pointillés, records 3 mois ; échec du calcul maison affiché discrètement
+  (« calcul maison indisponible », sans alerte orange : contrôle croisé non bloquant).
+- **Retours du 13/10 (2e série)** : PC = marges latérales 48 px + **molette seule = défilement de la page, Ctrl / ⌘ + molette (ou
+  pincement trackpad) = zoom** (message au 1er essai) ; **glisser sur l'axe des dates = zoom** (droite = avant, gauche = arrière), aussi
+  au doigt ; tableau du bas remplacé par **3 tableaux** (±4 % : +4, −4, 5 j, 10 j · mois ±25 % · trimestre ±25 % : +25, −25, ratio) ;
+  cases : ratio mois avant ratio trimestre, titres jamais tronqués ; mobile : cases complètes (mini-courbes et badges), pas de légende
+  sur le graphique, **pas de sélection de séance ≤ 640 px** (possible sur tablette / pliable ouvert), barre d'onglets opaque sans
+  backdrop-filter + hauteur en `svh` (bug iOS de la barre au milieu de l'écran, à confirmer sur téléphone) ; vérification automatique
+  silencieuse (seul le clic affiche « Déjà à jour » / erreur). **« 1 source en échec » = clé Polygon refusée (401)** : Secret
+  `POLYGON_API_KEY` à corriger par l'utilisateur ; workflow : sauvegarde du cache seulement si le dossier existe.
 - **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
   les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.
 - La molette ne zoome **que** sur les graphiques de prix (sur les histogrammes elle fait défiler la page).

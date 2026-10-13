@@ -27,7 +27,8 @@ function stats(label){
 }
 console.log('plage du graphique :',PL,'->',RIGHT);
 stats('defaut (6M)');
-const cv='price',ev=(x,dY,dX=0)=>({clientX:x,clientY:50,pageX:x,pageY:50,deltaY:dY,deltaX:dX,deltaMode:0,preventDefault(){}});
+const cv='price',ev=(x,dY,dX=0,ctrl=true)=>({clientX:x,clientY:50,pageX:x,pageY:50,deltaY:dY,deltaX:dX,deltaMode:0,ctrlKey:ctrl,preventDefault(){}});   // Ctrl + molette = zoom
+reset();L[cv].wheel(ev(600,-300,0,false));stats('molette seule (defile la page)');
 reset();L[cv].wheel(ev(600,-300));stats('zoom avant (curseur x=600)');
 reset();L[cv].wheel(ev(600,-300));stats('zoom avant encore');
 reset();L[cv].wheel(ev(400,+900));stats('dezoom');
