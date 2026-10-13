@@ -230,7 +230,12 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 
 ## 10. Travail à venir (priorités fixées par l'utilisateur)
 
+> **Priorité actuelle (décision du 13/10/2026) : le point 3, l'UX.** Le lot 1 du point 1 est livré (PR n°8) ; les lots 2 et 3 sont
+> repoussés après l'UX. Ordre : (a) valider en production le premier passage du workflow, (b) UX (point 3), (c) mobile (point 2),
+> (d) lots 2 et 3 du calcul maison.
+
 ### Point 1 — Calculer les indicateurs nous-mêmes, sans dépendre de Stockbee
+> **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j) ; lots 2 (±25 % mois, T2108) et 3 (±25 % trimestre) à faire — voir « Avancement du point 1 » plus haut.
 **Objectif** : produire `up4/down4, ratio5/10, up25q/down25q, up25m/down25m, up50m/down50m, up13_34d/down13_34d, T2108,
 univers` à partir de données de marché brutes, avec le même format que `stockbee_data.js`, et garder Stockbee comme
 contrôle croisé facultatif.
@@ -303,6 +308,14 @@ dans le cache Actions, seuls les agrégats sont committés ; Stockbee = base his
 - Le premier passage du workflow télécharge ~72 séances à 5 appels/min (~15 min) ; ensuite 1 à 2 appels par jour (+ univers chaque semaine).
 
 ### Backlog technique
+- **À faire en premier (validation du lot 1)** : lancer « Run workflow » après la fusion de la PR n°8 ; premier passage ~15-20 min ;
+  vérifier dans le pied de page « Calcul maison <date> ✓ » et l'écart moyen avec Stockbee (~3 titres). Vérifier que le Secret
+  s'appelle exactement `POLYGON_API_KEY` et que `actions/cache@5a3ec84…` (v4.2.3) s'exécute (SHA lu via l'API GitHub, jamais exécuté).
+- **Lots 2 et 3 (plus tard)** : télécharger ~12 mois avec open/high/low (~65 min à 5 appels/min) ; cumuler les facteurs de split pour les
+  fenêtres longues ; calibrer sur 2/3 de la période et tester sur le dernier tiers (critère : corrélation ≥ 0,95, biais stable).
+  Fichier d'exploration non versionné : `breadth_long.py`.
+- Période de transition : tant que Stockbee publie, il reste prioritaire à l'affichage ; décider plus tard d'une bascule
+  (avec marqueur « changement de source » et seuils propres au T2108, dont le biais de +1 à +5 pts dérive).
 - Tester puis fusionner (ou fermer) les 7 PR Dependabot ; tester yfinance 1.7.0 avant de lever l'épinglage.
 - Activer « Block command line pushes that expose my email » ; supprimer l'ancienne clé Polygon.
 - Stratégie de purge/stockage des données (dépôt > 1 Go d'ici ~2 ans) ; éventuel passage à un fichier par symbole.
