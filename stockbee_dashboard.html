@@ -210,6 +210,20 @@
   .chip { font-size: 11px; font-weight: 600; padding: 1px 0; border-radius: 999px; text-align: center; }
   .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
   .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
+  /* hiérarchie des cases : signaux courts (Solde, Ratio 5 j) en grand sur la 1re rangée ; indicateurs de fond plus compacts en dessous,
+     de moins en moins visibles : Ratio mois > Ratio trim. = T2108 (en retrait : fond creux, chiffre gris, badge contour).
+     Les encadrés « extrême 3 mois » restent pleinement visibles quel que soit le niveau. */
+  .kpis { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .kpi.kidx, .kpi[data-k=solde], .kpi[data-k=r5] { grid-column: span 4; }
+  .kpi[data-k=rm] { grid-column: span 5; } .kpi[data-k=rq] { grid-column: span 4; } .kpi[data-k=t2108] { grid-column: span 3; }
+  .kpi[data-k=solde] .val, .kpi[data-k=r5] .val { font-size: 28px; height: 36px; line-height: 36px; }
+  .kpi[data-k=rm] .val { font-size: 19px; height: 24px; line-height: 24px; }
+  .kpi[data-k=rq] .val, .kpi[data-k=t2108] .val { font-size: 16px; height: 22px; line-height: 22px; color: var(--muted); }
+  .kpi[data-k=rq] .val span, .kpi[data-k=t2108] .val span { color: inherit; }
+  .kpi[data-k=rq], .kpi[data-k=t2108] { padding-top: 7px; padding-bottom: 5px; }
+  .kpi[data-k=rq]:not(.hot-up):not(.hot-dn):not(.hot-warn), .kpi[data-k=t2108]:not(.hot-up):not(.hot-dn):not(.hot-warn) { background: var(--bg); }
+  .kpi[data-k=rq] svg.spark, .kpi[data-k=t2108] svg.spark { height: 20px; opacity: .55; }
+  .kpi[data-k=rq] .badge, .kpi[data-k=t2108] .badge { background: none; box-shadow: inset 0 0 0 1px currentColor; }
   .datebar { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
   .datebar .dlab { color: var(--text); font-weight: 600; }
   .datebar input[type=date] { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; height: 32px; color-scheme: light dark; }
@@ -243,7 +257,7 @@
   .g3 i.rw { background: var(--warn); box-shadow: 0 0 0 3px var(--warnbg); }
   .selday { color: var(--up); font-size: 12px; } .selday b { font-weight: 600; }
   .selday button { margin-left: 6px; padding: 1px 8px; font-size: 11.5px; border-radius: 999px; color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--border)); }
-  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .irow { grid-template-columns: 36px 0 62px 76px; } .irow .px { visibility: hidden; } }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(12, minmax(0, 1fr)); } .irow { grid-template-columns: 36px 0 62px 76px; } .irow .px { visibility: hidden; } }
 
   /* ---- bulles d'information : clic / toucher (et survol à la souris) */
   .tipbtn { width: 18px; height: 18px; padding: 0; border: 0; background: none; border-radius: 50%; display: inline-grid; place-items: center; color: var(--faint); flex: none; }
@@ -315,7 +329,9 @@
     .msub .dot { width: 6px; height: 6px; }
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 10px 6px; margin: 0; }
     .kpi { padding: 8px 9px 6px; }
-    .kpi.kidx, .kpi:last-child { grid-column: 1 / -1; }       /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
+    .kpi.kidx, .kpi[data-k=t2108] { grid-column: 1 / -1; }   /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
+    .kpi[data-k=solde], .kpi[data-k=r5], .kpi[data-k=rm], .kpi[data-k=rq] { grid-column: auto; }
+    .kpi[data-k=solde] .val, .kpi[data-k=r5] .val { font-size: 24px; height: 30px; line-height: 30px; }
     .kpi .top { font-size: 11px; }
     .kpi .val { font-size: 19px; }
     .kpi .top { flex-wrap: wrap; row-gap: 3px; } .kpi .badge { font-size: 10px; padding: 1px 6px; }
@@ -2207,7 +2223,7 @@
     };
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
       const h = hotOf(id);
-      return `<div class="kpi ${h ? h.cls : ''}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
+      return `<div class="kpi ${h ? h.cls : ''}" data-k="${id}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
         `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         gauge(...G[id]) + '</div>';
     }).join('');
