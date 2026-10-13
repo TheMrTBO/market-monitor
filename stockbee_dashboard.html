@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Market Monitor +4% / −4%</title>
+<title>Market Monitor</title>
+<meta name="theme-color" content="#0d1016">
 <style>
   :root {
     --bg: #f4f5f8; --panel: #ffffff; --text: #1b2230; --muted: #667085; --grid: #e6e9ef; --axis: #c3c2b7; --border: #dde1e8;
@@ -15,12 +16,19 @@
     --cup: #f6e24b; --cdown: #cf5148;
     --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
   }
+  :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
+          --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px; }
+  /* thème sombre : préférence du système, sauf si l'utilisateur force le clair (Réglages) ; ou forcé */
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f1218; --panel: #161b24; --text: #d6dbe4; --muted: #8a93a3; --grid: #232a36; --axis: #383835; --border: #252c38;
-            --up: #3987e5; --down: #e66767;
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70;
-            --t2108: #d55181; --vix: #d6dbe4; }
+    :root:not([data-theme="light"]) { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
+            --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
+            --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
   }
+  :root[data-theme="dark"] { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
+            --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
+            --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
@@ -144,22 +152,130 @@
   footer { color: var(--muted); font-size: 11px; margin-top: 12px; }
   footer a { color: inherit; }
   #fatal { padding: 24px; color: var(--down); }
+
+  /* ---- en-tête sur une ligne : marque, onglets, fraîcheur des données (= bouton Actualiser), réglages */
+  header { flex-wrap: nowrap; gap: 16px; min-height: 44px; margin-bottom: 12px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; white-space: nowrap; }
+  .logo { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, var(--up), #7c5cf0); display: grid; place-items: center; }
+  .seg { display: inline-flex; gap: 0; background: var(--panel2); border: 1px solid var(--border); border-radius: 9px; padding: 2px; }
+  .seg button { border: 0; background: none; padding: 5px 12px; border-radius: 7px; color: var(--muted); white-space: nowrap; box-shadow: none; }
+  .seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.25); border: 0; }
+  .seg.sm button { padding: 3px 9px; font-size: 12px; }
+  .hspacer { flex: 1; }
+  .iconbtn { width: 32px; height: 32px; padding: 0; border-radius: 8px; display: grid; place-items: center; color: var(--muted); }
+  svg.i { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .fresh { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); padding: 5px 8px 5px 10px; border-radius: 999px; white-space: nowrap; }
+  .fresh:hover { color: var(--text); border-color: var(--faint); }
+  .fresh .rf { display: inline-grid; place-items: center; color: var(--text); } .fresh .rf svg { width: 15px; height: 15px; }
+  .busy .rf svg, .iconbtn.busy svg { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 25%, transparent); flex: none; }
+  .fresh.stale { border-color: var(--warn); } .fresh.stale .dot, .msub.stale .dot { background: var(--warn); box-shadow: 0 0 0 3px var(--warnbg); }
+  .warnc { color: var(--warn); }
+  .toast { position: fixed; z-index: 60; right: 16px; top: 64px; width: 380px; max-width: calc(100vw - 24px); background: var(--panel2); border: 1px solid var(--border);
+           border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; box-shadow: 0 14px 36px rgba(0,0,0,.35); font-size: 12.5px; line-height: 1.45; }
+  .toast[hidden] { display: none; }
+  .toast .ic { flex: none; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .toast .ok { background: color-mix(in srgb, var(--ok) 20%, transparent); color: var(--ok); } .toast .nw { background: var(--upbg); color: var(--up); }
+  .toast .er { background: var(--warnbg); color: var(--warn); }
+  .toast .act { margin-top: 6px; display: flex; gap: 8px; } .toast .act button { padding: 3px 10px; font-size: 12px; }
+  .toast .act button.pri { background: var(--up); border-color: var(--up); color: #fff; }
+  .toast .x { margin-left: auto; border: 0; background: none; padding: 0 2px; color: var(--muted); }
+
+  /* ---- bandeau « état du marché » */
+  .kpis { display: grid; grid-template-columns: 1.55fr repeat(5, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
+  .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px 8px; min-width: 0; }
+  .kpi .top { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .kpi .top .lbl { overflow: hidden; text-overflow: ellipsis; }
+  .kpi .val { font-size: 22px; font-weight: 600; letter-spacing: -.02em; margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+  .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
+  .kpi svg.spark { width: 100%; height: 34px; margin-bottom: 3px; }
+  .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; flex: none; }
+  .b-up { background: var(--upbg); color: var(--up); } .b-down { background: var(--downbg); color: var(--down); }
+  .b-warn { background: var(--warnbg); color: var(--warn); } .b-neutral { background: var(--neutralbg); color: var(--muted); }
+  .kidx .rows { display: grid; gap: 2px; margin-top: 6px; }
+  .irow { display: grid; grid-template-columns: 36px minmax(0, 1fr) 62px 76px; align-items: center; gap: 6px; width: calc(100% + 12px); padding: 3px 6px;
+          margin: 0 -6px; border: 0; background: none; border-radius: 6px; font-size: 12.5px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+  .irow b { text-align: left; font-weight: 600; } .irow:hover { background: var(--hover); } .irow.on { background: var(--hover); box-shadow: inset 2px 0 0 var(--up); }
+  .chip { font-size: 11px; font-weight: 600; padding: 1px 0; border-radius: 999px; text-align: center; }
+  .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
+  .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
+  .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; }
+  @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .irow { grid-template-columns: 36px 0 62px 76px; } .irow .px { visibility: hidden; } }
+
+  /* ---- bulles d'information : clic / toucher (et survol à la souris) */
+  .tipbtn { width: 18px; height: 18px; padding: 0; border: 0; background: none; border-radius: 50%; display: inline-grid; place-items: center; color: var(--faint); flex: none; }
+  .tipbtn:hover, .tipbtn[aria-expanded="true"] { color: var(--text); background: var(--hover); }
+  .tipbtn svg { width: 14px; height: 14px; }
+  .pop { position: absolute; z-index: 50; width: 330px; max-width: calc(100vw - 24px); background: var(--panel2); border: 1px solid var(--border); border-radius: 10px;
+         padding: 12px 14px; box-shadow: 0 14px 36px rgba(0,0,0,.4); font-size: 12.5px; line-height: 1.5; color: var(--text); }
+  .pop[hidden] { display: none; }
+  .pop h5 { margin: 0 0 4px; font-size: 13px; display: flex; align-items: center; }
+  .pop h5 button { margin-left: auto; border: 0; background: none; padding: 0 2px; color: var(--muted); }
+  .pop p { margin: 0 0 6px; color: var(--muted); } .pop b { color: var(--text); font-weight: 600; }
+  .pop .now { margin: 8px 0 6px; padding: 6px 8px; border-radius: 6px; background: var(--hover); }
+  .pop .src { font-size: 11px; color: var(--faint); margin: 6px 0 0; }
+  .scale { position: relative; display: flex; height: 6px; margin: 10px 0 2px; }
+  .scale span { height: 6px; } .scale span:first-child { border-radius: 3px 0 0 3px; } .scale span:last-child { border-radius: 0 3px 3px 0; }
+  .scale i { position: absolute; top: -4px; width: 3px; height: 14px; border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--panel2); }
+  .scalel { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); }
+
+  /* ---- panneau « Réglages » (tiroir à droite ; feuille en bas sur mobile) */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 40; }
+  .scrim[hidden] { display: none; }
+  .sheet { position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: 370px; max-width: 100vw; background: var(--panel); border-left: 1px solid var(--border);
+           padding: 16px; overflow: auto; box-shadow: -12px 0 40px rgba(0,0,0,.3); }
+  .sheet[hidden] { display: none; }
+  .sheet h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; }
+  .sheet h3 .iconbtn { margin-left: auto; }
+  .sheet h4 { margin: 18px 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .marow { display: grid; grid-template-columns: 22px 30px 1fr 74px 62px; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--grid); }
+  .marow input[type=color] { width: 28px; height: 22px; padding: 0; border: 1px solid var(--border); border-radius: 5px; background: none; }
+  .sheet input[type=number], .sheet select { font: inherit; font-size: 12px; color: var(--text); background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 3px 6px; width: 100%; }
+  .sheet input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--up); }
+  .optrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
+  .optrow label { display: flex; align-items: center; gap: 8px; }
+  .slider { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; color: var(--muted); }
+  .slider input[type=range] { width: 100%; accent-color: var(--up); }
+  .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
+  details.about { margin-top: 12px; }
+  details.about summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+  details.about footer { margin-top: 6px; }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
+    <symbol id="i-candle" viewBox="0 0 24 24"><path d="M6 5v3M6 16v3M18 4v4M18 15v5"/><rect x="4" y="8" width="4" height="8" rx="1"/><rect x="16" y="8" width="4" height="7" rx="1"/><path d="M12 3v18"/></symbol>
+    <symbol id="i-cols" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.6M12 17h.01"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></symbol>
+    <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></symbol>
+  </svg>
   <header>
-    <h1>Market Monitor +4 % / −4 %</h1>
-    <div class="group tabs" id="tabs" role="tablist">
-      <button data-tab="main" role="tab" class="on">Détail</button>
+    <div class="brand"><span class="logo" aria-hidden="true"><svg class="i" style="stroke:#fff;width:14px;height:14px"><use href="#i-candle"/></svg></span>Market Monitor</div>
+    <div class="group tabs seg" id="tabs" role="tablist">
+      <button data-tab="main" role="tab" class="on">Marché</button>
       <button data-tab="cmp" role="tab">QQQ · IWM · BTC</button>
       <button data-tab="sec" role="tab">Secteurs</button>
     </div>
-    <div class="group" id="ranges"></div>
-    <div class="group" id="zoom"><button id="zOut" title="Dézoomer (ou molette vers le bas)" aria-label="Dézoomer">−</button><button id="zIn" title="Zoomer (ou molette vers le haut)" aria-label="Zoomer">+</button></div>
-    <button id="refreshBtn" title="Recharger les dernières données publiées (la mise à jour elle-même est automatique, chaque jour)">↻ Actualiser</button>
-    <div class="sub" id="sub"></div>
+    <span class="hspacer"></span>
+    <button class="fresh" id="refreshBtn" aria-label="Vérifier si de nouvelles données sont publiées"></button>
+    <button class="iconbtn" id="gearBtn" aria-label="Réglages" title="Réglages de l'affichage"><svg class="i"><use href="#i-gear"/></svg></button>
+    <div class="sub" id="sub" hidden></div>
   </header>
+  <!-- plage de dates et zoom : déplacés dans la barre du graphique de l'onglet actif (voir setTab) -->
+  <span class="rangebox" id="rangebox">
+    <span class="group seg sm" id="ranges"></span>
+    <span class="group seg sm zoom" id="zoom"><button id="zOut" title="Dézoomer (ou molette vers le bas)" aria-label="Dézoomer">−</button><button id="zIn" title="Zoomer (ou molette vers le haut)" aria-label="Zoomer">+</button></span>
+  </span>
 
   <div id="view-sec" hidden>
     <div class="secsplit">
@@ -184,6 +300,7 @@
       <div class="card secchart">
         <div class="chartbar">
           <b id="secTitle"></b>
+          <span class="rslot" id="rslot-sec"></span>
           <span id="secMa" style="display:contents"></span>
           <span class="spacer"></span>
           <label title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ◀)">Espace en haut
@@ -202,6 +319,7 @@
   <div id="view-cmp" hidden>
     <div class="card">
       <div class="chartbar">
+        <span class="rslot" id="rslot-cmp"></span>
         <span id="cmpMa" style="display:contents"></span>
         <span class="spacer"></span>
         <label>Espace en haut <input type="range" id="topPad2" min="0" max="60" step="1"><output id="topPad2Out"></output></label>
@@ -214,15 +332,14 @@
   </div>
 
   <div id="view-main">
+  <section class="kpis" id="kpis" aria-label="État du marché"></section>
+  <p class="kpinote" id="kpinote"></p>
   <div class="card">
     <div class="chartbar">
       <button class="inst" id="instBtn" data-menu aria-haspopup="true"></button>
+      <span class="rslot" id="rslot-main"></span>
       <span id="maBar" style="display:contents"></span>
       <span class="spacer"></span>
-      <label title="Espace vide au-dessus du plus haut cours affiché (aussi réglable avec la poignée ◀ sur l'axe des prix)">Espace en haut
-        <input type="range" id="topPad" min="0" max="60" step="1"><output id="topPadOut"></output></label>
-      <label title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲ sur le graphique)">Espace à droite
-        <input type="range" id="rightPad" min="0" max="60" step="1"><output id="rightPadOut"></output></label>
     </div>
     <div class="legend" id="trendLegend"></div>
     <div class="menu" id="menu" hidden></div>
@@ -295,12 +412,33 @@
   </div>
   </div>
 
+  <details class="about" id="about"><summary>Sources et état des données</summary>
   <footer>
     <div id="dataStatus"></div>
     Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
     haussier : +4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Polygon.io / Massive · VIX : CBOE.
   </footer>
+  </details>
 </div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="sheet" id="sheet" hidden aria-label="Réglages">
+  <h3>Réglages<button class="iconbtn" id="sheetClose" aria-label="Fermer"><svg class="i"><use href="#i-x"/></svg></button></h3>
+  <h4>Moyennes mobiles</h4>
+  <div id="maRows"></div>
+  <div class="optrow"><label><input type="checkbox" id="optTrend"> Fond de tendance (MM10 / MM20)</label></div>
+  <h4>Espaces du graphique</h4>
+  <div class="slider" title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ◀ sur l'axe des prix)"><span>En haut</span>
+    <input type="range" id="topPad" min="0" max="60" step="1"><output id="topPadOut"></output></div>
+  <div class="slider" title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲ sous le graphique)"><span>À droite</span>
+    <input type="range" id="rightPad" min="0" max="60" step="1"><output id="rightPadOut"></output></div>
+  <h4>Affichage</h4>
+  <div class="optrow"><span>Thème</span><span class="seg sm" id="themeSeg"><button data-theme="">Système</button><button data-theme="light">Clair</button><button data-theme="dark">Sombre</button></span></div>
+  <div class="optrow"><label><input type="checkbox" id="optAlpha"> Histogrammes : premier plan translucide</label></div>
+  <div class="optrow"><span style="color:var(--muted)">Revenir à l'affichage par défaut</span><button id="resetView">Réinitialiser</button></div>
+</aside>
+<div class="pop" id="pop" role="dialog" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script>
   // Fichiers de données. GitHub Pages garde les fichiers 10 min en cache : le bouton « Actualiser » recharge la page avec
@@ -394,6 +532,7 @@
     return MA_DEFAULT.map(m => Object.assign({}, m));
   })();
   const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
+  let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
 
   // Calculées sur tout l'historique chargé (pas seulement la plage visible) : null tant qu'il y a moins de n clôtures.
   // EMA : amorcée par la SMA des n premières clôtures, puis lissage 2/(n+1), comme ta.ema de Pine.
@@ -1349,6 +1488,7 @@
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
+    placeRanges();
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
     else if (t === 'cmp') { renderCmpLegend(); renderCmp(); } else { drawAll(); syncSlider(); }
@@ -1375,6 +1515,7 @@
     renderBar(); syncSlider();
     drawAll(); renderTable(); highlightRow(); updateSub();
     if (tab === 'cmp') renderCmp();
+    renderKpis();
   }
   function selectRange(k) {
     range = k;
@@ -1559,15 +1700,225 @@
     })() + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
   })();
 
-  // bouton « Actualiser » : recharge la page avec un paramètre anti-cache pour récupérer les dernières données publiées
-  $('refreshBtn').addEventListener('click', () => {
-    const b = $('refreshBtn'); b.disabled = true; b.textContent = '↻ Actualisation…';
+  // ------------------------------------------------------------------ plage de dates : dans la barre du graphique de l'onglet actif
+  function placeRanges() { const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box); }
+  placeRanges();
+
+  // ------------------------------------------------------------------ bandeau « état du marché »
+  // Breadth : seuils calibrés sur la tendance d'IWM 2019-2026 (tendance = C > SMA10, C > SMA20 et SMA10 > SMA20) ; la couleur change
+  // dès la séance où la valeur franchit un seuil. Indices : même filtre de tendance que le fond des graphiques (MM1 / MM2).
+  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
+  const TREND_NAMES = ['Baissière', 'Essoufflée', 'Haussière', 'Forte'];
+  const DATES = () => [...SB.keys()].sort();
+  const lastWith = k => { const D = DATES(); for (let i = D.length - 1; i >= 0; i--) if (sb(D[i], k) != null) return D[i]; return null; };
+  const kState = (v, k) => v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', 'Baissier'] : v >= TH[k][1] ? ['up', 'Haussier'] : ['neutral', 'Neutre'];
+  const kRule = k => `Baissier sous ${signedOr(k, TH[k][0])}, haussier à partir de ${signedOr(k, TH[k][1])}, neutre entre les deux.`;
+  const signedOr = (k, v) => k === 'net5' ? signed(v) : nf(v, 1);
+  const stCol = st => css(st[0] === 'neutral' ? '--muted' : st[0] === 'warn' ? '--warn' : '--' + st[0]);
+  function spark(vals, kind, col) {
+    const w = 100, h = 30, v = vals.filter(x => x != null && !isNaN(x)); if (v.length < 2) return '';
+    const lo = Math.min(...v, kind === 'bars' ? 0 : Infinity), hi = Math.max(...v, kind === 'bars' ? 0 : -Infinity), Y = x => h - 2 - (x - lo) / ((hi - lo) || 1) * (h - 4);
+    if (kind === 'bars') {
+      const bw = w / vals.length;
+      return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">` + vals.map((x, i) => x == null ? '' :
+        `<rect x="${(i * bw).toFixed(2)}" width="${(bw * .7).toFixed(2)}" y="${Math.min(Y(x), Y(0)).toFixed(1)}" height="${Math.max(.8, Math.abs(Y(x) - Y(0))).toFixed(1)}" fill="${css(x >= 0 ? '--up' : '--down')}" opacity=".85"/>`).join('') + '</svg>';
+    }
+    const pts = vals.map((x, i) => x == null ? null : `${(i / (vals.length - 1) * w).toFixed(1)},${Y(x).toFixed(1)}`).filter(Boolean).join(' ');
+    const ref = kind && kind.ref != null && kind.ref > lo && kind.ref < hi ? `<line x1="0" x2="${w}" y1="${Y(kind.ref).toFixed(1)}" y2="${Y(kind.ref).toFixed(1)}" stroke="${css('--faint')}" stroke-dasharray="2 2" vector-effect="non-scaling-stroke"/>` : '';
+    return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${ref}<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
+  }
+  const tipBtn = id => `<button class="tipbtn" data-tip="${id}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>`;
+  const badge = st => `<span class="badge b-${st[0]}">${st[1]}</span>`;
+  let TIPS = {};
+  function scaleHtml(min, max, a, b, v, f) {
+    const pc = x => Math.max(0, Math.min(100, (x - min) / (max - min) * 100));
+    return `<div class="scale"><span style="width:${pc(a)}%;background:var(--down)"></span><span style="width:${pc(b) - pc(a)}%;background:var(--faint)"></span>` +
+      `<span style="flex:1;background:var(--up)"></span>${v == null || isNaN(v) ? '' : `<i style="left:calc(${pc(v)}% - 1px)"></i>`}</div>` +
+      `<div class="scalel"><span>${f(min)}</span><span>${f(a)}</span><span>${f(b)}</span><span>${f(max)}</span></div>`;
+  }
+  function renderKpis() {
+    const box = $('kpis'); if (!box) return;
+    const D = DATES(), d4 = lastWith('up4'), dq = lastWith('up25q'), dt = lastWith('t2108');
+    if (!d4 || !dq) { box.innerHTML = ''; return; }
+    const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
+    const D4 = D.filter(d => net(d) != null), net5 = D4.slice(-5).reduce((a, d) => a + net(d), 0), net4 = net(d4);
+    const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
+    const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
+    const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
+    const n5S = kState(net5, 'net5'), r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
+    const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', 'Survente'] : t21 > 70 ? ['warn', 'Surachat'] : ['neutral', 'Neutre'];
+    const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
+    const idx = CMP.map(n => { const a = barsFor(n), b = a[a.length - 1]; return b ? { n, b } : null; }).filter(Boolean);
+    const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · tendance MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
+      idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
+        `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}</span><span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
+    const tiles = [
+      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
+      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${nf(r10v, 2)}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
+      ['rm', 'Ratio mois ±25 %', nf(rm, 2), `${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
+      ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
+    box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) =>
+      `<div class="kpi"><div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div></div>`).join('');
+    const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
+    $('kpinote').textContent = `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '') +
+      ' · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail';
+    const f1 = x => nf(x, 1);
+    TIPS = {
+      idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
+        <p><span class="chip t3" style="padding:0 6px">Forte</span> MM${MAS[TR1].len} &gt; MM${MAS[TR2].len}, les deux montent · <span class="chip t2" style="padding:0 6px">Haussière</span> seule la MM${MAS[TR1].len} monte ·
+        <span class="chip t1" style="padding:0 6px">Essoufflée</span> aucune ne monte · <span class="chip t0" style="padding:0 6px">Baissière</span> MM${MAS[TR1].len} sous MM${MAS[TR2].len}.</p>
+        <p>Clique sur une ligne pour afficher l'indice dans le graphique.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
+      solde: ['Solde ±4 %', `<p>Nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> sur la séance, moins celles en baisse d'au moins 4 % (volume ≥ 100 000 et en hausse).</p>
+        <p>Le grand chiffre est celui du ${fmtDate(d4)} ; la <b>couleur</b> suit la somme des 5 dernières séances. ${kRule('net5')}</p>${scaleHtml(-1200, 1200, TH.net5[0], TH.net5[1], net5, signed)}
+        <div class="now">Somme 5 j : <b>${signed(net5)}</b> → ${n5S[1].toLowerCase()}.</div><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
+      r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
+        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → ${r5S[1].toLowerCase()}.</div>
+        <p>Repère : ratio 10 j ≥ 1,5 → IWM en tendance haussière 73 à 91 % du temps (2019-2026).</p><p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
+      rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> : le marché est haussier tant qu'il reste au-dessus de 1. ${kRule('rq')}</p>
+        ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → ${rqS[1].toLowerCase()}.</div>
+        <p class="src">Source : Stockbee · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],
+      rm: ['Ratio ±25 % mois', `<p>Même calcul sur <b>un mois</b> : plus nerveux que le trimestre et très étiré, il faut atteindre <b>2</b> pour parler de tendance haussière. ${kRule('rm')}</p>
+        ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → ${rmS[1].toLowerCase()}.</div>
+        <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
+      t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. C'est un indicateur d'<b>extrêmes</b>, pas de tendance : sous 20 % le marché est en survente, au-dessus de 70 % en surachat.</p>
+        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → ${t2S[1].toLowerCase()} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
+      c4: ['Séance : +4 % / −4 %', `<p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
+      c25m: ['Mois : +25 % / −25 %', `<p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
+      c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
+  }
+  $('kpis').addEventListener('click', e => {
+    const r = e.target && e.target.closest && e.target.closest('.irow');
+    if (r && r.dataset.inst && r.dataset.inst !== current) { current = r.dataset.inst; refresh(); }
+  });
+
+  // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
+  const pop = $('pop'); let tipOpen = null, tipHoverTimer = 0;
+  const canHover = () => { try { return matchMedia('(hover: hover) and (pointer: fine)').matches; } catch (e) { return false; } };
+  function openTip(id, btn, how) {
+    document.querySelectorAll('.tipbtn[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    if (!id || !TIPS[id] || (tipOpen && tipOpen.id === id && how === 'click' && tipOpen.how === 'click')) { pop.hidden = true; tipOpen = null; return; }
+    tipOpen = { id, how }; btn.setAttribute('aria-expanded', 'true');
+    pop.innerHTML = `<h5>${TIPS[id][0]}<button aria-label="Fermer"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button></h5>${TIPS[id][1]}`;
+    pop.hidden = false;
+    const r = btn.getBoundingClientRect(), w = pop.offsetWidth, sx = window.scrollX || 0, sy = window.scrollY || 0, vw = window.innerWidth || 1200;
+    pop.style.left = Math.max(12, Math.min(vw - w - 12, r.left - 16)) + sx + 'px'; pop.style.top = (r.bottom + sy + 8) + 'px';
+  }
+  const closeTip = () => openTip(null);
+  document.addEventListener('click', e => {
+    const t = e.target, b = t && t.closest && t.closest('.tipbtn');
+    if (b) { e.stopPropagation(); e.preventDefault(); openTip(b.dataset.tip, b, 'click'); return; }
+    if (tipOpen && t && t.closest && (!t.closest('#pop') || t.closest('#pop h5 button'))) closeTip();
+  }, true);
+  document.addEventListener('mouseover', e => {
+    const b = e.target && e.target.closest && e.target.closest('.tipbtn, #pop'); if (!b || !canHover()) return;
+    clearTimeout(tipHoverTimer);
+    if (b.classList.contains('tipbtn') && !(tipOpen && tipOpen.how === 'click')) openTip(b.dataset.tip, b, 'hover');
+  });
+  document.addEventListener('mouseout', e => {
+    if (!tipOpen || tipOpen.how !== 'hover' || !e.target || !e.target.closest || !e.target.closest('.tipbtn, #pop')) return;
+    clearTimeout(tipHoverTimer); tipHoverTimer = setTimeout(() => { if (tipOpen && tipOpen.how === 'hover') closeTip(); }, 200);
+  });
+
+  // ------------------------------------------------------------------ fraîcheur des données et bouton « Actualiser »
+  // Le site est statique : le bouton ne télécharge pas les cours lui-même, il relit status_data.js sans cache et compare l'horodatage
+  // publié par le robot GitHub (cron 22:17 et 05:43 UTC) ; si une nouvelle version existe, « Afficher » recharge la page.
+  const hm = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
+  const nextRun = () => { const n = new Date(); for (let k = 0; k < 3; k++) for (const [h, m] of [[5, 43], [22, 17]]) {
+    const t = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + k, h, m)); if (t > n) return t; } return n; };
+  let checkedAt = new Date();
+  function freshInfo() {
+    const st = window.STATUS, when = st ? new Date(st.updated) : null, ok = when && !isNaN(when);
+    const failed = st && st.sources ? Object.entries(st.sources).filter(([, v]) => !v.ok).map(([k]) => ({ stockbee: 'Stockbee', breadth: 'calcul maison', vix: 'VIX', prices: 'prix', sectors: 'secteurs' })[k] || k) : [];
+    return { when: ok ? when : null, stale: ok && (Date.now() - when.getTime()) / 3600000 > 30, failed, last: DATES().slice(-1)[0] };
+  }
+  function renderFresh() {
+    const f = freshInfo(), b = $('refreshBtn');
+    const warn = f.stale ? '· ⚠ données en retard' : f.failed.length ? `· ⚠ ${f.failed.length} source${f.failed.length > 1 ? 's' : ''} en échec` : '';
+    b.innerHTML = `<span class="dot"></span>Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` +
+      `<span style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc">${warn}</span>` : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
+    b.classList.toggle('stale', !!f.stale);
+    b.title = (f.when ? `Données publiées le ${f.when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' })}. ` : '') +
+      `Mise à jour automatique chaque jour (prochaine vers ${hm(nextRun())}). ` + (f.failed.length ? `Non mis à jour : ${f.failed.join(', ')}. ` : '') + 'Clique pour vérifier maintenant.';
+    const ms = $('msub'); if (ms) { ms.innerHTML = b.innerHTML.replace(/<span class="rf">[\s\S]*$/, ''); ms.classList.toggle('stale', !!f.stale); }
+  }
+  function showToast(kind) {
+    const t = $('toast'), f = freshInfo(), day = f.last ? fmtDate(f.last, { weekday: 'long', day: 'numeric', month: 'long' }) : '?';
+    const M = {
+      ok: ['ok', '✓', `<b>Déjà à jour.</b> Séance du ${day}${f.when ? `, publiée à ${hm(f.when)}` : ''}. Prochaine mise à jour automatique vers ${hm(nextRun())}.` +
+        (f.failed.length ? ` <span class="warnc">⚠ Non mis à jour : ${f.failed.join(', ')}.</span>` : ''), ''],
+      new: ['nw', '↑', '<b>Nouvelles données publiées.</b>', '<div class="act"><button class="pri" data-act="reload">Afficher</button><button data-act="close">Plus tard</button></div>'],
+      err: ['er', '!', `<b>Vérification impossible</b> (connexion ?). Les données affichées sont celles de la séance du ${day}.`, '<div class="act"><button data-act="retry">Réessayer</button></div>'] }[kind];
+    t.innerHTML = `<span class="ic ${M[0]}">${M[1]}</span><div>${M[2]}${M[3]}</div><button class="x" data-act="close" aria-label="Fermer"><svg class="i" style="width:14px;height:14px"><use href="#i-x"/></svg></button>`;
+    t.hidden = false; clearTimeout(showToast.timer);
+    if (kind === 'ok') showToast.timer = setTimeout(() => { t.hidden = true; }, 8000);
+  }
+  $('toast').addEventListener('click', e => {
+    const a = e.target && e.target.closest && e.target.closest('[data-act]'); if (!a) return;
+    if (a.dataset.act === 'reload') location.search = '?v=' + Date.now();
+    else if (a.dataset.act === 'retry') checkUpdates();
+    else $('toast').hidden = true;
+  });
+  async function checkUpdates() {
+    const b = $('refreshBtn');
+    if (typeof fetch !== 'function') {                   // navigateur très ancien : rechargement complet sans cache
+      b.disabled = true; b.textContent = '↻ Actualisation…'; location.search = '?v=' + Date.now(); return;
+    }
+    b.classList.add('busy'); const mb = $('refresh2'); if (mb) mb.classList.add('busy');
+    try {
+      const txt = await (await fetch('status_data.js?v=' + Date.now(), { cache: 'no-store' })).text();
+      const m = txt.match(/"updated"\s*:\s*"([^"]+)"/);
+      showToast(m && window.STATUS && m[1] !== window.STATUS.updated ? 'new' : 'ok');
+    } catch (e) { showToast('err'); }
+    finally { b.classList.remove('busy'); if (mb) mb.classList.remove('busy'); checkedAt = new Date(); renderFresh(); }
+  }
+  $('refreshBtn').addEventListener('click', checkUpdates);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - checkedAt > 15 * 60000) checkUpdates(); });
+  if (typeof setInterval === 'function') setInterval(() => { if (!document.hidden) checkUpdates(); }, 30 * 60000);
+  renderFresh();
+
+  // ------------------------------------------------------------------ panneau « Réglages » (moyennes mobiles, fond, espaces, thème, histogrammes)
+  function applyTheme(t) {
+    const de = document.documentElement;
+    if (de && de.setAttribute) { if (t) de.setAttribute('data-theme', t); else if (de.removeAttribute) de.removeAttribute('data-theme'); }
+    store.set('mm.theme', t || '');
+    $('themeSeg').querySelectorAll('button').forEach(b => { b.className = (b.dataset.theme || '') === (t || '') ? 'on' : ''; });
+  }
+  applyTheme(store.get('mm.theme') || '');
+  function renderSheet() {
+    $('maRows').innerHTML = MAS.map((m, i) => `<div class="marow"><input type="checkbox" data-i="${i}" data-f="on"${m.on ? ' checked' : ''} aria-label="Afficher la moyenne ${i + 1}">` +
+      `<input type="color" data-i="${i}" data-f="color" value="${maColor(i)}" aria-label="Couleur"><span>Moyenne ${i + 1}${i === TR1 || i === TR2 ? ' <span style="color:var(--faint)">· fond</span>' : ''}</span>` +
+      `<select data-i="${i}" data-f="type" aria-label="Type"><option${m.type === 'SMA' ? ' selected' : ''}>SMA</option><option${m.type === 'EMA' ? ' selected' : ''}>EMA</option></select>` +
+      `<input type="number" min="1" max="400" step="1" data-i="${i}" data-f="len" value="${m.len}" aria-label="Longueur"></div>`).join('');
+    $('optTrend').checked = trendOn; $('optAlpha').checked = histAlpha < 1;
+  }
+  const openSheet = on => { $('sheet').hidden = !on; $('scrim').hidden = !on; if (on) { closeTip(); renderSheet(); } };
+  $('gearBtn').addEventListener('click', () => openSheet(true));
+  $('sheetClose').addEventListener('click', () => openSheet(false));
+  $('scrim').addEventListener('click', () => { openSheet(false); if (typeof closeMore === 'function') closeMore(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { openSheet(false); closeTip(); } });
+  $('maRows').addEventListener('change', e => {
+    const el = e.target, i = +el.dataset.i, f = el.dataset.f; if (!MAS[i]) return;
+    if (f === 'on') MAS[i].on = el.checked;
+    else if (f === 'color') MAS[i].color = el.value;
+    else if (f === 'type') MAS[i].type = el.value === 'EMA' ? 'EMA' : 'SMA';
+    else if (f === 'len') { const v = Math.round(+el.value); if (!(v >= 1 && v <= 400)) return; MAS[i].len = v; }
+    maChanged(); renderKpis();
+  });
+  $('optTrend').addEventListener('change', e => { trendOn = e.target.checked; renderBar(); render(); });
+  $('optAlpha').addEventListener('change', e => { histAlpha = e.target.checked ? 0.6 : 1; store.set('mm.hsolid', histAlpha < 1 ? '0' : '1'); drawAll(); });
+  $('themeSeg').addEventListener('click', e => {
+    const b = e.target && e.target.closest && e.target.closest('button'); if (!b) return;
+    applyTheme(b.dataset.theme || ''); setTimeout(() => { drawAll(); renderKpis(); if (tab === 'cmp') renderCmp(); }, 30);
+  });
+  $('resetView').addEventListener('click', () => {
+    try { Object.keys(localStorage).filter(k => k.startsWith('mm.')).forEach(k => localStorage.removeItem(k)); } catch (e) { /* stockage indisponible */ }
     location.search = '?v=' + Date.now();
   });
 
   new ResizeObserver(drawAll).observe(document.querySelector('.wrap'));
   window.addEventListener('resize', drawAll);          // la hauteur dépend de la fenêtre (vh) : le ResizeObserver ne la voit pas
-  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(drawAll, 50));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(() => { drawAll(); renderKpis(); }, 50));
   refresh();
   { const st = store.get('mm.tab'); if (st === 'cmp' || st === 'sec') setTab(st); }
 })();
