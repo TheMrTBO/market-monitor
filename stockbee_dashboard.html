@@ -2447,7 +2447,7 @@
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec'; $('view-pm').hidden = t !== 'pm';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
-    placeRanges(); renderMtop();
+    placeRanges(); renderMtop(); renderDatebar();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
     document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
@@ -2702,12 +2702,13 @@
     pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis(); renderDatebar(); if (tab === 'sec') renderSectors(); if (tab === 'pm') renderPM();
   }
   // ---- sélecteur de date : séance choisie (ou dernière), ‹ › = séance précédente / suivante, « Aujourd'hui » = dernière séance
-  const sessions = () => sbDates();
+  // séances proposées : celles de Stockbee ; sur l'onglet Post-market, aussi celles des scans (le scan du soir arrive avant Stockbee)
+  const sessions = () => tab === 'pm' && PM && PM.snaps.length ? [...new Set(sbDates().concat(PM.snaps.map(s => s.d)))].sort() : sbDates();
   function renderDatebar() {
     const D = sessions(), last = D[D.length - 1], d = pinned || last, inp = $('dPick');
     inp.min = D[0]; inp.max = last; inp.value = d;
     $('dToday').classList.toggle('on', !pinned);
-    $('dInfo').textContent = pinned ? fmtDate(pinned, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'dernière séance publiée';
+    $('dInfo').textContent = pinned ? fmtDate(pinned, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : tab === 'pm' ? 'dernier scan publié' : 'dernière séance publiée';
   }
   function showDate(d) {                 // d = date ISO ; on retient la dernière séance ≤ d (week-end, jour férié)
     const D = sessions(), last = D[D.length - 1]; if (!d) return;

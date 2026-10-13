@@ -83,6 +83,18 @@ A.L.dPick.change({target:{value:'2026-08-03'}});
 ok('séance sans scan : message', /Pas de scan pour cette séance/.test(A.$('pmRows')._h));
 A.L.dToday.click();
 ok('Aujourd\'hui : dernier instantané', syms(A).length===4);
+// 5 bis) « Stats du » sur Post-market : le scan du soir (plus récent que Stockbee) est la séance affichée et sélectionnable
+{
+  const lastSb=A.sb.STOCKBEE.rows[A.sb.STOCKBEE.rows.length-1][0], nd=new Date(lastSb+'T00:00:00Z'); do nd.setUTCDate(nd.getUTCDate()+1); while(nd.getUTCDay()%6===0);
+  const nxt=nd.toISOString().slice(0,10), P2=JSON.parse(JSON.stringify(PM)); P2.snaps[1].d=nxt;
+  const E=boot({},P2); E.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
+  ok('Stats du = date du scan du soir', E.$('dPick').value===nxt && E.$('dPick').max===nxt, E.$('dPick').value+' (Stockbee : '+lastSb+')');
+  ok('libellé « dernier scan publié »', E.$('dInfo')._t==='dernier scan publié', E.$('dInfo')._t);
+  E.L.dPrev.click(); ok('‹ : séance Stockbee précédente', E.$('dPick').value===lastSb && /Pas de scan|<tr data-s=/.test(E.$('pmRows')._h), E.$('dPick').value);
+  E.L.dNext.click(); ok('› : retour au scan du soir', E.$('dPick').value===nxt && /BBB/.test(E.$('pmRows')._h));
+  E.L.tabs.click({target:{closest:()=>({dataset:{tab:'main'}})}});
+  ok('onglet MM : Stats du revient aux séances Stockbee', E.$('dPick').max===lastSb, E.$('dPick').max);
+}
 // 6) mobile : toucher une ligne ouvre la fiche, « ‹ Scan » revient
 A.sb.innerWidth=375;
 A.L.pmRows.click({target:{closest:()=>({dataset:{s:'AAA'}})}});
