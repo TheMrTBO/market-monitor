@@ -42,8 +42,8 @@ jobs:
         uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
         with:
           path: cache
-          key: historique-${{ github.run_id }}
-          restore-keys: historique-
+          key: historique-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: historique-        # le plus récent cache, quel que soit le passage
 
       - name: Compléter l'historique des clôtures (Polygon / Massive)
         id: history
@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
         with:
           path: cache
-          key: historique-${{ github.run_id }}
+          key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
 
       - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels)
         id: fetch

@@ -46,10 +46,16 @@ onglet **Actions** > « Mise à jour des données et publication » > **Run work
    « Mise à jour des données et publication » avec **Run workflow**.
 5. L'adresse du site apparaît à la fin du job `deploy` (et dans Settings > Pages).
 
+**Relancer une mise à jour :** toujours par **Actions > « Mise à jour des données et publication » > Run workflow**, jamais
+par « Re-run » d'une ancienne exécution (elle rejoue l'ancien commit et l'ancienne version du workflow). Depuis le 13/10/2026,
+le workflow part de la dernière version de `main`, rejoue son commit de données par-dessus ce qui a pu arriver pendant
+l'exécution (`git pull --rebase -X theirs`, 3 essais) et enregistre le cache sous une clé par tentative
+(`historique-<run_id>-<run_attempt>`), la restauration prenant le plus récent.
+
 ## Calcul maison du breadth (+4 % / −4 %, ratios 5 / 10 j)
 - `fetch_history.py` télécharge, une fois par jour, la clôture et le volume de tous les titres US (un appel `grouped daily`)
-  et conserve les splits à part ; l'historique (~72 séances) vit dans le cache Actions `cache/`, jamais dans le dépôt.
-  **Le tout premier passage dure ~15 min** (72 appels à 5/min, limite du plan gratuit) ; ensuite 1 à 2 appels par jour.
+  et conserve les splits à part ; l'historique (~130 séances) vit dans le cache Actions `cache/`, jamais dans le dépôt.
+  **Le tout premier passage dure ~27 min** (~130 appels à 5/min, limite du plan gratuit) ; ensuite 1 à 2 appels par jour.
 - `breadth_own.py` applique les formules TC2000 (identiques à celles de Stockbee) et écrit `breadth_data.js`.
 - **Période de transition** : Stockbee reste la référence affichée ; notre calcul est tracé en **pointillé** sur
   l'histogramme +4 % / −4 %, et complète automatiquement une séance que Stockbee n'a pas (encore) publiée. Le pied de page
