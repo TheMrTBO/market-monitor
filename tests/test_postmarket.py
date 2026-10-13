@@ -88,6 +88,12 @@ with tempfile.TemporaryDirectory() as tmp:
     fp.save(fp.load())
     st = (Path(tmp) / "status_data.js").read_text()
     check("heure du releve notee dans status_data.js (cle pm)", '"pm":"2026-10-14T22:17:00+00:00"' in st and '"updated":"2026-10-14T22:17:00+00:00"' in st)
+    MOVERSUP = fp.movers
+    fp.movers = lambda direction: [tv_item("T%03d" % i, 5.0 * direction, 200_000 + i) for i in range(fp.LIMIT)] if direction > 0 else []
+    fp.datetime = type("D", (datetime,), {"now": staticmethod(lambda tz=None: utc("2026-10-14T23:00:00"))})
+    fp.main()
+    check("liste tronquee (150 titres dans un sens) : signalee", fp.load()["snaps"][-1].get("trunc") is True)
+    fp.movers = MOVERSUP
     n_before = len(calls)
     fp.datetime = type("D", (datetime,), {"now": staticmethod(lambda tz=None: utc("2026-10-14T15:00:00"))})
     fp.main()

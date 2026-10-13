@@ -13,7 +13,7 @@ Chaque jour (week-ends compris, le BTC cote 7 j/7), après la clôture US, le wo
 4. republie le site sur GitHub Pages.
 
 **Scan post-market** : un second workflow, `.github/workflows/postmarket.yml` (« Scan post-market »), relève seulement le scan
-TradingView toutes les 30 min de 20:15 à 01:15 UTC en semaine (le post-market dure 16 h → 20 h à New York, soit 20:00-00:00 UTC
+TradingView toutes les 15 min (minutes 7, 22, 37, 52) de 20:07 à 01:22 UTC en semaine (le post-market dure 16 h → 20 h à New York, soit 20:00-00:00 UTC
 l'été et 21:00-01:00 UTC l'hiver). Hors fenêtre, `fetch_postmarket.py` ne fait rien : pas de commit, pas de déploiement. Le
 relevé final (post-market terminé) est fait par le passage de `05:43`. Aucune clé ; données TradingView différées de 15 min.
 

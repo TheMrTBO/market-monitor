@@ -53,8 +53,11 @@ ok('hausses par volume AH en dollars', syms(A).join()==='BBB,AAA', syms(A).join(
 ok('Vol AH $ = actions × cours post-market (BBB : 2 M × 10,50)', /data-s="BBB".*?<td>21,0 M<\/td><td>2,0 M<\/td>/.test(A.$('pmRows')._h));
 ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,dv,pv,rv,cap', heads(A).join());
 ok('plus de colonne Rés. ni de badge dans la liste', !/erb|AMC|BMO/.test(A.$('pmRows')._h));
-ok('méta : séance, en cours, heure du relevé', /27 août 2026 · post-market en cours · relevé à/.test(A.$('pmMeta')._t), A.$('pmMeta')._t);
+ok('méta : séance, en cours, heure du relevé', /27 août 2026 · post-market en cours · relevé à/.test(strip(A.$('pmMeta')._h)), strip(A.$('pmMeta')._h));
 ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les deux<span>4<\/span>.*Résultats<span>1<\/span>/.test(A.$('pmFilt')._h));
+// 1 bis) liste tronquée par le robot : signalée dans la méta
+{ const P3=JSON.parse(JSON.stringify(PM)); P3.snaps[1].trunc=true; const T3=boot({},P3); go(T3);
+  ok('liste tronquée signalée', /liste tronquée à 150 titres/.test(strip(T3.$('pmMeta')._h)), strip(T3.$('pmMeta')._h)); }
 // 2) fiche + graphique du titre sélectionné (1re ligne)
 ok('fiche : titre', A.$('pmTitle')._t==='BBB · BBB Inc.', A.$('pmTitle')._t);
 ok('fiche : post-market et lendemain pas encore joué', /Post-market.*\+5,00 %/.test(strip(A.$('pmFacts')._h)) && /21,0 M \$ · 2,0 M actions/.test(strip(A.$('pmFacts')._h)) && /séance pas encore jouée/.test(A.$('pmFacts')._h));
@@ -78,7 +81,7 @@ A.L.pmRows.click({target:{closest:()=>({dataset:{s:'DDD'}})}});
 ok('titre sans graphique signalé', /graphique indisponible/.test(A.$('pmInfo')._t), A.$('pmInfo')._t);
 // 5) « Stats du » : séance précédente -> instantané du 26 août, colonne Lendemain
 A.L.dPick.change({target:{value:'2026-08-26'}});
-ok('Stats du 26 août : instantané du 26', syms(A).join()==='OLD' && /26 août 2026 · post-market terminé/.test(A.$('pmMeta')._t), A.$('pmMeta')._t);
+ok('Stats du 26 août : instantané du 26', syms(A).join()==='OLD' && /26 août 2026 · post-market terminé/.test(strip(A.$('pmMeta')._h)), strip(A.$('pmMeta')._h));
 ok('colonne Lendemain', heads(A).includes('nx') && /\+6,20 %/.test(A.$('pmRows')._h));
 A.L.dPick.change({target:{value:'2026-08-03'}});
 ok('séance sans scan : message', /Pas de scan pour cette séance/.test(A.$('pmRows')._h));

@@ -9,7 +9,7 @@ Etapes (chacune est un script independant ; si une etape echoue, les anciennes d
   prices    -> prices_data.js     (QQQ, IWM : Yahoo Finance ; BTC : Coinbase)
   sectors   -> sectors_data.js    (ETF sectoriels : Yahoo Finance)
   postmarket-> postmarket_data.js (scan post-market du screener public TradingView ; ne fait rien hors du post-market ;
-                                   aussi lance seul toutes les 30 min le soir par .github/workflows/postmarket.yml)
+                                   aussi lance seul toutes les 15 min le soir par .github/workflows/postmarket.yml)
 
 Chaque fichier produit est controle (validate_data.py) avant d'etre conserve : s'il est invalide, ou plus ancien que
 la version precedente, il est annule et les anciennes donnees sont restaurees.

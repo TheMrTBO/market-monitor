@@ -1,4 +1,4 @@
-name: Scan post-market (toutes les 30 min le soir)
+name: Scan post-market (toutes les 15 min le soir)
 
 # Relève seulement le scan post-market (fetch_postmarket.py, screener public TradingView, aucune clé) et republie le site.
 # Le post-market US dure de 16 h à 20 h à New York, soit 20:00-00:00 UTC en heure d'été (EDT) et 21:00-01:00 UTC en heure
@@ -7,9 +7,10 @@ name: Scan post-market (toutes les 30 min le soir)
 # partent souvent avec 5 à 30 min de retard : l'heure du relevé est affichée dans l'onglet.
 on:
   schedule:
-    - cron: '15,45 20-23 * * 1-5'   # lun-ven, 20:15 -> 23:45 UTC
-    - cron: '15,45 0 * * 2-6'       # 00:15 et 00:45 UTC (soirée de la veille à New York)
-    - cron: '15 1 * * 2-6'          # 01:15 UTC : fin du post-market en heure d'hiver
+    # toutes les 15 min, à des minutes peu demandées (7, 22, 37, 52 : GitHub retarde ou saute plus souvent :00, :15, :30, :45)
+    - cron: '7,22,37,52 20-23 * * 1-5'   # lun-ven, 20:07 -> 23:52 UTC
+    - cron: '7,22,37,52 0 * * 2-6'       # 00:07 -> 00:52 UTC (soirée de la veille à New York)
+    - cron: '7,22 1 * * 2-6'             # 01:07 et 01:22 UTC : fin du post-market en heure d'hiver
   workflow_dispatch:
 
 permissions:

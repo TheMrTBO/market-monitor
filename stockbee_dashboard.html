@@ -1960,7 +1960,8 @@
     $('pmRows').innerHTML = rows.length
       ? rows.map(r => `<tr data-s="${r.s}" class="${r.s === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
       : `<tr><td class="empty" colspan="${cols.length}">Aucun titre avec ces filtres pour cette séance.</td></tr>`;
-    $('pmMeta').textContent = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}`;
+    $('pmMeta').innerHTML = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}` +
+      (snap.trunc ? ' · <span class="wait" title="Le robot relève au plus 150 titres par sens : il y en avait davantage">liste tronquée à 150 titres</span>' : '');
     const sel = $('pmRows').querySelector && $('pmRows').querySelector('tr.sel');
     fitPmLayout();
     if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
@@ -2881,7 +2882,7 @@
     pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; 3 $</b>, <b>volume post-market &gt; 100 000</b> et <b>variation post-market &gt; +4 %</b> (Hausses) ou <b>&lt; −4 %</b> (Baisses).</p>
       <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. <b>Vol AH</b> = nombre d'actions échangées.</p>
       <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. Filtre <b>Résultats</b> : titres qui ont publié leurs résultats trimestriels ce soir après la clôture (AMC) ou ce matin avant l'ouverture (BMO), indiqué aussi dans la fiche. <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
-      <p>Le robot relève le scan toutes les 30 min pendant le post-market, puis une dernière fois dans la nuit (données TradingView différées de 15 min). Un instantané par séance, 20 séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
+      <p>Le robot relève le scan toutes les 15 min pendant le post-market, puis encore 4 fois dans la nuit (données TradingView différées de 15 min). Chaque relevé remplace la liste de la séance : elle montre exactement ce que donne le scan à l'heure du relevé (un titre repassé sous 4 % en sort). Une liste par séance, 20 séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
       <p>Clic sur un en-tête : trier · ↑ ↓ : titre précédent / suivant.</p><p class="src">Source : TradingView (screener public) · graphiques : Yahoo Finance.</p>`],
     pmchart: ['Graphique du titre', `<p>Bougies journalières sur environ 3 mois et moyennes mobiles (réglages de l'onglet MM). Le point <b>AH</b> marque le cours post-market relevé, juste après la séance du scan.</p><p class="src">Source : Yahoo Finance · TradingView.</p>`],
     secrank: ['Classement avgC7 / avgC65', `<p><b>Score</b> = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières (formule TC2000). Au-dessus de 1, les cours récents sont au-dessus de leur moyenne d'environ 3 mois.</p>
@@ -2935,8 +2936,8 @@
     for (let k = 0; k < 3; k++) for (const [h, m] of [[1, 17], [3, 17], [5, 43], [22, 17]]) {
       const t = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + k, h, m)); if (t > n && (!best || t < best.t)) best = { t, pm: false };
     }
-    for (let k = 0; !mainOnly && k < 2 * 24 * 3; k++) {             // créneaux du scan post-market : minutes 15 et 45 de chaque heure
-      const t = new Date(Math.floor(n / 1800000) * 1800000 + 900000 + k * 1800000);
+    for (let k = 0; !mainOnly && k < 4 * 24 * 3; k++) {             // créneaux du scan post-market : minutes 7, 22, 37 et 52 de chaque heure
+      const t = new Date(Math.floor(n / 900000) * 900000 + 420000 + k * 900000);
       if (t > n && inPostMarket(t)) { if (!best || t < best.t) best = { t, pm: true }; break; }
     }
     return best || { t: n, pm: false };

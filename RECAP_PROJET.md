@@ -36,7 +36,7 @@ GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
         ├─ fetch_prices.py   → prices_data.js                                   (QQQ, IWM : Yahoo ; BTC : Coinbase)
         ├─ fetch_sectors.py  → sectors_data.js                                  (55 ETF : Yahoo)
         └─ fetch_postmarket.py → postmarket_data.js                             (scan post-market : TradingView ; graphiques : Yahoo)
-GitHub Actions « Scan post-market » (postmarket.yml, toutes les 30 min de 20:15 à 01:15 UTC en semaine)
+GitHub Actions « Scan post-market » (postmarket.yml, toutes les 15 min de 20:07 à 01:22 UTC en semaine)
    └─ fetch_postmarket.py seul → commit de postmarket_data.js si changé → déploiement
    └─ status_data.js (horodatage + dernière séance par source)
    └─ commit des fichiers de données dans main, puis déploiement de _site/ sur GitHub Pages
@@ -54,7 +54,7 @@ GitHub Actions « Scan post-market » (postmarket.yml, toutes les 30 min de 20:1
 | `fetch_prices.py` | QQQ/IWM Yahoo (yfinance) ; BTC Coinbase `BTC-USD` en fenêtres de 299 jours ; option `--source polygon` |
 | `fetch_sectors.py` | Liste d'ETF (`UNIVERSE`), descriptions (`DESC`), données OHLCV sur 900 jours |
 | `fetch_postmarket.py` | Scan post-market (screener public TradingView, sans clé, différé 15 min) : prix > 3 $, vol. AH > 100 000, \|var. AH\| > 4 %, 60 titres max par sens ; un instantané par séance (heure de New York, fenêtre 16 h → 4 h), 20 séances ; complète le « lendemain » (variation, gap) de l'instantané précédent ; bougies 3 mois (Yahoo) des titres du dernier instantané. Hors fenêtre : ne fait rien |
-| `.github/workflows/postmarket.yml` | Relevé du scan post-market toutes les 30 min le soir (couvre heure d'été et d'hiver), commit + déploiement seulement si le fichier change |
+| `.github/workflows/postmarket.yml` | Relevé du scan post-market toutes les 15 min le soir (couvre heure d'été et d'hiver), commit + déploiement seulement si le fichier change |
 | `fetch_data.py` | **Ancien** calcul du breadth +4 %/−4 % depuis Polygon (grouped daily). Toujours importé par `fetch_prices.py` et `fetch_history.py` (client Polygon, univers, splits) |
 | `fetch_history.py` | **Calcul maison, lot 1.** Télécharge les clôtures/volumes bruts (1 appel `grouped daily` par séance), les splits à part et l'univers ; cache `cache/history/` (hors dépôt), reprenable, élagué à 400 séances |
 | `breadth_own.py` | **Calcul maison, lot 1.** Formules TC2000 (+4 %/−4 %, volume ≥ 100 000 et croissant, splits) et ratios 5/10 j → `breadth_data.js` (agrégats seuls, lignes déjà publiées conservées) |
@@ -234,6 +234,10 @@ toucher un titre → graphique + fiche, « ‹ Scan » pour revenir.
   libellé « dernier scan publié ». Hors post-market (pre-market, journée), le dernier scan reste affiché ; un instantané par séance.
 - Méta : date de la séance, « post-market en cours / terminé », heure du relevé (heure locale).
 - Prévu : vue « Résultats » (Benzinga : BPA, CA, surprise), masquée tant que la source n'est pas branchée.
+- **Chaque relevé remplace la liste de la séance** (décision user : un titre repassé sous 4 % ne correspond plus au scan, il ne
+  doit pas apparaître ; une liste cumulée a été écartée). Exhaustivité = pas de relevé manqué : toutes les 15 min (minutes 7 / 22 /
+  37 / 52, moins chargées chez GitHub) + 4 passages de nuit d'update_all ; 150 titres max par sens, dépassement signalé
+  (« liste tronquée ») ; 0 titre (champs vidés, jour férié) = liste précédente conservée.
 
 ### Séance du jour en attente (13/10/2026, demande utilisateur)
 Après 16 h à New York, si QQQ a coté ce jour-là mais que le breadth n'est pas publié (Stockbee, calcul maison), la séance du jour
@@ -337,6 +341,8 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
   dernières valeurs valides) : prévoir une stratégie de purge avant ~1 Go.
 - Vert foncé / vert clair / jaune du fond de tendance : lisibilité limitée pour un daltonien, et le jaune se confond avec les
   bougies jaunes sur fond noir.
+- Un passage du workflow **pendant la séance** (fusion de PR, Run workflow) écrivait une bougie du jour partielle pour QQQ / IWM
+  et les secteurs : corrigé (`session_still_open`, pas de bougie du jour avant 16 h à New York ; le BTC garde la sienne).
 - yfinance renvoie parfois du bruit de virgule flottante : les prix sont arrondis à 4 décimales à l'écriture.
 
 ---
