@@ -8,8 +8,8 @@
 <style>
   :root {
     --bg: #f4f5f8; --panel: #ffffff; --text: #1b2230; --muted: #667085; --grid: #e6e9ef; --axis: #c3c2b7; --border: #dde1e8;
-    --up: #2a78d6;    /* haussier : bleu (lisible en cas de daltonisme) */
-    --down: #e34948;  /* baissier : rouge */
+    --up: #2a78d6;    /* côté hausses : bleu (lisible en cas de daltonisme) */
+    --down: #e34948;  /* côté baisses : rouge */
     --s10: #eda100; --s20: #eb6834; --s50: #6250d6; --s200: #1baf7a;  /* moyennes mobiles (anciennes valeurs, inutilisées) */
     /* thème des graphiques de prix : fond noir, bougies jaunes (hausse) et rouges (baisse) */
     --cbg: #000000; --cgrid: #1c1c1c; --cref: #444444; --ctext: #9aa0a6; --ccross: #d6d6d6;
@@ -103,7 +103,20 @@
   @media (max-width: 900px) { .cmpbottom { grid-template-columns: minmax(0, 1fr); } }
   .cmpbottom .card { margin-bottom: 0; }
   .cmpbottom canvas { height: 26vh; min-height: 200px; }
-  .mini-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding-bottom: 4px; }
+  #cmpGrid[hidden], #cmpB100[hidden] { display: none; }
+  #view-cmp { position: relative; }                       /* menu des MM positionné dans l'onglet */
+  #dslot-cmp { margin-bottom: 10px; }                     /* même écart sous « Stats du » que les cases de MM */
+  .cmpgrid .ovl { flex-wrap: wrap; white-space: normal; } .cmpgrid .mabar { flex-wrap: wrap; }   /* graphiques étroits : MM sur 2 lignes */
+  #cmpB100 canvas { height: 46vh; min-height: 300px; }
+  .mini-title .nw { white-space: nowrap; }
+  .mini-title .perf { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+  .mini-title .tipbtn { align-self: center; }
+  .b100leg { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .b100leg i { display: inline-block; width: 12px; height: 2px; border-radius: 1px; margin-right: 5px; vertical-align: 3px; }
+  .b100leg b { color: var(--text); font-weight: 600; }
+  .legbtn { display: none; }
+  #cmpHead.b100 #cmpTrend, #cmpHead.b100 .legbtn { display: none !important; }
+  .mini-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; padding-bottom: 4px; }
   .mini-title b { font-weight: 600; }
   .mini-title .px { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
   .chrow .chead { flex: none; padding-bottom: 6px; }
@@ -200,32 +213,27 @@
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
   .kpi svg.spark { width: 100%; height: 34px; margin-bottom: 3px; }
-  .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; flex: none; }
-  .b-up { background: var(--upbg); color: var(--up); } .b-down { background: var(--downbg); color: var(--down); }
-  .b-warn { background: var(--warnbg); color: var(--warn); } .b-neutral { background: var(--neutralbg); color: var(--muted); }
   .kidx .rows { display: grid; gap: 2px; margin-top: 6px; }
   .irow { display: grid; grid-template-columns: 36px minmax(0, 1fr) 74px 76px; align-items: center; gap: 6px; width: calc(100% + 12px); padding: 3px 6px;
           margin: 0 -6px; border: 0; background: none; border-radius: 6px; font-size: 12.5px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
   .irow b { text-align: left; font-weight: 600; } .irow:hover { background: var(--hover); } .irow.on { background: var(--hover); box-shadow: inset 2px 0 0 var(--up); }
   .chip { font-size: 11px; font-weight: 600; padding: 1px 0; border-radius: 999px; text-align: center; }
-  .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
-  .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
+  /* pastilles des indices : mêmes teintes que le fond des graphiques (vert soutenu, vert clair, jaune), état 0 sans couleur */
+  .chip { color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .t3 { background: rgba(46,160,67,.42); } .t2 { background: rgba(46,160,67,.18); } .t1 { background: rgba(234,179,8,.32); }
+  .t0 { box-shadow: inset 0 0 0 1px var(--border); color: var(--muted); }
   /* hiérarchie des cases par la couleur (une seule rangée, tailles identiques) :
-     Solde = Ratio 5 j (pleine couleur, liseré de l'état à gauche) > Ratio mois (atténué) > Ratio trim. = T2108 (en retrait).
+     ±4 % du jour = Ratio 5 j (pleine couleur, titre en gras) > Ratio mois (atténué) > Ratio trim. = T2108 (en retrait).
      Les encadrés « extrême 3 mois » restent pleinement visibles quel que soit le niveau. */
-  .kpi[data-k=solde], .kpi[data-k=r5] { box-shadow: inset 3px 0 0 var(--prio, var(--faint)); }
-  .kpi[data-k=solde].st-down, .kpi[data-k=r5].st-down { --prio: var(--down); }
-  .kpi[data-k=solde].st-up, .kpi[data-k=r5].st-up { --prio: var(--up); }
   .kpi[data-k=solde] .lbl, .kpi[data-k=r5] .lbl { color: var(--text); font-weight: 600; }
   .kpi[data-k=rm] .val { color: color-mix(in srgb, var(--text) 78%, var(--panel)); }
   .kpi[data-k=rm] .lbl, .kpi[data-k=rm] .ksub { color: color-mix(in srgb, var(--muted) 85%, var(--panel)); }
-  .kpi[data-k=rm] svg.spark { opacity: .75; } .kpi[data-k=rm] .badge { opacity: .8; }
+  .kpi[data-k=rm] svg.spark { opacity: .75; }
   .kpi[data-k=rq] .val, .kpi[data-k=t2108] .val { color: var(--muted); }
   .kpi[data-k=rq] .val span, .kpi[data-k=t2108] .val span { color: inherit; }
   .kpi[data-k=rq] .lbl, .kpi[data-k=t2108] .lbl, .kpi[data-k=rq] .ksub, .kpi[data-k=t2108] .ksub { color: var(--faint); }
   .kpi[data-k=rq]:not(.hot-up):not(.hot-dn):not(.hot-warn), .kpi[data-k=t2108]:not(.hot-up):not(.hot-dn):not(.hot-warn) { background: var(--bg); }
   .kpi[data-k=rq] svg.spark, .kpi[data-k=t2108] svg.spark { opacity: .45; }
-  .kpi[data-k=rq] .badge, .kpi[data-k=t2108] .badge { background: none; box-shadow: inset 0 0 0 1px currentColor; opacity: .8; }
   .datebar { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
   .datebar .dlab { color: var(--text); font-weight: 600; }
   .datebar input[type=date] { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; height: 32px; color-scheme: light dark; }
@@ -333,13 +341,12 @@
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 10px; padding: 14px 12px 8px; margin: 0; }
     .kpi { padding: 11px 12px 9px; border-radius: 12px; }
     .kpi .kban { top: -10px; left: 8px; font-size: 9.5px; height: 18px; line-height: 18px; padding: 0 8px; }
-    .kpi[data-k=solde], .kpi[data-k=r5] { box-shadow: none; }      /* pas de liseré sur mobile : le titre en gras suffit */
     .kpi .g3 { font-size: 10px; gap: 5px; } .kpi .g3 .gb { height: 3px; }
     .datebar .dinfo { display: none; }
     .kpi.kidx, .kpi[data-k=t2108] { grid-column: 1 / -1; }   /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
     .kpi .top { font-size: 11px; }
     .kpi .val { font-size: 19px; }
-    .kpi .top { flex-wrap: wrap; row-gap: 3px; } .kpi .badge { font-size: 10px; padding: 1px 6px; }
+    .kpi .top { flex-wrap: wrap; row-gap: 3px; }
     .kpi .body { grid-template-columns: minmax(0, 1fr) 40%; gap: 8px; margin: 2px 0 4px; }
     .kpi svg.spark { height: 24px; margin: 0 0 3px; }
     .kpi .rec { font-size: 9.5px; padding: 0 4px; margin-left: 4px; vertical-align: 3px; }
@@ -374,7 +381,13 @@
              padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); box-shadow: 0 -12px 40px rgba(0,0,0,.35); }
     .toast { left: 12px; right: 12px; width: auto; top: auto; bottom: calc(76px + env(safe-area-inset-bottom)); }
     .secsplit { grid-template-columns: minmax(0, 1fr); }
-    #view-cmp .chartbar label, #view-sec .chartbar label { display: none; }
+    #view-sec .chartbar label { display: none; }
+    /* onglet SA sur mobile : graphiques moins hauts, légende repliée derrière un bouton */
+    .cmpgrid canvas { height: 34vh; min-height: 220px; } #cmpB100 canvas { height: 42vh; min-height: 260px; }
+    .cmpbottom canvas { height: 22vh; min-height: 160px; }
+    .legbtn { display: inline-block; padding: 5px 10px; }
+    #cmpHead:not(.legopen) #cmpTrend { display: none !important; }
+    .mini-title { flex-wrap: wrap; row-gap: 0; } .mini-title .px { font-size: 12px; }
   }
 
   /* ---- graphique de prix : barre d'outils, légende OHLC / MM posée sur le fond du graphique (style TradingView) */
@@ -477,29 +490,33 @@
   </div>
 
   <div id="view-cmp" hidden>
-    <div class="card">
+    <div id="dslot-cmp"></div>
+    <div class="card" id="cmpHead">
       <div class="chartbar">
         <span class="rslot" id="rslot-cmp"></span>
-        <span id="cmpMa" style="display:contents"></span>
-        <span class="spacer"></span>
-        <label>Espace en haut <input type="range" id="topPad2" min="0" max="60" step="1"><output id="topPad2Out"></output></label>
-        <label>Espace à droite <input type="range" id="rightPad2" min="0" max="60" step="1"><output id="rightPad2Out"></output></label>
+        <span class="group seg sm" id="cmpMode" role="group" aria-label="Affichage"><button data-m="side" title="Trois graphiques de prix">Côte à côte</button><button data-m="b100" title="Les trois courbes rebasées à 100 au début de la période">Base 100</button></span>
+        <button class="legbtn" id="cmpLegBtn" aria-expanded="false">Légende ▾</button>
       </div>
       <div class="legend" id="cmpTrend"></div>
     </div>
     <div class="cmpgrid" id="cmpGrid"></div>
+    <div class="card" id="cmpB100" hidden>
+      <div class="mini-title"><b>Base 100</b><button class="tipbtn" data-tip="b100" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="b100leg" id="b100leg"></span><span class="px" id="b100px"></span></div>
+      <canvas id="b100cv"></canvas>
+    </div>
     <div class="cmpbottom" id="cmpBottom"></div>
+    <div class="menu" id="menuCmp" hidden></div>
   </div>
 
   <div id="view-main">
-  <div class="datebar" id="datebar">
+  <div id="dslot-main"><div class="datebar" id="datebar">
     <span class="dlab">Stats du</span>
     <button class="iconbtn dnav" id="dPrev" aria-label="Séance précédente" title="Séance précédente">‹</button>
     <input type="date" id="dPick" aria-label="Choisir la séance">
     <button class="iconbtn dnav" id="dNext" aria-label="Séance suivante" title="Séance suivante">›</button>
     <button id="dToday" title="Revenir à la dernière séance">Aujourd'hui</button>
     <span class="dinfo" id="dInfo"></span>
-  </div>
+  </div></div>
   <section class="kpis" id="kpis" aria-label="État du marché"></section>
   <p class="kpinote" id="kpinote"></p>
   <div class="card">
@@ -527,7 +544,7 @@
       <div class="legend">
         <span><i class="front" style="background:var(--down)"></i>−4 % (premier plan, translucide)</span>
         <span><i style="background:var(--up)"></i>+4 % (second plan)</span>
-        <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
+        <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
       </div>
       <canvas id="hist"></canvas>
     </div>
@@ -539,6 +556,7 @@
     <div class="legend">
       <span><i class="front" style="background:var(--down)"></i>−25 % sur un mois (premier plan, translucide)</span>
       <span><i style="background:var(--up)"></i>+25 % sur un mois (second plan)</span>
+      <span class="legown" data-k="up25m" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
     </div>
     <canvas id="hist25m"></canvas>
     <button class="disc" data-target="raw25m" aria-expanded="false" aria-controls="raw25m">▸ Détail : solde net +25 % / −25 % sur un mois</button>
@@ -557,6 +575,7 @@
     <div class="legend">
       <span><i class="front" style="background:var(--down)"></i>−25 % sur un trimestre (premier plan, translucide)</span>
       <span><i style="background:var(--up)"></i>+25 % sur un trimestre (second plan)</span>
+      <span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span>
     </div>
     <canvas id="hist2"></canvas>
     <button class="disc" data-target="raw25" aria-expanded="false" aria-controls="raw25">▸ Détail : solde net +25 % / −25 % sur un trimestre</button>
@@ -572,21 +591,21 @@
   <div class="card hcard rcard" data-card="r5">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="r5" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio 5 j ±4 %</span></button><button class="tipbtn" data-tip="r5" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumR5"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone haussière (≥ 1,5)</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone baissière (&lt; 1)</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone ≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone &lt; 1</span><span class="legown" data-k="ratio5" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span></div>
       <canvas id="rt5"></canvas>
     </div>
   </div>
   <div class="card hcard rcard" data-card="rm">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rm" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % mois</span></button><button class="tipbtn" data-tip="rm" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRm"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25m" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span></div>
       <canvas id="rtm"></canvas>
     </div>
   </div>
   <div class="card hcard rcard" data-card="rq">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rq" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % trimestre</span></button><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span></div>
       <canvas id="rtq"></canvas>
     </div>
   </div>
@@ -599,7 +618,7 @@
   <footer>
     <div id="dataStatus"></div>
     Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
-    haussier : +4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Polygon.io / Massive · VIX : CBOE.
+    +4 % : hausse d'au moins 4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Yahoo Finance (QQQ, IWM), Coinbase (BTC) · Secteurs : Yahoo Finance · VIX : CBOE.
   </footer>
   </details>
 </div>
@@ -670,6 +689,10 @@
   const own = (d, k) => { const r = OWNMAP.get(d); return r ? r[OWNC[k]] : null; };
   const legOwn = document.getElementById('legOwn');
   if (OWN && legOwn) legOwn.hidden = false;      // légende du pointillé : seulement si le calcul maison est chargé
+  // ±25 % mois, trimestre (expérimental) et T2108 maison : pointillés sur les graphiques seulement ; cases et seuils restent Stockbee
+  document.querySelectorAll('.legown').forEach(el => { el.hidden = !(OWN && OWNC[el.dataset.k] != null); });
+  const OWN_RATIO = { ratio5: d => own(d, 'ratio5'), rm: d => { const a = own(d, 'up25m'), b = own(d, 'down25m'); return a == null || !b ? null : a / b; },
+                      rq: d => { const a = own(d, 'up25q'), b = own(d, 'down25q'); return a == null || !b ? null : a / b; } };
   for (const r of OWN ? OWN.rows : []) {
     if (SB.has(r[0])) continue;
     const row = STOCKBEE.columns.map(() => null);
@@ -737,9 +760,9 @@
   const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
   let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
   // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
-  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
+  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2] };
   // Records sur 3 mois (63 séances) : ▲ = au-dessus du plus haut des 63 séances précédentes, ▼ = sous le plus bas.
-  // Couleur selon le sens pour le marché : bleu = favorable, rouge = défavorable (un record des baisses de 25 % est rouge).
+  // Couleur selon le côté : bleu = côté hausses, rouge = côté baisses (un record du nombre de baisses de 25 % est rouge).
   let HMA = (() => { const v = store.get('mm.hma'); return v == null ? 10 : +v || 0; })();   // moyenne mobile sur les histogrammes (0 = aucune)
   let _dates = null; const sbDates = () => _dates || (_dates = [...SB.keys()].sort());
   const ratioOf = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
@@ -760,9 +783,9 @@
     return REC[k];
   }
   const recOf = (k, d) => d ? recMap(k).get(d) || 0 : 0;
-  const recGood = (k, r) => (r > 0) !== BEAR.has(k);             // le record est-il favorable au marché ?
+  const recGood = (k, r) => (r > 0) !== BEAR.has(k);             // le record est-il du côté des hausses ?
   // Les ±25 % (mois, trimestre), leurs ratios / soldes et le T2108 sont des indicateurs retardés : un extrême 3 mois y est une
-  // information (orange, case en pointillés), pas un signal. Les ±4 % gardent bleu = favorable, rouge = défavorable (case pleine).
+  // information (orange, case en pointillés), pas un signal. Les ±4 % gardent bleu = côté hausses, rouge = côté baisses (case pleine).
   const isLag = k => /25[mq]|^r[mq]$|^t2108$/.test(k);
   const recCls = (k, r) => isLag(k) ? 'rw' : recGood(k, r) ? 'ru' : 'rd';
   const recCol = (k, r) => css(isLag(k) ? '--warn' : recGood(k, r) ? '--up' : '--down');
@@ -846,15 +869,22 @@
   // (chilllaxtrader, MPL 2.0). MM1 = SMA 10, MM2 = SMA 20 sur la clôture ; une MM « monte » si elle est > à sa valeur
   // d'il y a TREND_LEN barres. Comme en Pine, une comparaison avec une valeur manquante vaut faux.
   const TREND_LEN = 5;
-  const TREND = [null,
-    { key: 'essoufflée', fill: 'rgba(234,179,8,0.14)' },
-    { key: 'haussière', fill: 'rgba(46,160,67,0.14)' },
-    { key: 'tendance forte', fill: 'rgba(46,160,67,0.28)' }];
+  const TREND = [null, { fill: 'rgba(234,179,8,0.14)' }, { fill: 'rgba(46,160,67,0.14)' }, { fill: 'rgba(46,160,67,0.28)' }];
+  // Vocabulaire neutre : on décrit ce que font les deux MM (ordre, pente sur TREND_LEN séances), sans adjectif ni verdict.
   // MM1 et MM2 = les deux premières moyennes mobiles de la barre du haut (10 et 20 par défaut)
-  const trendLabel = s => {
+  const trendWhy = s => {
     const a = `MM${MAS[TR1].len}`, b = `MM${MAS[TR2].len}`;
-    return s === 1 ? `essoufflée : ${a} > ${b}, aucune ne monte` : s === 2 ? `haussière : ${a} > ${b}, seule la ${a} monte` : `forte : ${a} > ${b}, les deux montent`;
+    return s === 3 ? `${a} > ${b}, les deux montent` : s === 2 ? `${a} > ${b}, seule la ${a} monte` : `${a} > ${b}, aucune ne monte`;
   };
+  // constat d'une séance : o = ordre MM1 / MM2, s1 / s2 = pente (↗ monte, ↘ baisse, → stable, · inconnue)
+  function trendFacts(ma1, ma2, i) {
+    const sl = a => i < TREND_LEN || a[i] == null || a[i - TREND_LEN] == null ? '·' : a[i] > a[i - TREND_LEN] ? '↗' : a[i] < a[i - TREND_LEN] ? '↘' : '→';
+    return { o: ma1[i] == null || ma2[i] == null ? '?' : ma1[i] > ma2[i] ? '>' : ma1[i] < ma2[i] ? '<' : '=', s1: sl(ma1), s2: sl(ma2) };
+  }
+  const trendShort = f => `${MAS[TR1].len}${f.o}${MAS[TR2].len} ${f.s1}${f.s2}`;
+  const SLOPE = { '↗': 'monte', '↘': 'baisse', '→': 'stable', '·': 'pente inconnue' };
+  const ORDER = { '>': 'au-dessus de la', '<': 'sous la', '=': 'égale à la', '?': 'non calculable face à la' };
+  const trendLong = f => `MM${MAS[TR1].len} ${ORDER[f.o]} MM${MAS[TR2].len} · MM${MAS[TR1].len} ${SLOPE[f.s1]}, MM${MAS[TR2].len} ${SLOPE[f.s2]} (${TREND_LEN} séances)`;
   let trendOn = true;
   function trendState(ma1, ma2, i) {
     const gt = (a, b) => a != null && b != null && a > b;
@@ -874,7 +904,7 @@
       const raw = window.PRICES[name] || [], closes = raw.map(b => b[4]);
       const sma = MAS.map(m => maSeries(closes, m.len, m.type));
       barCache.set(key, raw.map((b, i) => ({ d: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5],
-        chg: i ? 100 * (b[4] / raw[i - 1][4] - 1) : null, s: sma.map(a => a[i]), st: trendState(sma[TR1], sma[TR2], i) })));
+        chg: i ? 100 * (b[4] / raw[i - 1][4] - 1) : null, s: sma.map(a => a[i]), st: trendState(sma[TR1], sma[TR2], i), tf: trendFacts(sma[TR1], sma[TR2], i) })));
     }
     return barCache.get(key);
   }
@@ -958,6 +988,22 @@
 
   // ------------------------------------------------------------------ dessin
   const PAD = { l: 8, r: 64, t: 8, b: 22 };
+  // records 3 mois du +4 % et du −4 % sur un graphique de prix (MM et SA) : étiquette au-dessus (côté hausses) ou au-dessous (côté baisses)
+  function drawRecLabels(g, vis, X, Y) {
+    g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    vis.forEach((b, i) => {
+      if (!b) return; let above = 0, below = 0;
+      for (const [k, lab] of [['up4', '+4'], ['down4', '−4']]) {
+        const r = recOf(k, b.d); if (!r) continue;
+        const good = recGood(k, r), t = lab + (r > 0 ? '▲' : '▼'), tw = g.measureText(t).width + 8, x = X(i);
+        const y = good ? Y(b.h) - 12 - 16 * above++ : Y(b.l) + 12 + 16 * below++;
+        g.fillStyle = good ? '#3d86e0' : '#e05656'; g.beginPath();
+        if (g.roundRect) g.roundRect(x - tw / 2, y - 7, tw, 14, 7); else g.rect(x - tw / 2, y - 7, tw, 14);
+        g.fill(); g.fillStyle = '#fff'; g.fillText(t, x, y + 0.5);
+      }
+    });
+    g.restore();
+  }
   const cvPrice = $('price'), cvSec = $('secCanvas'), cvHist = $('hist'), cvHistM = $('hist25m'), cvHist2 = $('hist2');
   const cvNet4 = $('net4'), cvNetM = $('net25m'), cvNet25 = $('net25');
   const drawAll = () => {
@@ -1068,21 +1114,7 @@
       g.stroke();
     });
     g.restore();
-    if (cv === cvPrice) {                       // records 3 mois du +4 % et du −4 % : étiquette au-dessus (favorable) ou au-dessous (défavorable)
-      g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      vis.forEach((b, i) => {
-        if (!b) return; let above = 0, below = 0;
-        for (const [k, lab] of [['up4', '+4'], ['down4', '−4']]) {
-          const r = recOf(k, b.d); if (!r) continue;
-          const good = recGood(k, r), t = lab + (r > 0 ? '▲' : '▼'), tw = g.measureText(t).width + 8, x = X(i);
-          const y = good ? Y(b.h) - 12 - 16 * above++ : Y(b.l) + 12 + 16 * below++;
-          g.fillStyle = good ? '#3d86e0' : '#e05656'; g.beginPath();
-          if (g.roundRect) g.roundRect(x - tw / 2, y - 7, tw, 14, 7); else g.rect(x - tw / 2, y - 7, tw, 14);
-          g.fill(); g.fillStyle = '#fff'; g.fillText(t, x, y + 0.5);
-        }
-      });
-      g.restore();
-    }
+    if (cv === cvPrice) drawRecLabels(g, vis, X, Y);
     // dernier cours : ligne pointillée et étiquette colorée sur l'axe
     const lastB = [...bars.values()].pop();
     if (lastB && Y(lastB.c) >= PAD.t && Y(lastB.c) <= PAD.t + ph) {
@@ -1122,7 +1154,7 @@
     return x >= PAD.l && x <= PAD.l + c.pw ? x : null;
   }
 
-  // histogramme "même plan" : valeurs positives uniquement, la série baissière est dessinée devant la haussière
+  // histogramme "même plan" : valeurs positives uniquement, la série des baisses est dessinée devant celle des hausses
   function drawHist(cv, upKey, downKey) {
     if (!cv.clientWidth) return;               // détail replié : rien à dessiner
     const c = setup(cv); if (!c.n) return;
@@ -1142,8 +1174,8 @@
     g.globalAlpha = 1;
     maLine(c, Y, upKey, css('--up')); maLine(c, Y, downKey, css('--down'));
     recMarks(c, Y, upKey, ups); recMarks(c, Y, downKey, downs);
-    if (upKey === 'up4' && OWNMAP.size) {      // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
-      g.save(); g.setLineDash([3, 3]); g.lineWidth = 1.5; g.strokeStyle = css('--ctext');
+    if (OWNC[upKey] != null && OWNMAP.size) {   // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
+      g.save(); g.setLineDash([4, 3]); g.lineWidth = 1.6; g.strokeStyle = css('--text');      // couleur du texte : lisible sur les barres
       for (const key of [upKey, downKey]) {
         g.beginPath(); let pen = false;
         T.forEach((d, i) => {
@@ -1159,7 +1191,7 @@
     cursor(c);
   }
 
-  // panneau de solde net (haussiers − baissiers) : bleu au-dessus de zéro, rouge en dessous, échelle symétrique
+  // panneau de solde net (hausses − baisses) : bleu au-dessus de zéro, rouge en dessous, échelle symétrique
   function drawNet(cv, upKey, downKey) {
     if (!cv.clientWidth) return;               // carte repliée : rien à dessiner
     const c = setup(cv); if (!c.n) return;
@@ -1189,7 +1221,7 @@
     cursor(c);
   }
 
-  // graphique d'un ratio (même axe des dates que le prix) : zones haussière / baissière, seuils, records 3 mois
+  // graphique d'un ratio (même axe des dates que le prix) : zones au-dessus / au-dessous des seuils, records 3 mois
   const cvR5 = $('rt5'), cvRm = $('rtm'), cvRq = $('rtq');
   function drawRatio(cv, k, k2, thr) {
     if (!cv.clientWidth) return;
@@ -1197,8 +1229,8 @@
     const { g, ph, X, pw } = c, f = serFn(k), vals = T.map(f), vals2 = k2 ? T.map(serFn(k2)) : [];
     const all = vals.concat(vals2).filter(v => v != null); if (!all.length) return;
     const top = Math.max(thr[1] * 1.15, ...all) * 1.05, ticks = niceTicks(0, top, 4).filter(t => t <= top), hi = top, Y = v => PAD.t + (hi - v) / hi * ph;
-    g.fillStyle = css('--downbg'); g.fillRect(PAD.l, Y(thr[0]), pw, Y(0) - Y(thr[0]));          // zone baissière
-    g.fillStyle = css('--upbg'); g.fillRect(PAD.l, Y(hi), pw, Y(thr[1]) - Y(hi));               // zone haussière
+    g.fillStyle = css('--downbg'); g.fillRect(PAD.l, Y(thr[0]), pw, Y(0) - Y(thr[0]));          // zone sous le seuil bas
+    g.fillStyle = css('--upbg'); g.fillRect(PAD.l, Y(hi), pw, Y(thr[1]) - Y(hi));               // zone au-dessus du seuil haut
     grid(c, ticks, Y, v => nf(v, v % 1 ? 1 : 0)); xLabels(c);
     g.save(); g.setLineDash([4, 3]);
     for (const [t, col] of [[thr[0], '--down'], [thr[1], '--up']]) { g.strokeStyle = css(col); g.beginPath(); g.moveTo(PAD.l, Math.round(Y(t)) + .5); g.lineTo(PAD.l + pw, Math.round(Y(t)) + .5); g.stroke(); }
@@ -1207,6 +1239,9 @@
       vv.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; }); g.stroke(); g.lineWidth = 1; };
     if (k2) line(vals2, css('--muted'), 1.3);
     line(vals, css('--text'), 1.8);
+    if (OWN_RATIO[k] && OWNMAP.size) {           // notre calcul en pointillé (séances publiées par Stockbee)
+      g.save(); g.setLineDash([4, 3]); line(T.map(d => SB_REAL.has(d) ? OWN_RATIO[k](d) : null), css('--text'), 1.3); g.restore();
+    }
     T.forEach((d, i) => { const r = vals[i] == null ? 0 : recOf(k, d); if (r) tri(g, X(i), r > 0 ? Y(vals[i]) - 4 : Y(vals[i]) + 4, r > 0, true, recCol(k, r)); });
     cursor(c);
   }
@@ -1253,19 +1288,21 @@
       const b = bars.get(d); if (!b) return `<b>${fmtDate(d)}</b>Pas de bougie`;
       const smaRows = MAS.map((m, j) => b.s[j] == null || !m.on ? '' :
         `<div><i class="sw" style="background:${maColor(j)};margin-right:6px"></i>${m.type} ${m.len} : ${nf(b.s[j], pxd(b.s[j]))}</div>`).join('');
-      const trend = `<div style="margin-top:2px">Tendance : ${b.st ? trendLabel(b.st) : 'aucune couleur'}</div>`;
+      const trend = `<div style="margin-top:2px">${trendLong(b.tf)}</div>`;
       const avg = b.a7 === undefined ? '' : `<div style="margin-top:2px">avgC7 / avgC65 : ${b.r == null ? '—' : nf(b.r, 3)}</div>`;
       return `<b>${fmtDate(d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div><div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${smaRows}${trend}${avg}`;
     }
     if (kind === 'r5' || kind === 'rm' || kind === 'rq') {
-      const f = serFn(kind === 'r5' ? 'ratio5' : kind), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
-      return kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
-        : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`;
+      const kk = kind === 'r5' ? 'ratio5' : kind, f = serFn(kk), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
+      const ov = SB_REAL.has(d) && OWN_RATIO[kk] ? OWN_RATIO[kk](d) : null;
+      const mine = ov == null ? '' : `<div style="margin-top:2px">Calcul maison${kind === 'rq' ? ' (expérimental)' : ''} : ${nf(ov, 2)}</div>`;
+      return (kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
+        : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`) + mine;
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
-    const mine = kind === 'hist' && SB_REAL.has(d) && own(d, 'up4') != null
-      ? `<div style="margin-top:2px">Calcul maison : +${nf(own(d, 'up4'))} / −${nf(own(d, 'down4'))}</div>` : '';
+    const mine = SB_REAL.has(d) && own(d, k[0]) != null
+      ? `<div style="margin-top:2px">Calcul maison${kind === 'hist2' ? ' (expérimental)' : ''} : +${nf(own(d, k[0]))} / −${nf(own(d, k[1]))}</div>` : '';
     const src = kind === 'hist' && !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
     return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
       (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>' + mine + src;
@@ -1278,7 +1315,7 @@
     const pb = (kind === 'price' || kind === 'sec') && finger ? bars.get(T[i]) : null;
     // au doigt sur un graphique de prix : infobulle compacte (la légende OHLC / MM est masquée sur mobile)
     tip.innerHTML = pb ? `<b>${fmtDate(pb.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</b><div>C ${nf(pb.c, pxd(pb.c))} <span class="${cls(pb.chg)}">${pct(pb.chg)}</span></div>` +
-        `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + (pb.st ? `<div>Tendance ${trendLabel(pb.st).split(' :')[0]}</div>` : '') +
+        `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + `<div>MM ${trendShort(pb.tf)}</div>` +
         (sb(pb.d, 'up4') != null ? `<div>±4 % : +${nf(sb(pb.d, 'up4'))} / −${nf(sb(pb.d, 'down4'))}</div>` : '')
       : tipHtml(kind === 'sec' ? 'price' : kind, T[i]);
     tip.style.display = 'block';
@@ -1325,9 +1362,6 @@
     const p = padPct(), t = Math.round(topPad * 100);
     $('rightPad').value = String(p); $('rightPadOut').textContent = p + ' %';
     $('topPad').value = String(t); $('topPadOut').textContent = t + ' %';
-    const r2 = Math.round(rightPad * 100);                    // curseurs de l'onglet QQQ · IWM · BTC
-    $('rightPad2').value = String(r2); $('rightPad2Out').textContent = r2 + ' %';
-    $('topPad2').value = String(t); $('topPad2Out').textContent = t + ' %';
     $('rightPadS').value = String(p); $('rightPadSOut').textContent = p + ' %';      // curseurs de l'onglet Secteurs
     $('topPadS').value = String(t); $('topPadSOut').textContent = t + ' %';
   }
@@ -1599,7 +1633,7 @@
         const avg = n => { let t = 0; for (let j = k - n + 1; j <= k; j++) t += closes[j]; return t / n; };
         const a7 = k >= 6 ? avg(7) : null, a65 = k >= 64 ? avg(65) : null;
         return { d: SEC.dates[i], o: x.op[i], h: x.h[i], l: x.l[i], c: x.c[i], v: x.v[i] || 0,
-          chg: k ? 100 * (closes[k] / closes[k - 1] - 1) : null, s: sma.map(a => a[k]), st: trendState(sma[TR1], sma[TR2], k),
+          chg: k ? 100 * (closes[k] / closes[k - 1] - 1) : null, s: sma.map(a => a[k]), st: trendState(sma[TR1], sma[TR2], k), tf: trendFacts(sma[TR1], sma[TR2], k),
           a7, a65, r: a7 != null && a65 != null ? a7 / a65 : null };
       }));
     }
@@ -1668,11 +1702,28 @@
   let mdrag = null;
   const minis = CMP.map(name => {
     const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<div class="mini-title"><b>${name} Daily</b><span class="px"></span></div>` +
-      `<canvas></canvas>`;
+    card.innerHTML = `<div class="mini-title"><b>${name}</b><span class="perf"></span><span class="px"></span></div>` +
+      `<div class="ovl"><span class="mabar"></span></div><canvas></canvas>`;
     $('cmpGrid').appendChild(card);
-    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 };
+    const ma = card.querySelector('.mabar');
+    ma.addEventListener('click', e => maClick(e, $('menuCmp')));         // MM : afficher / masquer, menu ▾ (comme l'onglet MM)
+    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), perf: card.querySelector('.perf'), ma, vis: [], bw: 0 };
   });
+  // séance mise en avant sur les graphiques de l'onglet : survolée, sinon la séance figée (partagée avec l'onglet MM)
+  const cmpSel = () => cmpHover || pinned;
+  // index de la dernière barre ≤ date (BTC cote le week-end, pas QQQ ni IWM : on retient la séance précédente)
+  function idxAtOrBefore(vis, d) {
+    if (!d || !vis.length || d < vis[0].d) return -1;
+    for (let i = vis.length - 1; i >= 0; i--) if (vis[i].d <= d) return i;
+    return -1;
+  }
+  const sinceLbl = d => 'depuis le ' + fmtDate(d, { day: 'numeric', month: 'short', year: '2-digit' });
+  // une séance figée hors de la fenêtre affichée : même largeur, fenêtre recentrée sur elle
+  function cmpReveal(d) {
+    const w = cmpWindow(), t = ts(d), s = isFinite(w.start) ? w.start : cmpFirst();
+    if (t >= s && t <= w.end) return;
+    const span = w.end - s; setCmpWin(t - span / 2, t + span / 2);
+  }
 
   const cmpFirst = () => Math.min(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[0].d) : Infinity; }));
   const cmpLast = () => Math.max(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[b.length - 1].d) : 0; }));
@@ -1747,13 +1798,25 @@
       g.stroke();
     });
     g.restore();
-    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
+    const hi_ = idxAtOrBefore(vis, cmpSel());
     if (hi_ >= 0) {
       g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
-    const b = vis[hi_ >= 0 ? hi_ : n - 1];
-    m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))}`;
+    drawRecLabels(g, vis, X, Y);                                     // records 3 mois ±4 %, comme le graphique de MM
+    const all = barsFor(m.name), lastB = all[all.length - 1], li = vis.indexOf(lastB);   // dernier cours : pointillé + étiquette sur l'axe
+    if (lastB && Y(lastB.c) >= MPAD.t && Y(lastB.c) <= MPAD.t + ph) {
+      const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown');
+      g.save(); g.strokeStyle = col; g.globalAlpha = 0.55; g.setLineDash([2, 3]); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(li >= 0 ? X(li) : MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke(); g.restore();
+      g.fillStyle = col; g.fillRect(W - MPAD.r + 1, y - 9, MPAD.r - 4, 18);
+      g.fillStyle = '#000'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), W - MPAD.r + 4, y);
+    }
+    const b = vis[hi_ >= 0 ? hi_ : n - 1], perf = 100 * (b.c / vis[0].c - 1);
+    m.ma.innerHTML = maChipsHtml(b);
+    // variation depuis le début de la période affichée (jusqu'à la séance mise en avant) : un fait, sans qualificatif
+    m.perf.innerHTML = `<span class="${cls(perf)}">${pct(perf)}</span> ${sinceLbl(vis[0].d)}`;
+    m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))} · <span class="nw" title="${trendLong(b.tf)}">MM ${trendShort(b.tf)}</span>`;
   }
   // deux boîtes en bas de l'onglet : T2108 et VIX en bougies japonaises, sur la même fenêtre de dates que les graphiques de prix.
   //  - VIX : vraies bougies OHLC (CBOE).
@@ -1763,10 +1826,12 @@
     return rows.map((r, i) => { const c = r[COL.t2108], o = i ? rows[i - 1][COL.t2108] : c; return { d: r[0], o, h: Math.max(o, c), l: Math.min(o, c), c }; });
   })();
   const VIX_SERIES = (window.VIX || []).map(r => ({ d: r[0], o: r[1], h: r[2], l: r[3], c: r[4] }));
-  const boxes = [{ kind: 'T2108', series: T2108_SERIES, hint: '% de titres au-dessus de leur MM 40 jours (Stockbee)', d: 1 },
-                 { kind: 'VIX', series: VIX_SERIES, hint: 'indice de volatilité (CBOE)', d: 2 }].map(bx => {
+  const boxes = [{ kind: 'T2108', series: T2108_SERIES, tip: 'sat2108', d: 1 },
+                 { kind: 'VIX', series: VIX_SERIES, tip: 'savix', d: 2 }].map(bx => {
     const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><span class="hint" style="color:var(--muted);font-size:12px">${bx.hint}</span><span class="px"></span></div><canvas></canvas>`;
+    const legT = bx.kind === 'T2108' && OWNC.t2108 != null
+      ? `<span class="legend" style="margin:0"><span><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison</span></span>` : '';
+    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><button class="tipbtn" data-tip="${bx.tip}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>${legT}<span class="px"></span></div><canvas></canvas>`;
     $('cmpBottom').appendChild(card);
     return Object.assign(bx, { cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 });
   });
@@ -1791,7 +1856,7 @@
     const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
     const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
     bx.bw = bw;
-    let lo = 0, hi = 100, ticks = [20, 50, 80], refs = [20, 80];
+    let lo = 0, hi = 100, ticks = [20, 50, 70], refs = [20, 70];        // T2108 : mêmes repères 20 / 70 que l'onglet MM
     if (!isT) {
       lo = Math.min(...vis.map(b => b.l)); hi = Math.max(...vis.map(b => b.h));
       const p = (hi - lo) * 0.08 || 1; lo = Math.max(0, lo - p); hi += p;
@@ -1811,32 +1876,116 @@
     const step = Math.max(1, Math.round(n / 5)), long = (win.end - Math.max(win.start, ts(vis[0].d))) > 400 * DAY;
     for (let i = Math.floor(step / 2); i < n; i += step)
       g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
-    const w = Math.max(1, Math.min(12, bw * 0.7));
-    vis.forEach((b, i) => {                                         // bougies japonaises : bleu = clôture ≥ ouverture, rouge sinon
+    const w = Math.max(1, Math.min(12, bw * 0.7)), hi_ = idxAtOrBefore(vis, cmpSel());
+    if (isT) {                                                      // T2108 : Stockbee ne publie que la clôture → une ligne, pas de bougie inventée
+      g.strokeStyle = css('--t2108'); g.lineWidth = 1.5; g.lineJoin = g.lineCap = 'round'; g.beginPath();
+      vis.forEach((b, i) => i ? g.lineTo(X(i), Y(b.c)) : g.moveTo(X(i), Y(b.c))); g.stroke();
+      if (hi_ >= 0) { g.fillStyle = css('--t2108'); g.beginPath(); g.arc(X(hi_), Y(vis[hi_].c), 3, 0, 2 * Math.PI); g.fill(); }
+      if (OWNC.t2108 != null) {                                     // notre T2108 en pointillé (clôtures Polygon / Massive)
+        g.save(); g.setLineDash([3, 3]); g.strokeStyle = css('--ctext'); g.lineWidth = 1.3; g.beginPath(); let pen = false;
+        vis.forEach((b, i) => { const v = own(b.d, 't2108'); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
+        g.stroke(); g.restore();
+      }
+    } else vis.forEach((b, i) => {                                  // VIX : bougies japonaises (OHLC du CBOE)
       const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
       g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
       g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
       g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
     });
-    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
     if (hi_ >= 0) {
-      g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
+      g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
     const b = vis[hi_ >= 0 ? hi_ : n - 1], dv = b.c - b.o;
-    bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
+    bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)}${isT ? ' %' : ''} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
   }
   const boxTip = (bx, b) => bx.kind === 'T2108'
-    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>Veille ${nf(b.o, 1)} → ${nf(b.c, 1)} (${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)})</div>`
+    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>` +
+      (own(b.d, 't2108') != null ? `<div style="margin-top:2px">Calcul maison : ${nf(own(b.d, 't2108'), 1)} %</div>` : '')
     : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
-  function renderCmp() { minis.forEach(drawMini); boxes.forEach(drawBox); }
+  // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
+  // Couleurs catégorielles (ni bleu ni rouge, réservés aux hausses / baisses), validées sur le fond noir des graphiques.
+  const B100_COL = { QQQ: '#199e70', IWM: '#d95926', BTC: '#9085e9' };
+  let cmpMode = store.get('mm.cmpmode') === 'b100' ? 'b100' : 'side';
+  const B100 = { name: 'Base 100', cv: $('b100cv'), vis: [], bw: 0, ser: [] };
+  const b100At = (s, d) => { let v = null; for (const b of s.v) { if (b.d > d) break; v = b; } return v; };   // dernière clôture ≤ d
+  function drawB100() {
+    const m = B100, cv = m.cv, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H);
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    const win = cmpWindow();
+    m.ser = CMP.map(n => { const v = barsFor(n).filter(b => { const t = ts(b.d); return t >= win.start && t <= win.end; }); return { n, v, base: v.length ? v[0].c : null }; })
+      .filter(s => s.v.length);
+    const dates = [...new Set(m.ser.flatMap(s => s.v.map(b => b.d)))].sort(), n = dates.length;
+    m.vis = dates.map(d => ({ d }));
+    if (!n) { g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Pas de données sur cette période', W / 2, H / 2); $('b100leg').innerHTML = ''; return; }
+    const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
+    const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
+    m.bw = bw;
+    const val = (s, b) => b.c / s.base * 100, all = m.ser.flatMap(s => s.v.map(b => val(s, b)));
+    let lo = Math.min(100, ...all), hi = Math.max(100, ...all); const p = (hi - lo) * 0.06 || 1; lo -= p; hi += p;
+    const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
+    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const t of niceTicks(lo, hi, 5)) {
+      const y = Math.round(Y(t)) + 0.5;
+      g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, 0), W - MPAD.r + 5, y);
+    }
+    g.setLineDash([4, 4]); g.strokeStyle = css('--cref');                  // repère 100 = niveau de départ
+    const y100 = Math.round(Y(100)) + 0.5; g.beginPath(); g.moveTo(MPAD.l, y100); g.lineTo(W - MPAD.r, y100); g.stroke(); g.setLineDash([]);
+    g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css('--ctext');
+    const step = Math.max(1, Math.round(n / 6)), long = (ts(dates[n - 1]) - ts(dates[0])) > 400 * DAY;
+    for (let i = Math.floor(step / 2); i < n; i += step)
+      g.fillText(fmtDate(dates[i], long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+    const xi = new Map(dates.map((d, i) => [d, i]));
+    g.save(); g.beginPath(); g.rect(MPAD.l, MPAD.t, pw, ph); g.clip();
+    g.lineWidth = 2; g.lineJoin = g.lineCap = 'round';
+    m.ser.forEach(s => {                                                 // les trous (week-end pour QQQ / IWM) sont reliés
+      g.strokeStyle = B100_COL[s.n] || css('--ctext'); g.beginPath();
+      s.v.forEach((b, k) => { const x = X(xi.get(b.d)), y = Y(val(s, b)); k ? g.lineTo(x, y) : g.moveTo(x, y); });
+      g.stroke();
+    });
+    g.restore();
+    const hi_ = idxAtOrBefore(m.vis, cmpSel()), dSel = dates[hi_ >= 0 ? hi_ : n - 1];
+    if (hi_ >= 0) {
+      g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
+      m.ser.forEach(s => { const b = b100At(s, dSel); if (!b) return;
+        g.fillStyle = B100_COL[s.n]; g.beginPath(); g.arc(X(xi.get(b.d)), Y(val(s, b)), 3.5, 0, 2 * Math.PI); g.fill(); });
+    }
+    // légende = valeurs à la séance mise en avant (ou la dernière), classées par niveau ; le nom porte l'identité, pas seulement la couleur
+    const rows = m.ser.map(s => { const b = b100At(s, dSel); return { n: s.n, v: b ? val(s, b) : null }; }).sort((a, b) => (b.v ?? -1e9) - (a.v ?? -1e9));
+    $('b100leg').innerHTML = rows.map(r => `<span><i style="background:${B100_COL[r.n]}"></i><b>${r.n}</b> ${r.v == null ? '—' : nf(r.v, 1)} <span class="${cls(r.v - 100)}">(${r.v == null ? '—' : pct(r.v - 100)})</span></span>`).join('');
+    $('b100px').textContent = `${sinceLbl(dates[0])} → ${fmtDate(dSel)}`;
+  }
+  const b100Tip = (m, v) => `<b>${fmtDate(v.d)}</b>` + m.ser.map(s => { const b = b100At(s, v.d); if (!b) return '';
+    const x = b.c / s.base * 100; return `<div><i class="sw" style="background:${B100_COL[s.n]};margin-right:6px"></i>${s.n} : ${nf(x, 1)} (${pct(x - 100)})${b.d !== v.d ? ' · clôture du ' + fmtDate(b.d, { day: 'numeric', month: 'short' }) : ''}</div>`; }).join('');
+  function renderCmp() {
+    const b = cmpMode === 'b100';
+    $('cmpGrid').hidden = b; $('cmpB100').hidden = !b; $('cmpHead').classList.toggle('b100', b);   // Base 100 : pas de MM ni de fond
+    [...$('cmpMode').children].forEach(x => { x.className = x.dataset.m === cmpMode ? 'on' : ''; });
+    if (b) drawB100(); else minis.forEach(drawMini);
+    boxes.forEach(drawBox);
+  }
+  $('cmpMode').addEventListener('click', e => {
+    const x = e.target.closest && e.target.closest('button'); if (!x) return;
+    cmpMode = x.dataset.m; store.set('mm.cmpmode', cmpMode); tip.style.display = 'none'; renderCmp();
+  });
+  $('cmpLegBtn').addEventListener('click', () => {
+    const open = !$('cmpHead').classList.contains('legopen');
+    $('cmpHead').classList.toggle('legopen', open); $('cmpLegBtn').setAttribute('aria-expanded', String(open));
+    $('cmpLegBtn').textContent = open ? 'Légende ▴' : 'Légende ▾';
+  });
 
   function miniTip(m, b) {
     const rows = MAS.map((mm, j) => b.s[j] == null || !mm.on ? '' :
       `<div><i class="sw" style="background:${maColor(j)};margin-right:6px"></i>${mm.type} ${mm.len} : ${nf(b.s[j], pxd(b.s[j]))}</div>`).join('');
     return `<b>${m.name} · ${fmtDate(b.d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div>` +
-      `<div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${rows}<div style="margin-top:2px">Tendance : ${b.st ? trendLabel(b.st) : 'aucune couleur'}</div>` +
+      `<div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${rows}<div style="margin-top:2px">${trendLong(b.tf)}</div>` +
       `<div>T2108 : ${nf(sb(b.d, 't2108'), 1)} · VIX : ${nf(VIXMAP.get(b.d), 2)}</div>`;
   }
   const miniIdx = (m, e) => {
@@ -1844,13 +1993,34 @@
     return i >= 0 && i < m.vis.length ? i : -1;
   };
 
+  let cmpLp = 0;                               // minuterie de l'appui prolongé (réticule au doigt)
+  function cmpTipAt(m, i, e, tipFn) {
+    if (i < 0) { tip.style.display = 'none'; return; }
+    tip.innerHTML = tipFn(m, m.vis[i]); tip.style.display = 'block';
+    const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
+    tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - (e.pointerType === 'touch' ? 90 : 10)) + 'px';
+  }
+  // séance de breadth (Stockbee) la plus proche ≤ d : un clic sur un week-end de BTC fige le vendredi
+  const snapSession = d => { const D = sbDates(); for (let i = D.length - 1; i >= 0; i--) if (D[i] <= d) return D[i]; return D[0]; };
   function wireCmp(m, cv, tipFn) {
     cv.style.touchAction = 'pan-y';
     cv.addEventListener('pointerdown', e => {
       mdrag = { m, x: e.clientX, win: cmpWindow(), moved: false };
-      if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+      try { if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId); } catch (x) { /* pointeur déjà relâché */ }
+      clearTimeout(cmpLp);
+      if (e.pointerType === 'touch') {           // appui prolongé : réticule qui suit le doigt (la fenêtre ne bouge pas)
+        const d0 = mdrag, ev0 = { clientX: e.clientX, clientY: e.clientY, pageX: e.pageX, pageY: e.pageY, pointerType: 'touch' };
+        cmpLp = setTimeout(() => {
+          if (mdrag !== d0 || d0.moved) return;
+          d0.cross = true; try { if (window.navigator && navigator.vibrate) navigator.vibrate(8); } catch (x) { /* ignoré */ }
+          const i = miniIdx(m, ev0); cmpHover = i >= 0 ? m.vis[i].d : null; renderCmp(); cmpTipAt(m, i, ev0, tipFn);
+        }, 350);
+      }
     });
     cv.addEventListener('pointermove', e => {
+      if (mdrag && mdrag.m === m && mdrag.cross) {
+        const i = miniIdx(m, e); cmpHover = i >= 0 ? m.vis[i].d : null; renderCmp(); cmpTipAt(m, i, e, tipFn); return;
+      }
       if (mdrag && mdrag.m === m) {              // glisser : déplace la fenêtre de dates des trois graphiques
         const dx = e.clientX - mdrag.x; if (!mdrag.moved && Math.abs(dx) < 3) return;
         mdrag.moved = true; cv.style.cursor = 'grabbing'; tip.style.display = 'none'; cmpHover = null;
@@ -1859,16 +2029,24 @@
         setCmpWin(s + shift, w.end + shift);
         return;
       }
+      if (e.pointerType === 'touch') return;     // au doigt : pas de survol (appui prolongé pour le réticule)
       const i = miniIdx(m, e);
       cmpHover = i >= 0 ? m.vis[i].d : null;
-      renderCmp();
-      if (i < 0) { tip.style.display = 'none'; return; }
-      tip.innerHTML = tipFn(m, m.vis[i]); tip.style.display = 'block';
-      const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
-      tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
+      renderCmp(); cmpTipAt(m, i, e, tipFn);
     });
-    const end = () => { if (mdrag) { mdrag = null; cv.style.cursor = ''; } };
+    const end = e => {
+      clearTimeout(cmpLp);
+      if (!mdrag) return;
+      const d = mdrag; mdrag = null; cv.style.cursor = '';
+      if (d.cross) { cmpHover = null; tip.style.display = 'none'; renderCmp(); return; }   // on lâche : plus de réticule
+      // clic sans glisser (souris, grand écran) : fige la séance ou la libère ; partagée avec l'onglet MM
+      if (e && e.type === 'pointerup' && !d.moved && e.pointerType !== 'touch' && !isMobile()) {
+        const i = miniIdx(m, e); if (i >= 0) { const s = snapSession(m.vis[i].d); setPinned(s === pinned ? null : s); }
+      }
+    };
     cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    cv.addEventListener('touchmove', e => { if (mdrag && mdrag.cross) e.preventDefault(); }, { passive: false });
+    cv.addEventListener('contextmenu', e => e.preventDefault());
     cv.addEventListener('mouseleave', () => { if (!mdrag) { cmpHover = null; tip.style.display = 'none'; renderCmp(); } });
     cv.addEventListener('wheel', e => {          // Ctrl / ⌘ + molette : zoom (molette seule = défilement de la page)
       if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
@@ -1885,27 +2063,15 @@
     cv.addEventListener('dblclick', () => selectRange('6M'));
   }
   minis.forEach(m => wireCmp(m, m.cv, miniTip));
+  wireCmp(B100, B100.cv, b100Tip);
   function cmpZoomBy(f) { const w = cmpWindow(), s = isFinite(w.start) ? w.start : cmpFirst(); setCmpWin(w.end - (w.end - s) * f, w.end); }
 
   // légende (mêmes moyennes mobiles et fond de tendance que la barre du graphique principal) et curseurs d'espaces
   function renderCmpLegend() {
-    $('cmpMa').innerHTML = MAS.map((m, i) => `<span class="ma${m.on ? '' : ' off'}"><i style="background:${maColor(i)}"></i>` +
-      `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span></span>`).join('');
     $('cmpTrend').innerHTML = $('trendLegend').innerHTML;
   }
-  $('cmpMa').addEventListener('click', e => {
-    const nm = e.target.closest('.nm'); if (nm) { const m = MAS[+nm.dataset.i]; m.on = !m.on; maChanged(); }
-  });
   $('cmpTrend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); renderCmp(); }
-  });
-  $('topPad2').addEventListener('input', e => {
-    topPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.top', String(Math.round(topPad * 100)));
-    syncSlider(); drawPrice(); renderCmp();
-  });
-  $('rightPad2').addEventListener('input', e => {
-    rightPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.pad', String(Math.round(rightPad * 100)));
-    syncSlider(); renderCmp();
   });
 
   // onglets
@@ -1965,10 +2131,10 @@
 
   // ------------------------------------------------------------------ barre du haut du graphique de prix
   // « QQQ Daily ▾ » (choix de l'instrument), chaque moyenne mobile avec son menu ▾, curseur d'espace à droite
-  const menu = $('menu'), menuSec = $('menuSec');      // un menu par onglet (chacun dans sa carte, donc visible dans son onglet)
+  const menu = $('menu'), menuSec = $('menuSec'), menuCmp = $('menuCmp');   // un menu par onglet (chacun visible dans son onglet)
   let menuKey = null;
   const menuIdx = () => menuKey && menuKey.startsWith('ma:') ? +menuKey.slice(3) : -1;
-  function closeMenu() { menu.hidden = true; menuSec.hidden = true; menuKey = null; }
+  function closeMenu() { menu.hidden = true; menuSec.hidden = true; menuCmp.hidden = true; menuKey = null; }
   function openMenu(anchor, key, html, el = menu) {
     if (!el.hidden && menuKey === key) { closeMenu(); return; }
     closeMenu();
@@ -1977,7 +2143,7 @@
     el.style.left = Math.max(4, a.left - card.left) + 'px'; el.style.top = (a.bottom - card.top + 4) + 'px';
   }
   document.addEventListener('click', e => {
-    const open = [menu, menuSec].find(m => !m.hidden);
+    const open = [menu, menuSec, menuCmp].find(m => !m.hidden);
     if (open && !open.contains(e.target) && !(e.target.closest && e.target.closest('[data-menu]'))) closeMenu();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
@@ -1987,15 +2153,15 @@
     `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span>` + (b ? ` <b>${b.s[i] == null ? '—' : nf(b.s[i], pxd(b.s[i]))}</b>` : '') +
     `<span class="car" data-menu data-i="${i}" title="Réglages : longueur, type, couleur">▾</span></span>`).join('');
   const trendLegendHtml = () =>
-    `<span class="tg${trendOn ? '' : ' off'}" data-trend title="Fond ChillLax : MM${MAS[TR1].len} et MM${MAS[TR2].len}, tendance sur ${TREND_LEN} barres · clic : afficher / masquer">Fond MM${MAS[TR1].len} / MM${MAS[TR2].len} :</span>` +
-    TREND.slice(1).reverse().map(t => `<span><i style="background:${t.fill.replace(/0\.\d+\)$/, '0.75)')}"></i>${t.key}</span>`).join('');
+    `<span class="tg${trendOn ? '' : ' off'}" data-trend title="Fond ChillLax : ordre de la MM${MAS[TR1].len} et de la MM${MAS[TR2].len}, pente sur ${TREND_LEN} séances · sans couleur : MM${MAS[TR1].len} sous la MM${MAS[TR2].len}, ou seule la MM${MAS[TR2].len} monte · clic : afficher / masquer">Fond MM${MAS[TR1].len} / MM${MAS[TR2].len} :</span>` +
+    [3, 2, 1].map(s => `<span><i style="background:${TREND[s].fill.replace(/0\.\d+\)$/, '0.75)')}"></i>${trendWhy(s)}</span>`).join('');
   // légende posée sur le graphique : date, OHLC, variation, état de tendance et valeur de chaque MM (séance survolée, sinon la dernière)
   function updateLegend() {
     const si = selIdx(), d = si >= 0 ? T[si] : null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
     $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
       `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
       `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
-      (b.st ? `<span>· ${trendLabel(b.st).split(' :')[0]}</span>` : '');
+      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
     $('maBar').innerHTML = maChipsHtml(b);
   }
   function renderMtop() {
@@ -2035,7 +2201,7 @@
   $('trendLegend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); }
   });
-  [menu, menuSec].forEach(el => {
+  [menu, menuSec, menuCmp].forEach(el => {
     el.addEventListener('click', e => {
       const o = e.target.closest('button.opt'); if (!o) return;
       const i = menuIdx();
@@ -2096,7 +2262,7 @@
   $('topPad').addEventListener('input', e => {
     topPad = Math.min(0.6, Math.max(0, +e.target.value / 100));
     store.set('mm.top', String(Math.round(topPad * 100)));
-    syncSlider(); drawPrice();
+    syncSlider(); drawPrice(); if (tab === 'cmp') renderCmp();
   });
 
   // cartes d'histogrammes : un clic sur le titre replie la carte (résumé d'une ligne), l'état est mémorisé
@@ -2150,13 +2316,15 @@
   })();
 
   // ------------------------------------------------------------------ plage de dates : dans la barre du graphique de l'onglet actif
-  function placeRanges() { const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box); }
+  function placeRanges() {
+    const slot = $('rslot-' + tab), box = $('rangebox'); if (slot && box && slot.appendChild) slot.appendChild(box);
+    const ds = $(tab === 'cmp' ? 'dslot-cmp' : 'dslot-main'), db = $('datebar'); if (ds && db && ds.appendChild) ds.appendChild(db);   // « Stats du » : MM et SA
+  }
   placeRanges();
 
   // ------------------------------------------------------------------ bandeau « état du marché »
   // Breadth : seuils calibrés sur la tendance d'IWM 2019-2026 (tendance = C > SMA10, C > SMA20 et SMA10 > SMA20) ; la couleur change
   // dès la séance où la valeur franchit un seuil. Indices : même filtre de tendance que le fond des graphiques (MM1 / MM2).
-  const TREND_NAMES = ['Baissière', 'Essoufflée', 'Haussière', 'Forte'];
   const DATES = () => [...SB.keys()].sort();
   // dernière séance (≤ at si une séance est sélectionnée) où la colonne k est renseignée
   const lastWith = (k, at) => { const D = DATES(); for (let i = D.length - 1; i >= 0; i--) if ((!at || D[i] <= at) && sb(D[i], k) != null) return D[i]; return null; };
@@ -2184,6 +2352,7 @@
       if (i >= 0) { vp.from = i - span / 2; vp.to = vp.from + span; clampViewport(); manual(); applyViewport(); }
     }
     setPinned(s);
+    if (tab === 'cmp') cmpReveal(s);
     if (s !== d) $('dInfo').textContent = `pas de séance le ${fmtDate(d, { day: 'numeric', month: 'long' })} → ${fmtDate(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
     render();
   }
@@ -2192,9 +2361,11 @@
     const D = sessions(), cur = pinned || D[D.length - 1], i = D.indexOf(cur), j = Math.max(0, Math.min(D.length - 1, i + k));
     if (j === D.length - 1) goToday(); else showDate(D[j]);
   }
-  const kState = (v, k) => v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', 'Baissier'] : v >= TH[k][1] ? ['up', 'Haussier'] : ['neutral', 'Neutre'];
-  const kRule = k => `Baissier sous ${signedOr(k, TH[k][0])}, haussier à partir de ${signedOr(k, TH[k][1])}, neutre entre les deux.`;
-  const signedOr = (k, v) => k === 'net5' ? signed(v) : nf(v, 1);
+  // pas de verdict : état = zone de la valeur par rapport aux deux seuils (couleur de la case, texte de la bulle ⓘ)
+  const kState = (v, k) => { const a = signedOr(k, TH[k][0]), b = signedOr(k, TH[k][1]);
+    return v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', `< ${a}`] : v >= TH[k][1] ? ['up', `≥ ${b}`] : ['neutral', `${a} à ${b}`]; };
+  const kRule = k => `Couleur : rouge sous ${signedOr(k, TH[k][0])}, bleue à partir de ${signedOr(k, TH[k][1])}, grise entre les deux.`;
+  const signedOr = (k, v) => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 », « 2 »
   const stCol = st => css(st[0] === 'neutral' ? '--muted' : st[0] === 'warn' ? '--warn' : '--' + st[0]);
   function spark(vals, kind, col) {
     const w = 100, h = 30, v = vals.filter(x => x != null && !isNaN(x)); if (v.length < 2) return '';
@@ -2210,7 +2381,6 @@
     return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${ref}<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
   }
   const tipBtn = id => `<button class="tipbtn" data-tip="${id}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>`;
-  const badge = st => `<span class="badge b-${st[0]}">${st[1]}</span>`;
   let TIPS = {};
   function scaleHtml(min, max, a, b, v, f) {
     const pc = x => Math.max(0, Math.min(100, (x - min) / (max - min) * 100));
@@ -2225,29 +2395,30 @@
     if (!d4 || !dq) { box.innerHTML = ''; return; }
     box.classList.toggle('past', !!at);
     const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
-    const D4 = D.filter(d => net(d) != null), net5 = D4.slice(-5).reduce((a, d) => a + net(d), 0), net4 = net(d4);
+    const D4 = D.filter(d => net(d) != null), net4 = net(d4);
     const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
-    const n5S = kState(net5, 'net5'), r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
-    const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', 'Survente'] : t21 > 70 ? ['warn', 'Surachat'] : ['neutral', 'Neutre'];
+    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
+    const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', '< 20 %'] : t21 > 70 ? ['warn', '> 70 %'] : ['neutral', '20 à 70 %'];
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
     const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
     const idx = CMP.map(n => { const b = barAt(n); return b ? { n, b } : null; }).filter(Boolean);
-    const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · tendance MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
+    const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
       idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
         `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}` +
         (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
-        `<span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
+        `<span class="chip t${b.st}" title="${trendLong(b.tf)}" aria-label="${trendLong(b.tf)}">${trendShort(b.tf)}</span></button>`).join('') + '</div></div>';
     const tiles = [
-      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
+      ['solde', '±4 % du jour', `<span class="${cl(n4S)}">${recNum('net4', d4, signed(net4))}</span>`,
+        `+${recNum('up4', d4, nf(sb(d4, 'up4')))} / −${recNum('down4', d4, nf(sb(d4, 'down4')))}`, n4S, spark(D4.slice(-40).map(net), 'bars')],
       ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
-    const NUMS = { solde: [['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
+    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
       rq: [['rq', dq, 'ratio'], ['up25q', dq, '+25 %'], ['down25q', dq, '−25 %']], rm: [['rm', dq, 'ratio'], ['up25m', dq, '+25 %'], ['down25m', dq, '−25 %']],
       t2108: [['t2108', dt, 'T2108']] };
     const hotOf = id => {
@@ -2261,37 +2432,48 @@
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
       const h = hotOf(id);
       return `<div class="kpi st-${st[0]} ${h ? h.cls : ''}" data-k="${id}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
-        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
+        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         gauge(...G[id]) + '</div>';
     }).join('');
+    // un chiffre trop large pour sa colonne (« +1 024 / −1 312 » sur mobile) est réduit jusqu'à tenir, sans toucher à la mise en page
+    try { box.querySelectorAll('.kpi .val').forEach(v => { let f = parseFloat(getComputedStyle(v).fontSize); while (v.scrollWidth > v.clientWidth && f > 12) v.style.fontSize = (f -= 1) + 'px'; }); } catch (e) { /* DOM simulé */ }
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">${hover >= 0 ? 'Survol' : 'Séance choisie'} : <b>${day(at)}</b></span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
-      '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
+      '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : celles du fond des graphiques (MM' + MAS[TR1].len + ' / MM' + MAS[TR2].len + ') · couleurs et zones du breadth : seuils calibrés sur IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
-      idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
-        <p><span class="chip t3" style="padding:0 6px">Forte</span> MM${MAS[TR1].len} &gt; MM${MAS[TR2].len}, les deux montent · <span class="chip t2" style="padding:0 6px">Haussière</span> seule la MM${MAS[TR1].len} monte ·
-        <span class="chip t1" style="padding:0 6px">Essoufflée</span> aucune ne monte · <span class="chip t0" style="padding:0 6px">Baissière</span> MM${MAS[TR1].len} sous MM${MAS[TR2].len}.</p>
+      idx: ['Indices · MM', `<p>Même code couleur que le fond des graphiques. La pastille décrit la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b> : leur ordre (&gt; ou &lt;), puis la pente de chacune sur ${TREND_LEN} séances (↗ monte, ↘ baisse, → stable).</p>
+        <p><span class="chip t3" style="padding:0 6px">vert soutenu</span> ${trendWhy(3)} · <span class="chip t2" style="padding:0 6px">vert clair</span> ${trendWhy(2)} ·
+        <span class="chip t1" style="padding:0 6px">jaune</span> ${trendWhy(1)} · <span class="chip t0" style="padding:0 6px">sans couleur</span> MM${MAS[TR1].len} sous la MM${MAS[TR2].len}, ou seule la MM${MAS[TR2].len} monte.</p>
         <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
-      solde: ['Solde ±4 %', `<p>Nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> sur la séance, moins celles en baisse d'au moins 4 % (volume ≥ 100 000 et en hausse).</p>
-        <p>Le grand chiffre est celui du ${fmtDate(d4)} ; la <b>couleur</b> suit la somme des 5 dernières séances. ${kRule('net5')}</p>${scaleHtml(-1200, 1200, TH.net5[0], TH.net5[1], net5, signed)}
-        <div class="now">Somme 5 j : <b>${signed(net5)}</b> → ${n5S[1].toLowerCase()}.</div><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
+      solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
+        <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
+        <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
       r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
-        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → ${r5S[1].toLowerCase()}.</div>
-        <p>Repère : ratio 10 j ≥ 1,5 → IWM en tendance haussière 73 à 91 % du temps (2019-2026).</p><p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
-      rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> : le marché est haussier tant qu'il reste au-dessus de 1. ${kRule('rq')}</p>
-        ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → ${rqS[1].toLowerCase()}.</div>
+        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
+        <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p><p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
+      rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> et, selon lui, le marché est haussier tant qu'il reste au-dessus de 1 (lecture de Stockbee). ${kRule('rq')}</p>
+        ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → zone ${rqS[1]}.</div>
         <p class="src">Source : Stockbee · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],
-      rm: ['Ratio ±25 % mois', `<p>Même calcul sur <b>un mois</b> : plus nerveux que le trimestre et très étiré, il faut atteindre <b>2</b> pour parler de tendance haussière. ${kRule('rm')}</p>
-        ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → ${rmS[1].toLowerCase()}.</div>
+      rm: ['Ratio ±25 % mois', `<p>Même calcul sur <b>un mois</b> : plus nerveux que le trimestre et plus étiré, d'où un seuil haut placé à <b>2</b>. ${kRule('rm')}</p>
+        ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → zone ${rmS[1]}.</div>
         <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
-      t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. C'est un indicateur d'<b>extrêmes</b>, pas de tendance : sous 20 % le marché est en survente, au-dessus de 70 % en surachat.</p>
-        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → ${t2S[1].toLowerCase()} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
+      t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous 20 % et au-dessus de 70 % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
+        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
-      c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = favorable, rouge = défavorable).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
-      c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
+      c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p>
+        <p>Pointillé : notre calcul (clôture du jour ÷ clôture 20 séances plus tôt, prix de départ ≥ 5 $). Sur juil.-oct. 2026 : corrélation 0,99 à 1,00 avec Stockbee, écart moyen de 2 % (+25 %) et 8 % (−25 %).</p><p class="src">Source : Stockbee ; pointillé : calcul maison (Polygon / Massive).</p>`],
+      sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
+        <p>Lignes pointillées horizontales : <b>20 %</b> et <b>70 %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
+        <p>Courbe pointillée : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive). Corrélation 0,98 avec Stockbee sur 33 séances, mais quelques points au-dessus (biais de 0 à +6 points selon la période).</p><p class="src">Source : Stockbee ; pointillé : calcul maison.</p>`],
+      savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
+        <p>Lignes pointillées : <b>20</b> et <b>30</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
+      b100: ['Base 100', `<p>Chaque courbe vaut <b>100</b> à sa première clôture de la période affichée ; 108 = +8 % depuis ce point. On compare ainsi QQQ, IWM et BTC sur une même échelle, quel que soit leur prix.</p>
+        <p>BTC cote aussi le week-end : les séances manquantes de QQQ et IWM sont reliées. La légende donne les valeurs à la séance survolée ou figée (sinon la dernière).</p>`],
+      c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p>
+        <p>Pointillé <b>expérimental</b> : notre calcul (clôture ÷ plus bas ou plus haut des 63 séances précédentes, prix ≥ 1 $). Écart moyen de 1 à 3 % avec Stockbee, mais mesuré sur 9 séances seulement : réglage à confirmer sur une période plus longue.</p><p class="src">Source : Stockbee ; pointillé : calcul maison expérimental (Polygon / Massive).</p>`] };
   }
   $('dPick').addEventListener('change', e => { if (e.target.value) showDate(e.target.value); });
   $('dPrev').addEventListener('click', () => stepDate(-1));
