@@ -1,0 +1,94 @@
+name: Scan post-market (toutes les 30 min le soir)
+
+# Relève seulement le scan post-market (fetch_postmarket.py, screener public TradingView, aucune clé) et republie le site.
+# Le post-market US dure de 16 h à 20 h à New York, soit 20:00-00:00 UTC en heure d'été (EDT) et 21:00-01:00 UTC en heure
+# d'hiver (EST) : les créneaux ci-dessous couvrent les deux ; hors fenêtre, le script ne fait rien (pas de commit).
+# Le dernier relevé, après la fin du post-market, est fait par update.yml (05:43 UTC). Les tâches planifiées de GitHub
+# partent souvent avec 5 à 30 min de retard : l'heure du relevé est affichée dans l'onglet.
+on:
+  schedule:
+    - cron: '15,45 20-23 * * 1-5'   # lun-ven, 20:15 -> 23:45 UTC
+    - cron: '15,45 0 * * 2-6'       # 00:15 et 00:45 UTC (soirée de la veille à New York)
+    - cron: '15 1 * * 2-6'          # 01:15 UTC : fin du post-market en heure d'hiver
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: market-monitor          # même groupe que update.yml : jamais deux commits de données en même temps
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Relever le scan post-market (TradingView) et les graphiques (Yahoo)
+        run: python fetch_postmarket.py
+
+      - name: Contrôler le fichier (sinon retour à la dernière version valide)
+        run: python validate_data.py postmarket || git checkout -- postmarket_data.js
+
+      - name: Enregistrer le scan
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add postmarket_data.js
+          if git diff --cached --quiet; then
+            echo "Aucun changement (hors post-market ou scan identique)."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Scan post-market du $(date -u '+%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            if git pull --rebase -X theirs origin main && git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 10))
+          done
+          echo "::error::Scan non poussé : main a changé pendant l'exécution (3 essais)."
+          exit 1
+
+      - name: Préparer le site
+        if: steps.commit.outputs.changed == 'true'
+        run: |
+          mkdir -p _site
+          cp index.html stockbee_dashboard.html stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js _site/
+          touch _site/.nojekyll
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
+        if: steps.commit.outputs.changed == 'true'
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
+        if: steps.commit.outputs.changed == 'true'
+        with:
+          path: _site
+
+  deploy:
+    needs: scan
+    if: needs.scan.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e  # v4
