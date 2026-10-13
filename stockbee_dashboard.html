@@ -422,7 +422,7 @@
     #view-pm:not(.detail) .seccol { display: none; }
     #view-pm.detail .seclist { display: none; }
     #view-pm .chartbar #pmTitle { width: 100%; font-size: 15px; }
-    #pmTable .c-cap, #pmTable .c-nx, #pmTable .c-rv { display: none; }   /* mobile : Symbole · Var AH · Vol AH · Rés. (le reste dans la fiche) */
+    #pmTable .c-cap, #pmTable .c-nx, #pmTable .c-rv { display: none; }   /* mobile : Symbole · Var AH · Vol AH $ · Rés. (le reste dans la fiche) */
     #pmTable td.sym .tsub { max-width: 120px; }
     #pmCanvas { height: 38vh; height: 38svh; min-height: 240px; }
     .secback { display: inline-flex; align-items: center; border: 0; background: none; color: var(--up); font-size: 15px; padding: 6px 0; width: 100%; }
@@ -1869,14 +1869,17 @@
     'Transportation': 'Transport', 'Utilities': 'Services aux collectivités',
   };
   const pmSector = r => SECTOR_FR[r.sec] || r.sec || '—';
-  const pmRowOf = a => Object.fromEntries(PM.cols.map((k, i) => [k, a[i]]));
+  const pmRowOf = a => {                              // + dv : volume post-market en dollars ≈ volume × cours post-market (TradingView ne le donne pas)
+    const r = Object.fromEntries(PM.cols.map((k, i) => [k, a[i]])), px = r.pc != null ? r.pc : r.c;
+    r.dv = r.pv != null && px != null ? r.pv * px : null; return r;
+  };
   const pmHist = (() => {                               // {symbole: [[date, o, h, l, c, v], ...]} (format compact du fichier)
     const H = PM && PM.hist, out = {}; if (!H || !H.dates) return out;
     for (const [s, v] of Object.entries(H.bars || {})) out[s] = v.slice(1).map((b, k) => [H.dates[v[0] + k]].concat(b));
     return out;
   })();
   let pmDir = ['up', 'down', 'all'].includes(store.get('mm.pmdir')) ? store.get('mm.pmdir') : 'up';
-  let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'pv', dir: -1 }, pmCur = null, pmShown = [];
+  let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'dv', dir: -1 }, pmCur = null, pmShown = [];
   function pmSnap() {                                   // instantané de la séance choisie (ou le plus proche avant), sinon le dernier
     if (!PM || !PM.snaps.length) return null;
     const S = PM.snaps; if (!pinned) return S[S.length - 1];
@@ -1886,7 +1889,7 @@
   const PM_DEFS = [
     { id: 'sym', label: 'Symbole', l: true, dir: 1, v: r => r.s },
     { id: 'pch', label: 'Var AH', dir: -1, v: r => r.pch, title: 'Variation post-market par rapport à la clôture de la séance' },
-    { id: 'pv', label: 'Vol AH', dir: -1, v: r => r.pv, title: 'Volume échangé en post-market' },
+    { id: 'dv', label: 'Vol AH $', dir: -1, v: r => r.dv, title: 'Volume post-market en dollars ≈ actions échangées × cours post-market' },
     { id: 'rv', label: 'RVol', dir: -1, v: r => r.rv, title: 'Volume post-market ÷ volume journalier moyen sur 90 jours' },
     { id: 'cap', label: 'Cap.', dir: -1, v: r => r.cap, title: 'Capitalisation boursière (dollars)' },
     { id: 'nx', label: 'Lendemain', dir: -1, v: r => r.nx, title: 'Variation de la séance suivante, clôture à clôture', when: s => !!s.nextd },
@@ -1931,7 +1934,7 @@
     const cell = {
       sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
       pch: r => `<td class="dev"><div class="devc"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
-      pv: r => `<td>${big(r.pv)}</td>`,
+      dv: r => `<td title="${big(r.pv)} actions">${big(r.dv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
       cap: r => `<td class="c-cap">${r.cap == null ? '—' : big(r.cap)}</td>`,
       nx: r => `<td class="c-nx"><span class="${cls(r.nx)}">${pct(r.nx)}</span></td>`,
@@ -1969,7 +1972,7 @@
     $('pmFacts').innerHTML =
       fact('Clôture', `${nf(r.c, pxd(r.c))} <span class="${cls(r.ch)}">${pct(r.ch)}</span>`) +
       fact('Post-market', `${nf(r.pc, pxd(r.pc))} <span class="${cls(r.pch)}">${pct(r.pch)}</span>`) +
-      fact('Volume post-market', `${big(r.pv)}${r.rv != null ? ' · RVol ' + nf(r.rv, r.rv < 10 ? 1 : 0) + '×' : ''}`) +
+      fact('Volume post-market', `${big(r.dv)} $ · ${big(r.pv)} actions${r.rv != null ? ' · RVol ' + nf(r.rv, r.rv < 10 ? 1 : 0) + '×' : ''}`) +
       fact('Capitalisation', r.cap == null ? '—' : big(r.cap) + ' $') +
       fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
@@ -2852,7 +2855,8 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
-    pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; 3 $</b>, <b>volume post-market &gt; 100 000</b> et <b>variation post-market &gt; +4 %</b> (Hausses) ou <b>&lt; −4 %</b> (Baisses). Tri par volume post-market.</p>
+    pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; 3 $</b>, <b>volume post-market &gt; 100 000</b> et <b>variation post-market &gt; +4 %</b> (Hausses) ou <b>&lt; −4 %</b> (Baisses).</p>
+      <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. Le nombre d'actions est au survol et dans la fiche.</p>
       <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. <b>Rés.</b> : résultats trimestriels publiés ce soir après la clôture (<b>AMC</b>) ou ce matin avant l'ouverture (<b>BMO</b>). <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
       <p>Le robot relève le scan toutes les 30 min pendant le post-market, puis une dernière fois dans la nuit (données TradingView différées de 15 min). Un instantané par séance, 20 séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
       <p>Clic sur un en-tête : trier · ↑ ↓ : titre précédent / suivant.</p><p class="src">Source : TradingView (screener public) · graphiques : Yahoo Finance.</p>`],
