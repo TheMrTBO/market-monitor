@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # version fixe : « ubuntu-latest » migre vers Ubuntu 26 à partir du 19 oct. 2026
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
@@ -80,7 +80,7 @@ jobs:
   deploy:
     needs: update
     if: always() && needs.update.result != 'cancelled' && needs.update.result != 'skipped'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # version fixe : « ubuntu-latest » migre vers Ubuntu 26 à partir du 19 oct. 2026
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

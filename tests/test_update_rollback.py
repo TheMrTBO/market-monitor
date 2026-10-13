@@ -1,0 +1,72 @@
+#!/usr/bin/env python3
+"""Test : une etape de mise a jour qui produit des donnees invalides doit etre annulee (anciennes donnees restaurees).
+
+Simule, dans un dossier temporaire, quatre scripts de recuperation factices :
+  - stockbee, prices : ne changent rien (donnees deja valides)        -> doivent rester "ok"
+  - vix     : tronque la serie (donnees trop anciennes)               -> doit etre annule et restaure a l'identique
+  - sectors : ecrit un fichier quasi vide (1 ETF au lieu de 55)       -> doit etre annule et restaure a l'identique
+Aucun acces reseau. Sortie : code 0 si le comportement est conforme.
+"""
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "vix_data.js", "prices_data.js", "sectors_data.js"]
+
+STUBS = {
+    "fetch_stockbee.py": 'print("stub stockbee : donnees deja a jour")\n',
+    "fetch_prices.py": 'print("stub prices : donnees deja a jour")\n',
+    "fetch_sectors.py": (
+        'open("sectors_data.js", "w").write(\'window.SECTORS = {"asof":"2026-10-12","dates":["2026-10-12"],'
+        '"symbols":[{"s":"XLK","n":"x","g":"y","c":[1]}]};\\n\')\nprint("Ecrit : sectors_data.js")\n'
+    ),
+    "fetch_vix.py": (
+        'import json\nrows = json.loads(open("vix_data.js").read().split("=", 1)[1].strip().rstrip(";"))\n'
+        'open("vix_data.js", "w").write("window.VIX = " + json.dumps(rows[:-30]) + ";\\n")\nprint("Ecrit : vix_data.js")\n'
+    ),
+}
+
+RUNNER = (
+    "import sys, time\n"
+    "time.sleep = lambda s: None            # pas d'attente entre les tentatives pendant le test\n"
+    "import update_all\n"
+    "sys.exit(update_all.main())\n"
+)
+
+
+def main():
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        for name in ["update_all.py", "validate_data.py", *DATA]:
+            shutil.copy(ROOT / name, work / name)
+        for name, code in STUBS.items():
+            (work / name).write_text(code)
+        before = {n: (work / n).read_bytes() for n in DATA}
+
+        r = subprocess.run([sys.executable, "-c", RUNNER], cwd=work, capture_output=True, text=True, timeout=120)
+        status_text = (work / "status_data.js").read_text()
+        status = json.loads(status_text[status_text.index("=") + 1:].strip().rstrip(";"))["sources"]
+
+        checks = {
+            "stockbee ok": status["stockbee"]["ok"] is True,
+            "prices ok": status["prices"]["ok"] is True,
+            "vix en echec": status["vix"]["ok"] is False,
+            "sectors en echec": status["sectors"]["ok"] is False,
+            "vix restaure a l'identique": (work / "vix_data.js").read_bytes() == before["vix_data.js"],
+            "sectors restaure a l'identique": (work / "sectors_data.js").read_bytes() == before["sectors_data.js"],
+            "code de sortie 1 (echec signale)": r.returncode == 1,
+        }
+        for label, ok in checks.items():
+            print(("ok     " if ok else "ECHEC  ") + label)
+        if not all(checks.values()):
+            print(r.stdout[-800:], r.stderr[-400:])
+            return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
