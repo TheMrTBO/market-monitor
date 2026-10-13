@@ -106,13 +106,17 @@
   .mini-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding-bottom: 4px; }
   .mini-title b { font-weight: 600; }
   .mini-title .px { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
-  .chead:not(.closed) .sum { display: none; }   /* le résumé n'apparaît que lorsque la carte est repliée */
+  .chrow .chead { flex: none; padding-bottom: 6px; }
+  .chrow .sum { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; padding-bottom: 6px; }
+  .chrow .sum b { font-weight: 600; }
+  .chrow .tipbtn { align-self: center; margin-bottom: 6px; }
   #hist, #hist25m, #hist2 { height: 200px; } #net4, #net25m, #net25 { height: 170px; }
   .raw[hidden] { display: none; }
   .disc { display: block; width: 100%; margin: 4px 0 6px; padding: 6px 4px; text-align: left; background: none; border: 0; border-top: 1px solid var(--border);
           border-radius: 0; color: var(--muted); font-size: 12px; }
   .disc:hover { color: var(--text); }
   .legend .tg { cursor: pointer; user-select: none; }
+  .legend i.front { opacity: .6; }
   .legend .tg.off { opacity: .4; text-decoration: line-through; }
   .legend .tg i.ln { height: 3px; vertical-align: 3px; }
   .card { position: relative; }
@@ -146,6 +150,9 @@
   th, td { padding: 5px 10px; text-align: right; white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
   thead th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  thead tr.grp th { position: static; color: var(--faint); font-size: 11px; text-align: center; border-bottom: 0; padding-bottom: 0; }
+  thead tr.grp th.g { border-bottom: 1px solid var(--border); }
+  th.sep, td.sep { border-left: 1px solid var(--border); }
   tbody tr:nth-child(even) { background: color-mix(in srgb, var(--grid) 40%, transparent); }
   tbody tr.hl { outline: 1px solid var(--up); }
   .pos { color: var(--up); } .neg { color: var(--down); }
@@ -364,17 +371,17 @@
   </div>
   <div id="hgroup">
   <div class="card hcard" data-card="c4">
-    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c4" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : solde net +4 % / −4 % sur la séance</span><span class="sum" id="sum4"></span></button></div>
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c4" aria-expanded="true"><span class="car">▾</span><span class="ttl">Séance : +4 % / −4 %</span></button><button class="tipbtn" data-tip="c4" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sum4"></span></div>
     <div class="cbody">
     <div class="legend">
-      <span><i style="background:var(--up)"></i>haussiers dominants</span>
-      <span><i style="background:var(--down)"></i>baissiers dominants</span>
+      <span><i style="background:var(--up)"></i>solde positif</span>
+      <span><i style="background:var(--down)"></i>solde négatif</span>
     </div>
     <canvas id="net4"></canvas>
-    <button class="disc" data-target="raw4" aria-expanded="false" aria-controls="raw4">▸ Détail : histogrammes +4 % et −4 %</button>
+    <button class="disc" data-target="raw4" aria-expanded="false" aria-controls="raw4">▸ Détail : histogrammes +4 % et −4 % superposés</button>
     <div class="raw" id="raw4" hidden>
       <div class="legend">
-        <span><i style="background:var(--down)"></i>−4 % (premier plan)</span>
+        <span><i class="front" style="background:var(--down)"></i>−4 % (premier plan, translucide)</span>
         <span><i style="background:var(--up)"></i>+4 % (second plan)</span>
         <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
       </div>
@@ -383,36 +390,36 @@
     </div>
   </div>
   <div class="card hcard" data-card="c25m">
-    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25m" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : +25 % / −25 % sur un mois</span><span class="sum" id="sum25m"></span></button></div>
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25m" aria-expanded="true"><span class="car">▾</span><span class="ttl">Mois : +25 % / −25 %</span></button><button class="tipbtn" data-tip="c25m" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sum25m"></span></div>
     <div class="cbody">
     <div class="legend">
-      <span><i style="background:var(--down)"></i>−25 % / mois (premier plan)</span>
-      <span><i style="background:var(--up)"></i>+25 % / mois (second plan)</span>
+      <span><i class="front" style="background:var(--down)"></i>−25 % sur un mois (premier plan, translucide)</span>
+      <span><i style="background:var(--up)"></i>+25 % sur un mois (second plan)</span>
     </div>
     <canvas id="hist25m"></canvas>
     <button class="disc" data-target="raw25m" aria-expanded="false" aria-controls="raw25m">▸ Détail : solde net +25 % / −25 % sur un mois</button>
     <div class="raw" id="raw25m" hidden>
       <div class="legend">
-        <span><i style="background:var(--up)"></i>haussiers dominants</span>
-        <span><i style="background:var(--down)"></i>baissiers dominants</span>
+        <span><i style="background:var(--up)"></i>solde positif</span>
+        <span><i style="background:var(--down)"></i>solde négatif</span>
       </div>
       <canvas id="net25m"></canvas>
     </div>
     </div>
   </div>
   <div class="card hcard" data-card="c25q">
-    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25q" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : +25 % / −25 % sur un trimestre</span><span class="sum" id="sum25q"></span></button></div>
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25q" aria-expanded="true"><span class="car">▾</span><span class="ttl">Trimestre : +25 % / −25 %</span></button><button class="tipbtn" data-tip="c25q" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sum25q"></span></div>
     <div class="cbody">
     <div class="legend">
-      <span><i style="background:var(--down)"></i>−25 % / trim. (premier plan)</span>
-      <span><i style="background:var(--up)"></i>+25 % / trim. (second plan)</span>
+      <span><i class="front" style="background:var(--down)"></i>−25 % sur un trimestre (premier plan, translucide)</span>
+      <span><i style="background:var(--up)"></i>+25 % sur un trimestre (second plan)</span>
     </div>
     <canvas id="hist2"></canvas>
     <button class="disc" data-target="raw25" aria-expanded="false" aria-controls="raw25">▸ Détail : solde net +25 % / −25 % sur un trimestre</button>
     <div class="raw" id="raw25" hidden>
       <div class="legend">
-        <span><i style="background:var(--up)"></i>haussiers dominants</span>
-        <span><i style="background:var(--down)"></i>baissiers dominants</span>
+        <span><i style="background:var(--up)"></i>solde positif</span>
+        <span><i style="background:var(--down)"></i>solde négatif</span>
       </div>
       <canvas id="net25"></canvas>
     </div>
@@ -423,7 +430,7 @@
 
   <div class="tablewrap">
     <table>
-      <thead><tr id="thead"></tr></thead>
+      <thead><tr class="grp" id="theadGrp"></tr><tr id="thead"></tr></thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
@@ -550,6 +557,8 @@
   })();
   const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
   let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
+  // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
+  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
 
   // Calculées sur tout l'historique chargé (pas seulement la plage visible) : null tant qu'il y a moins de n clôtures.
   // EMA : amorcée par la SMA des n premières clôtures, puis lissage 2/(n+1), comme ta.ema de Pine.
@@ -843,11 +852,12 @@
     grid(c, ticks, Y, v => nf(v));
     xLabels(c);
     const w = Math.max(1, Math.min(14, bw * 0.72));
-    // même plan : +4 % derrière, −4 % devant (même position et même largeur)
-    for (const [vals, col] of [[ups, '--up'], [downs, '--down']]) {
-      g.fillStyle = css(col);
+    // même plan : +X % derrière (opaque), −X % devant, translucide pour laisser voir la série du second plan (réglage « Histogrammes »)
+    for (const [vals, col, a] of [[ups, '--up', 1], [downs, '--down', histAlpha]]) {
+      g.fillStyle = css(col); g.globalAlpha = a;
       vals.forEach((v, i) => { if (v == null) return; g.fillRect(X(i) - w / 2, Y(v), w, Math.max(1, Y(0) - Y(v))); });
     }
+    g.globalAlpha = 1;
     if (upKey === 'up4' && OWNMAP.size) {      // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
       g.save(); g.setLineDash([3, 3]); g.lineWidth = 1.5; g.strokeStyle = css('--ctext');
       for (const key of [upKey, downKey]) {
@@ -898,21 +908,35 @@
     // résumé d'une ligne affiché quand une carte d'histogramme est repliée
     for (const [id, u, dn] of [['sum4', 'up4', 'down4'], ['sum25m', 'up25m', 'down25m'], ['sum25q', 'up25q', 'down25q']]) {
       const a = sb(d, u), b = sb(d, dn);
-      $(id).textContent = a == null ? '' : `${fmtDate(d)} · net ${signed(a - b)} (+${nf(a)} / −${nf(b)})`;
+      $(id).innerHTML = a == null ? '' : `${fmtDate(d)} · <span class="pos">+${nf(a)}</span> / <span class="neg">−${nf(b)}</span> · solde <b class="${cls(a - b)}">${signed(a - b)}</b>`;
     }
     $('rows').querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
     const row = $('rows').querySelector(`tr[data-d="${d}"]`); if (row) row.classList.add('hl');
   }
 
-  $('thead').innerHTML = ['Date', 'Clôture', 'Var.', 'Volume', '+4 %', '−4 %', 'Net', 'Ratio 5 j', 'Ratio 10 j', '+25 % mois', '−25 % mois', '+25 % trim.', '−25 % trim.'].map(h => `<th>${h}</th>`).join('');
+  // colonnes groupées par famille ; intensité du fond = valeur rapportée au 95e centile de l'année écoulée
+  $('thead').innerHTML = [['Date'], ['Clôture'], ['Var.'], ['Volume'], ['Hausse', 1], ['Baisse'], ['Solde'], ['5 j', 1], ['10 j'],
+    ['Hausse', 1], ['Baisse'], ['Hausse', 1], ['Baisse'], ['Ratio'], ['T2108', 1]].map(([h, sep]) => `<th${sep ? ' class="sep"' : ''}>${h}</th>`).join('');
+  const P95 = {};
+  const p95 = k => {
+    if (P95[k] == null) { const a = STOCKBEE.rows.slice(-252).map(r => r[COL[k]]).filter(v => v != null).sort((x, y) => x - y); P95[k] = a.length ? a[Math.floor(a.length * 0.95)] || 1 : 1; }
+    return P95[k];
+  };
+  const heat = (v, k, col) => v == null ? '' : ` style="background:color-mix(in srgb, var(${col}) ${Math.round(Math.min(1, v / p95(k)) * 30)}%, transparent)"`;
+  const rcls = (v, k) => v == null ? '' : v < TH[k][0] ? 'neg' : v >= TH[k][1] ? 'pos' : '';
   function renderTable() {
+    $('theadGrp').innerHTML = `<th></th><th class="g" colspan="3">${current}</th><th class="g sep" colspan="3">Séance ±4 %</th><th class="g sep" colspan="2">Ratios ±4 %</th>` +
+      `<th class="g sep" colspan="2">Mois ±25 %</th><th class="g sep" colspan="3">Trimestre ±25 %</th><th class="g sep">Breadth</th>`;
     const dates = T.filter(d => SB.has(d)).reverse().slice(0, 400);
     $('rows').innerHTML = dates.map(d => {
-      const b = bars.get(d), up = sb(d, 'up4'), dn = sb(d, 'down4'), net = up - dn;
+      const b = bars.get(d), up = sb(d, 'up4'), dn = sb(d, 'down4'), net = up == null || dn == null ? null : up - dn;
+      const uq = sb(d, 'up25q'), dq = sb(d, 'down25q'), rq = uq == null || !dq ? null : uq / dq, t2 = sb(d, 't2108');
       return `<tr data-d="${d}"><td>${fmtDate(d)}</td><td>${b ? nf(b.c, pxd(b.c)) : '—'}</td><td class="${cls(b && b.chg)}">${pct(b && b.chg)}</td><td>${vol(b && b.v)}</td>` +
-        `<td class="pos">${nf(up)}</td><td class="neg">${nf(dn)}</td><td class="${cls(net)}">${signed(net)}</td><td>${nf(sb(d, 'ratio5'), 2)}</td><td>${nf(sb(d, 'ratio10'), 2)}</td>` +
-        `<td class="pos">${nf(sb(d, 'up25m'))}</td><td class="neg">${nf(sb(d, 'down25m'))}</td>` +
-        `<td class="pos">${nf(sb(d, 'up25q'))}</td><td class="neg">${nf(sb(d, 'down25q'))}</td></tr>`;
+        `<td class="sep"${heat(up, 'up4', '--up')}>${nf(up)}</td><td${heat(dn, 'down4', '--down')}>${nf(dn)}</td><td class="${cls(net)}">${signed(net)}</td>` +
+        `<td class="sep ${rcls(sb(d, 'ratio5'), 'ratio5')}">${nf(sb(d, 'ratio5'), 2)}</td><td class="${rcls(sb(d, 'ratio10'), 'ratio5')}">${nf(sb(d, 'ratio10'), 2)}</td>` +
+        `<td class="sep"${heat(sb(d, 'up25m'), 'up25m', '--up')}>${nf(sb(d, 'up25m'))}</td><td${heat(sb(d, 'down25m'), 'down25m', '--down')}>${nf(sb(d, 'down25m'))}</td>` +
+        `<td class="sep"${heat(uq, 'up25q', '--up')}>${nf(uq)}</td><td${heat(dq, 'down25q', '--down')}>${nf(dq)}</td><td class="${rcls(rq, 'rq')}">${nf(rq, 2)}</td>` +
+        `<td class="sep">${t2 == null ? '—' : nf(t2, 1) + ' %'}</td></tr>`;
     }).join('');
   }
 
@@ -1757,7 +1781,6 @@
   // ------------------------------------------------------------------ bandeau « état du marché »
   // Breadth : seuils calibrés sur la tendance d'IWM 2019-2026 (tendance = C > SMA10, C > SMA20 et SMA10 > SMA20) ; la couleur change
   // dès la séance où la valeur franchit un seuil. Indices : même filtre de tendance que le fond des graphiques (MM1 / MM2).
-  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2], net5: [-200, 400] };
   const TREND_NAMES = ['Baissière', 'Essoufflée', 'Haussière', 'Forte'];
   const DATES = () => [...SB.keys()].sort();
   const lastWith = k => { const D = DATES(); for (let i = D.length - 1; i >= 0; i--) if (sb(D[i], k) != null) return D[i]; return null; };

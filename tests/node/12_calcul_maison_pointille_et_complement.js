@@ -54,5 +54,6 @@ const extra=`window.BREADTH_OWN={columns:${JSON.stringify(own.columns)},rows:${J
 const B=boot(extra+STATUS_BREADTH);
 const tab=B.$('rows')._h;
 assert(tab.includes(`data-d="${nd}"`),`séance ${nd} complétée par le calcul maison absente du tableau`);
-assert(tab.includes('<td class="pos">321</td><td class="neg">123</td>'),'valeurs du calcul maison absentes de la ligne complétée');
+const row=(tab.match(new RegExp(`<tr data-d="${nd}">[\\s\\S]*?</tr>`))||[''])[0];
+assert(/>321<\/td><td[^>]*>123<\/td>/.test(row),'valeurs du calcul maison absentes de la ligne complétée');
 console.log('ok : surimpression',strokesOwn-strokesBase,'traits | séance complétée',nd,'| pied de page :',foot.slice(-140));
