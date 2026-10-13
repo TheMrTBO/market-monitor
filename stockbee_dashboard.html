@@ -240,6 +240,23 @@
   .slider input[type=range] { width: 100%; accent-color: var(--up); }
   .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
   details.about { margin-top: 12px; }
+
+  /* ---- graphique de prix : barre d'outils, légende OHLC / MM posée sur le fond du graphique (style TradingView) */
+  .chartbar .inst { font-size: 15px; }
+  .instpx { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .rslot { display: contents; }
+  .rangebox { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .trendleg { margin: 0; font-size: 11px; }
+  .trendleg i { width: 9px; height: 9px; }
+  .ovl { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 14px; background: var(--cbg); color: var(--ctext); padding: 7px 10px 2px;
+         border-radius: 6px 6px 0 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .ovl b { color: #e3e7ee; font-weight: 500; }
+  .ohlc { display: inline-flex; gap: 10px; flex-wrap: wrap; } .ohlc .d { color: #e3e7ee; font-weight: 600; }
+  .mabar { display: inline-flex; gap: 3px 12px; flex-wrap: wrap; }
+  .mabar .ma { display: inline-flex; align-items: center; gap: 5px; user-select: none; }
+  .mabar .ma i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; }
+  .mabar .ma .nm { cursor: pointer; } .mabar .ma.off { opacity: .45; } .mabar .ma.off .nm { text-decoration: line-through; }
+  .mabar .ma .car { cursor: pointer; padding: 0 3px; border-radius: 4px; } .mabar .ma .car:hover { background: #222a35; color: #e3e7ee; }
   details.about summary { cursor: pointer; color: var(--muted); font-size: 12px; }
   details.about footer { margin-top: 6px; }
 </style>
@@ -336,12 +353,12 @@
   <p class="kpinote" id="kpinote"></p>
   <div class="card">
     <div class="chartbar">
-      <button class="inst" id="instBtn" data-menu aria-haspopup="true"></button>
+      <button class="inst" id="instBtn" data-menu aria-haspopup="true"></button><span class="instpx" id="instPx"></span>
       <span class="rslot" id="rslot-main"></span>
-      <span id="maBar" style="display:contents"></span>
       <span class="spacer"></span>
+      <div class="legend trendleg" id="trendLegend"></div>
     </div>
-    <div class="legend" id="trendLegend"></div>
+    <div class="ovl"><span class="ohlc" id="ohlc"></span><span class="mabar" id="maBar"></span></div>
     <div class="menu" id="menu" hidden></div>
     <canvas id="price"></canvas>
   </div>
@@ -496,7 +513,7 @@
   let current = NAMES.includes('QQQ') ? 'QQQ' : NAMES[0];
   let tab = 'main';        // onglet affiché : 'main' (détail) ou 'cmp' (QQQ · IWM · BTC côte à côte)
   let range = '6M';        // préréglage actif ; null dès qu'on zoome ou déplace à la main
-  const MONTHS = { '3M': 3, '6M': 6, '1A': 12, '2A': 24, '5A': 60, 'Tout': null };
+  const MONTHS = { '3M': 3, '6M': 6, 'YTD': 'YTD', '1A': 12, '2A': 24, '5A': 60, 'Tout': null };   // YTD = depuis le 1er janvier
   let ALLT = [];           // toutes les dates (union breadth + bougies : même axe pour tous les graphiques)
   let vp = { from: 0, to: 0 };  // fenêtre visible en index de ALLT ; `to` peut dépasser la dernière séance (espace à droite)
   let T = [];              // dates visibles = ALLT[offset ...]
@@ -556,13 +573,13 @@
   // d'il y a TREND_LEN barres. Comme en Pine, une comparaison avec une valeur manquante vaut faux.
   const TREND_LEN = 5;
   const TREND = [null,
-    { key: 'jaune', fill: 'rgba(255,235,59,0.20)' },
-    { key: 'vert clair', fill: 'rgba(0,255,0,0.20)' },
-    { key: 'vert foncé', fill: 'rgba(0,150,0,0.50)' }];
+    { key: 'essoufflée', fill: 'rgba(234,179,8,0.14)' },
+    { key: 'haussière', fill: 'rgba(46,160,67,0.14)' },
+    { key: 'tendance forte', fill: 'rgba(46,160,67,0.28)' }];
   // MM1 et MM2 = les deux premières moyennes mobiles de la barre du haut (10 et 20 par défaut)
   const trendLabel = s => {
     const a = `MM${MAS[TR1].len}`, b = `MM${MAS[TR2].len}`;
-    return s === 1 ? `jaune : ${a} > ${b}, aucune ne monte` : s === 2 ? `vert clair : ${a} > ${b}, seule la ${a} monte` : `vert foncé : ${a} > ${b}, les deux montent`;
+    return s === 1 ? `essoufflée : ${a} > ${b}, aucune ne monte` : s === 2 ? `haussière : ${a} > ${b}, seule la ${a} monte` : `forte : ${a} > ${b}, les deux montent`;
   };
   let trendOn = true;
   function trendState(ma1, ma2, i) {
@@ -602,7 +619,8 @@
   function presetViewport(key) {
     const N = ALLT.length; if (!N) return;
     let i0 = 0;
-    if (MONTHS[key] != null) {
+    if (key === 'YTD') { i0 = ALLT.findIndex(d => d >= ALLT[N - 1].slice(0, 4) + '-01-01'); if (i0 < 0) i0 = 0; }
+    else if (MONTHS[key] != null) {
       const end = new Date(ALLT[N - 1] + 'T00:00:00Z'); end.setUTCMonth(end.getUTCMonth() - MONTHS[key]);
       const cut = end.toISOString().slice(0, 10);
       i0 = ALLT.findIndex(d => d >= cut); if (i0 < 0) i0 = 0;
@@ -708,11 +726,21 @@
   }
 
   function xLabels(c) {
-    const { g, H, n, X } = c;
+    const { g, H, n, X, W } = c; if (!n) return;
     g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css(c.th.text);
-    const long = n > 300, step = Math.max(1, Math.round(n / 6));
-    for (let i = Math.floor(step / 2); i < n; i += step)
-      g.fillText(fmtDate(T[i], long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+    const gap = 64, inside = x => x > PAD.l + 14 && x < W - PAD.r - 14;
+    const long = n > 300, labels = [];
+    for (let i = 1; i < n; i++) {                      // début de mois (ou d'année / de trimestre sur les longues périodes)
+      const a = T[i - 1], b = T[i], ny = a.slice(0, 4) !== b.slice(0, 4), nm = a.slice(5, 7) !== b.slice(5, 7);
+      if (long ? !(ny || (nm && n < 700 && ['04', '07', '10'].includes(b.slice(5, 7)))) : !nm) continue;
+      labels.push([i, ny ? b.slice(0, 4) : fmtDate(b, { month: 'short' }).replace('.', '')]);
+    }
+    if (labels.length < 2) {                           // fenêtre très zoomée : jour et mois, espacés
+      labels.length = 0; const step = Math.max(1, Math.ceil(gap / Math.max(1, c.bw)));
+      for (let i = Math.floor(step / 2); i < n; i += step) labels.push([i, fmtDate(T[i], { day: 'numeric', month: 'short' })]);
+    }
+    let lastX = -1e9;
+    for (const [i, t] of labels) { const x = X(i); if (!inside(x) || x - lastX < gap) continue; lastX = x; g.fillText(t, x, H - 6); }
   }
 
   function cursor(c) {
@@ -738,13 +766,7 @@
     const Y = v => PAD.t + (hi - v) / (hi - lo) * ph;
     grid(c, niceTicks(lo, hi, 5), Y, v => nf(v, pxd(v)));
     xLabels(c);
-    if (trendOn) {                              // fond de tendance, derrière les bougies
-      vis.forEach((b, i) => {
-        if (!b || !b.st) return;
-        g.fillStyle = TREND[b.st].fill;
-        g.fillRect(Math.floor(X(i) - bw / 2), PAD.t, Math.ceil(bw) + 0.5, ph);
-      });
-    }
+    if (trendOn) trendBands(g, vis, X, bw, PAD.t, ph);      // fond de tendance, derrière les bougies
     const maxV = Math.max(...have.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
     vis.forEach((b, i) => {
       if (!b) return;
@@ -770,6 +792,15 @@
       g.stroke();
     });
     g.restore();
+    // dernier cours : ligne pointillée et étiquette colorée sur l'axe
+    const lastB = [...bars.values()].pop();
+    if (lastB && Y(lastB.c) >= PAD.t && Y(lastB.c) <= PAD.t + ph) {
+      const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown'), li = T.indexOf(lastB.d);
+      g.save(); g.strokeStyle = col; g.globalAlpha = 0.55; g.setLineDash([2, 3]);
+      g.beginPath(); g.moveTo(li >= 0 ? X(li) : PAD.l, y); g.lineTo(c.W - PAD.r, y); g.stroke(); g.restore();
+      g.fillStyle = col; g.fillRect(c.W - PAD.r + 1, y - 9, PAD.r - 16, 18);
+      g.fillStyle = '#000'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), c.W - PAD.r + 5, y);
+    }
     // poignée ▲ à l'emplacement de la dernière séance : glisser pour régler l'espace vide à droite
     const hx = handleX(c);
     if (hx != null) {
@@ -781,6 +812,17 @@
     g.fillStyle = css(drag && drag.handleTop ? '--cup' : '--ctext');
     g.beginPath(); g.moveTo(tx - 6, ty); g.lineTo(tx + 2, ty - 6); g.lineTo(tx + 2, ty + 6); g.closePath(); g.fill();
     cursor(c);
+  }
+
+  // fond de tendance : une zone par série de séances au même état (des rectangles translucides accolés créaient des stries)
+  function trendBands(g, vis, X, bw, top, ph) {
+    let i = 0;
+    while (i < vis.length) {
+      const st = vis[i] && vis[i].st; let j = i;
+      while (j + 1 < vis.length && vis[j + 1] && vis[j + 1].st === st) j++;
+      if (st) { g.fillStyle = TREND[st].fill; g.fillRect(X(i) - bw / 2, top, (j - i + 1) * bw, ph); }
+      i = j + 1;
+    }
   }
 
   function handleX(c) {                         // x de la dernière séance (index N-1), null s'il est hors du graphique
@@ -901,8 +943,8 @@
   }
   function setHover(i, kind, e) {
     hover = i;
-    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); }
-    if (i < 0) { tip.style.display = 'none'; return; }
+    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); updateLegend(); }
+    if (i < 0 || kind === 'price') { tip.style.display = 'none'; return; }   // prix : valeurs dans la légende du graphique
     tip.innerHTML = tipHtml(kind === 'sec' ? 'price' : kind, T[i]); tip.style.display = 'block';
     const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
     tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
@@ -1252,6 +1294,7 @@
     const last = cmpLast();
     if (range != null) {
       if (MONTHS[range] == null) return { start: -Infinity, end: last, atEnd: true };
+      if (range === 'YTD') return { start: Date.UTC(new Date(last).getUTCFullYear(), 0, 1), end: last, atEnd: true };
       const e = new Date(last); e.setUTCMonth(e.getUTCMonth() - MONTHS[range]);
       return { start: e.getTime(), end: last, atEnd: true };
     }
@@ -1296,11 +1339,7 @@
     for (let i = Math.floor(step / 2); i < n; i += step)
       g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
 
-    if (trendOn) vis.forEach((b, i) => {                       // fond de tendance ChillLax, derrière les bougies
-      if (!b.st) return;
-      g.fillStyle = TREND[b.st].fill;
-      g.fillRect(Math.floor(X(i) - bw / 2), MPAD.t, Math.ceil(bw) + 0.5, ph);
-    });
+    if (trendOn) trendBands(g, vis, X, bw, MPAD.t, ph);      // fond de tendance ChillLax, derrière les bougies
     const maxV = Math.max(...vis.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
     vis.forEach((b, i) => {
       const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
@@ -1555,16 +1594,27 @@
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
 
-  const maChipsHtml = () => MAS.map((m, i) =>
+  const maChipsHtml = b => MAS.map((m, i) =>
     `<span class="ma${m.on ? '' : ' off'}"><i style="background:${maColor(i)}"></i>` +
-    `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span>` +
+    `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span>` + (b ? ` <b>${b.s[i] == null ? '—' : nf(b.s[i], pxd(b.s[i]))}</b>` : '') +
     `<span class="car" data-menu data-i="${i}" title="Réglages : longueur, type, couleur">▾</span></span>`).join('');
   const trendLegendHtml = () =>
-    `<span class="tg${trendOn ? '' : ' off'}" data-trend title="Fond ChillLax : MM${MAS[TR1].len} et MM${MAS[TR2].len}, tendance sur ${TREND_LEN} barres">Fond de tendance (MM${MAS[TR1].len} / MM${MAS[TR2].len}) :</span>` +
-    TREND.slice(1).reverse().map(t => `<span><i style="background:${t.fill};outline:1px solid var(--border)"></i>${t.key}</span>`).join('');
+    `<span class="tg${trendOn ? '' : ' off'}" data-trend title="Fond ChillLax : MM${MAS[TR1].len} et MM${MAS[TR2].len}, tendance sur ${TREND_LEN} barres · clic : afficher / masquer">Fond MM${MAS[TR1].len} / MM${MAS[TR2].len} :</span>` +
+    TREND.slice(1).reverse().map(t => `<span><i style="background:${t.fill.replace(/0\.\d+\)$/, '0.75)')}"></i>${t.key}</span>`).join('');
+  // légende posée sur le graphique : date, OHLC, variation, état de tendance et valeur de chaque MM (séance survolée, sinon la dernière)
+  function updateLegend() {
+    const d = T[hover] || null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
+    $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
+      `<span>O <b>${nf(b.o, pxd(b.o))}</b></span><span>H <b>${nf(b.h, pxd(b.h))}</b></span><span>B <b>${nf(b.l, pxd(b.l))}</b></span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      (b.st ? `<span>· ${trendLabel(b.st).split(' :')[0]}</span>` : '');
+    $('maBar').innerHTML = maChipsHtml(b);
+  }
   function renderBar() {
-    $('instBtn').textContent = `${current} Daily ▾`;
-    $('maBar').innerHTML = maChipsHtml();
+    const lb = [...bars.values()].pop();
+    $('instBtn').textContent = `${current} ▾`;
+    $('instPx').innerHTML = lb ? `${nf(lb.c, pxd(lb.c))} <span class="${cls(lb.chg)}">${pct(lb.chg)}</span>` : '';
+    updateLegend();
     $('trendLegend').innerHTML = trendLegendHtml();
     renderCmpLegend();
     renderSecBar();
