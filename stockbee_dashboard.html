@@ -2443,7 +2443,7 @@
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec'; $('view-pm').hidden = t !== 'pm';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
-    placeRanges(); renderMtop(); renderDatebar();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
+    placeRanges(); renderMtop(); renderDatebar(); renderFresh();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
     document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
@@ -2927,7 +2927,11 @@
     // le calcul maison ne fait que compléter / contrôler Stockbee : son échec est signalé discrètement, sans alerte orange
     const main = f.failed.filter(x => x !== 'calcul maison'), side = f.failed.length > main.length;
     const warn = f.stale ? '· ⚠ données en retard' : main.length ? `· ⚠ ${main.join(', ')} en échec` : '';
-    b.innerHTML = `<span class="dot"></span>Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` +
+    // onglet Post-market : le badge donne le scan affiché (date de la séance + heure du relevé), pas la séance du breadth Stockbee
+    const ps = tab === 'pm' && PM && PM.snaps.length ? PM.snaps[PM.snaps.length - 1] : null;
+    const label = ps ? `Scan du ${fmtDate(ps.d, { weekday: 'short', day: 'numeric', month: 'short' })} · ${ps.closed ? 'post-market terminé' : 'relevé à ' + hm(new Date(ps.at))}`
+      : `Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}`;
+    b.innerHTML = `<span class="dot"></span>${label}` +
       `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : side ? '<span class="fw" style="color:var(--faint)">· calcul maison indisponible</span>' : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
     b.classList.toggle('stale', !!f.stale || main.length > 0);       // point orange : données en retard ou source principale en échec
     b.title = (f.when ? `Données publiées le ${f.when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Europe/Paris' })}. ` : '') +

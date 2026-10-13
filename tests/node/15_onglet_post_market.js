@@ -91,10 +91,12 @@ ok('Aujourd\'hui : dernier instantané', syms(A).length===4);
   const E=boot({},P2); E.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
   ok('Stats du = date du scan du soir', E.$('dPick').value===nxt && E.$('dPick').max===nxt, E.$('dPick').value+' (Stockbee : '+lastSb+')');
   ok('libellé « dernier scan publié »', E.$('dInfo')._t==='dernier scan publié', E.$('dInfo')._t);
+  ok('badge du haut = scan affiché (pas la séance Stockbee)', /Scan du .* · relevé à/.test(strip(E.$('refreshBtn')._h)), strip(E.$('refreshBtn')._h));
   E.L.dPrev.click(); ok('‹ : séance Stockbee précédente', E.$('dPick').value===lastSb && /Pas de scan|<tr data-s=/.test(E.$('pmRows')._h), E.$('dPick').value);
   E.L.dNext.click(); ok('› : retour au scan du soir', E.$('dPick').value===nxt && /BBB/.test(E.$('pmRows')._h));
   E.L.tabs.click({target:{closest:()=>({dataset:{tab:'main'}})}});
   ok('onglet MM : Stats du revient aux séances Stockbee', E.$('dPick').max===lastSb, E.$('dPick').max);
+  ok('onglet MM : badge = séance Stockbee', /^Séance du/.test(strip(E.$('refreshBtn')._h)), strip(E.$('refreshBtn')._h));
 }
 // 6) mobile : toucher une ligne ouvre la fiche, « ‹ Scan » revient
 A.sb.innerWidth=375;
