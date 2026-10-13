@@ -209,6 +209,9 @@
   .t3 { background: color-mix(in srgb, var(--g3) 22%, transparent); color: var(--g3); } .t2 { background: color-mix(in srgb, var(--g2) 16%, transparent); color: var(--g2); }
   .t1 { background: var(--warnbg); color: var(--warn); } .t0 { background: var(--downbg); color: var(--down); }
   .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; }
+  .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
+  .selday { color: var(--up); font-size: 12px; } .selday b { font-weight: 600; }
+  .selday button { margin-left: 6px; padding: 1px 8px; font-size: 11.5px; border-radius: 999px; color: var(--up); border-color: color-mix(in srgb, var(--up) 50%, var(--border)); }
   @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .irow { grid-template-columns: 36px 0 62px 76px; } .irow .px { visibility: hidden; } }
 
   /* ---- bulles d'information : clic / toucher (et survol à la souris) */
@@ -272,17 +275,18 @@
     .minst span { font-weight: 500; font-size: 14px; }
     .msub { display: flex; align-items: center; gap: 6px; padding: 0 12px 6px; font-size: 11.5px; color: var(--muted); }
     .msub .dot { width: 6px; height: 6px; }
-    .kpis { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 8px; padding: 4px 12px 8px; margin: 0; scrollbar-width: none; }
-    .kpis::-webkit-scrollbar { display: none; }
-    .kpi { flex: 0 0 136px; scroll-snap-align: start; padding: 9px 10px 8px; }
-    .kpi.kidx { flex-basis: 214px; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 4px 10px 6px; margin: 0; }
+    .kpi { padding: 8px 9px 6px; }
+    .kpi.kidx, .kpi:last-child { grid-column: 1 / -1; }       /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
     .kpi .top { font-size: 11px; }
     .kpi .badge { font-size: 0; width: 8px; height: 8px; padding: 0; background: currentColor; }
-    .kpi .val { font-size: 20px; }
-    .kpi .body { grid-template-columns: minmax(0, 1fr); gap: 0; }
-    .kpi svg.spark { height: 18px; margin: 4px 0 0; }
-    .irow { grid-template-columns: 36px 0 60px 76px; padding: 5px 6px; } .irow .px { visibility: hidden; }
-    .kpinote { display: none; }
+    .kpi .val { font-size: 19px; }
+    .kpi .body { grid-template-columns: minmax(0, 1fr) 46%; gap: 6px; }
+    .kpi svg.spark { height: 24px; margin: 0 0 2px; }
+    .kpi .ksub { font-size: 11px; }
+    .kidx .rows { margin-top: 2px; }
+    .irow { grid-template-columns: 40px minmax(0, 1fr) 66px 84px; padding: 4px 6px; } .irow .px { visibility: visible; }
+    .kpinote { display: none; padding: 0 12px; margin: 0 0 6px; } .kpinote.past { display: block; } .kpinote .nhelp { display: none; }
     .card { border-radius: 0; border-left: 0; border-right: 0; padding-left: 10px; padding-right: 10px; }
     .chartbar { gap: 6px 10px; }
     .chartbar .instpx, .chartbar .spacer, #view-main .trendleg { display: none; }
@@ -611,6 +615,10 @@
   let offset = 0;
   let bars = new Map();    // date -> {o,h,l,c,v,chg}
   let hover = -1;
+  let pinned = null;       // séance épinglée par un clic / toucher sur un graphique de l'onglet Marché (null = dernière séance)
+  // séance affichée par tous les chiffres : survol, sinon séance épinglée, sinon la dernière
+  const selIdx = () => hover >= 0 ? hover : pinned && tab !== 'sec' ? T.indexOf(pinned) : -1;
+  const selDate = () => hover >= 0 && T[hover] ? T[hover] : pinned;
   const MIN_SPAN = 15;     // zoom maximal : ~15 barres affichées
 
   // préférences mémorisées par le navigateur (le stockage peut être indisponible : on ignore alors l'erreur)
@@ -837,8 +845,9 @@
   }
 
   function cursor(c) {
-    if (hover < 0 || hover >= c.n) return;
-    const { g, X, ph } = c, x = Math.round(X(hover)) + 0.5;
+    const i = secCtx.active ? hover : selIdx();
+    if (i < 0 || i >= c.n) return;
+    const { g, X, ph } = c, x = Math.round(X(i)) + 0.5;
     g.strokeStyle = css(c.th.cross); g.lineWidth = 1; g.setLineDash([3, 3]);
     g.beginPath(); g.moveTo(x, PAD.t); g.lineTo(x, PAD.t + ph); g.stroke(); g.setLineDash([]);
   }
@@ -988,7 +997,7 @@
 
   // la ligne du tableau correspondant à la séance survolée (ou à la dernière séance) est surlignée
   function highlightRow() {
-    const d = T[hover >= 0 ? hover : lastIdx()]; if (!d) return;
+    const si = selIdx(), d = T[si >= 0 ? si : lastIdx()]; if (!d) return;
     // résumé d'une ligne affiché quand une carte d'histogramme est repliée
     for (const [id, u, dn] of [['sum4', 'up4', 'down4'], ['sum25m', 'up25m', 'down25m'], ['sum25q', 'up25q', 'down25q']]) {
       const a = sb(d, u), b = sb(d, dn);
@@ -1051,7 +1060,7 @@
   }
   function setHover(i, kind, e) {
     hover = i;
-    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); updateLegend(); }
+    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
     if (i < 0 || kind === 'price') { tip.style.display = 'none'; return; }   // prix : valeurs dans la légende du graphique
     tip.innerHTML = tipHtml(kind === 'sec' ? 'price' : kind, T[i]); tip.style.display = 'block';
     const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
@@ -1121,8 +1130,11 @@
       if (isPrice(kind)) cv.style.cursor = onHandle(cv, e) ? 'ew-resize' : onTopHandle(cv, e) ? 'ns-resize' : '';
       setHover(idxAt(cv, e), kind, e);
     }));
-    const endDrag = () => withCtx(kind, () => {
+    const endDrag = e => withCtx(kind, () => {
       if (!drag) return;
+      if (kind !== 'sec' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.moved) {
+        const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
+      }
       if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
       if (drag.handleTop) store.set('mm.top', String(Math.round(topPad * 100)));
       drag = null; cv.style.cursor = '';
@@ -1712,7 +1724,7 @@
     TREND.slice(1).reverse().map(t => `<span><i style="background:${t.fill.replace(/0\.\d+\)$/, '0.75)')}"></i>${t.key}</span>`).join('');
   // légende posée sur le graphique : date, OHLC, variation, état de tendance et valeur de chaque MM (séance survolée, sinon la dernière)
   function updateLegend() {
-    const d = T[hover] || null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
+    const si = selIdx(), d = si >= 0 ? T[si] : null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
     $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
       `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
       `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
@@ -1874,7 +1886,13 @@
   // dès la séance où la valeur franchit un seuil. Indices : même filtre de tendance que le fond des graphiques (MM1 / MM2).
   const TREND_NAMES = ['Baissière', 'Essoufflée', 'Haussière', 'Forte'];
   const DATES = () => [...SB.keys()].sort();
-  const lastWith = k => { const D = DATES(); for (let i = D.length - 1; i >= 0; i--) if (sb(D[i], k) != null) return D[i]; return null; };
+  // dernière séance (≤ at si une séance est sélectionnée) où la colonne k est renseignée
+  const lastWith = (k, at) => { const D = DATES(); for (let i = D.length - 1; i >= 0; i--) if ((!at || D[i] <= at) && sb(D[i], k) != null) return D[i]; return null; };
+  let kpiRaf = 0;
+  const scheduleKpis = () => { cancelAnimationFrame(kpiRaf); kpiRaf = requestAnimationFrame(() => renderKpis()); };
+  function setPinned(d) {
+    pinned = d; drawAll(); highlightRow(); updateLegend(); renderKpis();
+  }
   const kState = (v, k) => v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', 'Baissier'] : v >= TH[k][1] ? ['up', 'Haussier'] : ['neutral', 'Neutre'];
   const kRule = k => `Baissier sous ${signedOr(k, TH[k][0])}, haussier à partir de ${signedOr(k, TH[k][1])}, neutre entre les deux.`;
   const signedOr = (k, v) => k === 'net5' ? signed(v) : nf(v, 1);
@@ -1902,8 +1920,10 @@
   }
   function renderKpis() {
     const box = $('kpis'); if (!box) return;
-    const D = DATES(), d4 = lastWith('up4'), dq = lastWith('up25q'), dt = lastWith('t2108');
+    const latest = DATES().slice(-1)[0], sel = selDate(), at = sel && sel < latest ? sel : null;   // null = dernière séance
+    const D = DATES().filter(d => !at || d <= at), d4 = lastWith('up4', at), dq = lastWith('up25q', at), dt = lastWith('t2108', at);
     if (!d4 || !dq) { box.innerHTML = ''; return; }
+    box.classList.toggle('past', !!at);
     const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
     const D4 = D.filter(d => net(d) != null), net5 = D4.slice(-5).reduce((a, d) => a + net(d), 0), net4 = net(d4);
     const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
@@ -1912,7 +1932,8 @@
     const n5S = kState(net5, 'net5'), r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
     const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', 'Survente'] : t21 > 70 ? ['warn', 'Surachat'] : ['neutral', 'Neutre'];
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
-    const idx = CMP.map(n => { const a = barsFor(n), b = a[a.length - 1]; return b ? { n, b } : null; }).filter(Boolean);
+    const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
+    const idx = CMP.map(n => { const b = barAt(n); return b ? { n, b } : null; }).filter(Boolean);
     const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · tendance MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
       idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
         `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}</span><span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
@@ -1925,8 +1946,10 @@
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) =>
       `<div class="kpi"><div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div></div>`).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
-    $('kpinote').textContent = `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '') +
-      ' · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail';
+    const note = $('kpinote'); note.classList.toggle('past', !!at);
+    note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
+        : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
+      '<span class="nhelp"> · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
       idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
@@ -1951,6 +1974,8 @@
       c25m: ['Mois : +25 % / −25 %', `<p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
   }
+  $('kpinote').addEventListener('click', e => { if (e.target && e.target.id === 'unpin') setPinned(null); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && pinned) setPinned(null); });
   $('kpis').addEventListener('click', e => {
     const r = e.target && e.target.closest && e.target.closest('.irow');
     if (r && r.dataset.inst && r.dataset.inst !== current) { current = r.dataset.inst; refresh(); }
