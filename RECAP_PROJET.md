@@ -151,9 +151,10 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
   triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
-- **Hiérarchie des cases (13/10)** : 1re rangée Indices · **Solde** · **Ratio 5 j** (chiffres 28 px) ; 2e rangée plus compacte
-  **Ratio mois** (19 px) > **Ratio trim. = T2108** (16 px, « en retrait » : fond creux, chiffre gris, badge contour). Les encadrés
-  « extrême 3 mois » restent pleinement visibles. Mobile : même ordre (Indices · Solde + 5 j · mois + trim. · T2108).
+- **Hiérarchie des cases (13/10, révisée)** : une seule rangée, tailles identiques (deux rangées essayées puis rejetées : trop grand sur PC) ;
+  priorité **par la couleur** : Solde = Ratio 5 j (titre en gras, chiffres pleine couleur, liseré gauche de la couleur de l'état) >
+  Ratio mois (atténué) > Ratio trim. = T2108 (en retrait : fond creux, chiffre et titre gris, mini-courbe pâle, badge contour).
+  Les encadrés « extrême 3 mois » restent pleinement visibles.
 - **Retours du 13/10 (4e série)** : les 3 graphiques de ratio sont des **cartes comme les histogrammes** (même groupe, déplaçables
   par la poignée ⠿ / Alt + ↑↓, repliables, ordre mémorisé ; une carte absente de l'ordre mémorisé garde sa place par défaut) ;
   **ratio 10 j retiré du graphique** (gardé en sous-titre de la case) ; **sélecteur de date** au-dessus du bandeau : « Stats du ‹ [date] › 
