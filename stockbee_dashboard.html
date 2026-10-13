@@ -104,6 +104,9 @@
   .cmpbottom .card { margin-bottom: 0; }
   .cmpbottom canvas { height: 26vh; min-height: 200px; }
   #cmpGrid[hidden], #cmpB100[hidden] { display: none; }
+  #view-cmp { position: relative; }                       /* menu des MM positionné dans l'onglet */
+  #dslot-cmp { margin-bottom: 10px; }                     /* même écart sous « Stats du » que les cases de MM */
+  .cmpgrid .ovl { flex-wrap: wrap; white-space: normal; } .cmpgrid .mabar { flex-wrap: wrap; }   /* graphiques étroits : MM sur 2 lignes */
   #cmpB100 canvas { height: 46vh; min-height: 300px; }
   .mini-title .nw { white-space: nowrap; }
   .mini-title .perf { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
@@ -112,7 +115,7 @@
   .b100leg i { display: inline-block; width: 12px; height: 2px; border-radius: 1px; margin-right: 5px; vertical-align: 3px; }
   .b100leg b { color: var(--text); font-weight: 600; }
   .legbtn { display: none; }
-  #cmpHead.b100 #cmpMa, #cmpHead.b100 #cmpTrend, #cmpHead.b100 .legbtn { display: none !important; }
+  #cmpHead.b100 #cmpTrend, #cmpHead.b100 .legbtn { display: none !important; }
   .mini-title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 13px; padding-bottom: 4px; }
   .mini-title b { font-weight: 600; }
   .mini-title .px { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
@@ -383,7 +386,7 @@
     .cmpgrid canvas { height: 34vh; min-height: 220px; } #cmpB100 canvas { height: 42vh; min-height: 260px; }
     .cmpbottom canvas { height: 22vh; min-height: 160px; }
     .legbtn { display: inline-block; padding: 5px 10px; }
-    #cmpHead:not(.legopen) #cmpMa, #cmpHead:not(.legopen) #cmpTrend { display: none !important; }
+    #cmpHead:not(.legopen) #cmpTrend { display: none !important; }
     .mini-title { flex-wrap: wrap; row-gap: 0; } .mini-title .px { font-size: 12px; }
   }
 
@@ -493,7 +496,6 @@
         <span class="rslot" id="rslot-cmp"></span>
         <span class="group seg sm" id="cmpMode" role="group" aria-label="Affichage"><button data-m="side" title="Trois graphiques de prix">Côte à côte</button><button data-m="b100" title="Les trois courbes rebasées à 100 au début de la période">Base 100</button></span>
         <button class="legbtn" id="cmpLegBtn" aria-expanded="false">Légende ▾</button>
-        <span id="cmpMa" style="display:contents"></span>
       </div>
       <div class="legend" id="cmpTrend"></div>
     </div>
@@ -503,6 +505,7 @@
       <canvas id="b100cv"></canvas>
     </div>
     <div class="cmpbottom" id="cmpBottom"></div>
+    <div class="menu" id="menuCmp" hidden></div>
   </div>
 
   <div id="view-main">
@@ -979,6 +982,22 @@
 
   // ------------------------------------------------------------------ dessin
   const PAD = { l: 8, r: 64, t: 8, b: 22 };
+  // records 3 mois du +4 % et du −4 % sur un graphique de prix (MM et SA) : étiquette au-dessus (côté hausses) ou au-dessous (côté baisses)
+  function drawRecLabels(g, vis, X, Y) {
+    g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    vis.forEach((b, i) => {
+      if (!b) return; let above = 0, below = 0;
+      for (const [k, lab] of [['up4', '+4'], ['down4', '−4']]) {
+        const r = recOf(k, b.d); if (!r) continue;
+        const good = recGood(k, r), t = lab + (r > 0 ? '▲' : '▼'), tw = g.measureText(t).width + 8, x = X(i);
+        const y = good ? Y(b.h) - 12 - 16 * above++ : Y(b.l) + 12 + 16 * below++;
+        g.fillStyle = good ? '#3d86e0' : '#e05656'; g.beginPath();
+        if (g.roundRect) g.roundRect(x - tw / 2, y - 7, tw, 14, 7); else g.rect(x - tw / 2, y - 7, tw, 14);
+        g.fill(); g.fillStyle = '#fff'; g.fillText(t, x, y + 0.5);
+      }
+    });
+    g.restore();
+  }
   const cvPrice = $('price'), cvSec = $('secCanvas'), cvHist = $('hist'), cvHistM = $('hist25m'), cvHist2 = $('hist2');
   const cvNet4 = $('net4'), cvNetM = $('net25m'), cvNet25 = $('net25');
   const drawAll = () => {
@@ -1089,21 +1108,7 @@
       g.stroke();
     });
     g.restore();
-    if (cv === cvPrice) {                       // records 3 mois du +4 % et du −4 % : étiquette au-dessus (côté hausses) ou au-dessous (côté baisses)
-      g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      vis.forEach((b, i) => {
-        if (!b) return; let above = 0, below = 0;
-        for (const [k, lab] of [['up4', '+4'], ['down4', '−4']]) {
-          const r = recOf(k, b.d); if (!r) continue;
-          const good = recGood(k, r), t = lab + (r > 0 ? '▲' : '▼'), tw = g.measureText(t).width + 8, x = X(i);
-          const y = good ? Y(b.h) - 12 - 16 * above++ : Y(b.l) + 12 + 16 * below++;
-          g.fillStyle = good ? '#3d86e0' : '#e05656'; g.beginPath();
-          if (g.roundRect) g.roundRect(x - tw / 2, y - 7, tw, 14, 7); else g.rect(x - tw / 2, y - 7, tw, 14);
-          g.fill(); g.fillStyle = '#fff'; g.fillText(t, x, y + 0.5);
-        }
-      });
-      g.restore();
-    }
+    if (cv === cvPrice) drawRecLabels(g, vis, X, Y);
     // dernier cours : ligne pointillée et étiquette colorée sur l'axe
     const lastB = [...bars.values()].pop();
     if (lastB && Y(lastB.c) >= PAD.t && Y(lastB.c) <= PAD.t + ph) {
@@ -1687,9 +1692,11 @@
   const minis = CMP.map(name => {
     const card = document.createElement('div'); card.className = 'card';
     card.innerHTML = `<div class="mini-title"><b>${name}</b><span class="perf"></span><span class="px"></span></div>` +
-      `<canvas></canvas>`;
+      `<div class="ovl"><span class="mabar"></span></div><canvas></canvas>`;
     $('cmpGrid').appendChild(card);
-    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), perf: card.querySelector('.perf'), vis: [], bw: 0 };
+    const ma = card.querySelector('.mabar');
+    ma.addEventListener('click', e => maClick(e, $('menuCmp')));         // MM : afficher / masquer, menu ▾ (comme l'onglet MM)
+    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), perf: card.querySelector('.perf'), ma, vis: [], bw: 0 };
   });
   // séance mise en avant sur les graphiques de l'onglet : survolée, sinon la séance figée (partagée avec l'onglet MM)
   const cmpSel = () => cmpHover || pinned;
@@ -1785,7 +1792,17 @@
       g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
+    drawRecLabels(g, vis, X, Y);                                     // records 3 mois ±4 %, comme le graphique de MM
+    const all = barsFor(m.name), lastB = all[all.length - 1], li = vis.indexOf(lastB);   // dernier cours : pointillé + étiquette sur l'axe
+    if (lastB && Y(lastB.c) >= MPAD.t && Y(lastB.c) <= MPAD.t + ph) {
+      const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown');
+      g.save(); g.strokeStyle = col; g.globalAlpha = 0.55; g.setLineDash([2, 3]); g.lineWidth = 1;
+      g.beginPath(); g.moveTo(li >= 0 ? X(li) : MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke(); g.restore();
+      g.fillStyle = col; g.fillRect(W - MPAD.r + 1, y - 9, MPAD.r - 4, 18);
+      g.fillStyle = '#000'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(nf(lastB.c, pxd(lastB.c)), W - MPAD.r + 4, y);
+    }
     const b = vis[hi_ >= 0 ? hi_ : n - 1], perf = 100 * (b.c / vis[0].c - 1);
+    m.ma.innerHTML = maChipsHtml(b);
     // variation depuis le début de la période affichée (jusqu'à la séance mise en avant) : un fait, sans qualificatif
     m.perf.innerHTML = `<span class="${cls(perf)}">${pct(perf)}</span> ${sinceLbl(vis[0].d)}`;
     m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))} · <span class="nw" title="${trendLong(b.tf)}">MM ${trendShort(b.tf)}</span>`;
@@ -2032,13 +2049,8 @@
 
   // légende (mêmes moyennes mobiles et fond de tendance que la barre du graphique principal) et curseurs d'espaces
   function renderCmpLegend() {
-    $('cmpMa').innerHTML = MAS.map((m, i) => `<span class="ma${m.on ? '' : ' off'}"><i style="background:${maColor(i)}"></i>` +
-      `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span></span>`).join('');
     $('cmpTrend').innerHTML = $('trendLegend').innerHTML;
   }
-  $('cmpMa').addEventListener('click', e => {
-    const nm = e.target.closest('.nm'); if (nm) { const m = MAS[+nm.dataset.i]; m.on = !m.on; maChanged(); }
-  });
   $('cmpTrend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); renderCmp(); }
   });
@@ -2100,10 +2112,10 @@
 
   // ------------------------------------------------------------------ barre du haut du graphique de prix
   // « QQQ Daily ▾ » (choix de l'instrument), chaque moyenne mobile avec son menu ▾, curseur d'espace à droite
-  const menu = $('menu'), menuSec = $('menuSec');      // un menu par onglet (chacun dans sa carte, donc visible dans son onglet)
+  const menu = $('menu'), menuSec = $('menuSec'), menuCmp = $('menuCmp');   // un menu par onglet (chacun visible dans son onglet)
   let menuKey = null;
   const menuIdx = () => menuKey && menuKey.startsWith('ma:') ? +menuKey.slice(3) : -1;
-  function closeMenu() { menu.hidden = true; menuSec.hidden = true; menuKey = null; }
+  function closeMenu() { menu.hidden = true; menuSec.hidden = true; menuCmp.hidden = true; menuKey = null; }
   function openMenu(anchor, key, html, el = menu) {
     if (!el.hidden && menuKey === key) { closeMenu(); return; }
     closeMenu();
@@ -2112,7 +2124,7 @@
     el.style.left = Math.max(4, a.left - card.left) + 'px'; el.style.top = (a.bottom - card.top + 4) + 'px';
   }
   document.addEventListener('click', e => {
-    const open = [menu, menuSec].find(m => !m.hidden);
+    const open = [menu, menuSec, menuCmp].find(m => !m.hidden);
     if (open && !open.contains(e.target) && !(e.target.closest && e.target.closest('[data-menu]'))) closeMenu();
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
@@ -2170,7 +2182,7 @@
   $('trendLegend').addEventListener('click', e => {
     if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); }
   });
-  [menu, menuSec].forEach(el => {
+  [menu, menuSec, menuCmp].forEach(el => {
     el.addEventListener('click', e => {
       const o = e.target.closest('button.opt'); if (!o) return;
       const i = menuIdx();

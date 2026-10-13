@@ -32,6 +32,7 @@ const q=perfs[0].replace('>.perf',''), t2='card'+(parseInt(q.slice(4))+3)+'>canv
 assert(!/Daily<\/b>/.test(html),'titre « Daily » encore présent');
 assert(/depuis le/.test($(q+'>.perf')._h),'variation sur la période absente du titre QQQ');
 assert(/MM \d+[<>=]\d+/.test($(q+'>.px')._h),'constat MM absent du titre');
+assert(/SMA 5[\s\S]*SMA 200/.test($(q+'>.mabar')._h),'légende des MM absente du graphique QQQ (comme MM)');
 assert((strokes[t2]||{})['#d4537e']>0,'T2108 non tracé en ligne');
 assert(!((fills[t2]||{})['#f6e24b']||(fills[t2]||{})['#cf5148']),'T2108 encore en bougies');
 const last=$('dPick').value;
