@@ -273,6 +273,7 @@
   .datebar #dToday { height: 32px; padding: 0 12px; }
   .datebar #dToday.on { color: var(--up); border-color: var(--up); box-shadow: inset 0 0 0 1px var(--up); }
   .datebar .dinfo { font-size: 12px; color: var(--faint); }
+  .wait { color: var(--warn, #d9a400); font-style: italic; }
   .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
   .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; white-space: nowrap; display: inline-block; }
@@ -795,6 +796,24 @@
     for (const k of ['up4', 'down4', 'ratio5', 'ratio10']) row[COL[k]] = own(r[0], k);
     SB.set(r[0], row);
   }
+  // Séance du jour terminée (16 h passées à New York, QQQ a coté ce jour-là) mais breadth pas encore publié (Stockbee, calcul
+  // maison) : on l'ajoute aux séances avec une ligne vide, pour que tous les onglets passent au jour même ; les chiffres
+  // manquants s'affichent « en attente des données » au lieu de reprendre en silence ceux de la veille.
+  const NYNOW = (() => {
+    try {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', hourCycle: 'h23' })
+        .formatToParts(new Date()).map(x => [x.type, x.value]));
+      return { d: `${p.year}-${p.month}-${p.day}`, h: +p.hour };
+    } catch (e) { return null; }
+  })();
+  const PENDING = (() => {
+    const q = ((window.PRICES || {}).QQQ || []).map(r => r[0]); let d = q[q.length - 1];
+    if (!d || !NYNOW) return null;
+    if (d === NYNOW.d && NYNOW.h < 16) d = q[q.length - 2];          // séance en cours : sa bougie est partielle, on ne l'annonce pas
+    const lastSb = [...SB.keys()].sort().pop();
+    return d && (!lastSb || d > lastSb) ? d : null;
+  })();
+  if (PENDING) { const row = STOCKBEE.columns.map(() => null); row[COL.date] = PENDING; SB.set(PENDING, row); }
   const NAMES = Object.keys(window.PRICES);
   const VIXMAP = new Map((window.VIX || []).map(r => [r[0], r[4]]));   // date -> clôture du VIX (CBOE) ; vide si vix_data.js manque
   const $ = id => document.getElementById(id);
@@ -1400,7 +1419,7 @@
         : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`) + mine;
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
-    const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
+    const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>${d === PENDING ? 'En attente des données (publiées après la clôture)' : 'Pas de donnée (jour non boursier)'}`;
     const mine = SB_REAL.has(d) && own(d, k[0]) != null
       ? `<div style="margin-top:2px">Calcul maison${kind === 'hist2' ? ' (expérimental)' : ''} : +${nf(own(d, k[0]))} / −${nf(own(d, k[1]))}</div>` : '';
     const src = kind === 'hist' && !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
@@ -2261,6 +2280,8 @@
     }
     const b = vis[hi_ >= 0 ? hi_ : n - 1], dv = b.c - b.o;
     bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)}${isT ? ' %' : ''} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
+    const want = hi_ < 0 ? (pinned || sbDates()[sbDates().length - 1]) : null;   // séance affichée (« Stats du ») sans valeur publiée
+    if (want && want > b.d && want === PENDING) bx.px.innerHTML = `${fmtDate(want)} · <span class="wait">en attente des données</span> · dernier : ${bx.px.innerHTML}`;
   }
   const boxTip = (bx, b) => bx.kind === 'T2108'
     ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>` +
@@ -2781,6 +2802,10 @@
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
+    // séance affichée sans donnée pour une case (séance du jour pas encore publiée) : « — », « en attente des données », sans jauge ni record
+    const target = at || latest, wait = { solde: d4 !== target, r5: d4 !== target, rm: dq !== target, rq: dq !== target, t2108: dt !== target };
+    const W8 = '<span class="wait" title="Données publiées après la clôture : en attente de la prochaine mise à jour">en attente</span>';
+    tiles.forEach(t => { if (wait[t[0]]) { t[2] = '—'; t[3] = W8; t[4] = ['neutral', '']; } });
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
     const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
@@ -2795,16 +2820,17 @@
       return { cls, txt, title: recs.map(x => `${x.l} : ${x.r > 0 ? 'plus haut' : 'plus bas'} des 3 derniers mois`).join(' · ') + (lag ? ' — indicateur retardé : information, pas un signal' : '') };
     };
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
-      const h = hotOf(id);
+      const h = wait[id] ? null : hotOf(id);
       return `<div class="kpi st-${st[0]} ${h ? h.cls : ''}" data-k="${id}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
         `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
-        gauge(...G[id]) + '</div>';
+        (wait[id] ? '' : gauge(...G[id])) + '</div>';
     }).join('');
     // un chiffre trop large pour sa colonne (« +1 024 / −1 312 » sur mobile) est réduit jusqu'à tenir, sans toucher à la mise en page
     try { box.querySelectorAll('.kpi .val').forEach(v => { let f = parseFloat(getComputedStyle(v).fontSize); while (v.scrollWidth > v.clientWidth && f > 12) v.style.fontSize = (f -= 1) + 'px'; }); } catch (e) { /* DOM simulé */ }
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">${hover >= 0 ? 'Survol' : 'Séance choisie'} : <b>${day(at)}</b></span>`
+        : Object.values(wait).some(Boolean) ? `État au ${day(target)} · <span class="wait">en attente des données : ${[wait.solde && '±4 %', wait.rm && '±25 %', wait.t2108 && 'T2108'].filter(Boolean).join(', ')}</span> (publiées après la clôture ; prochain essai vers ${nextTxt(true)})` + (!wait.solde && d4 > dq ? ' · ±4 % : calcul maison (Stockbee pas encore publié)' : '')
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
       '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : celles du fond des graphiques (MM' + MAS[TR1].len + ' / MM' + MAS[TR2].len + ') · couleurs et zones du breadth : seuils calibrés sur IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
@@ -2895,7 +2921,7 @@
 
   // ------------------------------------------------------------------ fraîcheur des données et bouton « Actualiser »
   // Le site est statique : le bouton ne télécharge pas les cours lui-même, il relit status_data.js sans cache et compare l'horodatage
-  // publié par le robot GitHub (cron 22:17 et 05:43 UTC) et l'heure du dernier scan post-market (clé « pm », workflow du soir toutes
+  // publié par le robot GitHub (cron 22:17, 01:17, 03:17 et 05:43 UTC) et l'heure du dernier scan post-market (clé « pm », workflow du soir toutes
   // les 30 min) ; si une nouvelle version existe, « Afficher » recharge la page.
   const hm = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
   const inPostMarket = t => {                         // créneau du workflow du soir qui tombe pendant le post-market (16 h - 20 h 30, New York, lun.-ven.)
@@ -2904,18 +2930,18 @@
     const mins = +p.hour * 60 + +p.minute;
     return !['Sat', 'Sun'].includes(p.weekday) && mins >= 16 * 60 && mins <= 20 * 60 + 30;
   };
-  const nextRun = () => {                             // {t, pm} : prochaine publication (passage quotidien, ou scan post-market du soir)
+  const nextRun = mainOnly => {                             // {t, pm} : prochaine publication (passage quotidien, ou scan post-market du soir)
     const n = new Date(); let best = null;
-    for (let k = 0; k < 3; k++) for (const [h, m] of [[5, 43], [22, 17]]) {
+    for (let k = 0; k < 3; k++) for (const [h, m] of [[1, 17], [3, 17], [5, 43], [22, 17]]) {
       const t = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + k, h, m)); if (t > n && (!best || t < best.t)) best = { t, pm: false };
     }
-    for (let k = 0; k < 2 * 24 * 3; k++) {             // créneaux du scan post-market : minutes 15 et 45 de chaque heure
+    for (let k = 0; !mainOnly && k < 2 * 24 * 3; k++) {             // créneaux du scan post-market : minutes 15 et 45 de chaque heure
       const t = new Date(Math.floor(n / 1800000) * 1800000 + 900000 + k * 1800000);
       if (t > n && inPostMarket(t)) { if (!best || t < best.t) best = { t, pm: true }; break; }
     }
     return best || { t: n, pm: false };
   };
-  const nextTxt = () => { const r = nextRun(); return hm(r.t) + (r.pm ? ' (scan post-market)' : ''); };
+  const nextTxt = mainOnly => { const r = nextRun(mainOnly); return hm(r.t) + (r.pm ? ' (scan post-market)' : ''); };
   let checkedAt = new Date();
   function freshInfo() {
     const st = window.STATUS, when = st ? new Date(st.updated) : null, ok = when && !isNaN(when);
@@ -2930,7 +2956,7 @@
     // onglet Post-market : le badge donne le scan affiché (date de la séance + heure du relevé), pas la séance du breadth Stockbee
     const ps = tab === 'pm' && PM && PM.snaps.length ? PM.snaps[PM.snaps.length - 1] : null;
     const label = ps ? `Scan du ${fmtDate(ps.d, { weekday: 'short', day: 'numeric', month: 'short' })} · ${ps.closed ? 'post-market terminé' : 'relevé à ' + hm(new Date(ps.at))}`
-      : `Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}`;
+      : `Séance du ${f.last ? fmtDate(f.last, { weekday: 'short', day: 'numeric', month: 'short' }) : '?'}` + (f.last && f.last === PENDING ? ' · <span class="wait">breadth en attente</span>' : '');
     b.innerHTML = `<span class="dot"></span>${label}` +
       `<span class="fv" style="color:var(--faint)">· vérifié à ${hm(checkedAt)}</span>${warn ? `<span class="warnc fw">${warn}</span>` : side ? '<span class="fw" style="color:var(--faint)">· calcul maison indisponible</span>' : ''}<span class="rf"><svg class="i"><use href="#i-refresh"/></svg></span>`;
     b.classList.toggle('stale', !!f.stale || main.length > 0);       // point orange : données en retard ou source principale en échec
