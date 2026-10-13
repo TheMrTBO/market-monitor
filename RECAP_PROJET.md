@@ -139,11 +139,12 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
 - **Séance sélectionnée** : survol (temporaire) ou clic / toucher (figée) sur un graphique → bandeau, case Indices, légende,
   cartes et tableau affichent la même séance ; « ✕ Revenir à la dernière séance », re-clic ou Échap.
 - **Records sur 3 mois** (63 séances) : ▲ 3M = plus haut, ▼ 3M = plus bas ; pastille dans les cases, ▲/▼ dans le tableau,
-  triangles au-dessus des barres d'histogramme (▲ plein / ▽ contour). **Partout** (13/10, décision utilisateur) : **jauge 3M**
-  dans chaque case (plus bas ← séance → plus haut des 63 séances précédentes), pastille ▲/▼ 3M sur QQQ/IWM/BTC dans la case
-  Indices, sur le graphique de prix **lignes « Plus haut / Plus bas 3M »** (H et B des 63 barres) et triangle sur la **1re bougie
-  d'une série** de records (aucun record de même sens dans les 5 barres d'avant), sur les soldes nets triangles + lignes 3M.
-  Pas de lignes 3M sur les histogrammes superposés (trop chargé). Mobile : mini-courbes masquées, la jauge suffit. Couleur = sens pour le marché (bleu favorable, rouge
+  triangles au-dessus des barres d'histogramme (▲ plein / ▽ contour). **Version retenue (13/10, décision utilisateur)** : case dont le chiffre
+  principal bat son record = **fond teinté, bordure 2 px et bandeau « ▲ Plus haut 3 mois » / « ▼ Plus bas 3 mois »** ; jauge 3M en bas de
+  chaque case ; pastille ▲/▼ 3M sur QQQ/IWM/BTC dans la case Indices ; sur le **graphique de prix, uniquement les records 3 mois du
+  +4 % et du −4 %** (étiquettes « +4▲ », « +4▼ », « −4▲ », « −4▼ » au-dessus de la bougie si favorable, en dessous si défavorable) ;
+  triangles sur les soldes nets et les histogrammes. **Pas de lignes « Plus haut / Plus bas 3M »** (essayées puis retirées).
+  Mobile : mini-courbes masquées, la jauge suffit. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
 - **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
   les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.

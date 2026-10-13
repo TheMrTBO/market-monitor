@@ -213,6 +213,12 @@
   .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; white-space: nowrap; display: inline-block; }
   .rec.ru { background: var(--upbg); color: var(--up); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 45%, transparent); }
   .rec.rd { background: var(--downbg); color: var(--down); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 45%, transparent); }
+  /* case dont le chiffre principal bat son plus haut / plus bas des 3 mois : fond teinté, bordure, bandeau */
+  .kpi.hot-up, .kpi.hot-dn { border-width: 2px; padding: 0 11px 7px; }
+  .kpi.hot-up { border-color: var(--up); background: color-mix(in srgb, var(--up) 11%, var(--panel)); }
+  .kpi.hot-dn { border-color: var(--down); background: color-mix(in srgb, var(--down) 11%, var(--panel)); }
+  .kban { margin: 0 -11px 7px; padding: 3px 11px; font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #fff; border-radius: 7px 7px 0 0; }
+  .hot-up .kban { background: var(--up); } .hot-dn .kban { background: var(--down); }
   .g3 { display: flex; align-items: center; gap: 6px; margin-top: 7px; font-size: 10.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
   .g3 .gt { color: var(--muted); font-weight: 600; } .g3 .gb { flex: 1; height: 4px; border-radius: 2px; background: var(--border); position: relative; }
   .g3 i { position: absolute; top: -3px; width: 4px; height: 10px; margin-left: -2px; border-radius: 2px; background: var(--text); }
@@ -689,8 +695,7 @@
   const recTitle = r => r > 0 ? 'Plus haut des 3 derniers mois (63 séances)' : 'Plus bas des 3 derniers mois (63 séances)';
   const recTag = (k, d) => { const r = recOf(k, d); return r ? `<span class="rec ${recGood(k, r) ? 'ru' : 'rd'}" title="${recTitle(r)}">${r > 0 ? '▲' : '▼'} 3M</span>` : ''; };
   const recNum = (k, d, txt) => { const r = recOf(k, d); return r ? `<span class="recn ${recGood(k, r) ? 'ru' : 'rd'}" title="${recTitle(r)}">${txt}${r > 0 ? '▲' : '▼'}</span>` : txt; };
-  // Plus haut / plus bas 3 mois partout : jauge dans les cases, lignes de niveau sur le graphique de prix et les soldes nets,
-  // triangles sur les bougies et les barres record. Fenêtre = 63 séances précédant la séance affichée (sélectionnée ou dernière).
+  // Plus haut / plus bas 3 mois : jauge dans les cases, triangles sur les bougies et les barres record. Fenêtre = 63 séances précédant la séance affichée (sélectionnée ou dernière).
   function range3(k, d) {               // plus bas / plus haut des 63 séances précédant d, et valeur du jour
     const D = sbDates(), i = D.indexOf(d); if (i < 0) return null;
     const f = serFn(k); let lo = Infinity, hi = -Infinity, n = 0;
@@ -699,37 +704,19 @@
   }
   const pRec = {};
   function priceRec(name) {             // bougies qui battent le plus haut (H) / plus bas (B) des 63 barres précédentes
-    if (!pRec[name]) {                  // all : toutes ; first : 1re d'une série (aucun record de même sens dans les 5 barres d'avant)
-      const a = window.PRICES[name] || [], all = new Map(), first = new Map(); let lastHi = -99, lastLo = -99;
+    if (!pRec[name]) {                  // utilisé par la case Indices (pastille ▲ / ▼ 3M de chaque indice)
+      const a = window.PRICES[name] || [], all = new Map();
       for (let i = 63; i < a.length; i++) {
         let hi = -Infinity, lo = Infinity;
         for (let j = i - 63; j < i; j++) { if (a[j][2] > hi) hi = a[j][2]; if (a[j][3] < lo) lo = a[j][3]; }
-        if (a[i][2] > hi) { all.set(a[i][0], 1); if (i - lastHi > 5) first.set(a[i][0], 1); lastHi = i; }
-        else if (a[i][3] < lo) { all.set(a[i][0], -1); if (i - lastLo > 5) first.set(a[i][0], -1); lastLo = i; }
+        if (a[i][2] > hi) all.set(a[i][0], 1); else if (a[i][3] < lo) all.set(a[i][0], -1);
       }
-      pRec[name] = { all, first };
+      pRec[name] = { all };
     }
     return pRec[name];
   }
-  function priceRange(name, d) {
-    const a = window.PRICES[name] || []; let i = a.length - 1; while (i >= 0 && a[i][0] > d) i--; if (i < 1) return null;
-    let hi = -Infinity, lo = Infinity; for (let j = Math.max(0, i - 63); j < i; j++) { if (a[j][2] > hi) hi = a[j][2]; if (a[j][3] < lo) lo = a[j][3]; }
-    return { lo, hi, from: a[Math.max(0, i - 63)][0] };
-  }
   function tri(g, x, y, up, fill, col) { g.beginPath(); if (up) { g.moveTo(x, y - 7); g.lineTo(x - 4.5, y); g.lineTo(x + 4.5, y); } else { g.moveTo(x, y + 7); g.lineTo(x - 4.5, y); g.lineTo(x + 4.5, y); }
     g.closePath(); if (fill) { g.fillStyle = col; g.fill(); } else { g.strokeStyle = col; g.lineWidth = 1.3; g.stroke(); g.lineWidth = 1; } }
-  function rangeLines(c, Y, r, from, fmt, top, bot) {   // lignes pointillées plus haut / plus bas 3 mois, depuis le début de la fenêtre de 63 séances
-    const { g, X, W } = c; let i0 = T.indexOf(from); if (i0 < 0) i0 = from < T[0] ? 0 : -1; if (i0 < 0) return;
-    const x0 = Math.max(PAD.l, X(i0)), x1 = W - PAD.r;
-    g.save(); g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.textBaseline = 'bottom'; g.textAlign = 'left';
-    for (const [v, lab] of [[r.hi, 'Plus haut 3M'], [r.lo, 'Plus bas 3M']]) {
-      const y = Math.round(Y(v)) + 0.5; if (y < top || y > bot) continue;
-      g.strokeStyle = 'rgba(160,172,190,0.75)'; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(x0, y); g.lineTo(x1, y); g.stroke(); g.setLineDash([]);
-      const t = `${lab} ${fmt(v)}`, tw = g.measureText(t).width + 8, lx = Math.max(PAD.l + 2, x1 - tw - 4);
-      g.fillStyle = 'rgba(13,16,22,0.8)'; g.fillRect(lx, y - 14, tw, 13); g.fillStyle = '#c3ccd8'; g.fillText(t, lx + 4, y - 2);
-    }
-    g.restore();
-  }
   function gauge(k, d, fmt) {           // jauge : position du jour dans la plage des 3 derniers mois
     const r = d && range3(k, d); if (!r || r.v == null) return '';
     const p = (r.v - r.lo) / ((r.hi - r.lo) || 1) * 100, rr = recOf(k, d), cl = rr ? (recGood(k, rr) ? 'ru' : 'rd') : '';
@@ -1006,11 +993,20 @@
       g.stroke();
     });
     g.restore();
-    if (cv === cvPrice) {                       // records 3 mois : ▲ / ▼ sur la 1re bougie d'une série, lignes plus haut / plus bas 3M
-      const pr = priceRec(current).first;
-      vis.forEach((b, i) => { const r = b && pr.get(b.d); if (!r) return; tri(g, X(i), r > 0 ? Y(b.h) - 4 : Y(b.l) + 4, r > 0, true, r > 0 ? '#4c95ec' : '#ec6a6a'); });
-      const ref = selDate() || [...bars.keys()].pop(), r = ref && priceRange(current, ref);
-      if (r) rangeLines(c, Y, r, r.from, v => nf(v, pxd(v)), PAD.t, PAD.t + ph);
+    if (cv === cvPrice) {                       // records 3 mois du +4 % et du −4 % : étiquette au-dessus (favorable) ou au-dessous (défavorable)
+      g.save(); g.font = 'bold 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      vis.forEach((b, i) => {
+        if (!b) return; let above = 0, below = 0;
+        for (const [k, lab] of [['up4', '+4'], ['down4', '−4']]) {
+          const r = recOf(k, b.d); if (!r) continue;
+          const good = recGood(k, r), t = lab + (r > 0 ? '▲' : '▼'), tw = g.measureText(t).width + 8, x = X(i);
+          const y = good ? Y(b.h) - 12 - 16 * above++ : Y(b.l) + 12 + 16 * below++;
+          g.fillStyle = good ? '#3d86e0' : '#e05656'; g.beginPath();
+          if (g.roundRect) g.roundRect(x - tw / 2, y - 7, tw, 14, 7); else g.rect(x - tw / 2, y - 7, tw, 14);
+          g.fill(); g.fillStyle = '#fff'; g.fillText(t, x, y + 0.5);
+        }
+      });
+      g.restore();
     }
     // dernier cours : ligne pointillée et étiquette colorée sur l'axe
     const lastB = [...bars.values()].pop();
@@ -1107,12 +1103,10 @@
       g.fillStyle = css(v >= 0 ? '--up' : '--down');
       g.fillRect(X(i) - w / 2, Math.min(Y(0), Y(v)), w, Math.max(1, Math.abs(Y(v) - Y(0))));
     });
-    {                                           // records 3 mois du solde : ▲ / ▼ sur les barres, lignes plus haut / plus bas 3M
+    {                                           // records 3 mois du solde : ▲ / ▼ sur les barres
       const nk = `net:${upKey}/${downKey}`;
       nets.forEach((v, i) => { const r = v == null ? 0 : recOf(nk, T[i]); if (!r) return;
         tri(g, X(i), r > 0 ? Math.min(Y(v), Y(0)) - 3 : Math.max(Y(v), Y(0)) + 3, r > 0, true, css(r > 0 ? '--up' : '--down')); });
-      const si = selIdx(), ref = T[si >= 0 ? si : lastIdx()], r = ref && range3(nk, ref);
-      if (r) rangeLines(c, Y, r, r.from, signed, PAD.t, PAD.t + ph);
     }
     g.fillStyle = css('--muted'); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
     g.fillText('Solde net', PAD.l + 4, PAD.t + 10);
@@ -2070,26 +2064,29 @@
         (r => `<span class="rt">${r ? `<span class="rec ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances">${r > 0 ? '▲' : '▼'} 3M</span>` : ''}</span>`)(priceRec(n).all.get(b.d) || 0) +
         `<span class="chip t${b.st}">${TREND_NAMES[b.st]}</span></button>`).join('') + '</div></div>';
     const tiles = [
-      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>${recTag('net4', d4)}`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
-      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2) + recTag('ratio5', d4), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
-      ['rq', 'Ratio trim. ±25 %', nf(rq, 2) + recTag('rq', dq), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
-      ['rm', 'Ratio mois ±25 %', nf(rm, 2) + recTag('rm', dq), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
-      ['t2108', 'T2108', (t21 == null ? '—' : nf(t21, 1) + ' %') + recTag('t2108', dt), `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
+      ['solde', 'Solde ±4 %', `<span class="${cl(n5S)}">${signed(net4)}</span>`, `5 j : ${signed(net5)}`, n5S, spark(D4.slice(-40).map(net), 'bars')],
+      ['r5', 'Ratio 5 j ±4 %', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['rq', 'Ratio trim. ±25 %', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
+      ['rm', 'Ratio mois ±25 %', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
+      ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
-    box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) =>
-      `<div class="kpi"><div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
-      gauge(...G[id]) + '</div>').join('');
+    box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
+      const [k, d] = G[id], r = recOf(k, d), hot = r ? (recGood(k, r) ? 'hot-up' : 'hot-dn') : '';
+      return `<div class="kpi ${hot}">` + (r ? `<div class="kban" title="${recTitle(r)}">${r > 0 ? '▲ Plus haut 3 mois' : '▼ Plus bas 3 mois'}</div>` : '') +
+        `<div class="top"><span class="lbl">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
+        gauge(...G[id]) + '</div>';
+    }).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">Séance sélectionnée : <b>${day(at)}</b>${hover < 0 ? ' <button id="unpin">✕ Revenir à la dernière séance</button>' : ''}</span>`
         : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
-      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (jauge 3M : position du jour entre les deux) · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
+      '<span class="nhelp"> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand le chiffre principal bat son record ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · couleurs des indices : filtre de tendance des graphiques · couleurs du breadth : seuils calibrés sur la tendance d\'IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
       idx: ['Indices · tendance', `<p>Même filtre que le fond coloré des graphiques : on compare la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b>, et leur pente sur ${TREND_LEN} séances.</p>
         <p><span class="chip t3" style="padding:0 6px">Forte</span> MM${MAS[TR1].len} &gt; MM${MAS[TR2].len}, les deux montent · <span class="chip t2" style="padding:0 6px">Haussière</span> seule la MM${MAS[TR1].len} monte ·
         <span class="chip t1" style="padding:0 6px">Essoufflée</span> aucune ne monte · <span class="chip t0" style="padding:0 6px">Baissière</span> MM${MAS[TR1].len} sous MM${MAS[TR2].len}.</p>
-        <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes ; sur le graphique, triangle sur la 1re bougie d'une série et lignes « Plus haut / Plus bas 3M ».</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
+        <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
       solde: ['Solde ±4 %', `<p>Nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> sur la séance, moins celles en baisse d'au moins 4 % (volume ≥ 100 000 et en hausse).</p>
         <p>Le grand chiffre est celui du ${fmtDate(d4)} ; la <b>couleur</b> suit la somme des 5 dernières séances. ${kRule('net5')}</p>${scaleHtml(-1200, 1200, TH.net5[0], TH.net5[1], net5, signed)}
         <div class="now">Somme 5 j : <b>${signed(net5)}</b> → ${n5S[1].toLowerCase()}.</div><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
@@ -2104,7 +2101,7 @@
         <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
       t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. C'est un indicateur d'<b>extrêmes</b>, pas de tendance : sous 20 % le marché est en survente, au-dessus de 70 % en surachat.</p>
         <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → ${t2S[1].toLowerCase()} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
-      c4: ['Séance : +4 % / −4 %', `<p>Lignes pointillées : plus haut et plus bas du solde sur les 3 derniers mois. Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
+      c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = favorable, rouge = défavorable).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
   }
