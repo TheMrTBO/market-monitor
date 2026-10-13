@@ -200,9 +200,6 @@
   .kpi .ksub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
   .kpi .body { display: grid; grid-template-columns: minmax(0, 1fr) 44%; align-items: end; gap: 8px; }
   .kpi svg.spark { width: 100%; height: 34px; margin-bottom: 3px; }
-  .badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; flex: none; }
-  .b-up { background: var(--upbg); color: var(--up); } .b-down { background: var(--downbg); color: var(--down); }
-  .b-warn { background: var(--warnbg); color: var(--warn); } .b-neutral { background: var(--neutralbg); color: var(--muted); }
   .kidx .rows { display: grid; gap: 2px; margin-top: 6px; }
   .irow { display: grid; grid-template-columns: 36px minmax(0, 1fr) 74px 76px; align-items: center; gap: 6px; width: calc(100% + 12px); padding: 3px 6px;
           margin: 0 -6px; border: 0; background: none; border-radius: 6px; font-size: 12.5px; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
@@ -221,13 +218,12 @@
   .kpi[data-k=solde] .lbl, .kpi[data-k=r5] .lbl { color: var(--text); font-weight: 600; }
   .kpi[data-k=rm] .val { color: color-mix(in srgb, var(--text) 78%, var(--panel)); }
   .kpi[data-k=rm] .lbl, .kpi[data-k=rm] .ksub { color: color-mix(in srgb, var(--muted) 85%, var(--panel)); }
-  .kpi[data-k=rm] svg.spark { opacity: .75; } .kpi[data-k=rm] .badge { opacity: .8; }
+  .kpi[data-k=rm] svg.spark { opacity: .75; }
   .kpi[data-k=rq] .val, .kpi[data-k=t2108] .val { color: var(--muted); }
   .kpi[data-k=rq] .val span, .kpi[data-k=t2108] .val span { color: inherit; }
   .kpi[data-k=rq] .lbl, .kpi[data-k=t2108] .lbl, .kpi[data-k=rq] .ksub, .kpi[data-k=t2108] .ksub { color: var(--faint); }
   .kpi[data-k=rq]:not(.hot-up):not(.hot-dn):not(.hot-warn), .kpi[data-k=t2108]:not(.hot-up):not(.hot-dn):not(.hot-warn) { background: var(--bg); }
   .kpi[data-k=rq] svg.spark, .kpi[data-k=t2108] svg.spark { opacity: .45; }
-  .kpi[data-k=rq] .badge, .kpi[data-k=t2108] .badge { background: none; box-shadow: inset 0 0 0 1px currentColor; opacity: .8; }
   .datebar { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
   .datebar .dlab { color: var(--text); font-weight: 600; }
   .datebar input[type=date] { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px 8px; height: 32px; color-scheme: light dark; }
@@ -341,7 +337,7 @@
     .kpi.kidx, .kpi[data-k=t2108] { grid-column: 1 / -1; }   /* indices et T2108 sur toute la largeur : 1 + 2 + 2 + 1 */
     .kpi .top { font-size: 11px; }
     .kpi .val { font-size: 19px; }
-    .kpi .top { flex-wrap: wrap; row-gap: 3px; } .kpi .badge { font-size: 10px; padding: 1px 6px; }
+    .kpi .top { flex-wrap: wrap; row-gap: 3px; }
     .kpi .body { grid-template-columns: minmax(0, 1fr) 40%; gap: 8px; margin: 2px 0 4px; }
     .kpi svg.spark { height: 24px; margin: 0 0 3px; }
     .kpi .rec { font-size: 9.5px; padding: 0 4px; margin-left: 4px; vertical-align: 3px; }
@@ -2200,7 +2196,7 @@
     const D = sessions(), cur = pinned || D[D.length - 1], i = D.indexOf(cur), j = Math.max(0, Math.min(D.length - 1, i + k));
     if (j === D.length - 1) goToday(); else showDate(D[j]);
   }
-  // pas de verdict : le badge dit dans quelle zone est la valeur par rapport aux deux seuils
+  // pas de verdict : état = zone de la valeur par rapport aux deux seuils (couleur de la case, texte de la bulle ⓘ)
   const kState = (v, k) => { const a = signedOr(k, TH[k][0]), b = signedOr(k, TH[k][1]);
     return v == null || isNaN(v) ? ['neutral', '—'] : v < TH[k][0] ? ['down', `< ${a}`] : v >= TH[k][1] ? ['up', `≥ ${b}`] : ['neutral', `${a} à ${b}`]; };
   const kRule = k => `Couleur : rouge sous ${signedOr(k, TH[k][0])}, bleue à partir de ${signedOr(k, TH[k][1])}, grise entre les deux.`;
@@ -2220,7 +2216,6 @@
     return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${ref}<polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg>`;
   }
   const tipBtn = id => `<button class="tipbtn" data-tip="${id}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>`;
-  const badge = st => `<span class="badge b-${st[0]}">${st[1]}</span>`;
   let TIPS = {};
   function scaleHtml(min, max, a, b, v, f) {
     const pc = x => Math.max(0, Math.min(100, (x - min) / (max - min) * 100));
@@ -2271,7 +2266,7 @@
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
       const h = hotOf(id);
       return `<div class="kpi st-${st[0]} ${h ? h.cls : ''}" data-k="${id}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
-        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}${badge(st)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
+        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         gauge(...G[id]) + '</div>';
     }).join('');
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
