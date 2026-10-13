@@ -30,14 +30,14 @@ const strip=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const heads=A=>[...A.$('secHead')._h.matchAll(/<th[^>]*data-c="([^"]+)"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]+':'+strip(m[2]));
 const rows=A=>[...A.$('secRows')._h.matchAll(/<tr data-s="([^"]+)"[^>]*>(.*?)<\/tr>/g)].map(m=>({s:m[1],h:m[2],cells:[...m[2].matchAll(/<td[^>]*>(.*?)<\/td>/g)].map(x=>strip(x[1]))}));
 const tab=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
-// 1) colonnes et Groupe = libelle court (champ t), description au survol ; sans t : categorie
+// 1) colonnes et Groupe = libelle court integre au dashboard, description au survol
 let A=boot({});
-A.sb.SECTORS.symbols.forEach(x=>{if(x.s==='CIBR')x.t='Cybersécurité';});
 tab(A);
 console.log('colonnes            :',heads(A).join(' | '));
 const r0=rows(A)[0];
 console.log('1re ligne           :',r0.cells.join(' | '),'| description au survol :',/title="Cybersécurité : éditeurs/.test(r0.h));
-console.log('sans libelle court  :',rows(A)[1].s,'->',rows(A)[1].cells[2],'(categorie)');
+const cats=new Set(A.sb.SECTORS.symbols.map(x=>x.g));
+console.log('libelles courts     :',rows(A).filter(r=>!cats.has(r.cells[2])).length,'/',rows(A).length,'(attendu 55 / 55, aucune categorie brute)');
 console.log('ecart : barre derriere le chiffre, ancree a droite :',/<div class="devc"><i class="u" style="width:[\d.]+%"><\/i><span class="v pos">/.test(r0.h),'| plus grand |ecart| = 100 % :',rows(A).some(r=>/style="width:100%"/.test(r.h)));
 // 2) migration d'un ancien ordre memorise (Nom, Description, jauge)
 const B=boot({'mm.seccols':JSON.stringify(['delta','rank','sym','nm','grp','desc','dev','bar'])});tab(B);
@@ -60,3 +60,16 @@ console.log('Aujourd\'hui         :',strip(A.$('secMeta')._t),'| 1er',rows(A)[0]
 A.L.secRows.click({target:{closest:()=>({dataset:{s:'DRAM'}})}});
 console.log('graphique DRAM      :',strip(A.$('secTitle')._t),'|',strip(A.$('secInfo')._t),'|',strip(A.$('secScoreNow')._h));
 console.log('ligne 1,00 du score tracee :',(A.M.secScoreCv||[]).length>0);
+// 6) carte du score : survol -> infobulle avec la valeur du score
+A.L.secScoreCv.pointermove({clientX:600,clientY:80,pageX:600,pageY:80});
+const tipEl=A.document.body.children[A.document.body.children.length-1];
+console.log('survol du score     :',strip(tipEl.innerHTML));
+// 7) mobile : toucher un ticker ouvre le detail, « ‹ Classement » revient a la liste
+A.sb.innerWidth=375;
+A.L.secRows.click({target:{closest:()=>({dataset:{s:'SMH'}})}});
+const det=()=>A.$('view-sec').classList._s.has('detail');
+console.log('mobile : toucher SMH -> detail',det(),'| titre',A.$('secTitle')._t);
+A.L.secBack.click({});
+console.log('mobile : retour -> detail',det());
+A.sb.innerWidth=1200;A.L.secRows.click({target:{closest:()=>({dataset:{s:'XLK'}})}});
+console.log('bureau : clic XLK -> detail',det(),'(attendu false)');

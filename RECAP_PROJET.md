@@ -69,7 +69,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `breadth_data.js` | `window.BREADTH_OWN` | `{columns:[date, up4, down4, ratio5, ratio10], rows, asof, universe}` ; calcul maison, depuis 2026-07 (séries cumulées au fil des jours) |
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
-| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, t, c, op, h, l, v}]}` (t = thème court) ; 55 ETF, 618 séances |
+| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
 | `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, breadth, vix, prices, sectors:{ok, attempts, last, error?}}}` |
 
 Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
@@ -192,18 +192,20 @@ veille, pas de mèches). Fenêtre de dates partagée, survol synchronisé.
 
 ### Onglet « Secteurs »
 Barre « Stats du » en haut (partagée avec MM et SA), liste à gauche, graphique de l'ETF sélectionné à droite (même moteur que le
-graphique principal, contexte propre `secCtx`), panneau **Score avgC7 / avgC65** sous le prix (refonte du 13/10/2026, bureau).
+graphique principal, contexte propre `secCtx`), carte individuelle **Score avgC7 / avgC65** sous la carte du graphique (refonte du 13/10/2026).
 - Classement par **avgC7 / avgC65** (moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières), décroissant, sans seuil,
   **à la séance choisie dans « Stats du »** (sinon la dernière) ; Δ 5 j relatif à cette séance.
-- Colonnes : Rang, Symbole (nom complet au survol), **Groupe** = libellé court du thème (champ `t`, dictionnaire `THEME` de
-  `fetch_sectors.py` ; description complète au survol ; catégorie en repli si `t` absent), **Écart** (= avgC7/avgC65 − 1, en %,
+- Colonnes : Rang, Symbole (nom complet au survol), **Groupe** = libellé court du thème tiré de la description (dictionnaire
+  `THEME` du dashboard, à compléter quand on ajoute un ETF dans `fetch_sectors.py` ; sinon la catégorie ; description au survol), **Écart** (= avgC7/avgC65 − 1, en %,
   barre derrière le chiffre ancrée à droite, longueur ∝ |écart|, bleue / rouge selon le signe), **Δ 5 j**. Colonnes Nom et
   Description retirées (demande utilisateur). Colonnes triables (clic) et **déplaçables** (glisser-déposer), ordre mémorisé. ↑↓ au clavier.
 - Filtres par catégorie (Tous · Secteurs · Industries · Thèmes · Matières · Pays) : masquent des lignes, rangs globaux conservés.
 - Bulles ⓘ (classement, graphique, score) au lieu du paragraphe ; curseurs d'espace retirés (Réglages) ; **pas de fond de tendance**
   sur le graphique de l'ETF (demande utilisateur) ; légende OHLC + valeurs des MM posée sur le graphique, comme MM.
-- Score : courbe avgC7/avgC65, ligne pointillée 1,00, aire bleue au-dessus / rouge en dessous, point = séance du classement.
-- Mobile (maître / détail) : maquette faite (`outputs/market-monitor-ux/secteurs/` du projet parent), **pas encore codé**.
+- Carte Score : courbe avgC7/avgC65, ligne pointillée 1,00, aire bleue au-dessus / rouge en dessous, point = séance du classement ;
+  même fenêtre de dates que le prix ; survol (infobulle score + écart) et glisser partagés avec le graphique de l'ETF.
+- Mobile (≤ 640 px) : liste plein écran (Rang · Symbole + groupe dessous · Écart · Δ 5 j) ; toucher un ticker ouvre le détail
+  (graphique + carte Score), « ‹ Classement » pour revenir.
 - Les ETF avec moins de 65 séances (ex. NCLD) restent listés **sans rang**, toujours en bas.
 - 55 ETF : les 31 symboles TC2000 de l'utilisateur (YINN, ETF à levier ×3, **retiré**) + 24 ajouts (SPDR manquants,
   industries, mines, thèmes). Liste et descriptions dans `fetch_sectors.py`.

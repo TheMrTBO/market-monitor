@@ -2,7 +2,7 @@
 """Telecharge les bougies daily d'une liste d'ETF sectoriels / thematiques et ecrit sectors_data.js (onglet « Secteurs »).
 
 Source : Yahoo Finance via yfinance (gratuit, sans cle). Clotures de seance non ajustees des dividendes, comme dans TC2000.
-Sortie : window.SECTORS = { asof, dates:[...], symbols:[{s, n, g, o, d (description), t (theme court), c:[...clotures], op:[...], h:[...], l:[...], v:[...]}] }
+Sortie : window.SECTORS = { asof, dates:[...], symbols:[{s, n, g, o, d (description), c:[...clotures], op:[...], h:[...], l:[...], v:[...]}] }
         (tous les tableaux sont alignes sur dates ; null quand l'ETF ne cotait pas encore).
 Le classement lui-meme (avgC7 / avgC65, rang, variation de rang) est calcule dans le navigateur.
 
@@ -145,23 +145,6 @@ DESC = {
 }
 
 
-# Libelle court du theme (colonne « Groupe » de l'onglet Secteurs), tire de la description ; description complete au survol.
-THEME = {
-    "CIBR": "Cybersécurité", "CLOU": "Cloud", "XLK": "Technologie", "DRAM": "Mémoire", "XOP": "Pétrole et gaz (E&P)",
-    "QTUM": "Informatique quantique", "XLE": "Énergie", "DISK": "Mémoire (active)", "IYZ": "Télécoms", "HYDR": "Hydrogène",
-    "XLV": "Santé", "XLC": "Communication", "GDX": "Mines d'or", "BKCH": "Blockchain", "PPH": "Pharmaceutique",
-    "XBI": "Biotech (équipondéré)", "LIT": "Lithium et batteries", "SLV": "Argent métal", "UFO": "Espace",
-    "PBJ": "Agroalimentaire", "XLB": "Matériaux", "XRT": "Distribution", "XLF": "Finance", "XLU": "Services aux collectivités",
-    "URA": "Uranium", "KWEB": "Internet chinois", "XHB": "Construction résidentielle", "EWQ": "France", "TAN": "Solaire",
-    "XAR": "Aéronautique et défense", "NCLD": "Neocloud (IA)", "XLI": "Industrie", "XLY": "Conso. discrétionnaire",
-    "XLP": "Conso. de base", "XLRE": "Immobilier", "SMH": "Semi-conducteurs", "IGV": "Logiciels", "IBB": "Biotech (grandes cap.)",
-    "IHI": "Dispositifs médicaux", "KRE": "Banques régionales", "KIE": "Assurance", "JETS": "Compagnies aériennes",
-    "IYT": "Transport", "OIH": "Services pétroliers", "XME": "Métaux et mines", "COPX": "Mines de cuivre",
-    "REMX": "Terres rares", "MOO": "Agriculture", "ICLN": "Énergie propre", "NLR": "Nucléaire", "BOTZ": "Robotique et IA",
-    "ARKK": "Innovation (ARK)", "FDN": "Internet", "PAVE": "Infrastructures US", "FINX": "Fintech",
-}
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--days", type=int, default=900, help="historique en jours calendaires (900 = environ 620 seances : de quoi afficher la SMA 200)")
@@ -195,7 +178,7 @@ def main():
         if not ser:
             print(f"  ! {sym} : aucune donnee (ticker inconnu de Yahoo ?)")
             continue
-        rec = {"s": sym, "n": name, "g": grp, "o": origin, "d": DESC.get(sym, ""), "t": THEME.get(sym, "")}
+        rec = {"s": sym, "n": name, "g": grp, "o": origin, "d": DESC.get(sym, "")}
         for key, col in fields.items():
             vals = []
             for d in dates:

@@ -34,7 +34,7 @@ const rectOf={secScroll:{top:180},secCanvas:{top:120}};
 for(const [id,r] of Object.entries(rectOf)){const el=A.$(id);el.getBoundingClientRect=()=>({left:0,top:r.top,right:900,bottom:r.top+400,width:900,height:400});}
 A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
 console.log('liste  : hauteur =',A.$('secScroll').style.height,'(attendu',900-180-14+'px)');
-console.log('graph. : hauteur =',A.$('secCanvas').style.height,'(attendu',900-120-14-190+'px : place pour le score)');
+console.log('graph. : hauteur =',A.$('secCanvas').style.height,'(attendu',900-120-14-200-8-6+'px : carte du score 200 px par defaut + 8 px d\'ecart)');
 // redimensionnement de la fenetre
 A.sb.innerHeight=700;
 A.L.tabs.click({target:{closest:()=>({dataset:{tab:'main'}})}});A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
