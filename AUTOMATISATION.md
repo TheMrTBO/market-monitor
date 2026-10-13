@@ -5,19 +5,25 @@ adresse web (ex. `https://TON-PSEUDO.github.io/market-monitor/`).
 
 ## Ce qui est automatisé
 Chaque jour (week-ends compris, le BTC cote 7 j/7), après la clôture US, le workflow `.github/workflows/update.yml` :
-1. lance `update_all.py`, qui récupère : Stockbee (Google Sheet public), VIX (CBOE), QQQ / IWM (Yahoo Finance),
-   BTC (Coinbase Exchange), ETF sectoriels (Yahoo Finance) ;
-2. enregistre les fichiers de données dans le dépôt (les dernières bonnes valeurs sont conservées si une source échoue) ;
-3. republie le site sur GitHub Pages.
+1. complète l'historique des clôtures US (`fetch_history.py`, Polygon / Massive, clé gratuite en GitHub Secret) ;
+2. lance `update_all.py`, qui récupère : Stockbee (Google Sheet public), VIX (CBOE), QQQ / IWM (Yahoo Finance),
+   BTC (Coinbase Exchange), ETF sectoriels (Yahoo Finance), et calcule le **breadth +4 % / −4 % et les ratios 5 / 10 j
+   maison** (`breadth_own.py` → `breadth_data.js`) ;
+3. enregistre les fichiers de données dans le dépôt (les dernières bonnes valeurs sont conservées si une source échoue) ;
+4. republie le site sur GitHub Pages.
 
 Horaires (UTC) : `22:17` et un rattrapage à `05:43` le lendemain. Les week-ends et jours fériés US, seules les données BTC changent. GitHub peut retarder une exécution
 de quelques minutes à quelques dizaines de minutes ; c'est normal. Lancement manuel possible à tout moment :
 onglet **Actions** > « Mise à jour des données et publication » > **Run workflow**.
 
 ## Aucune information privée
-- **Aucune clé API, aucun mot de passe, aucun secret** : toutes les sources sont publiques et sans clé.
-- Le fichier `.env` (ancienne clé Polygon) est **exclu** par `.gitignore` et ne doit jamais être publié.
-  Polygon n'est plus utilisé : tu peux supprimer cette clé sur ton compte Massive / Polygon.
+- **Une seule clé : `POLYGON_API_KEY`** (plan gratuit Polygon / Massive), stockée **uniquement** dans les GitHub Secrets
+  (Settings > Secrets and variables > Actions > New repository secret). Elle n'est jamais écrite dans un fichier du dépôt.
+  Toutes les autres sources sont publiques et sans clé.
+- Le fichier `.env` local (même clé, pour les essais sur ton Mac) est **exclu** par `.gitignore` et ne doit jamais être publié.
+  Une clé qui a été exposée doit être révoquée sur ton compte Massive / Polygon puis recréée.
+- **Aucune donnée brute** n'est publiée : l'historique des clôtures reste dans le cache GitHub Actions (hors dépôt) ;
+  seuls des comptes agrégés (`breadth_data.js`) sont committés.
 - Ne publie **que ce dossier** (`agents/market-monitor`), pas le projet `21StudentSearch` entier (il contient ton profil,
   ta mémoire projet et tes candidatures).
 - Le dépôt étant public, ta **liste d'ETF** (`fetch_sectors.py`) et le dashboard seront visibles de toute personne qui
@@ -39,6 +45,18 @@ onglet **Actions** > « Mise à jour des données et publication » > **Run work
 4. Onglet **Actions** : si GitHub propose d'activer les workflows, accepte, puis lance une première fois
    « Mise à jour des données et publication » avec **Run workflow**.
 5. L'adresse du site apparaît à la fin du job `deploy` (et dans Settings > Pages).
+
+## Calcul maison du breadth (+4 % / −4 %, ratios 5 / 10 j)
+- `fetch_history.py` télécharge, une fois par jour, la clôture et le volume de tous les titres US (un appel `grouped daily`)
+  et conserve les splits à part ; l'historique (~72 séances) vit dans le cache Actions `cache/`, jamais dans le dépôt.
+  **Le tout premier passage dure ~15 min** (72 appels à 5/min, limite du plan gratuit) ; ensuite 1 à 2 appels par jour.
+- `breadth_own.py` applique les formules TC2000 (identiques à celles de Stockbee) et écrit `breadth_data.js`.
+- **Période de transition** : Stockbee reste la référence affichée ; notre calcul est tracé en **pointillé** sur
+  l'histogramme +4 % / −4 %, et complète automatiquement une séance que Stockbee n'a pas (encore) publiée. Le pied de page
+  indique l'écart moyen entre les deux sur les 20 dernières séances (~3 titres attendus).
+- `validate_data.py` refuse un calcul dont l'écart avec Stockbee est anormal (ex. séance Polygon partielle) : les dernières
+  données valides sont alors conservées.
+- Sans la clé (ou si Polygon est en panne), le site reste publié avec le dernier calcul valide ; l'étape est signalée ⚠.
 
 ## Surveillance
 - En bas du dashboard : « Dernière mise à jour automatique : … » avec la dernière séance de chaque source.

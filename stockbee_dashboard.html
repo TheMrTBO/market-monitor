@@ -242,6 +242,7 @@
       <div class="legend">
         <span><i style="background:var(--down)"></i>−4 % (premier plan)</span>
         <span><i style="background:var(--up)"></i>+4 % (second plan)</span>
+        <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
       </div>
       <canvas id="hist"></canvas>
     </div>
@@ -297,7 +298,7 @@
   <footer>
     <div id="dataStatus"></div>
     Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
-    haussier : +4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · Prix : Polygon.io / Massive · VIX : CBOE.
+    haussier : +4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Polygon.io / Massive · VIX : CBOE.
   </footer>
 </div>
 
@@ -306,7 +307,7 @@
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['stockbee_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'status_data.js'].forEach(function (f) {
+    ['stockbee_data.js', 'breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'status_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
@@ -324,6 +325,22 @@
   const COL = Object.fromEntries(STOCKBEE.columns.map((c, i) => [c, i]));
   const SB = new Map(STOCKBEE.rows.map(r => [r[0], r]));       // date -> ligne Stockbee
   const sb = (d, k) => { const r = SB.get(d); return r ? r[COL[k]] : null; };
+  // Calcul maison (breadth_data.js, calculé par breadth_own.py) : +4 % / −4 % et ratios 5 / 10 j. Stockbee reste prioritaire ;
+  // une séance qu'il n'a pas (encore) publiée est complétée par notre calcul, et sert de contrôle croisé en pointillé.
+  const SB_REAL = new Set(STOCKBEE.rows.map(r => r[0]));
+  const OWN = window.BREADTH_OWN || null;
+  const OWNC = OWN ? Object.fromEntries(OWN.columns.map((c, i) => [c, i])) : {};
+  const OWNMAP = new Map(OWN ? OWN.rows.map(r => [r[0], r]) : []);
+  const own = (d, k) => { const r = OWNMAP.get(d); return r ? r[OWNC[k]] : null; };
+  const legOwn = document.getElementById('legOwn');
+  if (OWN && legOwn) legOwn.hidden = false;      // légende du pointillé : seulement si le calcul maison est chargé
+  for (const r of OWN ? OWN.rows : []) {
+    if (SB.has(r[0])) continue;
+    const row = STOCKBEE.columns.map(() => null);
+    row[COL.date] = r[0];
+    for (const k of ['up4', 'down4', 'ratio5', 'ratio10']) row[COL[k]] = own(r[0], k);
+    SB.set(r[0], row);
+  }
   const NAMES = Object.keys(window.PRICES);
   const VIXMAP = new Map((window.VIX || []).map(r => [r[0], r[4]]));   // date -> clôture du VIX (CBOE) ; vide si vix_data.js manque
   const $ = id => document.getElementById(id);
@@ -650,6 +667,20 @@
       g.fillStyle = css(col);
       vals.forEach((v, i) => { if (v == null) return; g.fillRect(X(i) - w / 2, Y(v), w, Math.max(1, Y(0) - Y(v))); });
     }
+    if (upKey === 'up4' && OWNMAP.size) {      // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
+      g.save(); g.setLineDash([3, 3]); g.lineWidth = 1.5; g.strokeStyle = css('--ctext');
+      for (const key of [upKey, downKey]) {
+        g.beginPath(); let pen = false;
+        T.forEach((d, i) => {
+          const v = SB_REAL.has(d) ? own(d, key) : null;
+          if (v == null) { pen = false; return; }
+          if (pen) g.lineTo(X(i), Y(v)); else g.moveTo(X(i), Y(v));
+          pen = true;
+        });
+        g.stroke();
+      }
+      g.restore();
+    }
     cursor(c);
   }
 
@@ -723,8 +754,11 @@
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
+    const mine = kind === 'hist' && SB_REAL.has(d) && own(d, 'up4') != null
+      ? `<div style="margin-top:2px">Calcul maison : +${nf(own(d, 'up4'))} / −${nf(own(d, 'down4'))}</div>` : '';
+    const src = kind === 'hist' && !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
     return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
-      (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>';
+      (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>' + mine + src;
   }
   function setHover(i, kind, e) {
     hover = i;
@@ -1507,7 +1541,7 @@
   // statut de la mise à jour automatique (status_data.js, écrit par update_all.py) : date, et dernière séance de chaque source
   (() => {
     const st = window.STATUS, el = $('dataStatus'); if (!st || !el) return;
-    const names = { stockbee: 'Stockbee', vix: 'VIX', prices: 'Prix', sectors: 'Secteurs' };
+    const names = { stockbee: 'Stockbee', breadth: 'Calcul maison', vix: 'VIX', prices: 'Prix', sectors: 'Secteurs' };
     const when = new Date(st.updated);
     const stamp = isNaN(when) ? st.updated : when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
     // données périmées : la mise à jour est quotidienne, donc plus de 30 h sans mise à jour = un passage a été sauté ou a échoué
@@ -1517,7 +1551,12 @@
       const s = st.sources && st.sources[k]; if (!s) return '';
       const d = s.last ? fmtDate(s.last, { day: 'numeric', month: 'short' }) : '?';
       return s.ok ? `${label} ${d} ✓` : `<span class="neg" title="${(s.error || '').replace(/"/g, '&quot;')}">${label} ${d} ⚠ non mis à jour</span>`;
-    }).filter(Boolean).join(' · ') + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+    }).filter(Boolean).join(' · ') + (() => {      // contrôle croisé : écart moyen entre notre calcul et Stockbee (20 dernières séances communes)
+      const common = OWN ? OWN.rows.filter(r => SB_REAL.has(r[0])).slice(-20) : [];
+      if (common.length < 5) return '';
+      const mad = common.reduce((a, r) => a + Math.abs(r[OWNC.up4] - sb(r[0], 'up4')) + Math.abs(r[OWNC.down4] - sb(r[0], 'down4')), 0) / (2 * common.length);
+      return ` · écart calcul maison / Stockbee (${common.length} séances) : ±${nf(mad, 1)} titres`;
+    })() + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
   })();
 
   // bouton « Actualiser » : recharge la page avec un paramètre anti-cache pour récupérer les dernières données publiées

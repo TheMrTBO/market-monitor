@@ -12,4 +12,6 @@ for f in tests/node/*.js; do
 done
 echo "--- test Python : annulation des donnees invalides"
 python3 tests/test_update_rollback.py || fail=1
+echo "--- test Python : calcul maison du breadth, historique et controle croise"
+python3 tests/test_breadth_own.py || fail=1
 exit $fail

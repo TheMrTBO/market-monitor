@@ -3,6 +3,8 @@
 
 Etapes (chacune est un script independant ; si une etape echoue, les anciennes donnees sont conservees) :
   stockbee  -> stockbee_data.js   (Google Sheet public de Stockbee)
+  breadth   -> breadth_data.js    (calcul maison +4 % / -4 % depuis l'historique cache/history/ ; fetch_history.py le remplit
+                                   avant, voir le workflow ; Stockbee sert de controle croise)
   vix       -> vix_data.js        (fichier CSV public du CBOE)
   prices    -> prices_data.js     (QQQ, IWM : Yahoo Finance ; BTC : Coinbase)
   sectors   -> sectors_data.js    (ETF sectoriels : Yahoo Finance)
@@ -10,7 +12,8 @@ Etapes (chacune est un script independant ; si une etape echoue, les anciennes d
 Chaque fichier produit est controle (validate_data.py) avant d'etre conserve : s'il est invalide, ou plus ancien que
 la version precedente, il est annule et les anciennes donnees sont restaurees.
 
-Aucune cle API ni identifiant : toutes les sources sont publiques. Utilise en local ou par GitHub Actions
+Aucune cle API n'est necessaire ici : le telechargement des clotures (Polygon / Massive, cle POLYGON_API_KEY) est fait par
+fetch_history.py, lance avant cet orchestrateur. Utilise en local ou par GitHub Actions
 (voir AUTOMATISATION.md). Code de sortie : 0 si tout est a jour, 1 si au moins une etape a echoue.
 """
 import json
@@ -28,6 +31,7 @@ STATUS = HERE / "status_data.js"
 # (nom, script, fichier principal, fichiers a restaurer en cas d'echec, tentatives, attentes entre tentatives en secondes)
 STEPS = [
     ("stockbee", "fetch_stockbee.py", "stockbee_data.js", ("stockbee_data.js", "stockbee_market_monitor.csv"), 3, (30, 90)),
+    ("breadth", "breadth_own.py", "breadth_data.js", ("breadth_data.js",), 1, (0,)),
     ("vix", "fetch_vix.py", "vix_data.js", ("vix_data.js",), 3, (30, 90)),
     ("prices", "fetch_prices.py", "prices_data.js", ("prices_data.js",), 3, (60, 180)),   # Yahoo : 429 possibles depuis une IP de serveur
     ("sectors", "fetch_sectors.py", "sectors_data.js", ("sectors_data.js",), 3, (60, 180)),
@@ -43,6 +47,8 @@ def last_date(name, path):
             return data["rows"][-1][0]
         if name == "vix":
             return data[-1][0]
+        if name == "breadth":
+            return data["rows"][-1][0]
         if name == "prices":
             return min(v[-1][0] for v in data.values() if v)        # la serie la plus en retard
         if name == "sectors":
@@ -58,8 +64,11 @@ def run_step(name, script, out_file, restore, attempts, waits):
     old_last = last_date(name, out_path)
 
     def rollback():
-        for f, data in backup.items():
-            (HERE / f).write_bytes(data)
+        for f in restore:
+            if f in backup:
+                (HERE / f).write_bytes(backup[f])
+            else:                                           # le fichier n'existait pas avant : on retire le produit invalide
+                (HERE / f).unlink(missing_ok=True)
 
     last_err = ""
     for i in range(attempts):

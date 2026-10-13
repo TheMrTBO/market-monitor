@@ -21,3 +21,5 @@ Lis d'abord **`RECAP_PROJET.md`** (état, architecture, décisions, pièges, pla
 ## Structure
 Front : un seul fichier `stockbee_dashboard.html` (canvas, aucune librairie). Données : `*_data.js` écrits par
 `update_all.py`. Tests : `tests/`. Workflow : `.github/workflows/update.yml`.
+Calcul maison du breadth : `fetch_history.py` (clôtures brutes + splits, cache hors dépôt) → `breadth_own.py` →
+`breadth_data.js`. Clé `POLYGON_API_KEY` : GitHub Secret ou `.env` local, jamais dans un fichier versionné.

@@ -17,6 +17,7 @@ HERE = Path(__file__).resolve().parent
 
 FILES = {
     "stockbee": "stockbee_data.js",
+    "breadth": "breadth_data.js",
     "vix": "vix_data.js",
     "prices": "prices_data.js",
     "sectors": "sectors_data.js",
@@ -76,6 +77,42 @@ def check_stockbee(data, today):
     return errors
 
 
+def check_breadth(data, today, stockbee_path=None):
+    """Calcul maison (breadth_own.py) : structure, bornes, fraicheur, puis controle croise avec Stockbee.
+
+    Un ecart moyen anormal sur les seances communes (ex. une seance Polygon partielle) invalide le fichier ; l'ecart
+    normal observe est de ~3 titres, le seuil est volontairement large pour ne signaler que les vraies anomalies.
+    """
+    errors = []
+    cols = {c: i for i, c in enumerate(data["columns"])}
+    rows = data["rows"]
+    if len(rows) < 10:
+        errors.append(f"breadth : seulement {len(rows)} seances (minimum 10)")
+        return errors
+    _check_dates([r[0] for r in rows], "breadth", today, 6, 12, errors)
+    for k in ("up4", "down4"):
+        vals = [r[cols[k]] for r in rows[-250:]]
+        if any(v is None or not isinstance(v, int) for v in vals):
+            errors.append(f"breadth : colonne {k} contient des valeurs absentes ou non entieres")
+        elif min(vals) < 0 or max(vals) > 5000:
+            errors.append(f"breadth : {k} hors bornes [0, 5000] (min {min(vals)}, max {max(vals)})")
+    if stockbee_path:
+        try:
+            sb = load_js(stockbee_path)
+            sc = {c: i for i, c in enumerate(sb["columns"])}
+            ref = {r[0]: (r[sc["up4"]], r[sc["down4"]]) for r in sb["rows"][-60:]
+                   if r[sc["up4"]] is not None and r[sc["down4"]] is not None}
+        except (OSError, ValueError, KeyError):
+            ref = {}
+        common = [(r[cols["up4"]], r[cols["down4"]], *ref[r[0]]) for r in rows if r[0] in ref][-20:]
+        if len(common) >= 5:
+            mad = sum(abs(a - c) + abs(b - d) for a, b, c, d in common) / (2 * len(common))
+            scale = sum(c + d for _, _, c, d in common) / (2 * len(common))
+            if mad > max(30, 0.2 * scale):
+                errors.append(f"breadth : ecart anormal avec Stockbee ({mad:.0f} titres en moyenne sur {len(common)} seances)")
+    return errors
+
+
 def check_vix(data, today):
     errors = []
     if len(data) < 1500:
@@ -117,7 +154,7 @@ def check_sectors(data, today):
     return errors
 
 
-CHECKS = {"stockbee": check_stockbee, "vix": check_vix, "prices": check_prices, "sectors": check_sectors}
+CHECKS = {"stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors}
 
 
 def validate(name, path=None, today=None):
@@ -128,6 +165,8 @@ def validate(name, path=None, today=None):
     except (OSError, ValueError) as e:
         return [f"{name} : fichier illisible ({e.__class__.__name__}: {e})"]
     try:
+        if name == "breadth":                 # controle croise avec le fichier Stockbee voisin
+            return check_breadth(data, today or date.today(), path.parent / FILES["stockbee"])
         return CHECKS[name](data, today or date.today())
     except (KeyError, IndexError, TypeError) as e:
         return [f"{name} : structure inattendue ({e.__class__.__name__}: {e})"]
