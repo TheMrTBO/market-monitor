@@ -96,6 +96,14 @@ def check_breadth(data, today, stockbee_path=None):
             errors.append(f"breadth : colonne {k} contient des valeurs absentes ou non entieres")
         elif min(vals) < 0 or max(vals) > 5000:
             errors.append(f"breadth : {k} hors bornes [0, 5000] (min {min(vals)}, max {max(vals)})")
+    # fenetres longues (mois, trimestre experimental, T2108) : absentes tant que l'historique est court, bornees sinon ;
+    # pas de controle croise avec Stockbee (niveaux volontairement differents : seule la tendance est suivie)
+    for k, hi in (("up25m", 5000), ("down25m", 5000), ("up25q", 8000), ("down25q", 8000), ("t2108", 100)):
+        if k not in cols:
+            continue
+        vals = [r[cols[k]] for r in rows[-250:] if cols[k] < len(r) and r[cols[k]] is not None]
+        if any(not isinstance(v, (int, float)) or v < 0 or v > hi for v in vals):
+            errors.append(f"breadth : {k} hors bornes [0, {hi}]")
     if stockbee_path:
         try:
             sb = load_js(stockbee_path)

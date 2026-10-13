@@ -305,7 +305,11 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 > Reste : (a) corriger le calcul maison en production, (b) suite mobile ci-dessous, (c) lots 2 et 3 du calcul maison.
 
 ### Point 1 — Calculer les indicateurs nous-mêmes, sans dépendre de Stockbee
-> **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j) ; lots 2 (±25 % mois, T2108) et 3 (±25 % trimestre) à faire — voir « Avancement du point 1 » plus haut.
+> **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j). **Lots 2 et 3 branchés le 2026-10-13 en pointillé** (cases et seuils restent
+> Stockbee) : ±25 % mois (C/C[20], prix de départ ≥ 5 $, V ≥ 100 000 ; corrélation 0,999 / 0,988, niveaux 13 % / 29 % sous Stockbee ;
+> ratio mois corrélé à 0,996), T2108 (SMA 40 ; corrélation 0,98, biais +0 à +6 pts), ±25 % trimestre **expérimental** (C / plus bas ou plus
+> haut des 63 séances ; 9 séances comparables, comptes 40-70 % sous Stockbee : définition à retrouver). Clôtures ajustées des splits sur
+> toute la fenêtre. Historique téléchargé : 130 séances. Mesures sur le cache local 2026-07-01 → 2026-10-12.
 **Objectif** : produire `up4/down4, ratio5/10, up25q/down25q, up25m/down25m, up50m/down50m, up13_34d/down13_34d, T2108,
 univers` à partir de données de marché brutes, avec le même format que `stockbee_data.js`, et garder Stockbee comme
 contrôle croisé facultatif.

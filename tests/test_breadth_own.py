@@ -56,6 +56,31 @@ checks["ratio5 absent avant 5 seances, puis somme up / somme down"] = \
 checks["ratio10 absent avant 10 seances"] = [r[4] for r in rows[:9]] == [None] * 9 and rows[9][4] == round(55 / 100, 2)
 checks["division par zero : ratio absent, pas d'exception"] = rows[-1][3] is None or rows[-1][3] > 0
 
+# ---------------------------------------------------------------- fenetres longues : mois, trimestre, T2108, splits
+LD = [f"s{k:03d}" for k in range(70)]                              # 70 seances fictives (ordre lexicographique = temps)
+LU = {"UP", "DN", "FLAT", "CHEAP", "LOWV", "SPLT"}
+def _day(k):
+    up = 10.0 if k < 50 else 13.0                                   # UP : +30 % a partir de la seance 50
+    dn = 10.0 if k < 50 else 7.0                                    # DN : -30 %
+    return {"UP": [up, 200_000], "DN": [dn, 200_000], "FLAT": [10.0, 200_000],
+            "CHEAP": [2.0 if k < 50 else 3.0, 200_000],                # +50 % mais cloture de depart < 5 $ : ignore
+            "LOWV": [10.0 if k < 50 else 13.0, 50_000],                 # +30 % mais volume < 100 000 : ignore
+            "SPLT": [100.0 if k < 60 else 50.0, 200_000]}               # split 2-pour-1 a la seance 60 : pas une baisse
+LH = {d: _day(k) for k, d in enumerate(LD)}
+long_ = bo.compute_long(LD, LH, LU, {LD[60]: {"SPLT": 2.0}})
+checks["mois : absent avant 20 seances"] = long_[LD[19]]["up25m"] is None and long_[LD[20]]["up25m"] == 0
+checks["mois : +25 % / -25 % sur 20 seances, filtres 5 $ et volume"] = (long_[LD[60]]["up25m"], long_[LD[60]]["down25m"]) == (1, 1)
+checks["mois : split 2-pour-1 ajuste (pas de faux -50 %)"] = (long_[LD[65]]["up25m"], long_[LD[65]]["down25m"]) == (1, 1)
+checks["mois : sans declarer le split, faux -50 % (le test verifie bien l'ajustement)"] = \
+    bo.compute_long(LD, LH, LU, {})[LD[65]]["down25m"] == 2
+checks["trimestre : absent avant 63 seances, puis plus bas / plus haut de la fenetre"] = \
+    long_[LD[62]]["up25q"] is None and (long_[LD[63]]["up25q"], long_[LD[63]]["down25q"]) == (1, 1)
+t = long_[LD[50]]["t2108"]            # seance 50 : UP, LOWV, CHEAP au-dessus de leur SMA 40 ; DN dessous ; FLAT et SPLT egaux
+checks["T2108 : absent avant 40 seances, puis % au-dessus de la SMA 40"] = \
+    long_[LD[38]]["t2108"] is None and t == round(100 * 3 / 6, 2)
+rows_l = bo.build_rows({LD[60]: [1, 1]}, long_)
+checks["lignes : colonnes longues a la suite des ratios"] = rows_l[0][5:] == [long_[LD[60]][k] for k in bo.LONG]
+
 # ---------------------------------------------------------------- conservation des lignes publiees
 with tempfile.TemporaryDirectory() as tmp:
     out = Path(tmp) / "breadth_data.js"
@@ -68,6 +93,8 @@ with tempfile.TemporaryDirectory() as tmp:
     checks["lignes anciennes conservees, recalculees ecrasees, nouvelles ajoutees"] = (
         final["2026-08-03"][1:3] == [100, 50] and final["2026-09-01"][1:3] == [200, 80] and "2026-09-02" in final)
     checks["fichier illisible : repart de zero sans exception"] = bo.load_existing(Path(tmp) / "absent.js") == {}
+    bo.write_js(bo.build_rows({"2026-09-01": [1, 1]}, {"2026-09-01": {"up25m": 40, "t2108": 31.5}}), 5000, out)
+    checks["colonnes longues relues (mois, T2108)"] = bo.load_existing_long(out)["2026-09-01"]["up25m"] == 40
 
 
 # ---------------------------------------------------------------- historique (API simulee)

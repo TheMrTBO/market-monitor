@@ -20,7 +20,7 @@ function boot(extra){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:()=>null,setItem(){}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6','--text':'#1b2230'})[k]||'#000'}),setTimeout,console};
   sb.location={search:''};sb.window=sb;vm.createContext(sb);
   for(const f of ['stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','status_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(extra)vm.runInContext(extra,sb);
@@ -31,16 +31,16 @@ const strip=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const ownJs=fs.readFileSync('breadth_data.js','utf8');
 const own=JSON.parse(ownJs.slice(ownJs.indexOf('=')+1).trim().replace(/;$/,''));
 assert(own.rows.length>=10,'breadth_data.js : au moins 10 séances');
-assert.deepStrictEqual(own.columns,['date','up4','down4','ratio5','ratio10']);
+assert.deepStrictEqual(own.columns,['date','up4','down4','ratio5','ratio10','up25m','down25m','up25q','down25q','t2108']);
 
 // 1. sans le fichier : aucune surimpression et pas d'exception (comportement d'avant)
 const base=boot(null);
-const strokesBase=(base.Sx.hist||{})['#9aa0a6']||0;
-// 2. avec le fichier : deux traits pointillés de plus (+4 % et −4 %) sur l'histogramme +4 %
+const strokesBase=(base.Sx.hist||{})['#1b2230']||0;
+// 2. avec le fichier : deux traits pointillés de plus (+4 % et −4 %, couleur du texte) sur l'histogramme +4 %
 // status_data.js (écrit par update_all.py) n'a l'étape « breadth » qu'après le premier passage du workflow : on la simule
 const STATUS_BREADTH=`window.STATUS.sources.breadth={ok:true,attempts:1,last:'${own.asof}'};`;
 const A=boot(ownJs+STATUS_BREADTH);
-const strokesOwn=(A.Sx.hist||{})['#9aa0a6']||0;
+const strokesOwn=(A.Sx.hist||{})['#1b2230']||0;
 assert(strokesOwn-strokesBase>=2,`surimpression pointillée absente (${strokesBase} -> ${strokesOwn})`);
 // 3. pied de page : statut du calcul maison et contrôle croisé
 const foot=strip(A.$('dataStatus')._h);

@@ -544,7 +544,7 @@
       <div class="legend">
         <span><i class="front" style="background:var(--down)"></i>−4 % (premier plan, translucide)</span>
         <span><i style="background:var(--up)"></i>+4 % (second plan)</span>
-        <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
+        <span id="legOwn" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
       </div>
       <canvas id="hist"></canvas>
     </div>
@@ -556,6 +556,7 @@
     <div class="legend">
       <span><i class="front" style="background:var(--down)"></i>−25 % sur un mois (premier plan, translucide)</span>
       <span><i style="background:var(--up)"></i>+25 % sur un mois (second plan)</span>
+      <span class="legown" data-k="up25m" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span>
     </div>
     <canvas id="hist25m"></canvas>
     <button class="disc" data-target="raw25m" aria-expanded="false" aria-controls="raw25m">▸ Détail : solde net +25 % / −25 % sur un mois</button>
@@ -574,6 +575,7 @@
     <div class="legend">
       <span><i class="front" style="background:var(--down)"></i>−25 % sur un trimestre (premier plan, translucide)</span>
       <span><i style="background:var(--up)"></i>+25 % sur un trimestre (second plan)</span>
+      <span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span>
     </div>
     <canvas id="hist2"></canvas>
     <button class="disc" data-target="raw25" aria-expanded="false" aria-controls="raw25">▸ Détail : solde net +25 % / −25 % sur un trimestre</button>
@@ -589,21 +591,21 @@
   <div class="card hcard rcard" data-card="r5">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="r5" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio 5 j ±4 %</span></button><button class="tipbtn" data-tip="r5" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumR5"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone ≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone &lt; 1</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>ratio 5 j</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>zone ≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>zone &lt; 1</span><span class="legown" data-k="ratio5" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span></div>
       <canvas id="rt5"></canvas>
     </div>
   </div>
   <div class="card hcard rcard" data-card="rm">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rm" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % mois</span></button><button class="tipbtn" data-tip="rm" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRm"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un mois</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 2</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25m" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison (pointillé)</span></div>
       <canvas id="rtm"></canvas>
     </div>
   </div>
   <div class="card hcard rcard" data-card="rq">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rq" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % trimestre</span></button><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span></div>
       <canvas id="rtq"></canvas>
     </div>
   </div>
@@ -687,6 +689,10 @@
   const own = (d, k) => { const r = OWNMAP.get(d); return r ? r[OWNC[k]] : null; };
   const legOwn = document.getElementById('legOwn');
   if (OWN && legOwn) legOwn.hidden = false;      // légende du pointillé : seulement si le calcul maison est chargé
+  // ±25 % mois, trimestre (expérimental) et T2108 maison : pointillés sur les graphiques seulement ; cases et seuils restent Stockbee
+  document.querySelectorAll('.legown').forEach(el => { el.hidden = !(OWN && OWNC[el.dataset.k] != null); });
+  const OWN_RATIO = { ratio5: d => own(d, 'ratio5'), rm: d => { const a = own(d, 'up25m'), b = own(d, 'down25m'); return a == null || !b ? null : a / b; },
+                      rq: d => { const a = own(d, 'up25q'), b = own(d, 'down25q'); return a == null || !b ? null : a / b; } };
   for (const r of OWN ? OWN.rows : []) {
     if (SB.has(r[0])) continue;
     const row = STOCKBEE.columns.map(() => null);
@@ -1168,8 +1174,8 @@
     g.globalAlpha = 1;
     maLine(c, Y, upKey, css('--up')); maLine(c, Y, downKey, css('--down'));
     recMarks(c, Y, upKey, ups); recMarks(c, Y, downKey, downs);
-    if (upKey === 'up4' && OWNMAP.size) {      // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
-      g.save(); g.setLineDash([3, 3]); g.lineWidth = 1.5; g.strokeStyle = css('--ctext');
+    if (OWNC[upKey] != null && OWNMAP.size) {   // notre calcul, en pointillé, sur les séances où Stockbee a aussi publié
+      g.save(); g.setLineDash([4, 3]); g.lineWidth = 1.6; g.strokeStyle = css('--text');      // couleur du texte : lisible sur les barres
       for (const key of [upKey, downKey]) {
         g.beginPath(); let pen = false;
         T.forEach((d, i) => {
@@ -1233,6 +1239,9 @@
       vv.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; }); g.stroke(); g.lineWidth = 1; };
     if (k2) line(vals2, css('--muted'), 1.3);
     line(vals, css('--text'), 1.8);
+    if (OWN_RATIO[k] && OWNMAP.size) {           // notre calcul en pointillé (séances publiées par Stockbee)
+      g.save(); g.setLineDash([4, 3]); line(T.map(d => SB_REAL.has(d) ? OWN_RATIO[k](d) : null), css('--text'), 1.3); g.restore();
+    }
     T.forEach((d, i) => { const r = vals[i] == null ? 0 : recOf(k, d); if (r) tri(g, X(i), r > 0 ? Y(vals[i]) - 4 : Y(vals[i]) + 4, r > 0, true, recCol(k, r)); });
     cursor(c);
   }
@@ -1284,14 +1293,16 @@
       return `<b>${fmtDate(d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div><div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${smaRows}${trend}${avg}`;
     }
     if (kind === 'r5' || kind === 'rm' || kind === 'rq') {
-      const f = serFn(kind === 'r5' ? 'ratio5' : kind), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
-      return kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
-        : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`;
+      const kk = kind === 'r5' ? 'ratio5' : kind, f = serFn(kk), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
+      const ov = SB_REAL.has(d) && OWN_RATIO[kk] ? OWN_RATIO[kk](d) : null;
+      const mine = ov == null ? '' : `<div style="margin-top:2px">Calcul maison${kind === 'rq' ? ' (expérimental)' : ''} : ${nf(ov, 2)}</div>`;
+      return (kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
+        : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`) + mine;
     }
     const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
-    const mine = kind === 'hist' && SB_REAL.has(d) && own(d, 'up4') != null
-      ? `<div style="margin-top:2px">Calcul maison : +${nf(own(d, 'up4'))} / −${nf(own(d, 'down4'))}</div>` : '';
+    const mine = SB_REAL.has(d) && own(d, k[0]) != null
+      ? `<div style="margin-top:2px">Calcul maison${kind === 'hist2' ? ' (expérimental)' : ''} : +${nf(own(d, k[0]))} / −${nf(own(d, k[1]))}</div>` : '';
     const src = kind === 'hist' && !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
     return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
       (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>' + mine + src;
@@ -1818,7 +1829,9 @@
   const boxes = [{ kind: 'T2108', series: T2108_SERIES, tip: 'sat2108', d: 1 },
                  { kind: 'VIX', series: VIX_SERIES, tip: 'savix', d: 2 }].map(bx => {
     const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><button class="tipbtn" data-tip="${bx.tip}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px"></span></div><canvas></canvas>`;
+    const legT = bx.kind === 'T2108' && OWNC.t2108 != null
+      ? `<span class="legend" style="margin:0"><span><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison</span></span>` : '';
+    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><button class="tipbtn" data-tip="${bx.tip}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>${legT}<span class="px"></span></div><canvas></canvas>`;
     $('cmpBottom').appendChild(card);
     return Object.assign(bx, { cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 });
   });
@@ -1868,6 +1881,11 @@
       g.strokeStyle = css('--t2108'); g.lineWidth = 1.5; g.lineJoin = g.lineCap = 'round'; g.beginPath();
       vis.forEach((b, i) => i ? g.lineTo(X(i), Y(b.c)) : g.moveTo(X(i), Y(b.c))); g.stroke();
       if (hi_ >= 0) { g.fillStyle = css('--t2108'); g.beginPath(); g.arc(X(hi_), Y(vis[hi_].c), 3, 0, 2 * Math.PI); g.fill(); }
+      if (OWNC.t2108 != null) {                                     // notre T2108 en pointillé (clôtures Polygon / Massive)
+        g.save(); g.setLineDash([3, 3]); g.strokeStyle = css('--ctext'); g.lineWidth = 1.3; g.beginPath(); let pen = false;
+        vis.forEach((b, i) => { const v = own(b.d, 't2108'); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
+        g.stroke(); g.restore();
+      }
     } else vis.forEach((b, i) => {                                  // VIX : bougies japonaises (OHLC du CBOE)
       const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
       g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
@@ -1882,7 +1900,8 @@
     bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)}${isT ? ' %' : ''} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
   }
   const boxTip = (bx, b) => bx.kind === 'T2108'
-    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>`
+    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>` +
+      (own(b.d, 't2108') != null ? `<div style="margin-top:2px">Calcul maison : ${nf(own(b.d, 't2108'), 1)} %</div>` : '')
     : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
   // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
@@ -2444,14 +2463,17 @@
       t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous 20 % et au-dessus de 70 % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
         <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
-      c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p><p class="src">Source : Stockbee.</p>`],
+      c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p>
+        <p>Pointillé : notre calcul (clôture du jour ÷ clôture 20 séances plus tôt, prix de départ ≥ 5 $, volume ≥ 100 000). Il suit la tendance de Stockbee (corrélation 0,99 à 1,00 sur juil.-oct. 2026) avec des niveaux 13 à 29 % plus bas : à lire pour le sens, pas pour le chiffre.</p><p class="src">Source : Stockbee ; pointillé : calcul maison (Polygon / Massive).</p>`],
       sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
-        <p>Lignes pointillées : <b>20 %</b> et <b>70 %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p><p class="src">Source : Stockbee.</p>`],
+        <p>Lignes pointillées horizontales : <b>20 %</b> et <b>70 %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
+        <p>Courbe pointillée : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive). Corrélation 0,98 avec Stockbee sur 33 séances, mais quelques points au-dessus (biais de 0 à +6 points selon la période).</p><p class="src">Source : Stockbee ; pointillé : calcul maison.</p>`],
       savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
         <p>Lignes pointillées : <b>20</b> et <b>30</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
       b100: ['Base 100', `<p>Chaque courbe vaut <b>100</b> à sa première clôture de la période affichée ; 108 = +8 % depuis ce point. On compare ainsi QQQ, IWM et BTC sur une même échelle, quel que soit leur prix.</p>
         <p>BTC cote aussi le week-end : les séances manquantes de QQQ et IWM sont reliées. La légende donne les valeurs à la séance survolée ou figée (sinon la dernière).</p>`],
-      c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p><p class="src">Source : Stockbee.</p>`] };
+      c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p>
+        <p>Pointillé <b>expérimental</b> : notre calcul (clôture ÷ plus bas ou plus haut des 63 séances précédentes). Mesuré sur 9 séances seulement : comptes 40 à 70 % sous Stockbee, la définition de Stockbee reste à retrouver.</p><p class="src">Source : Stockbee ; pointillé : calcul maison expérimental (Polygon / Massive).</p>`] };
   }
   $('dPick').addEventListener('change', e => { if (e.target.value) showDate(e.target.value); });
   $('dPrev').addEventListener('click', () => stepDate(-1));
