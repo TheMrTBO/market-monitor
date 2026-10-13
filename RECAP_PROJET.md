@@ -144,7 +144,12 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   chaque case ; pastille ▲/▼ 3M sur QQQ/IWM/BTC dans la case Indices ; sur le **graphique de prix, uniquement les records 3 mois du
   +4 % et du −4 %** (étiquettes « +4▲ », « +4▼ », « −4▲ », « −4▼ » au-dessus de la bougie si favorable, en dessous si défavorable) ;
   triangles sur les soldes nets et les histogrammes. **Pas de lignes « Plus haut / Plus bas 3M »** (essayées puis retirées).
-  Mobile : mini-courbes masquées, la jauge suffit. Couleur = sens pour le marché (bleu favorable, rouge
+  Mobile : mini-courbes masquées, la jauge suffit.
+- **Extrêmes 3 mois, signal vs information (13/10, décision utilisateur)** : une case s'encadre dès qu'**un de ses chiffres**
+  (principal ou secondaire) atteint un extrême 3 mois. **±4 %** = signal → bleu (favorable) / rouge (défavorable), case pleine.
+  **±25 % (mois, trimestre), leurs ratios et soldes, et le T2108** = indicateurs **retardés** → **orange, bordure en pointillés,
+  bandeau clair** « ▲▼ Extrême 3 mois » (détail au survol et ▲/▼ sur chaque chiffre) ; même orange dans le tableau, la jauge et les
+  triangles des histogrammes / soldes ±25 %. Le badge Haussier / Neutre / Baissier (seuils calibrés) reste affiché. Couleur = sens pour le marché (bleu favorable, rouge
   défavorable : un record des −25 % est rouge). Fréquence sur 1 an : 2 à 29 par indicateur.
 - **Moyenne mobile sur les histogrammes** : 10 séances par défaut (Réglages : aucune / 5 / 10 / 20), lignes bleue et rouge sur
   les séries, blanche sur les soldes nets ; le croisement rouge/bleu signale le basculement du breadth.
