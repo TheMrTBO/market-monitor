@@ -22,7 +22,7 @@ for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInConte
 vm.runInContext(main,sb);
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const reset=()=>{for(const k of Object.keys(rects))delete rects[k];};
-const PL=8,PW=900-8-64,RIGHT=PL+PW;
+const PL=64,PW=900-64-8,RIGHT=PL+PW;   // axe des prix a gauche (PAD.l = 64)
 function vide(){const r=(rects.price||[]).filter(x=>x[3]>0&&x[3]<20);const maxX=Math.max(...r.map(x=>x[1]+x[3]/2));return (100*(RIGHT-maxX)/PW).toFixed(0)+'%';}
 const state=l=>console.log(l.padEnd(34),'| curseur:',$('rightPad').value,strip($('rightPadOut')._h||$('rightPadOut')._t||'')||$('rightPadOut')._t,'| vide visuel:',vide(),'|',strip($('sub')._h));
 console.log('barre :',strip($('instBtn')._t),'|',strip($('maBar')._h));

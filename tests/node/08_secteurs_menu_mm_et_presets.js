@@ -57,9 +57,9 @@ const sma=n=>cl.slice(k-n+1,k+1).reduce((a,b)=>a+b)/n;
 let ema=cl.slice(0,15).reduce((a,b)=>a+b)/15;for(let i=15;i<=k;i++)ema+=(cl[i]-ema)*2/16;
 const f=v=>v.toFixed(2).replace('.',',');
 console.log('attendu',iso,': EMA 15',f(ema),'| SMA 50',f(sma(50)),'| avgC7',f(sma(7)),'| avgC65',f(sma(65)),'| ratio',(sma(7)/sma(65)).toFixed(3).replace('.',','));
-// --- fond de tendance dessine ?
+// --- fond de tendance retire du graphique des secteurs (demande utilisateur)
 const bg=(A.R[cv]||[]).filter(r=>String(r[0]).startsWith('rgba')).length;
-console.log('rectangles de fond de tendance :',bg>0);
+console.log('fond de tendance absent (attendu true) :',bg===0);
 // --- boutons de l'en-tete agissent sur le graphique des secteurs
 const before=A.$('rightPadSOut')._t;
 A.R[cv]=[];A.$('ranges').children[0]._c();   // 3M

@@ -28,22 +28,35 @@ function boot(ls){
 
 const strip=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const heads=A=>[...A.$('secHead')._h.matchAll(/<th[^>]*data-c="([^"]+)"[^>]*>(.*?)<\/th>/g)].map(m=>m[1]+':'+strip(m[2]));
-const rows=A=>[...A.$('secRows')._h.matchAll(/<tr data-s="([^"]+)"[^>]*>(.*?)<\/tr>/g)].map(m=>({s:m[1],cells:[...m[2].matchAll(/<td[^>]*>(.*?)<\/td>/g)].map(x=>strip(x[1]))}));
-// 1) etat neuf
-let A=boot({});A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
-console.log('colonnes (neuf)     :',heads(A).join(' | '));
-console.log('colonne jauge ?     :',heads(A).some(h=>/^bar/.test(h)),'| cellules .bar dans le tableau :',/class="bar"/.test(A.$('secRows')._h));
-const r0=rows(A)[0];console.log('1re ligne           :',r0.cells.join(' | '));
-// 2) migration d'un ordre memorise avec l'ancienne colonne « bar »
-const B=boot({'mm.seccols':JSON.stringify(['delta','rank','sym','grp','dev','bar','nm'])});
-B.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
-console.log('ordre migre         :',heads(B).map(h=>h.split(':')[0]).join(' > '),'(attendu : delta rank sym grp desc dev nm)');
-// 3) tri par description, graphique et infos
-A.L.secHead.click({target:{closest:()=>({dataset:{k:'desc',c:'desc'}})}});
-const order=rows(A).map(r=>r.cells[heads(A).findIndex(h=>h.startsWith('desc'))]);
-const ranked=order.slice(0,-1);
-console.log('tri description A→Z :',ranked.slice(0,3).join(' / '),'| ordre valide',ranked.every((v,i)=>i===0||ranked[i-1].localeCompare(v,'fr')<=0),'| fleche',heads(A).find(h=>h.startsWith('desc')));
+const rows=A=>[...A.$('secRows')._h.matchAll(/<tr data-s="([^"]+)"[^>]*>(.*?)<\/tr>/g)].map(m=>({s:m[1],h:m[2],cells:[...m[2].matchAll(/<td[^>]*>(.*?)<\/td>/g)].map(x=>strip(x[1]))}));
+const tab=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
+// 1) colonnes et Groupe = libelle court (champ t), description au survol ; sans t : categorie
+let A=boot({});
+A.sb.SECTORS.symbols.forEach(x=>{if(x.s==='CIBR')x.t='Cybersécurité';});
+tab(A);
+console.log('colonnes            :',heads(A).join(' | '));
+const r0=rows(A)[0];
+console.log('1re ligne           :',r0.cells.join(' | '),'| description au survol :',/title="Cybersécurité : éditeurs/.test(r0.h));
+console.log('sans libelle court  :',rows(A)[1].s,'->',rows(A)[1].cells[2],'(categorie)');
+console.log('ecart : barre derriere le chiffre, ancree a droite :',/<div class="devc"><i class="u" style="width:[\d.]+%"><\/i><span class="v pos">/.test(r0.h),'| plus grand |ecart| = 100 % :',rows(A).some(r=>/style="width:100%"/.test(r.h)));
+// 2) migration d'un ancien ordre memorise (Nom, Description, jauge)
+const B=boot({'mm.seccols':JSON.stringify(['delta','rank','sym','nm','grp','desc','dev','bar'])});tab(B);
+console.log('ordre migre         :',heads(B).map(h=>h.split(':')[0]).join(' > '),'(attendu : delta > rank > sym > grp > dev)');
+// 3) filtre par groupe : rangs globaux conserves
+A.L.secFilt.click({target:{closest:()=>({dataset:{g:'Matières'}})}});
+const rm=rows(A);
+console.log('filtre Matieres     :',rm.length,'lignes | rangs',rm.map(r=>r.cells[0]).join(','),'| memorise',A.sb.localStorage.getItem('mm.secgrp'));
+A.L.secFilt.click({target:{closest:()=>({dataset:{g:'all'}})}});
+console.log('filtre Tous         :',rows(A).length,'lignes');
+// 4) classement a la seance choisie dans « Stats du » (2026-08-04)
+const D=A.sb.SECTORS.dates, idx=D.indexOf('2026-08-04');
+const sc=(c,e)=>{let s7=0,s65=0;for(let i=e-64;i<=e;i++){s65+=c[i];if(i>e-7)s7+=c[i];}return s7/7/(s65/65);};
+const exp=A.sb.SECTORS.symbols.filter(x=>x.c.slice(idx-64,idx+1).every(v=>v!=null)).map(x=>[x.s,sc(x.c,idx)]).sort((a,b)=>b[1]-a[1])[0][0];
+A.L.dPick.change({target:{value:'2026-08-04'}});
+console.log('Stats du 4 aout     :',strip(A.$('secMeta')._t),'| 1er',rows(A)[0].s,'(attendu',exp+')');
+A.L.dToday.click();
+console.log('Aujourd\'hui         :',strip(A.$('secMeta')._t),'| 1er',rows(A)[0].s);
+// 5) score sous le graphique et en-tete
 A.L.secRows.click({target:{closest:()=>({dataset:{s:'DRAM'}})}});
-console.log('graphique DRAM      :',strip(A.$('secTitle')._t),'|',strip(A.$('secInfo')._h));
-// 4) toutes les descriptions presentes
-const S_=A.sb.SECTORS;console.log('descriptions        :',S_.symbols.filter(x=>x.d&&x.d.length>8).length,'/',S_.symbols.length);
+console.log('graphique DRAM      :',strip(A.$('secTitle')._t),'|',strip(A.$('secInfo')._t),'|',strip(A.$('secScoreNow')._h));
+console.log('ligne 1,00 du score tracee :',(A.M.secScoreCv||[]).length>0);

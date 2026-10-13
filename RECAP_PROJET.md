@@ -69,7 +69,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `breadth_data.js` | `window.BREADTH_OWN` | `{columns:[date, up4, down4, ratio5, ratio10], rows, asof, universe}` ; calcul maison, depuis 2026-07 (séries cumulées au fil des jours) |
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
-| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
+| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, t, c, op, h, l, v}]}` (t = thème court) ; 55 ETF, 618 séances |
 | `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, breadth, vix, prices, sectors:{ok, attempts, last, error?}}}` |
 
 Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
@@ -127,7 +127,10 @@ dates (3M · 6M · **YTD** · 1A · 2A · 5A · Tout) et le zoom sont dans la ba
   (voir §6) ; sélecteur d'instrument « QQQ Daily ▾ ».
 - **Mécaniques de graphique** : zoom molette ancré sur la dernière séance, glisser pour déplacer, double-clic = 6 mois,
   boutons +/−, préréglages 3M / 6M / 1A / 2A / 5A / Tout, **espace à droite** et **espace en haut** réglables par curseurs et
-  par poignées ▲ (axe du temps) et ◀ (axe des prix), fenêtre partagée avec les histogrammes.
+  par poignées ▲ (axe du temps) et ▶ (axe des prix), fenêtre partagée avec les histogrammes.
+- **Axe des valeurs à gauche** sur tous les graphiques de tous les onglets (demande utilisateur du 13/10/2026) : `PAD = {l: 64, r: 8}`,
+  `MPAD = {l: 54, r: 6}` ; étiquette du dernier cours sur l'axe de gauche, pointillé de l'axe jusqu'à la dernière bougie ;
+  poignée ▶ de l'espace en haut sur l'axe de gauche.
 - **Cartes de breadth** (réorganisables par glisser-déposer de la poignée ⠿ ou Alt+↑/↓, repliables au clic sur le titre,
   résumé d'une ligne quand repliées) :
   - +4 % / −4 % sur la séance : **solde net** en vue principale, histogrammes bruts en divulgation progressive ;
@@ -188,10 +191,19 @@ Trois graphiques de prix côte à côte (même thème, MM, fond de tendance, esp
 veille, pas de mèches). Fenêtre de dates partagée, survol synchronisé.
 
 ### Onglet « Secteurs »
-Liste à gauche, graphique de l'ETF sélectionné à droite (même moteur que le graphique principal, contexte propre `secCtx`).
-- Classement par **avgC7 / avgC65** (moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières), décroissant, sans seuil.
-- Colonnes : Rang, Symbole, Nom, Groupe, **Description** (thème), **Écart avg** (= avgC7/avgC65 − 1, en %), **Δ rang 5 j**.
-  Colonnes triables (clic) et **déplaçables** (glisser-déposer des en-têtes), ordre mémorisé. ↑↓ au clavier.
+Barre « Stats du » en haut (partagée avec MM et SA), liste à gauche, graphique de l'ETF sélectionné à droite (même moteur que le
+graphique principal, contexte propre `secCtx`), panneau **Score avgC7 / avgC65** sous le prix (refonte du 13/10/2026, bureau).
+- Classement par **avgC7 / avgC65** (moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières), décroissant, sans seuil,
+  **à la séance choisie dans « Stats du »** (sinon la dernière) ; Δ 5 j relatif à cette séance.
+- Colonnes : Rang, Symbole (nom complet au survol), **Groupe** = libellé court du thème (champ `t`, dictionnaire `THEME` de
+  `fetch_sectors.py` ; description complète au survol ; catégorie en repli si `t` absent), **Écart** (= avgC7/avgC65 − 1, en %,
+  barre derrière le chiffre ancrée à droite, longueur ∝ |écart|, bleue / rouge selon le signe), **Δ 5 j**. Colonnes Nom et
+  Description retirées (demande utilisateur). Colonnes triables (clic) et **déplaçables** (glisser-déposer), ordre mémorisé. ↑↓ au clavier.
+- Filtres par catégorie (Tous · Secteurs · Industries · Thèmes · Matières · Pays) : masquent des lignes, rangs globaux conservés.
+- Bulles ⓘ (classement, graphique, score) au lieu du paragraphe ; curseurs d'espace retirés (Réglages) ; **pas de fond de tendance**
+  sur le graphique de l'ETF (demande utilisateur) ; légende OHLC + valeurs des MM posée sur le graphique, comme MM.
+- Score : courbe avgC7/avgC65, ligne pointillée 1,00, aire bleue au-dessus / rouge en dessous, point = séance du classement.
+- Mobile (maître / détail) : maquette faite (`outputs/market-monitor-ux/secteurs/` du projet parent), **pas encore codé**.
 - Les ETF avec moins de 65 séances (ex. NCLD) restent listés **sans rang**, toujours en bas.
 - 55 ETF : les 31 symboles TC2000 de l'utilisateur (YINN, ETF à levier ×3, **retiré**) + 24 ajouts (SPDR manquants,
   industries, mines, thèmes). Liste et descriptions dans `fetch_sectors.py`.
@@ -205,7 +217,7 @@ horizontal, graphique pleine largeur, légende réduite, barre d'onglets en bas 
 
 ### Clés `localStorage` (préférences, aucune donnée sensible)
 `mm.mas` (MM), `mm.pad` / `mm.top` (espaces), `mm.tab`, `mm.order` (cartes), `mm.raw4|raw25m|raw25` (détails),
-`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.theme` (thème),
+`mm.card.c4|c25m|c25q` (repli), `mm.seccols` (colonnes), `mm.secsel` (ETF sélectionné), `mm.secgrp` (filtre de groupe), `mm.theme` (thème),
 `mm.hsolid` (histogrammes opaques), `mm.hma` (moyenne mobile des histogrammes).
 
 ---
@@ -405,7 +417,7 @@ dans le cache Actions, seuls les agrégats sont committés ; Stockbee = base his
 - Activer « Block command line pushes that expose my email » ; supprimer l'ancienne clé Polygon.
 - Stratégie de purge/stockage des données (dépôt > 1 Go d'ici ~2 ans) ; éventuel passage à un fichier par symbole.
 - Alerte d'absence de signal (heartbeat) en plus du bandeau ⚠ ; badge de statut du workflow.
-- Filtre par groupe (Secteur, Industrie, Thème) dans l'onglet Secteurs ; éventuel score composite (avgC7/avgC65 + rendement 3 mois
+- ~~Filtre par groupe dans l'onglet Secteurs~~ (fait le 13/10/2026) ; éventuel score composite (avgC7/avgC65 + rendement 3 mois
   + force relative vs SPY) proposé mais **non retenu pour l'instant** (« formule seule, sans seuil »).
 - Épingler aussi les dépendances indirectes de yfinance (pandas, numpy) ; test des échecs réseau.
 

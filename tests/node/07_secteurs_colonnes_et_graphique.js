@@ -41,10 +41,12 @@ A.L.secHead.drop({target:th('rank'),clientX:110,preventDefault(){}});
 console.log('2. apres glisser Δ rang avant Rang :',heads().join(' | '));
 console.log('   memorise mm.seccols =',ls['mm.seccols']);
 console.log('   1re ligne :',firstRow().cells.join(' | '));
-// deplacer 'nm' apres 'bar'
+// deplacer 'grp' apres 'dev' ; une colonne retiree ('nm') glissee est ignoree
+A.L.secHead.dragstart({target:th('grp'),dataTransfer:{setData(){}}});
+A.L.secHead.drop({target:th('dev'),clientX:190,preventDefault(){}});
 A.L.secHead.dragstart({target:th('nm'),dataTransfer:{setData(){}}});
-A.L.secHead.drop({target:th('bar'),clientX:190,preventDefault(){}});
-console.log('   puis Nom apres barre :',heads().map(h=>h.split(':')[0]).join(' > '));
+A.L.secHead.drop({target:th('rank'),clientX:190,preventDefault(){}});
+console.log('   puis Groupe apres Ecart (Nom ignore) :',heads().map(h=>h.split(':')[0]).join(' > '));
 // rechargement : ordre restaure
 const B=boot(ls);B.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
 console.log('   rechargement :',[...B.$('secHead')._h.matchAll(/data-c="([^"]+)"/g)].map(m=>m[1]).join(' > '));
@@ -78,5 +80,5 @@ reset();A.L.rightPadS.input({target:{value:'15'}});
 const hx=lastX();
 A.L[cv].pointerdown({clientX:hx,clientY:500-22+6,pointerId:1});A.L[cv].pointermove({clientX:hx-150,clientY:500-22+6,pageX:hx-150,pageY:500});A.L[cv].pointerup({});
 console.log('   poignee ▲ tiree de 150 px : espace droit =',$p(),'%  (memorise',ls['mm.pad']+')');
-A.L[cv].pointerdown({clientX:900-9,clientY:8+0.30*(500-8-22),pointerId:1});A.L[cv].pointermove({clientX:891,clientY:200,pageX:891,pageY:200});A.L[cv].pointerup({});
-console.log('   poignee ◀ tiree a y=200 : haut =',A.$('topPadS').value,'% (memorise',ls['mm.top']+')');
+A.L[cv].pointerdown({clientX:9,clientY:8+0.30*(500-8-22),pointerId:1});A.L[cv].pointermove({clientX:9,clientY:200,pageX:9,pageY:200});A.L[cv].pointerup({});
+console.log('   poignee ▶ tiree a y=200 : haut =',A.$('topPadS').value,'% (memorise',ls['mm.top']+')');
