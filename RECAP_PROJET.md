@@ -76,7 +76,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
 | `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
 | `postmarket_data.js` | `window.POSTMARKET` | `{cols, filters, snaps:[{d, at, closed, nextd?, rows:[[t, s, n, sec, ind, c, ch, pc, pch, pv, rv, cap, flt, er, nx, ng]]}], hist:{dates, bars:{symbole:[i0, [o,h,l,c,v]…]}}}` ; `er` = `amc` / `bmo` / vide ; `nx`, `ng` = variation et gap du lendemain |
-| `status_data.js` | `window.STATUS` | `{updated, sources:{stockbee, breadth, vix, prices, sectors:{ok, attempts, last, error?}}}` |
+| `status_data.js` | `window.STATUS` | `{updated, pm, sources:{stockbee, breadth, vix, prices, sectors, postmarket:{ok, attempts, last, error?}}}` ; `pm` = heure du dernier scan post-market (écrite aussi par le workflow du soir) : le bouton « Actualiser » signale un nouveau scan même sans passage quotidien |
 
 Le bouton « ↻ Actualiser » recharge la page avec `?v=<horodatage>` ; un petit chargeur inline ajoute ce paramètre aux
 fichiers de données (GitHub Pages met les fichiers en cache 10 min).

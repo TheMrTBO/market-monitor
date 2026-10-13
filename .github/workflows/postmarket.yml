@@ -44,14 +44,14 @@ jobs:
         run: python fetch_postmarket.py
 
       - name: Contrôler le fichier (sinon retour à la dernière version valide)
-        run: python validate_data.py postmarket || git checkout -- postmarket_data.js
+        run: python validate_data.py postmarket || git checkout -- postmarket_data.js status_data.js
 
       - name: Enregistrer le scan
         id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add postmarket_data.js
+          git add postmarket_data.js status_data.js   # status_data.js : heure du relevé (« pm »), lue par le bouton « Actualiser »
           if git diff --cached --quiet; then
             echo "Aucun changement (hors post-market ou scan identique)."
             echo "changed=false" >> "$GITHUB_OUTPUT"

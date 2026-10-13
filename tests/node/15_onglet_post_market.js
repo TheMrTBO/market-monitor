@@ -25,6 +25,7 @@ function boot(ls,pm){
   sb.window=sb;vm.createContext(sb);
   for(const f of ['stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(pm)sb.POSTMARKET=JSON.parse(JSON.stringify(pm));
+  sb.STATUS={updated:'2026-10-13T22:17:00+00:00',pm:'2026-10-13T22:17:00+00:00',sources:{}};sb.location={search:''};sb.clearTimeout=()=>{};
   vm.runInContext(main,sb);
   return {L,els,DL,R,Sx,M,sb,$,document};
 }
@@ -95,4 +96,14 @@ ok('sans instantané : message', /Aucun scan relevé/.test(C.$('pmRows')._h));
 // 8) les autres onglets ne sont pas touchés : retour à Secteurs
 A.sb.innerWidth=1200; A.L.tabs.click({target:{closest:()=>({dataset:{tab:'sec'}})}});
 ok('retour Secteurs', /<tr data-s=/.test(A.$('secRows')._h));
-if(bad)process.exit(1);
+// 9) bouton « Actualiser » : un nouveau scan post-market (clé pm de status_data.js) est signalé même sans passage quotidien
+(async()=>{
+  const st=(u,p)=>`window.STATUS = {"updated":"${u}","pm":"${p}","sources":{}};`;
+  A.sb.fetch=async()=>({text:async()=>st('2026-10-13T22:17:00+00:00','2026-10-13T22:47:00+00:00')});
+  await A.L.refreshBtn.click();
+  ok('nouveau scan post-market : « Nouvelles données publiées »', /Nouvelles données publiées/.test(A.$('toast')._h), strip(A.$('toast')._h).slice(0,60));
+  A.sb.fetch=async()=>({text:async()=>st('2026-10-13T22:17:00+00:00','2026-10-13T22:17:00+00:00')});
+  await A.L.refreshBtn.click();
+  ok('rien de nouveau : « Déjà à jour »', /Déjà à jour/.test(A.$('toast')._h), strip(A.$('toast')._h).slice(0,160));
+  if(bad)process.exit(1);
+})();
