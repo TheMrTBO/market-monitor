@@ -1,0 +1,1537 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Monitor +4% / −4%</title>
+<style>
+  :root {
+    --bg: #f4f5f8; --panel: #ffffff; --text: #1b2230; --muted: #667085; --grid: #e6e9ef; --axis: #c3c2b7; --border: #dde1e8;
+    --up: #2a78d6;    /* haussier : bleu (lisible en cas de daltonisme) */
+    --down: #e34948;  /* baissier : rouge */
+    --s10: #eda100; --s20: #eb6834; --s50: #6250d6; --s200: #1baf7a;  /* moyennes mobiles (anciennes valeurs, inutilisées) */
+    /* thème des graphiques de prix : fond noir, bougies jaunes (hausse) et rouges (baisse) */
+    --cbg: #000000; --cgrid: #1c1c1c; --cref: #444444; --ctext: #9aa0a6; --ccross: #d6d6d6;
+    --cup: #f6e24b; --cdown: #cf5148;
+    --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f1218; --panel: #161b24; --text: #d6dbe4; --muted: #8a93a3; --grid: #232a36; --axis: #383835; --border: #252c38;
+            --up: #3987e5; --down: #e66767;
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70;
+            --t2108: #d55181; --vix: #d6dbe4; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; margin-bottom: 14px; }
+  h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  .sub { color: var(--muted); font-size: 12px; margin-left: auto; text-align: right; }
+  .group { display: flex; gap: 4px; }
+  button { background: var(--panel); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; }
+  button:hover { color: var(--text); }
+  button.on { color: var(--text); border-color: var(--up); box-shadow: inset 0 0 0 1px var(--up); }
+  .sw { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px 4px; margin-bottom: 8px; }
+  .card h2 { font-size: 13px; font-weight: 600; margin: 0; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; color: var(--muted); font-size: 12px; margin: 2px 0 0; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+  canvas { display: block; width: 100%; cursor: crosshair; touch-action: pan-y; user-select: none; }
+  #price { height: 50vh; min-height: 300px; }      /* le graphique de prix occupe la moitié de la hauteur de l'écran */
+  /* cartes d'histogrammes repliables : titre + résumé d'une ligne quand elles sont réduites */
+  .chead { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left; background: none; border: 0; border-radius: 0;
+           padding: 0 0 6px; color: var(--text); }
+  .chead .ttl { font-size: 13px; font-weight: 600; }
+  .chead .car { color: var(--muted); width: 12px; }
+  .chead:hover .car { color: var(--text); }
+  .chead .sum { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .cbody[hidden] { display: none; }
+  .chrow { display: flex; align-items: baseline; gap: 6px; }
+  .chrow .chead { flex: 1; width: auto; }
+  .grip { cursor: grab; color: var(--muted); user-select: none; padding: 0 4px; font-size: 14px; line-height: 1; border-radius: 4px; }
+  .grip:hover, .grip:focus-visible { color: var(--text); background: var(--grid); outline: none; }
+  .hcard.dragging { opacity: .45; }
+  /* onglet « Secteurs » : liste triable à gauche, graphique de l'ETF sélectionné à droite */
+  #view-sec[hidden] { display: none; }
+  body[data-tab="sec"] #sub { display: none; }
+  .secsplit { display: grid; grid-template-columns: minmax(480px, 44%) minmax(0, 1fr); gap: 8px; align-items: start; }
+  @media (max-width: 1000px) { .secsplit { grid-template-columns: minmax(0, 1fr); } .secchart { position: static; } }
+  .secsplit .card { margin-bottom: 0; }
+  .sechead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; margin-bottom: 4px; }
+  .secmeta { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .secnote { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
+  .secscroll { max-height: none; height: calc(100vh - 230px); margin-top: 0; }   /* la hauteur exacte est ajustée par fitSecLayout() */
+  .secchart { position: sticky; top: 8px; }
+  #secCanvas { height: calc(100vh - 215px); min-height: 340px; }
+  .secinfo { color: var(--muted); font-size: 12px; margin: 2px 0 4px; }
+  #secTable th, #secTable td { text-align: right; }
+  #secTable th.l, #secTable td.l { text-align: left; }
+  #secTable thead th[draggable] { cursor: grab; }
+  #secTable thead th.dragging { opacity: .45; }
+  #secTable thead th.dropL { box-shadow: inset 3px 0 0 var(--up); }
+  #secTable thead th.dropR { box-shadow: inset -3px 0 0 var(--up); }
+  #secTable thead th.sortable { cursor: pointer; user-select: none; }
+  #secTable thead th.sortable:hover { color: var(--text); }
+  #secTable thead th .arr { display: inline-block; width: 10px; font-size: 10px; margin-left: 2px; }
+  #secTable tbody tr { cursor: pointer; }
+  #secTable tbody tr:hover td { background: var(--grid); }
+  #secTable tbody tr.sel td { background: color-mix(in srgb, var(--up) 22%, transparent); }
+  #secTable td.rank { font-weight: 600; color: var(--text); }
+  #secTable td.sym { font-weight: 600; }
+  #secTable td.nm { color: var(--muted); max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #secTable td.grp { color: var(--muted); }
+  #secTable td.desc { color: var(--muted); white-space: normal; min-width: 220px; max-width: 320px; line-height: 1.3; }
+  #secTable tr.short td { color: var(--muted); }
+  #secTable tr.sep td { border-top: 1px solid var(--border); }
+  .tag { display: inline-block; font-size: 11px; padding: 0 6px; border: 1px solid var(--border); border-radius: 8px; color: var(--muted); }
+  /* onglet « QQQ · IWM · BTC » : trois graphiques de prix côte à côte */
+  #view-main[hidden], #view-cmp[hidden] { display: none; }
+  .tabs button { border-radius: 6px; }
+  .cmpgrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  @media (max-width: 900px) { .cmpgrid { grid-template-columns: minmax(0, 1fr); } }
+  .cmpgrid .card { margin-bottom: 0; }
+  .cmpgrid canvas { height: 46vh; min-height: 300px; }
+  .cmpbottom { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+  @media (max-width: 900px) { .cmpbottom { grid-template-columns: minmax(0, 1fr); } }
+  .cmpbottom .card { margin-bottom: 0; }
+  .cmpbottom canvas { height: 26vh; min-height: 200px; }
+  .mini-title { display: flex; align-items: baseline; gap: 8px; font-size: 13px; padding-bottom: 4px; }
+  .mini-title b { font-weight: 600; }
+  .mini-title .px { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .chead:not(.closed) .sum { display: none; }   /* le résumé n'apparaît que lorsque la carte est repliée */
+  #hist, #hist25m, #hist2 { height: 200px; } #net4, #net25m, #net25 { height: 170px; }
+  .raw[hidden] { display: none; }
+  .disc { display: block; width: 100%; margin: 4px 0 6px; padding: 6px 4px; text-align: left; background: none; border: 0; border-top: 1px solid var(--border);
+          border-radius: 0; color: var(--muted); font-size: 12px; }
+  .disc:hover { color: var(--text); }
+  .legend .tg { cursor: pointer; user-select: none; }
+  .legend .tg.off { opacity: .4; text-decoration: line-through; }
+  .legend .tg i.ln { height: 3px; vertical-align: 3px; }
+  .card { position: relative; }
+  /* barre du haut du graphique de prix : instrument, moyennes mobiles (menu ▾), espace à droite */
+  .chartbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; margin-bottom: 4px; }
+  .chartbar .inst { font-weight: 600; color: var(--text); border: 0; background: none; padding: 2px 4px; font-size: 13px; }
+  .chartbar .ma { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); user-select: none; }
+  .chartbar .ma .nm { cursor: pointer; }
+  .chartbar .ma.off .nm { opacity: .4; text-decoration: line-through; }
+  .chartbar .ma i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
+  .chartbar .ma .car { cursor: pointer; padding: 0 4px; border-radius: 4px; }
+  .chartbar .ma .car:hover, .chartbar .inst:hover { background: var(--grid); color: var(--text); }
+  .chartbar .spacer { flex: 1; }
+  .chartbar label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  .chartbar input[type=range] { width: 120px; accent-color: var(--up); }
+  .chartbar output { min-width: 32px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .menu { position: absolute; z-index: 10; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 6px;
+          box-shadow: 0 8px 24px rgba(0,0,0,.22); font-size: 12px; min-width: 190px; }
+  .menu[hidden] { display: none; }
+  .menu .mi { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 6px; color: var(--text); }
+  .menu button.opt { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 6px; border-radius: 5px; color: var(--text); }
+  .menu button.opt:hover, .menu button.opt.cur { background: var(--grid); }
+  .menu input[type=number] { width: 70px; }
+  .menu input, .menu select { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 5px; padding: 2px 4px; }
+  .menu input[type=color] { padding: 0; width: 34px; height: 24px; }
+  .tip { position: absolute; z-index: 5; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+         font-size: 12px; box-shadow: 0 4px 14px rgba(0,0,0,.18); display: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .tip b { display: block; margin-bottom: 2px; }
+  .tablewrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; max-height: 380px; overflow: auto; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; font-size: 13px; }
+  th, td { padding: 5px 10px; text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { position: sticky; top: 0; background: var(--panel); color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+  tbody tr:nth-child(even) { background: color-mix(in srgb, var(--grid) 40%, transparent); }
+  tbody tr.hl { outline: 1px solid var(--up); }
+  .pos { color: var(--up); } .neg { color: var(--down); }
+  footer { color: var(--muted); font-size: 11px; margin-top: 12px; }
+  footer a { color: inherit; }
+  #fatal { padding: 24px; color: var(--down); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Market Monitor +4 % / −4 %</h1>
+    <div class="group tabs" id="tabs" role="tablist">
+      <button data-tab="main" role="tab" class="on">Détail</button>
+      <button data-tab="cmp" role="tab">QQQ · IWM · BTC</button>
+      <button data-tab="sec" role="tab">Secteurs</button>
+    </div>
+    <div class="group" id="ranges"></div>
+    <div class="group" id="zoom"><button id="zOut" title="Dézoomer (ou molette vers le bas)" aria-label="Dézoomer">−</button><button id="zIn" title="Zoomer (ou molette vers le haut)" aria-label="Zoomer">+</button></div>
+    <button id="refreshBtn" title="Recharger les dernières données publiées (la mise à jour elle-même est automatique, chaque jour)">↻ Actualiser</button>
+    <div class="sub" id="sub"></div>
+  </header>
+
+  <div id="view-sec" hidden>
+    <div class="secsplit">
+      <div class="card seclist">
+        <div class="sechead">
+          <b>Classement momentum · avgC7 / avgC65</b>
+          <span class="secmeta" id="secMeta"></span>
+        </div>
+        <p class="secnote">
+          <b>avgC7 / avgC65</b> = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières.
+          <b>Écart avg</b> = avgC7 / avgC65 − 1, en %.
+          <b>Δ rang 5 j</b> = rang d'il y a 5 séances − rang actuel (▲ = progresse).
+          Clique sur un en-tête pour trier, glisse un en-tête pour déplacer la colonne, clique sur une ligne pour afficher son graphique (↑ ↓ au clavier).
+        </p>
+        <div class="tablewrap secscroll" id="secScroll">
+          <table id="secTable">
+            <thead><tr id="secHead"></tr></thead>
+            <tbody id="secRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card secchart">
+        <div class="chartbar">
+          <b id="secTitle"></b>
+          <span id="secMa" style="display:contents"></span>
+          <span class="spacer"></span>
+          <label title="Espace vide au-dessus du plus haut cours (aussi réglable avec la poignée ◀)">Espace en haut
+            <input type="range" id="topPadS" min="0" max="60" step="1"><output id="topPadSOut"></output></label>
+          <label title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲)">Espace à droite
+            <input type="range" id="rightPadS" min="0" max="60" step="1"><output id="rightPadSOut"></output></label>
+        </div>
+        <div class="legend" id="secTrend"></div>
+        <div class="secinfo" id="secInfo"></div>
+        <div class="menu" id="menuSec" hidden></div>
+        <canvas id="secCanvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-cmp" hidden>
+    <div class="card">
+      <div class="chartbar">
+        <span id="cmpMa" style="display:contents"></span>
+        <span class="spacer"></span>
+        <label>Espace en haut <input type="range" id="topPad2" min="0" max="60" step="1"><output id="topPad2Out"></output></label>
+        <label>Espace à droite <input type="range" id="rightPad2" min="0" max="60" step="1"><output id="rightPad2Out"></output></label>
+      </div>
+      <div class="legend" id="cmpTrend"></div>
+    </div>
+    <div class="cmpgrid" id="cmpGrid"></div>
+    <div class="cmpbottom" id="cmpBottom"></div>
+  </div>
+
+  <div id="view-main">
+  <div class="card">
+    <div class="chartbar">
+      <button class="inst" id="instBtn" data-menu aria-haspopup="true"></button>
+      <span id="maBar" style="display:contents"></span>
+      <span class="spacer"></span>
+      <label title="Espace vide au-dessus du plus haut cours affiché (aussi réglable avec la poignée ◀ sur l'axe des prix)">Espace en haut
+        <input type="range" id="topPad" min="0" max="60" step="1"><output id="topPadOut"></output></label>
+      <label title="Espace vide à droite de la dernière séance (aussi réglable avec la poignée ▲ sur le graphique)">Espace à droite
+        <input type="range" id="rightPad" min="0" max="60" step="1"><output id="rightPadOut"></output></label>
+    </div>
+    <div class="legend" id="trendLegend"></div>
+    <div class="menu" id="menu" hidden></div>
+    <canvas id="price"></canvas>
+  </div>
+  <div id="hgroup">
+  <div class="card hcard" data-card="c4">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c4" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : solde net +4 % / −4 % sur la séance</span><span class="sum" id="sum4"></span></button></div>
+    <div class="cbody">
+    <div class="legend">
+      <span><i style="background:var(--up)"></i>haussiers dominants</span>
+      <span><i style="background:var(--down)"></i>baissiers dominants</span>
+    </div>
+    <canvas id="net4"></canvas>
+    <button class="disc" data-target="raw4" aria-expanded="false" aria-controls="raw4">▸ Détail : histogrammes +4 % et −4 %</button>
+    <div class="raw" id="raw4" hidden>
+      <div class="legend">
+        <span><i style="background:var(--down)"></i>−4 % (premier plan)</span>
+        <span><i style="background:var(--up)"></i>+4 % (second plan)</span>
+      </div>
+      <canvas id="hist"></canvas>
+    </div>
+    </div>
+  </div>
+  <div class="card hcard" data-card="c25m">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25m" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : +25 % / −25 % sur un mois</span><span class="sum" id="sum25m"></span></button></div>
+    <div class="cbody">
+    <div class="legend">
+      <span><i style="background:var(--down)"></i>−25 % / mois (premier plan)</span>
+      <span><i style="background:var(--up)"></i>+25 % / mois (second plan)</span>
+    </div>
+    <canvas id="hist25m"></canvas>
+    <button class="disc" data-target="raw25m" aria-expanded="false" aria-controls="raw25m">▸ Détail : solde net +25 % / −25 % sur un mois</button>
+    <div class="raw" id="raw25m" hidden>
+      <div class="legend">
+        <span><i style="background:var(--up)"></i>haussiers dominants</span>
+        <span><i style="background:var(--down)"></i>baissiers dominants</span>
+      </div>
+      <canvas id="net25m"></canvas>
+    </div>
+    </div>
+  </div>
+  <div class="card hcard" data-card="c25q">
+    <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="c25q" aria-expanded="true"><span class="car">▾</span><span class="ttl">US common stocks : +25 % / −25 % sur un trimestre</span><span class="sum" id="sum25q"></span></button></div>
+    <div class="cbody">
+    <div class="legend">
+      <span><i style="background:var(--down)"></i>−25 % / trim. (premier plan)</span>
+      <span><i style="background:var(--up)"></i>+25 % / trim. (second plan)</span>
+    </div>
+    <canvas id="hist2"></canvas>
+    <button class="disc" data-target="raw25" aria-expanded="false" aria-controls="raw25">▸ Détail : solde net +25 % / −25 % sur un trimestre</button>
+    <div class="raw" id="raw25" hidden>
+      <div class="legend">
+        <span><i style="background:var(--up)"></i>haussiers dominants</span>
+        <span><i style="background:var(--down)"></i>baissiers dominants</span>
+      </div>
+      <canvas id="net25"></canvas>
+    </div>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="tablewrap">
+    <table>
+      <thead><tr id="thead"></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  </div>
+
+  <footer>
+    <div id="dataStatus"></div>
+    Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
+    haussier : +4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · Prix : Polygon.io / Massive · VIX : CBOE.
+  </footer>
+</div>
+
+<script>
+  // Fichiers de données. GitHub Pages garde les fichiers 10 min en cache : le bouton « Actualiser » recharge la page avec
+  // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
+  (function () {
+    var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
+    ['stockbee_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'status_data.js'].forEach(function (f) {
+      document.write('<script src="' + f + q + '"><\/script>');
+    });
+  })();
+</script>
+<script>
+(function () {
+  if (!window.STOCKBEE || !window.PRICES) {
+    document.querySelector('.wrap').innerHTML =
+      '<div id="fatal">Données introuvables : lance <code>python fetch_stockbee.py</code> et <code>python fetch_prices.py</code> dans ce dossier ' +
+      '(<code>stockbee_data.js</code> et <code>prices_data.js</code> doivent être à côté de ce HTML).</div>';
+    return;
+  }
+
+  // ------------------------------------------------------------------ données
+  const COL = Object.fromEntries(STOCKBEE.columns.map((c, i) => [c, i]));
+  const SB = new Map(STOCKBEE.rows.map(r => [r[0], r]));       // date -> ligne Stockbee
+  const sb = (d, k) => { const r = SB.get(d); return r ? r[COL[k]] : null; };
+  const NAMES = Object.keys(window.PRICES);
+  const VIXMAP = new Map((window.VIX || []).map(r => [r[0], r[4]]));   // date -> clôture du VIX (CBOE) ; vide si vix_data.js manque
+  const $ = id => document.getElementById(id);
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+  const nf = (v, d = 0) => v == null ? '—' : v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const pxd = v => v >= 1000 ? 0 : 2;
+  const fmtDate = (s, o) => new Date(s + 'T00:00:00Z').toLocaleDateString('fr-FR', Object.assign({ timeZone: 'UTC' }, o || { day: 'numeric', month: 'short', year: 'numeric' }));
+  const signed = v => v == null ? '—' : (v > 0 ? '+' : '') + nf(v);
+  const pct = v => v == null ? '—' : (v > 0 ? '+' : '') + nf(v, 2) + ' %';
+  const vol = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 2) + ' Md' : v >= 1e6 ? nf(v / 1e6, 2) + ' M' : v >= 1e3 ? nf(v / 1e3, 0) + ' k' : nf(v);
+  const cls = v => v == null || v === 0 ? '' : v > 0 ? 'pos' : 'neg';
+
+  // ------------------------------------------------------------------ état
+  let current = NAMES.includes('QQQ') ? 'QQQ' : NAMES[0];
+  let tab = 'main';        // onglet affiché : 'main' (détail) ou 'cmp' (QQQ · IWM · BTC côte à côte)
+  let range = '6M';        // préréglage actif ; null dès qu'on zoome ou déplace à la main
+  const MONTHS = { '3M': 3, '6M': 6, '1A': 12, '2A': 24, '5A': 60, 'Tout': null };
+  let ALLT = [];           // toutes les dates (union breadth + bougies : même axe pour tous les graphiques)
+  let vp = { from: 0, to: 0 };  // fenêtre visible en index de ALLT ; `to` peut dépasser la dernière séance (espace à droite)
+  let T = [];              // dates visibles = ALLT[offset ...]
+  let offset = 0;
+  let bars = new Map();    // date -> {o,h,l,c,v,chg}
+  let hover = -1;
+  const MIN_SPAN = 15;     // zoom maximal : ~15 barres affichées
+
+  // préférences mémorisées par le navigateur (le stockage peut être indisponible : on ignore alors l'erreur)
+  const store = { get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+                  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* ignoré */ } } };
+  // espace vide à droite, en fraction de la largeur de la fenêtre (0 à 60 %) : curseur de la barre du haut ou poignée ▲
+  let rightPad = (() => { const v = store.get('mm.pad'); return v == null || isNaN(+v) ? 0.15 : Math.min(0.6, Math.max(0, +v / 100)); })();
+  // espace vide au-dessus du plus haut cours affiché, en fraction de la hauteur du graphique (0 à 60 %)
+  let topPad = (() => { const v = store.get('mm.top'); return v == null || isNaN(+v) ? 0.06 : Math.min(0.6, Math.max(0, +v / 100)); })();
+
+  // Moyennes mobiles configurables (menu ▾ de la barre du haut) : longueur, type SMA/EMA, couleur, visibilité.
+  // La 2e et la 3e (SMA 10 et 20 par défaut) alimentent aussi le fond de tendance (MM1 et MM2 de l'indicateur ChillLax).
+  const MA_DEFAULT = [
+    { len: 5,   type: 'SMA', color: '#f4a0c0', on: true },    // rose
+    { len: 10,  type: 'SMA', color: '#f5a623', on: true },    // orange
+    { len: 20,  type: 'SMA', color: '#5b7cfa', on: true },    // bleu
+    { len: 50,  type: 'SMA', color: '#9a9a9a', on: true },    // gris
+    { len: 100, type: 'SMA', color: '#7dbb5a', on: true },    // vert
+    { len: 200, type: 'SMA', color: '#e8574f', on: true }];   // rouge
+  const TR1 = 1, TR2 = 2;   // MM1 et MM2 du fond de tendance ChillLax : SMA 10 et SMA 20 (index dans MA_DEFAULT)
+  let MAS = (() => {
+    try {
+      const a = JSON.parse(store.get('mm.mas') || 'null');
+      if (Array.isArray(a) && a.length === MA_DEFAULT.length && a.every(m => m && m.len >= 1 && m.len <= 400 && (m.type === 'SMA' || m.type === 'EMA')))
+        return a.map((m, i) => ({ len: Math.round(m.len), type: m.type, color: /^#[0-9a-f]{6}$/i.test(m.color) ? m.color : null, on: m.on !== false }));
+    } catch (e) { /* configuration illisible : valeurs par défaut */ }
+    return MA_DEFAULT.map(m => Object.assign({}, m));
+  })();
+  const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
+
+  // Calculées sur tout l'historique chargé (pas seulement la plage visible) : null tant qu'il y a moins de n clôtures.
+  // EMA : amorcée par la SMA des n premières clôtures, puis lissage 2/(n+1), comme ta.ema de Pine.
+  function maSeries(closes, n, type) {
+    const out = []; let sum = 0, ema = null;
+    closes.forEach((c, i) => {
+      sum += c;
+      if (type === 'EMA') {
+        if (i === n - 1) ema = sum / n; else if (i >= n) ema = ema + (c - ema) * 2 / (n + 1);
+        out.push(i >= n - 1 ? ema : null);
+      } else {
+        if (i >= n) sum -= closes[i - n];
+        out.push(i >= n - 1 ? sum / n : null);
+      }
+    });
+    return out;
+  }
+
+  // Fond de tendance : logique de l'indicateur TradingView « Chilllax Moving Averages with Qullamaggie colors »
+  // (chilllaxtrader, MPL 2.0). MM1 = SMA 10, MM2 = SMA 20 sur la clôture ; une MM « monte » si elle est > à sa valeur
+  // d'il y a TREND_LEN barres. Comme en Pine, une comparaison avec une valeur manquante vaut faux.
+  const TREND_LEN = 5;
+  const TREND = [null,
+    { key: 'jaune', fill: 'rgba(255,235,59,0.20)' },
+    { key: 'vert clair', fill: 'rgba(0,255,0,0.20)' },
+    { key: 'vert foncé', fill: 'rgba(0,150,0,0.50)' }];
+  // MM1 et MM2 = les deux premières moyennes mobiles de la barre du haut (10 et 20 par défaut)
+  const trendLabel = s => {
+    const a = `MM${MAS[TR1].len}`, b = `MM${MAS[TR2].len}`;
+    return s === 1 ? `jaune : ${a} > ${b}, aucune ne monte` : s === 2 ? `vert clair : ${a} > ${b}, seule la ${a} monte` : `vert foncé : ${a} > ${b}, les deux montent`;
+  };
+  let trendOn = true;
+  function trendState(ma1, ma2, i) {
+    const gt = (a, b) => a != null && b != null && a > b;
+    const up1 = i >= TREND_LEN && gt(ma1[i], ma1[i - TREND_LEN]), up2 = i >= TREND_LEN && gt(ma2[i], ma2[i - TREND_LEN]);
+    if (!gt(ma1[i], ma2[i])) return 0;
+    if (up1 && up2) return 3;
+    if (up1 && !up2) return 2;
+    if (!up1 && !up2) return 1;
+    return 0;                                   // MM10 ne monte pas mais la MM20 oui : pas de couleur (comme l'original)
+  }
+
+  // barres d'un instrument avec moyennes mobiles et état de tendance, mémorisées tant que la config des MM ne change pas
+  const barCache = new Map();
+  function barsFor(name) {
+    const key = name + JSON.stringify(MAS.map(m => [m.len, m.type]));
+    if (!barCache.has(key)) {
+      const raw = window.PRICES[name] || [], closes = raw.map(b => b[4]);
+      const sma = MAS.map(m => maSeries(closes, m.len, m.type));
+      barCache.set(key, raw.map((b, i) => ({ d: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5],
+        chg: i ? 100 * (b[4] / raw[i - 1][4] - 1) : null, s: sma.map(a => a[i]), st: trendState(sma[TR1], sma[TR2], i) })));
+    }
+    return barCache.get(key);
+  }
+
+  function loadBars() { bars = new Map(barsFor(current).map(b => [b.d, b])); }
+
+  function buildTimeline() { ALLT = [...new Set([...SB.keys(), ...bars.keys()])].sort(); }
+
+  // --- fenêtre visible : zoom, déplacement, préréglages
+  function applyViewport() {
+    const N = ALLT.length, i0 = Math.max(0, Math.floor(vp.from)), i1 = Math.min(N - 1, Math.floor(vp.to));
+    T = i0 <= i1 ? ALLT.slice(i0, i1 + 1) : [];
+    offset = i0;
+  }
+
+  function presetViewport(key) {
+    const N = ALLT.length; if (!N) return;
+    let i0 = 0;
+    if (MONTHS[key] != null) {
+      const end = new Date(ALLT[N - 1] + 'T00:00:00Z'); end.setUTCMonth(end.getUTCMonth() - MONTHS[key]);
+      const cut = end.toISOString().slice(0, 10);
+      i0 = ALLT.findIndex(d => d >= cut); if (i0 < 0) i0 = 0;
+    }
+    const span = N - 1 - i0;
+    vp.from = i0 - 0.5;
+    vp.to = N - 1 + Math.round(span * rightPad);
+  }
+
+  function clampViewport() {
+    const N = ALLT.length; if (!N) return;
+    const span = Math.min(Math.max(vp.to - vp.from, MIN_SPAN), (N + 1) * 1.25);
+    // on peut dépasser un peu à gauche, et laisser jusqu'à 60 % de vide à droite, pas davantage
+    const from = Math.max(-2, Math.min(vp.from, N - 1 - 0.4 * span));
+    vp.from = from; vp.to = from + span;
+  }
+
+  // Contexte de graphique : le graphique de l'onglet Secteurs réutilise tout le moteur du graphique principal (zoom ancré,
+  // glisser, poignées ▲ ◀, curseurs, fond de tendance...) avec son propre état (dates, barres, fenêtre, survol).
+  function inCtx(c, fn) {
+    if (c.active) return fn();                     // appel imbriqué : les variables courantes sont déjà celles du contexte
+    const sv = { ALLT, vp, T, offset, bars, hover };
+    ALLT = c.ALLT; vp = c.vp; T = c.T; offset = c.offset; bars = c.bars; hover = c.hover;
+    c.active = true;
+    try { return fn(); }
+    finally {
+      c.active = false;
+      c.ALLT = ALLT; c.vp = vp; c.T = T; c.offset = offset; c.bars = bars; c.hover = hover;
+      ALLT = sv.ALLT; vp = sv.vp; T = sv.T; offset = sv.offset; bars = sv.bars; hover = sv.hover;
+    }
+  }
+  const withTabCtx = fn => tab === 'sec' ? inCtx(secCtx, fn) : fn();   // contexte du graphique de l'onglet actif
+
+  let rafId = 0;
+  function render() {
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      if (tab === 'sec') { secRedraw(); return; }
+      applyViewport(); drawAll(); renderTable(); highlightRow(); updateSub(); syncSlider();
+    });
+    if (tab === 'cmp') requestAnimationFrame(renderCmp);
+  }
+  function manual() { range = null; [...$('ranges').children].forEach(c => { c.className = ''; }); }
+  // point fixe du zoom : tant que la dernière séance est visible, on la garde à sa place (l'espace à droite reste stable,
+  // comme sur TradingView) ; sinon le zoom se fait autour du curseur
+  function anchorFrac(wanted) {
+    const N = ALLT.length, span = vp.to - vp.from;
+    if (N && vp.to >= N - 1 && vp.from <= N - 1) return Math.min(1, Math.max(0, (N - 1 - vp.from) / span));
+    return Math.min(1, Math.max(0, wanted));
+  }
+  function zoomAt(frac, factor) {
+    const span = vp.to - vp.from, anchor = vp.from + frac * span, ns = span * factor;
+    vp.from = anchor - frac * ns; vp.to = vp.from + ns;
+    clampViewport(); manual(); render();
+  }
+  function panBars(d) { vp.from += d; vp.to += d; clampViewport(); manual(); render(); }
+  function updateSub() {
+    $('sub').innerHTML = T.length
+      ? `${fmtDate(T[0])} → ${fmtDate(T[T.length - 1])}<br>${T.filter(d => SB.has(d)).length} séances de breadth` : '';
+  }
+
+  // ------------------------------------------------------------------ dessin
+  const PAD = { l: 8, r: 64, t: 8, b: 22 };
+  const cvPrice = $('price'), cvSec = $('secCanvas'), cvHist = $('hist'), cvHistM = $('hist25m'), cvHist2 = $('hist2');
+  const cvNet4 = $('net4'), cvNetM = $('net25m'), cvNet25 = $('net25');
+  const drawAll = () => {
+    drawPrice();
+    drawHist(cvHist, 'up4', 'down4'); drawNet(cvNet4, 'up4', 'down4');
+    drawHist(cvHistM, 'up25m', 'down25m'); drawNet(cvNetM, 'up25m', 'down25m');
+    drawHist(cvHist2, 'up25q', 'down25q'); drawNet(cvNet25, 'up25q', 'down25q');
+    if (tab === 'cmp') renderCmp();
+    if (tab === 'sec') { fitSecLayout(); secRedraw(); }
+  };
+
+  function niceTicks(lo, hi, count) {
+    const span = hi - lo || 1, raw = span / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= raw) || raw;
+    const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10));
+    return out;
+  }
+
+  const TH_DEFAULT = { grid: '--grid', text: '--muted', cross: '--muted' };
+  const TH_CHART = { grid: '--cgrid', text: '--ctext', cross: '--ccross' };      // graphiques de prix : fond noir
+  function setup(cv, chartTheme) {
+    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    if (chartTheme) { g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H); }
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    // la largeur d'une barre vient de la fenêtre (vp), pas du nombre de barres visibles : l'espace vide à droite est conservé
+    const n = W ? T.length : 0, pw = W - PAD.l - PAD.r, ph = H - PAD.t - PAD.b, bw = pw / Math.max(1, vp.to - vp.from + 1);   // W = 0 : vue masquée
+    return { g, W, H, n, pw, ph, bw, th: chartTheme ? TH_CHART : TH_DEFAULT, X: i => PAD.l + (offset + i - vp.from + 0.5) * bw };
+  }
+
+  function grid(c, ticks, Y, fmt) {
+    const { g, W } = c;
+    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const t of ticks) {
+      const y = Math.round(Y(t)) + 0.5;
+      g.strokeStyle = css(c.th.grid); g.beginPath(); g.moveTo(PAD.l, y); g.lineTo(W - PAD.r, y); g.stroke();
+      g.fillStyle = css(c.th.text); g.fillText(fmt(t), W - PAD.r + 6, y);
+    }
+  }
+
+  function xLabels(c) {
+    const { g, H, n, X } = c;
+    g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css(c.th.text);
+    const long = n > 300, step = Math.max(1, Math.round(n / 6));
+    for (let i = Math.floor(step / 2); i < n; i += step)
+      g.fillText(fmtDate(T[i], long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+  }
+
+  function cursor(c) {
+    if (hover < 0 || hover >= c.n) return;
+    const { g, X, ph } = c, x = Math.round(X(hover)) + 0.5;
+    g.strokeStyle = css(c.th.cross); g.lineWidth = 1; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(x, PAD.t); g.lineTo(x, PAD.t + ph); g.stroke(); g.setLineDash([]);
+  }
+
+  function drawPrice(cv = cvPrice) {
+    const c = setup(cv, true); if (!c.n) return;
+    const { g, n, ph, bw, X } = c;
+    const vis = T.map(d => bars.get(d));
+    const have = vis.filter(Boolean);
+    if (!have.length) {
+      g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Pas de bougies sur cette période', c.W / 2, c.H / 2); xLabels(c); return;
+    }
+    let lo = Math.min(...have.map(b => b.l));
+    const top = Math.max(...have.map(b => b.h));            // plus haut cours affiché
+    lo -= (top - lo) * 0.05 || 1;
+    // le plus haut cours est placé à topPad de la hauteur du graphique (réglable : curseur ou poignée ◀ sur l'axe des prix)
+    const hi = lo + (top - lo) / (1 - topPad);
+    const Y = v => PAD.t + (hi - v) / (hi - lo) * ph;
+    grid(c, niceTicks(lo, hi, 5), Y, v => nf(v, pxd(v)));
+    xLabels(c);
+    if (trendOn) {                              // fond de tendance, derrière les bougies
+      vis.forEach((b, i) => {
+        if (!b || !b.st) return;
+        g.fillStyle = TREND[b.st].fill;
+        g.fillRect(Math.floor(X(i) - bw / 2), PAD.t, Math.ceil(bw) + 0.5, ph);
+      });
+    }
+    const maxV = Math.max(...have.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
+    vis.forEach((b, i) => {
+      if (!b) return;
+      const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
+      g.globalAlpha = 0.3; g.fillStyle = col;
+      g.fillRect(x - w / 2, PAD.t + ph - b.v / maxV * vh, w, b.v / maxV * vh);
+      g.globalAlpha = 1; g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
+      g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
+    });
+    // moyennes mobiles (découpées à la zone du graphique : une SMA 200 peut sortir de l'échelle des bougies)
+    g.save(); g.beginPath(); g.rect(PAD.l, PAD.t, c.pw, ph); g.clip();
+    g.lineWidth = 1.25; g.lineJoin = g.lineCap = 'round';
+    MAS.forEach((m, j) => {
+      if (!m.on) return;
+      g.strokeStyle = maColor(j); g.beginPath();
+      let pen = false;
+      vis.forEach((b, i) => {
+        if (!b) return;                                   // jour sans bougie : on saute, la ligne reste continue
+        if (b.s[j] == null) { pen = false; return; }
+        pen ? g.lineTo(X(i), Y(b.s[j])) : g.moveTo(X(i), Y(b.s[j])); pen = true;
+      });
+      g.stroke();
+    });
+    g.restore();
+    // poignée ▲ à l'emplacement de la dernière séance : glisser pour régler l'espace vide à droite
+    const hx = handleX(c);
+    if (hx != null) {
+      g.fillStyle = css(drag && drag.handle ? '--cup' : '--ctext');
+      g.beginPath(); g.moveTo(hx, PAD.t + ph + 1); g.lineTo(hx - 6, PAD.t + ph + 11); g.lineTo(hx + 6, PAD.t + ph + 11); g.closePath(); g.fill();
+    }
+    // poignée ◀ sur l'axe des prix, au niveau du plus haut cours : glisser pour régler l'espace au-dessus
+    const ty = PAD.t + topPad * ph, tx = c.W - 9;
+    g.fillStyle = css(drag && drag.handleTop ? '--cup' : '--ctext');
+    g.beginPath(); g.moveTo(tx - 6, ty); g.lineTo(tx + 2, ty - 6); g.lineTo(tx + 2, ty + 6); g.closePath(); g.fill();
+    cursor(c);
+  }
+
+  function handleX(c) {                         // x de la dernière séance (index N-1), null s'il est hors du graphique
+    const N = ALLT.length; if (!N) return null;
+    const x = PAD.l + (N - 1 - vp.from + 0.5) * c.bw;
+    return x >= PAD.l && x <= PAD.l + c.pw ? x : null;
+  }
+
+  // histogramme "même plan" : valeurs positives uniquement, la série baissière est dessinée devant la haussière
+  function drawHist(cv, upKey, downKey) {
+    if (!cv.clientWidth) return;               // détail replié : rien à dessiner
+    const c = setup(cv); if (!c.n) return;
+    const { g, n, ph, bw, X } = c;
+    const ups = T.map(d => sb(d, upKey)), downs = T.map(d => sb(d, downKey));
+    const max = Math.max(1, ...ups.filter(v => v != null), ...downs.filter(v => v != null));
+    const ticks = niceTicks(0, max, 4), top = ticks[ticks.length - 1] >= max ? ticks[ticks.length - 1] : max;
+    const Y = v => PAD.t + (top - v) / top * ph;     // axe uniquement positif, de 0 à top
+    grid(c, ticks, Y, v => nf(v));
+    xLabels(c);
+    const w = Math.max(1, Math.min(14, bw * 0.72));
+    // même plan : +4 % derrière, −4 % devant (même position et même largeur)
+    for (const [vals, col] of [[ups, '--up'], [downs, '--down']]) {
+      g.fillStyle = css(col);
+      vals.forEach((v, i) => { if (v == null) return; g.fillRect(X(i) - w / 2, Y(v), w, Math.max(1, Y(0) - Y(v))); });
+    }
+    cursor(c);
+  }
+
+  // panneau de solde net (haussiers − baissiers) : bleu au-dessus de zéro, rouge en dessous, échelle symétrique
+  function drawNet(cv, upKey, downKey) {
+    if (!cv.clientWidth) return;               // carte repliée : rien à dessiner
+    const c = setup(cv); if (!c.n) return;
+    const { g, n, ph, bw, X } = c;
+    const nets = T.map(d => { const u = sb(d, upKey), dn = sb(d, downKey); return u == null || dn == null ? null : u - dn; });
+    const m = Math.max(1, ...nets.filter(v => v != null).map(Math.abs));
+    const ticks = niceTicks(-m, m, 4), lim = Math.max(m, ...ticks.map(Math.abs));
+    const Y = v => PAD.t + (lim - v) / (2 * lim) * ph;     // zéro au milieu
+    grid(c, ticks, Y, v => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v)));
+    xLabels(c);
+    g.strokeStyle = css('--axis'); g.lineWidth = 1; g.beginPath();                    // ligne du zéro
+    g.moveTo(PAD.l, Math.round(Y(0)) + 0.5); g.lineTo(c.W - PAD.r, Math.round(Y(0)) + 0.5); g.stroke();
+    const w = Math.max(1, Math.min(14, bw * 0.72));
+    nets.forEach((v, i) => {
+      if (v == null) return;
+      g.fillStyle = css(v >= 0 ? '--up' : '--down');
+      g.fillRect(X(i) - w / 2, Math.min(Y(0), Y(v)), w, Math.max(1, Math.abs(Y(v) - Y(0))));
+    });
+    g.fillStyle = css('--muted'); g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+    g.fillText('Solde net', PAD.l + 4, PAD.t + 10);
+    cursor(c);
+  }
+
+  // ------------------------------------------------------------------ tuiles, tableau, infobulle
+  function lastIdx() { for (let i = T.length - 1; i >= 0; i--) if (SB.has(T[i])) return i; return T.length - 1; }
+
+  // la ligne du tableau correspondant à la séance survolée (ou à la dernière séance) est surlignée
+  function highlightRow() {
+    const d = T[hover >= 0 ? hover : lastIdx()]; if (!d) return;
+    // résumé d'une ligne affiché quand une carte d'histogramme est repliée
+    for (const [id, u, dn] of [['sum4', 'up4', 'down4'], ['sum25m', 'up25m', 'down25m'], ['sum25q', 'up25q', 'down25q']]) {
+      const a = sb(d, u), b = sb(d, dn);
+      $(id).textContent = a == null ? '' : `${fmtDate(d)} · net ${signed(a - b)} (+${nf(a)} / −${nf(b)})`;
+    }
+    $('rows').querySelectorAll('tr.hl').forEach(t => t.classList.remove('hl'));
+    const row = $('rows').querySelector(`tr[data-d="${d}"]`); if (row) row.classList.add('hl');
+  }
+
+  $('thead').innerHTML = ['Date', 'Clôture', 'Var.', 'Volume', '+4 %', '−4 %', 'Net', 'Ratio 5 j', 'Ratio 10 j', '+25 % mois', '−25 % mois', '+25 % trim.', '−25 % trim.'].map(h => `<th>${h}</th>`).join('');
+  function renderTable() {
+    const dates = T.filter(d => SB.has(d)).reverse().slice(0, 400);
+    $('rows').innerHTML = dates.map(d => {
+      const b = bars.get(d), up = sb(d, 'up4'), dn = sb(d, 'down4'), net = up - dn;
+      return `<tr data-d="${d}"><td>${fmtDate(d)}</td><td>${b ? nf(b.c, pxd(b.c)) : '—'}</td><td class="${cls(b && b.chg)}">${pct(b && b.chg)}</td><td>${vol(b && b.v)}</td>` +
+        `<td class="pos">${nf(up)}</td><td class="neg">${nf(dn)}</td><td class="${cls(net)}">${signed(net)}</td><td>${nf(sb(d, 'ratio5'), 2)}</td><td>${nf(sb(d, 'ratio10'), 2)}</td>` +
+        `<td class="pos">${nf(sb(d, 'up25m'))}</td><td class="neg">${nf(sb(d, 'down25m'))}</td>` +
+        `<td class="pos">${nf(sb(d, 'up25q'))}</td><td class="neg">${nf(sb(d, 'down25q'))}</td></tr>`;
+    }).join('');
+  }
+
+  const tip = document.createElement('div'); tip.className = 'tip'; document.body.appendChild(tip);
+  function idxAt(cv, e) {     // index dans T, ou -1 si le curseur est dans l'espace vide
+    const r = cv.getBoundingClientRect(), pw = r.width - PAD.l - PAD.r, bw = pw / (vp.to - vp.from + 1);
+    const a = Math.round(vp.from + (e.clientX - r.left - PAD.l) / bw - 0.5);
+    const i = a - offset;
+    return i < 0 || i >= T.length ? -1 : i;
+  }
+  function tipHtml(kind, d) {
+    const sw = (c, t) => `<div><i class="sw" style="background:var(${c});margin-right:6px"></i>${t}</div>`;
+    if (kind === 'price') {
+      const b = bars.get(d); if (!b) return `<b>${fmtDate(d)}</b>Pas de bougie`;
+      const smaRows = MAS.map((m, j) => b.s[j] == null || !m.on ? '' :
+        `<div><i class="sw" style="background:${maColor(j)};margin-right:6px"></i>${m.type} ${m.len} : ${nf(b.s[j], pxd(b.s[j]))}</div>`).join('');
+      const trend = `<div style="margin-top:2px">Tendance : ${b.st ? trendLabel(b.st) : 'aucune couleur'}</div>`;
+      const avg = b.a7 === undefined ? '' : `<div style="margin-top:2px">avgC7 / avgC65 : ${b.r == null ? '—' : nf(b.r, 3)}</div>`;
+      return `<b>${fmtDate(d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div><div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${smaRows}${trend}${avg}`;
+    }
+    const [k, label] = { hist: [['up4', 'down4'], '4 %'], hist25m: [['up25m', 'down25m'], '25 % / mois'], hist2: [['up25q', 'down25q'], '25 % / trim.'] }[kind];
+    const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>Pas de donnée (jour non boursier)`;
+    return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
+      (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>';
+  }
+  function setHover(i, kind, e) {
+    hover = i;
+    if (kind === 'sec') drawPrice(cvSec); else { drawAll(); highlightRow(); }
+    if (i < 0) { tip.style.display = 'none'; return; }
+    tip.innerHTML = tipHtml(kind === 'sec' ? 'price' : kind, T[i]); tip.style.display = 'block';
+    const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
+    tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
+  }
+  let drag = null;
+  function onHandle(cv, e) {                    // le pointeur est-il sur la poignée ▲ (sous l'axe, à la dernière séance) ?
+    const N = ALLT.length; if (!N) return false;
+    const r = cv.getBoundingClientRect(), bw = (r.width - PAD.l - PAD.r) / (vp.to - vp.from + 1);
+    const hx = r.left + PAD.l + (N - 1 - vp.from + 0.5) * bw, bottom = r.top + r.height - PAD.b;
+    return Math.abs(e.clientX - hx) <= 10 && e.clientY >= bottom - 4 && e.clientY <= bottom + PAD.b;
+  }
+  function padPct() {                           // espace vide à droite, en % de la largeur de la fenêtre
+    const N = ALLT.length, span = vp.to - vp.from;
+    return Math.max(0, Math.min(60, Math.round((vp.to - (N - 1)) / (span + 1) * 100)));
+  }
+  function onTopHandle(cv, e) {                 // poignée ◀ sur l'axe des prix, au niveau du plus haut cours
+    const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
+    return Math.abs(e.clientX - (r.left + r.width - 9)) <= 12 && Math.abs(e.clientY - (r.top + PAD.t + topPad * ph)) <= 10;
+  }
+  function syncSlider() {
+    const p = padPct(), t = Math.round(topPad * 100);
+    $('rightPad').value = String(p); $('rightPadOut').textContent = p + ' %';
+    $('topPad').value = String(t); $('topPadOut').textContent = t + ' %';
+    const r2 = Math.round(rightPad * 100);                    // curseurs de l'onglet QQQ · IWM · BTC
+    $('rightPad2').value = String(r2); $('rightPad2Out').textContent = r2 + ' %';
+    $('topPad2').value = String(t); $('topPad2Out').textContent = t + ' %';
+    $('rightPadS').value = String(p); $('rightPadSOut').textContent = p + ' %';      // curseurs de l'onglet Secteurs
+    $('topPadS').value = String(t); $('topPadSOut').textContent = t + ' %';
+  }
+  function setRightPadPct(pct) {                // décale la fenêtre du contexte courant sans changer la largeur des barres
+    const N = ALLT.length, span = vp.to - vp.from;
+    rightPad = pct / 100; store.set('mm.pad', String(pct));
+    vp.to = (N - 1) + rightPad * (span + 1); vp.from = vp.to - span;
+    clampViewport(); manual(); render();
+  }
+  const withCtx = (kind, fn) => kind === 'sec' ? inCtx(secCtx, fn) : fn();
+  const isPrice = k => k === 'price' || k === 'sec';
+  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2']]) {
+    // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
+    cv.addEventListener('pointerdown', e => withCtx(kind, () => {
+      drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
+           : { x: e.clientX, from: vp.from, to: vp.to, moved: false };
+      if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+    }));
+    cv.addEventListener('pointermove', e => withCtx(kind, () => {
+      if (drag && drag.handleTop) {             // poignée ◀ : le plus haut cours suit le curseur verticalement
+        const r = cv.getBoundingClientRect(), ph = r.height - PAD.t - PAD.b;
+        topPad = Math.min(0.6, Math.max(0, (e.clientY - r.top - PAD.t) / ph));
+        tip.style.display = 'none'; hover = -1; syncSlider(); drawPrice(cv);
+        return;
+      }
+      if (drag && drag.handle) {                // poignée ▲ : la dernière séance suit le curseur, la largeur des barres ne change pas
+        const r = cv.getBoundingClientRect(), N = ALLT.length, span = vp.to - vp.from, bw = (r.width - PAD.l - PAD.r) / (span + 1);
+        let from = N - 1 + 0.5 - (e.clientX - r.left - PAD.l) / bw;
+        if (from + span < N - 1) from = N - 1 - span;                 // pas de marge négative
+        vp.from = from; vp.to = from + span; clampViewport(); manual(); hover = -1; tip.style.display = 'none'; render();
+        return;
+      }
+      if (drag) {
+        const r = cv.getBoundingClientRect(), bw = (r.width - PAD.l - PAD.r) / (drag.to - drag.from + 1), dx = e.clientX - drag.x;
+        if (!drag.moved && Math.abs(dx) < 3) return;
+        drag.moved = true; cv.style.cursor = 'grabbing'; tip.style.display = 'none'; hover = -1;
+        vp.from = drag.from - dx / bw; vp.to = drag.to - dx / bw; clampViewport(); manual(); render();
+        return;
+      }
+      if (isPrice(kind)) cv.style.cursor = onHandle(cv, e) ? 'ew-resize' : onTopHandle(cv, e) ? 'ns-resize' : '';
+      setHover(idxAt(cv, e), kind, e);
+    }));
+    const endDrag = () => withCtx(kind, () => {
+      if (!drag) return;
+      if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
+      if (drag.handleTop) store.set('mm.top', String(Math.round(topPad * 100)));
+      drag = null; cv.style.cursor = '';
+      if (isPrice(kind)) { applyViewport(); drawPrice(cv); }
+    });
+    cv.addEventListener('pointerup', endDrag);
+    cv.addEventListener('pointercancel', endDrag);
+    cv.addEventListener('mouseleave', () => withCtx(kind, () => { if (!drag) setHover(-1, kind); }));
+    if (isPrice(kind)) cv.addEventListener('wheel', e => withCtx(kind, () => {   // seuls les graphiques de prix zooment
+      e.preventDefault();
+      const r = cv.getBoundingClientRect(), pw = r.width - PAD.l - PAD.r, k = e.deltaMode === 1 ? 33 : 1;
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { panBars(e.deltaX * k / (pw / (vp.to - vp.from + 1))); return; }
+      zoomAt(anchorFrac((e.clientX - r.left - PAD.l) / pw), Math.exp(e.deltaY * k * 0.0015));   // molette vers le bas = dézoom
+    }), { passive: false });
+    cv.addEventListener('dblclick', () => selectRange('6M'));
+  }
+
+  // ------------------------------------------------------------------ onglet « Secteurs » : classement avgC7 / avgC65
+  // Score = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières (formule TC2000 de l'utilisateur), sans seuil.
+  // Rang 1 = score le plus élevé. Δ rang 5 j = rang 5 séances plus tôt − rang actuel (positif : l'ETF progresse).
+  // Écart avg = score − 1, en % : seule colonne de valeur (le score brut en est une transformation monotone).
+  const SEC = window.SECTORS || null;
+  function secScore(c, end) {                       // null si l'une des 65 clôtures de la fenêtre manque
+    if (end < 64) return null;
+    let s7 = 0, s65 = 0;
+    for (let i = end - 64; i <= end; i++) { const v = c[i]; if (v == null) return null; s65 += v; if (i > end - 7) s7 += v; }
+    return (s7 / 7) / (s65 / 65);
+  }
+  function secRanks(end) {                          // Map symbole -> {rank, score} pour les ETF classables à l'index `end`
+    const rows = SEC.symbols.map(x => ({ s: x.s, score: secScore(x.c, end) })).filter(r => r.score != null);
+    rows.sort((a, b) => b.score - a.score || (a.s < b.s ? -1 : 1));
+    return new Map(rows.map((r, i) => [r.s, { rank: i + 1, score: r.score }]));
+  }
+  let secRows = [];            // une ligne par ETF : {x, rank, score, dev, delta, isNew, count}
+  function secBuild() {
+    const end = SEC.dates.length - 1;
+    const now = secRanks(end), before = end >= 5 ? secRanks(end - 5) : new Map();
+    secRows = SEC.symbols.map(x => {
+      const n = now.get(x.s), b = before.get(x.s);
+      return { x, rank: n ? n.rank : null, score: n ? n.score : null, dev: n ? (n.score - 1) * 100 : null,
+               delta: n && b ? b.rank - n.rank : null, isNew: !!n && !b, count: x.c.filter(v => v != null).length };
+    });
+  }
+
+  // colonnes : triables (clic) et déplaçables (glisser-déposer des en-têtes) ; l'ordre est mémorisé
+  const SEC_DEFS = {
+    rank:  { label: 'Rang', k: 'rank', dir: 1 },
+    sym:   { label: 'Symbole', k: 'sym', dir: 1, left: true },
+    nm:    { label: 'Nom', k: 'nm', dir: 1, left: true },
+    grp:   { label: 'Groupe', k: 'grp', dir: 1, left: true },
+    desc:  { label: 'Description', k: 'desc', dir: 1, left: true, title: 'Thème de l\'ETF' },
+    dev:   { label: 'Écart avg', k: 'dev', dir: -1, title: 'Écart avg = avgC7 / avgC65 − 1, en %' },
+    delta: { label: 'Δ rang 5 j', k: 'delta', dir: -1, title: 'Rang il y a 5 séances − rang actuel' },
+  };
+  const SEC_VAL = { rank: r => r.rank, sym: r => r.x.s, nm: r => r.x.n, grp: r => r.x.g, desc: r => r.x.d || '', dev: r => r.dev, delta: r => r.delta };
+  const SEC_ORDER0 = Object.keys(SEC_DEFS);
+  let secCols = (() => {
+    try {
+      const a = JSON.parse(store.get('mm.seccols') || 'null');
+      if (Array.isArray(a)) {                       // ordre mémorisé : on garde les colonnes connues, on ajoute les nouvelles après « Groupe »
+        const kept = a.filter((k, i) => SEC_ORDER0.includes(k) && a.indexOf(k) === i);
+        if (kept.length) {
+          SEC_ORDER0.filter(k => !kept.includes(k)).forEach(k => {
+            const at = k === 'desc' && kept.includes('grp') ? kept.indexOf('grp') + 1 : kept.length;
+            kept.splice(at, 0, k);
+          });
+          return kept;
+        }
+      }
+    } catch (e) { /* ordre illisible : ordre par défaut */ }
+    return SEC_ORDER0.slice();
+  })();
+  let secSort = { k: 'rank', dir: 1 };
+  let secSel = store.get('mm.secsel');                 // ETF sélectionné, mémorisé (continuité après « Actualiser »)
+  function secSorted() {
+    const val = SEC_VAL[secSort.k], dir = secSort.dir;
+    return secRows.slice().sort((a, b) => {
+      if ((a.rank == null) !== (b.rank == null)) return a.rank == null ? 1 : -1;   // sans rang : toujours en bas
+      const va = val(a), vb = val(b);
+      if (va == null || vb == null) return va == null && vb == null ? a.x.s.localeCompare(b.x.s) : va == null ? 1 : -1;
+      const c = typeof va === 'string' ? va.localeCompare(vb, 'fr') : va - vb;
+      return c * dir || a.x.s.localeCompare(b.x.s);
+    });
+  }
+
+  function fitSecLayout() {                              // la liste et le graphique prennent toute la hauteur disponible de la fenêtre
+    const wrap = $('secScroll'), cv = $('secCanvas');
+    if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
+    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    wrap.style.height = free(wrap) + 'px';
+    cv.style.height = free(cv) + 'px';
+  }
+
+  function renderSectors() {
+    const body = $('secRows');
+    if (!SEC) {
+      $('secHead').innerHTML = '';
+      body.innerHTML = '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_sectors.py</code> (fichier <code>sectors_data.js</code> à côté de ce HTML).</td></tr>';
+      return;
+    }
+    if (!secRows.length) secBuild();
+    const sorted = secSorted();
+    if (!secSel || !sorted.some(r => r.x.s === secSel)) secSel = (sorted.find(r => r.rank === 1) || sorted[0]).x.s;
+    store.set('mm.secsel', secSel);
+    const ranked = sorted.filter(r => r.rank != null);
+    $('secHead').innerHTML = secCols.map(id => {
+      const d = SEC_DEFS[id], arrow = secSort.k === d.k ? (secSort.dir > 0 ? '▲' : '▼') : '';
+      return `<th class="sortable${d.left ? ' l' : ''}" draggable="true" data-c="${id}" data-k="${d.k}" ` +
+        `title="${(d.title || 'Trier par ' + d.label) + ' · glisser pour déplacer'}">${d.label}<span class="arr">${arrow}</span></th>`;
+    }).join('');
+    const delta = r => {
+      if (r.rank == null) return '<span class="tag">—</span>';
+      if (r.isNew) return '<span class="tag">nouveau</span>';
+      return r.delta > 0 ? `<span class="pos">▲ ${r.delta}</span>` : r.delta < 0 ? `<span class="neg">▼ ${-r.delta}</span>` : '<span style="color:var(--muted)">=</span>';
+    };
+    const cell = {
+      rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
+      sym: r => `<td class="sym l">${r.x.s}</td>`,
+      nm: r => `<td class="nm l" title="${r.x.n}">${r.x.n}</td>`,
+      grp: r => `<td class="grp l">${r.x.g}</td>`,
+      desc: r => `<td class="desc l" title="${(r.x.d || '').replace(/"/g, '&quot;')}">${r.x.d || ''}</td>`,
+      dev: r => r.dev != null ? `<td class="${cls(r.dev)}">${pct(r.dev)}</td>` : `<td><span class="tag">historique ${r.count}/65 séances</span></td>`,
+      delta: r => `<td>${delta(r)}</td>`,
+    };
+    let seenShort = false;
+    body.innerHTML = sorted.map(r => {
+      const cl = [r.x.s === secSel ? 'sel' : '', r.rank == null ? 'short' : '', r.rank == null && !seenShort ? 'sep' : ''].filter(Boolean).join(' ');
+      if (r.rank == null) seenShort = true;
+      return `<tr data-s="${r.x.s}" class="${cl}">${secCols.map(id => cell[id](r)).join('')}</tr>`;
+    }).join('');
+    const short = secRows.length - ranked.length;
+    $('secMeta').textContent = `${fmtDate(SEC.asof)} · ${ranked.length} ETF classés${short ? ` · ${short} sans rang (moins de 65 séances)` : ''}`;
+    const sel = body.querySelector && body.querySelector('tr.sel');
+    fitSecLayout();
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+    secRedraw();
+  }
+
+  // tri par clic sur l'en-tête ; déplacement de colonne par glisser-déposer (indicateur bleu à gauche / droite de la cible)
+  let secDragCol = null;
+  const secClearDrop = () => $('secHead').querySelectorAll && $('secHead').querySelectorAll('th').forEach(t => t.classList.remove('dropL', 'dropR', 'dragging'));
+  $('secHead').addEventListener('click', e => {
+    const th = e.target.closest('th'); if (!th || !th.dataset.k) return;
+    const k = th.dataset.k;
+    secSort = secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: SEC_DEFS[th.dataset.c || k].dir };
+    renderSectors();
+  });
+  $('secHead').addEventListener('dragstart', e => {
+    const th = e.target.closest('th'); if (!th) return;
+    secDragCol = th.dataset.c; th.classList.add('dragging');
+    if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', secDragCol); }
+  });
+  $('secHead').addEventListener('dragover', e => {
+    const th = e.target.closest('th'); if (!secDragCol || !th || th.dataset.c === secDragCol) return;
+    e.preventDefault();
+    const r = th.getBoundingClientRect(), after = e.clientX > r.left + r.width / 2;
+    $('secHead').querySelectorAll('th').forEach(t => t.classList.remove('dropL', 'dropR'));
+    th.classList.add(after ? 'dropR' : 'dropL');
+  });
+  $('secHead').addEventListener('drop', e => {
+    const th = e.target.closest('th'); if (!secDragCol || !th) return;
+    e.preventDefault();
+    const r = th.getBoundingClientRect(), after = e.clientX > r.left + r.width / 2, to = th.dataset.c;
+    if (to !== secDragCol) {
+      const order = secCols.filter(c => c !== secDragCol);
+      order.splice(order.indexOf(to) + (after ? 1 : 0), 0, secDragCol);
+      secCols = order; store.set('mm.seccols', JSON.stringify(secCols));
+    }
+    secDragCol = null; renderSectors();
+  });
+  $('secHead').addEventListener('dragend', () => { secDragCol = null; secClearDrop(); });
+
+  $('secRows').addEventListener('click', e => {
+    const tr = e.target.closest('tr'); if (!tr || !tr.dataset.s) return;
+    secSel = tr.dataset.s; renderSectors();
+  });
+  document.addEventListener('keydown', e => {          // ↑ ↓ : ETF précédent / suivant dans l'ordre affiché
+    if (tab !== 'sec' || !SEC || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    const t = e.target && e.target.tagName;
+    if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
+    e.preventDefault();
+    const order = secSorted(), i = order.findIndex(r => r.x.s === secSel), j = Math.max(0, Math.min(order.length - 1, i + (e.key === 'ArrowDown' ? 1 : -1)));
+    secSel = order[j].x.s; renderSectors();
+  });
+
+  // --- graphique de l'ETF sélectionné : moteur du graphique principal, contexte propre (secCtx)
+  const secCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null };
+  const secCache = new Map();
+  function secBarsFor(x) {                               // barres de l'ETF avec MM (config partagée), tendance, avgC7, avgC65
+    const key = x.s + JSON.stringify(MAS.map(m => [m.len, m.type]));
+    if (!secCache.has(key)) {
+      const idx = []; SEC.dates.forEach((d, i) => { if (x.c[i] != null) idx.push(i); });
+      const closes = idx.map(i => x.c[i]);
+      const sma = MAS.map(m => maSeries(closes, m.len, m.type));
+      secCache.set(key, idx.map((i, k) => {
+        const avg = n => { let t = 0; for (let j = k - n + 1; j <= k; j++) t += closes[j]; return t / n; };
+        const a7 = k >= 6 ? avg(7) : null, a65 = k >= 64 ? avg(65) : null;
+        return { d: SEC.dates[i], o: x.op[i], h: x.h[i], l: x.l[i], c: x.c[i], v: x.v[i] || 0,
+          chg: k ? 100 * (closes[k] / closes[k - 1] - 1) : null, s: sma.map(a => a[k]), st: trendState(sma[TR1], sma[TR2], k),
+          a7, a65, r: a7 != null && a65 != null ? a7 / a65 : null };
+      }));
+    }
+    return secCache.get(key);
+  }
+  function secLoad() {                                   // lie les barres de l'ETF sélectionné au contexte ; fenêtre : préréglage ou mêmes dates
+    const x = SEC && SEC.symbols.find(s => s.s === secSel); if (!x) return;
+    const arr = secBarsFor(x), changed = secCtx.sym !== x.s;
+    inCtx(secCtx, () => {
+      let keep = null;
+      if (changed && secCtx.sym && range == null && ALLT.length) {
+        const N = ALLT.length, span = vp.to - vp.from;
+        keep = { from: ALLT[Math.min(N - 1, Math.max(0, Math.ceil(vp.from)))], to: ALLT[Math.min(N - 1, Math.floor(vp.to))],
+                 pad: Math.max(0, (vp.to - (N - 1)) / span) };
+      }
+      bars = new Map(arr.map(b => [b.d, b]));
+      ALLT = arr.map(b => b.d);
+      if (changed) {
+        if (keep) {
+          const N = ALLT.length;
+          let i0 = ALLT.findIndex(d => d >= keep.from); if (i0 < 0) i0 = 0;
+          let i1 = N - 1; while (i1 > i0 && ALLT[i1] > keep.to) i1--;
+          vp.from = i0 - 0.5; vp.to = i1 + keep.pad * (i1 - i0);
+        } else presetViewport(range || '6M');
+        clampViewport();
+      }
+      applyViewport();
+    });
+    secCtx.sym = x.s;
+  }
+  function secHeader() {
+    const row = secRows.find(r => r.x.s === secSel); if (!row) return;
+    $('secTitle').textContent = `${row.x.s} · ${row.x.n}`;
+    $('secInfo').innerHTML = row.rank != null
+      ? `${row.x.g}${row.x.d ? ' · ' + row.x.d : ''}<br>rang ${row.rank} · avgC7 / avgC65 ${nf(row.score, 3)} · écart avg <span class="${cls(row.dev)}">${pct(row.dev)}</span>` +
+        ` · Δ rang ${row.isNew ? 'nouveau' : row.delta > 0 ? '▲ ' + row.delta : row.delta < 0 ? '▼ ' + (-row.delta) : '='}`
+      : `${row.x.g}${row.x.d ? ' · ' + row.x.d : ''}<br>sans rang (historique ${row.count}/65 séances)`;
+  }
+  function secRedraw() {
+    if (!SEC || !secRows.length) return;
+    secLoad();
+    inCtx(secCtx, () => { applyViewport(); drawPrice(cvSec); syncSlider(); });
+    secHeader();
+  }
+  function renderSecBar() {                              // moyennes mobiles (config partagée) + légendes
+    $('secMa').innerHTML = maChipsHtml();
+    $('secTrend').innerHTML = trendLegendHtml();
+  }
+  $('secTrend').addEventListener('click', e => {
+    if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); secRedraw(); }
+  });
+  $('topPadS').addEventListener('input', e => {
+    topPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.top', String(Math.round(topPad * 100)));
+    secRedraw();
+  });
+  $('rightPadS').addEventListener('input', e => inCtx(secCtx, () => setRightPadPct(+e.target.value)));
+
+  // ------------------------------------------------------------------ onglet « QQQ · IWM · BTC » : trois graphiques côte à côte
+  // Mêmes bougies, moyennes mobiles, fond de tendance et espaces haut / droite que le graphique principal.
+  // La fenêtre est définie en dates (BTC trade le week-end, pas QQQ ni IWM) : préréglage 3M…Tout, ou zoom / déplacement manuel.
+  const CMP = ['QQQ', 'IWM', 'BTC'].filter(n => NAMES.includes(n));
+  const DAY = 86400000, ts = d => Date.parse(d + 'T00:00:00Z');
+  const MPAD = { l: 6, r: 54, t: 8, b: 22 };
+  let cmpWin = null;           // {start, end} en ms après un geste manuel ; sinon dérivée du préréglage actif
+  let cmpHover = null;         // date survolée, partagée par les trois graphiques
+  let mdrag = null;
+  const minis = CMP.map(name => {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `<div class="mini-title"><b>${name} Daily</b><span class="px"></span></div>` +
+      `<canvas></canvas>`;
+    $('cmpGrid').appendChild(card);
+    return { name, cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 };
+  });
+
+  const cmpFirst = () => Math.min(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[0].d) : Infinity; }));
+  const cmpLast = () => Math.max(...CMP.map(n => { const b = barsFor(n); return b.length ? ts(b[b.length - 1].d) : 0; }));
+  function cmpWindow() {
+    const last = cmpLast();
+    if (range != null) {
+      if (MONTHS[range] == null) return { start: -Infinity, end: last, atEnd: true };
+      const e = new Date(last); e.setUTCMonth(e.getUTCMonth() - MONTHS[range]);
+      return { start: e.getTime(), end: last, atEnd: true };
+    }
+    const w = cmpWin || { start: last - 183 * DAY, end: last };
+    return { start: w.start, end: w.end, atEnd: w.end >= last };
+  }
+  function setCmpWin(start, end) {            // borne la fenêtre aux données (au moins 20 jours)
+    const last = cmpLast(), first = cmpFirst(), span = Math.max(20 * DAY, end - start);
+    end = Math.min(end, last); start = end - span;
+    if (start < first - 30 * DAY) { start = first - 30 * DAY; end = Math.min(last, start + span); }
+    cmpWin = { start, end }; manual(); renderCmp();
+  }
+
+  function drawMini(m) {
+    const cv = m.cv, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H);
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    const win = cmpWindow();
+    const vis = barsFor(m.name).filter(b => { const t = ts(b.d); return t >= win.start && t <= win.end; });
+    m.vis = vis;
+    const n = vis.length;
+    if (!n) { g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Pas de bougies sur cette période', W / 2, H / 2); m.px.textContent = ''; return; }
+    const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
+    const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
+    m.bw = bw;
+    let lo = Math.min(...vis.map(b => b.l)); const top = Math.max(...vis.map(b => b.h));
+    lo -= (top - lo) * 0.05 || 1;
+    const hi = lo + (top - lo) / (1 - topPad);               // espace au-dessus du plus haut cours (réglage partagé)
+    const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
+
+    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const t of niceTicks(lo, hi, 5)) {
+      const y = Math.round(Y(t)) + 0.5;
+      g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, pxd(t)), W - MPAD.r + 5, y);
+    }
+    g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css('--ctext');
+    const step = Math.max(1, Math.round(n / 4)), long = (win.end - Math.max(win.start, ts(vis[0].d))) > 400 * DAY;
+    for (let i = Math.floor(step / 2); i < n; i += step)
+      g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+
+    if (trendOn) vis.forEach((b, i) => {                       // fond de tendance ChillLax, derrière les bougies
+      if (!b.st) return;
+      g.fillStyle = TREND[b.st].fill;
+      g.fillRect(Math.floor(X(i) - bw / 2), MPAD.t, Math.ceil(bw) + 0.5, ph);
+    });
+    const maxV = Math.max(...vis.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
+    vis.forEach((b, i) => {
+      const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
+      g.globalAlpha = 0.3; g.fillStyle = col; g.fillRect(x - w / 2, MPAD.t + ph - b.v / maxV * vh, w, b.v / maxV * vh);
+      g.globalAlpha = 1; g.strokeStyle = col; g.fillStyle = col;
+      g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
+      g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
+    });
+    g.save(); g.beginPath(); g.rect(MPAD.l, MPAD.t, pw, ph); g.clip();
+    g.lineWidth = 1.25; g.lineJoin = g.lineCap = 'round';
+    MAS.forEach((mm, j) => {
+      if (!mm.on) return;
+      g.strokeStyle = maColor(j); g.beginPath();
+      let pen = false;
+      vis.forEach((b, i) => {
+        if (b.s[j] == null) { pen = false; return; }
+        pen ? g.lineTo(X(i), Y(b.s[j])) : g.moveTo(X(i), Y(b.s[j])); pen = true;
+      });
+      g.stroke();
+    });
+    g.restore();
+    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
+    if (hi_ >= 0) {
+      g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
+    }
+    const b = vis[hi_ >= 0 ? hi_ : n - 1];
+    m.px.innerHTML = `${fmtDate(b.d)} · <span class="${cls(b.chg)}">${pct(b.chg)}</span> · ${nf(b.c, pxd(b.c))}`;
+  }
+  // deux boîtes en bas de l'onglet : T2108 et VIX en bougies japonaises, sur la même fenêtre de dates que les graphiques de prix.
+  //  - VIX : vraies bougies OHLC (CBOE).
+  //  - T2108 : Stockbee ne publie que la valeur de clôture ; bougie = ouverture (clôture de la veille) → clôture, sans mèches.
+  const T2108_SERIES = (() => {
+    const rows = STOCKBEE.rows.filter(r => r[COL.t2108] != null);
+    return rows.map((r, i) => { const c = r[COL.t2108], o = i ? rows[i - 1][COL.t2108] : c; return { d: r[0], o, h: Math.max(o, c), l: Math.min(o, c), c }; });
+  })();
+  const VIX_SERIES = (window.VIX || []).map(r => ({ d: r[0], o: r[1], h: r[2], l: r[3], c: r[4] }));
+  const boxes = [{ kind: 'T2108', series: T2108_SERIES, hint: '% de titres au-dessus de leur MM 40 jours (Stockbee)', d: 1 },
+                 { kind: 'VIX', series: VIX_SERIES, hint: 'indice de volatilité (CBOE)', d: 2 }].map(bx => {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><span class="hint" style="color:var(--muted);font-size:12px">${bx.hint}</span><span class="px"></span></div><canvas></canvas>`;
+    $('cmpBottom').appendChild(card);
+    return Object.assign(bx, { cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 });
+  });
+
+  function drawBox(bx) {
+    const cv = bx.cv, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H);
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    const isT = bx.kind === 'T2108';
+    if (!bx.series.length) {
+      g.fillStyle = css('--ctext'); g.textAlign = 'center';
+      g.fillText('VIX : lance python fetch_vix.py (vix_data.js manquant)', W / 2, H / 2); bx.vis = []; bx.px.textContent = ''; return;
+    }
+    const win = cmpWindow();
+    const vis = bx.series.filter(b => { const t = ts(b.d); return t >= win.start && t <= win.end; });
+    bx.vis = vis;
+    const n = vis.length;
+    if (!n) { g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Pas de données sur cette période', W / 2, H / 2); bx.px.textContent = ''; return; }
+    const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
+    const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
+    bx.bw = bw;
+    let lo = 0, hi = 100, ticks = [20, 50, 80], refs = [20, 80];
+    if (!isT) {
+      lo = Math.min(...vis.map(b => b.l)); hi = Math.max(...vis.map(b => b.h));
+      const p = (hi - lo) * 0.08 || 1; lo = Math.max(0, lo - p); hi += p;
+      ticks = niceTicks(lo, hi, 4); refs = [20, 30].filter(v => v > lo && v < hi);
+    }
+    const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
+    g.lineWidth = 1; g.textAlign = 'left'; g.textBaseline = 'middle';
+    for (const t of ticks) {
+      const y = Math.round(Y(t)) + 0.5;
+      g.strokeStyle = css('--cgrid'); g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke();
+      g.fillStyle = css('--ctext'); g.fillText(nf(t, t % 1 ? 1 : 0), W - MPAD.r + 5, y);
+    }
+    g.setLineDash([4, 4]); g.strokeStyle = css('--cref');
+    for (const r of refs) { const y = Math.round(Y(r)) + 0.5; g.beginPath(); g.moveTo(MPAD.l, y); g.lineTo(W - MPAD.r, y); g.stroke(); }
+    g.setLineDash([]);
+    g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.fillStyle = css('--ctext');
+    const step = Math.max(1, Math.round(n / 5)), long = (win.end - Math.max(win.start, ts(vis[0].d))) > 400 * DAY;
+    for (let i = Math.floor(step / 2); i < n; i += step)
+      g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
+    const w = Math.max(1, Math.min(12, bw * 0.7));
+    vis.forEach((b, i) => {                                         // bougies japonaises : bleu = clôture ≥ ouverture, rouge sinon
+      const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
+      g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
+      g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
+    });
+    const hi_ = cmpHover ? vis.findIndex(b => b.d === cmpHover) : -1;
+    if (hi_ >= 0) {
+      g.strokeStyle = css('--ccross'); g.setLineDash([3, 3]);
+      g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
+    }
+    const b = vis[hi_ >= 0 ? hi_ : n - 1], dv = b.c - b.o;
+    bx.px.innerHTML = `${fmtDate(b.d)} · ${nf(b.c, isT ? 1 : 2)} <span class="${cls(dv)}">(${dv > 0 ? '+' : ''}${nf(dv, isT ? 1 : 2)})</span>`;
+  }
+  const boxTip = (bx, b) => bx.kind === 'T2108'
+    ? `<b>T2108 · ${fmtDate(b.d)}</b><div>Veille ${nf(b.o, 1)} → ${nf(b.c, 1)} (${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)})</div>`
+    : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
+  boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
+  function renderCmp() { minis.forEach(drawMini); boxes.forEach(drawBox); }
+
+  function miniTip(m, b) {
+    const rows = MAS.map((mm, j) => b.s[j] == null || !mm.on ? '' :
+      `<div><i class="sw" style="background:${maColor(j)};margin-right:6px"></i>${mm.type} ${mm.len} : ${nf(b.s[j], pxd(b.s[j]))}</div>`).join('');
+    return `<b>${m.name} · ${fmtDate(b.d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div>` +
+      `<div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${rows}<div style="margin-top:2px">Tendance : ${b.st ? trendLabel(b.st) : 'aucune couleur'}</div>` +
+      `<div>T2108 : ${nf(sb(b.d, 't2108'), 1)} · VIX : ${nf(VIXMAP.get(b.d), 2)}</div>`;
+  }
+  const miniIdx = (m, e) => {
+    const r = m.cv.getBoundingClientRect(), i = Math.floor((e.clientX - r.left - MPAD.l) / m.bw);
+    return i >= 0 && i < m.vis.length ? i : -1;
+  };
+
+  function wireCmp(m, cv, tipFn) {
+    cv.style.touchAction = 'pan-y';
+    cv.addEventListener('pointerdown', e => {
+      mdrag = { m, x: e.clientX, win: cmpWindow(), moved: false };
+      if (cv.setPointerCapture) cv.setPointerCapture(e.pointerId);
+    });
+    cv.addEventListener('pointermove', e => {
+      if (mdrag && mdrag.m === m) {              // glisser : déplace la fenêtre de dates des trois graphiques
+        const dx = e.clientX - mdrag.x; if (!mdrag.moved && Math.abs(dx) < 3) return;
+        mdrag.moved = true; cv.style.cursor = 'grabbing'; tip.style.display = 'none'; cmpHover = null;
+        const w = mdrag.win, s = isFinite(w.start) ? w.start : cmpFirst();
+        const shift = -dx * (w.end - s) / Math.max(1, m.bw * m.vis.length);
+        setCmpWin(s + shift, w.end + shift);
+        return;
+      }
+      const i = miniIdx(m, e);
+      cmpHover = i >= 0 ? m.vis[i].d : null;
+      renderCmp();
+      if (i < 0) { tip.style.display = 'none'; return; }
+      tip.innerHTML = tipFn(m, m.vis[i]); tip.style.display = 'block';
+      const tw = tip.offsetWidth, right = e.pageX + 14 + tw > document.documentElement.scrollWidth;
+      tip.style.left = (right ? e.pageX - tw - 14 : e.pageX + 14) + 'px'; tip.style.top = (e.pageY - 10) + 'px';
+    });
+    const end = () => { if (mdrag) { mdrag = null; cv.style.cursor = ''; } };
+    cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
+    cv.addEventListener('mouseleave', () => { if (!mdrag) { cmpHover = null; tip.style.display = 'none'; renderCmp(); } });
+    cv.addEventListener('wheel', e => {          // molette : zoom ; en gardant la fin des données fixe tant qu'elle est visible
+      e.preventDefault();
+      const w = cmpWindow(), s = isFinite(w.start) ? w.start : cmpFirst(), k = e.deltaMode === 1 ? 33 : 1;
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+        const shift = e.deltaX * k * (w.end - s) / Math.max(1, m.bw * m.vis.length);
+        setCmpWin(s + shift, w.end + shift); return;
+      }
+      const f = Math.exp(e.deltaY * k * 0.0015), i = miniIdx(m, e);
+      const anchor = w.atEnd ? w.end : i >= 0 ? ts(m.vis[i].d) : (s + w.end) / 2;
+      setCmpWin(anchor - (anchor - s) * f, anchor + (w.end - anchor) * f);
+    }, { passive: false });
+    cv.addEventListener('dblclick', () => selectRange('6M'));
+  }
+  minis.forEach(m => wireCmp(m, m.cv, miniTip));
+  function cmpZoomBy(f) { const w = cmpWindow(), s = isFinite(w.start) ? w.start : cmpFirst(); setCmpWin(w.end - (w.end - s) * f, w.end); }
+
+  // légende (mêmes moyennes mobiles et fond de tendance que la barre du graphique principal) et curseurs d'espaces
+  function renderCmpLegend() {
+    $('cmpMa').innerHTML = MAS.map((m, i) => `<span class="ma${m.on ? '' : ' off'}"><i style="background:${maColor(i)}"></i>` +
+      `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span></span>`).join('');
+    $('cmpTrend').innerHTML = $('trendLegend').innerHTML;
+  }
+  $('cmpMa').addEventListener('click', e => {
+    const nm = e.target.closest('.nm'); if (nm) { const m = MAS[+nm.dataset.i]; m.on = !m.on; maChanged(); }
+  });
+  $('cmpTrend').addEventListener('click', e => {
+    if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); renderCmp(); }
+  });
+  $('topPad2').addEventListener('input', e => {
+    topPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.top', String(Math.round(topPad * 100)));
+    syncSlider(); drawPrice(); renderCmp();
+  });
+  $('rightPad2').addEventListener('input', e => {
+    rightPad = Math.min(0.6, Math.max(0, +e.target.value / 100)); store.set('mm.pad', String(Math.round(rightPad * 100)));
+    syncSlider(); renderCmp();
+  });
+
+  // onglets
+  function setTab(t) {
+    tab = t; store.set('mm.tab', t);
+    $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec';
+    document.body.dataset.tab = t;
+    [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
+    closeMenu(); tip.style.display = 'none';
+    if (t === 'sec') renderSectors();
+    else if (t === 'cmp') { renderCmpLegend(); renderCmp(); } else { drawAll(); syncSlider(); }
+  }
+  $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.tab) setTab(b.dataset.tab); });
+
+  // ------------------------------------------------------------------ rendu complet + boutons
+  function refresh() {
+    // zoom manuel : on garde la même fenêtre en dates (les index changent d'un instrument à l'autre, ex. BTC trade le week-end)
+    let keep = null;
+    if (range == null && ALLT.length) {
+      const N = ALLT.length, span = vp.to - vp.from;
+      keep = { from: ALLT[Math.min(N - 1, Math.max(0, Math.ceil(vp.from)))], to: ALLT[Math.min(N - 1, Math.floor(vp.to))],
+               pad: Math.max(0, (vp.to - (N - 1)) / span) };
+    }
+    loadBars(); buildTimeline();
+    if (keep) {
+      const N = ALLT.length;
+      let i0 = ALLT.findIndex(d => d >= keep.from); if (i0 < 0) i0 = 0;
+      let i1 = N - 1; while (i1 > i0 && ALLT[i1] > keep.to) i1--;
+      vp.from = i0 - 0.5; vp.to = i1 + keep.pad * (i1 - i0);
+    } else presetViewport(range);
+    clampViewport(); applyViewport(); hover = -1;
+    renderBar(); syncSlider();
+    drawAll(); renderTable(); highlightRow(); updateSub();
+    if (tab === 'cmp') renderCmp();
+  }
+  function selectRange(k) {
+    range = k;
+    [...$('ranges').children].forEach(c => { c.className = c.textContent === k ? 'on' : ''; });
+    withTabCtx(() => { presetViewport(k); clampViewport(); });
+    render();
+  }
+
+  // divulgation progressive : les histogrammes bruts sont repliés par défaut, l'état est mémorisé par le navigateur
+  document.querySelectorAll('.disc').forEach(btn => {
+    const panel = $(btn.dataset.target), label = btn.textContent.replace(/^[▸▾]\s*/, '');
+    const set = open => {
+      panel.hidden = !open; btn.setAttribute('aria-expanded', String(open));
+      btn.textContent = (open ? '▾ ' : '▸ ') + label;
+      store.set('mm.' + btn.dataset.target, open ? '1' : '0'); drawAll();
+    };
+    btn.addEventListener('click', () => set(panel.hidden));
+    if (store.get('mm.' + btn.dataset.target) === '1') set(true);
+  });
+
+  // ------------------------------------------------------------------ barre du haut du graphique de prix
+  // « QQQ Daily ▾ » (choix de l'instrument), chaque moyenne mobile avec son menu ▾, curseur d'espace à droite
+  const menu = $('menu'), menuSec = $('menuSec');      // un menu par onglet (chacun dans sa carte, donc visible dans son onglet)
+  let menuKey = null;
+  const menuIdx = () => menuKey && menuKey.startsWith('ma:') ? +menuKey.slice(3) : -1;
+  function closeMenu() { menu.hidden = true; menuSec.hidden = true; menuKey = null; }
+  function openMenu(anchor, key, html, el = menu) {
+    if (!el.hidden && menuKey === key) { closeMenu(); return; }
+    closeMenu();
+    el.innerHTML = html; el.hidden = false; menuKey = key;
+    const card = el.parentElement.getBoundingClientRect(), a = anchor.getBoundingClientRect();
+    el.style.left = Math.max(4, a.left - card.left) + 'px'; el.style.top = (a.bottom - card.top + 4) + 'px';
+  }
+  document.addEventListener('click', e => {
+    const open = [menu, menuSec].find(m => !m.hidden);
+    if (open && !open.contains(e.target) && !(e.target.closest && e.target.closest('[data-menu]'))) closeMenu();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenu(); });
+
+  const maChipsHtml = () => MAS.map((m, i) =>
+    `<span class="ma${m.on ? '' : ' off'}"><i style="background:${maColor(i)}"></i>` +
+    `<span class="nm" data-i="${i}" title="Afficher / masquer">${m.type} ${m.len}</span>` +
+    `<span class="car" data-menu data-i="${i}" title="Réglages : longueur, type, couleur">▾</span></span>`).join('');
+  const trendLegendHtml = () =>
+    `<span class="tg${trendOn ? '' : ' off'}" data-trend title="Fond ChillLax : MM${MAS[TR1].len} et MM${MAS[TR2].len}, tendance sur ${TREND_LEN} barres">Fond de tendance (MM${MAS[TR1].len} / MM${MAS[TR2].len}) :</span>` +
+    TREND.slice(1).reverse().map(t => `<span><i style="background:${t.fill};outline:1px solid var(--border)"></i>${t.key}</span>`).join('');
+  function renderBar() {
+    $('instBtn').textContent = `${current} Daily ▾`;
+    $('maBar').innerHTML = maChipsHtml();
+    $('trendLegend').innerHTML = trendLegendHtml();
+    renderCmpLegend();
+    renderSecBar();
+  }
+  function maChanged() { store.set('mm.mas', JSON.stringify(MAS)); renderBar(); loadBars(); render(); }
+
+  $('instBtn').addEventListener('click', () => openMenu($('instBtn'), 'inst',
+    NAMES.map(n => `<button class="opt${n === current ? ' cur' : ''}" data-n="${n}">${n} · Daily</button>`).join('')));
+  const maMenuHtml = i => {
+    const m = MAS[i];
+    return `<div class="mi"><span>Longueur</span><input type="number" min="1" max="400" step="1" value="${m.len}" data-f="len"></div>` +
+      `<div class="mi"><span>Type</span><select data-f="type"><option${m.type === 'SMA' ? ' selected' : ''}>SMA</option><option${m.type === 'EMA' ? ' selected' : ''}>EMA</option></select></div>` +
+      `<div class="mi"><span>Couleur</span><input type="color" value="${maColor(i)}" data-f="color"></div>` +
+      `<button class="opt" data-f="reset">Couleur par défaut</button>` +
+      `<button class="opt" data-f="toggle">${m.on ? 'Masquer' : 'Afficher'}</button>`;
+  };
+  const maClick = (e, el) => {
+    const car = e.target.closest('.car'), nm = e.target.closest('.nm');
+    if (car) openMenu(car, 'ma:' + car.dataset.i, maMenuHtml(+car.dataset.i), el);
+    else if (nm) { const m = MAS[+nm.dataset.i]; m.on = !m.on; maChanged(); }
+  };
+  $('maBar').addEventListener('click', e => maClick(e, menu));
+  $('secMa').addEventListener('click', e => maClick(e, menuSec));
+  $('trendLegend').addEventListener('click', e => {
+    if (e.target.closest('[data-trend]')) { trendOn = !trendOn; renderBar(); drawPrice(); }
+  });
+  [menu, menuSec].forEach(el => {
+    el.addEventListener('click', e => {
+      const o = e.target.closest('button.opt'); if (!o) return;
+      const i = menuIdx();
+      if (o.dataset.n) { current = o.dataset.n; closeMenu(); refresh(); }
+      else if (i >= 0 && o.dataset.f === 'toggle') { MAS[i].on = !MAS[i].on; closeMenu(); maChanged(); }
+      else if (i >= 0 && o.dataset.f === 'reset') { MAS[i].color = null; closeMenu(); maChanged(); }
+    });
+    el.addEventListener('input', e => {
+      const i = menuIdx(), f = e.target.dataset && e.target.dataset.f; if (i < 0) return;
+      if (f === 'len') { const v = Math.round(+e.target.value); if (v >= 1 && v <= 400) { MAS[i].len = v; maChanged(); } }
+      else if (f === 'type') { MAS[i].type = e.target.value === 'EMA' ? 'EMA' : 'SMA'; maChanged(); }
+      else if (f === 'color') { MAS[i].color = e.target.value; maChanged(); }
+    });
+  });
+
+  // réorganisation des cartes d'histogrammes : glisser la poignée ⠿ (ou Alt + ↑ / ↓ au clavier) ; l'ordre est mémorisé
+  const hgroup = $('hgroup');
+  function saveOrder() { store.set('mm.order', JSON.stringify([...hgroup.querySelectorAll('.hcard')].map(c => c.dataset.card))); }
+  try {
+    const order = JSON.parse(store.get('mm.order') || '[]');
+    if (Array.isArray(order)) order.forEach(k => { const c = hgroup.querySelector(`[data-card="${k}"]`); if (c) hgroup.appendChild(c); });
+  } catch (e) { /* ordre illisible : ordre par défaut */ }
+  let dragCard = null;
+  hgroup.querySelectorAll('.hcard').forEach(card => {
+    const grip = card.querySelector('.grip');
+    grip.addEventListener('mousedown', () => { card.draggable = true; });   // la carte n'est déplaçable que par sa poignée
+    grip.addEventListener('mouseup', () => { card.draggable = false; });
+    grip.addEventListener('keydown', e => {
+      if (!e.altKey || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+      e.preventDefault();
+      const sib = e.key === 'ArrowUp' ? card.previousElementSibling : card.nextElementSibling;
+      if (!sib) return;
+      hgroup.insertBefore(card, e.key === 'ArrowUp' ? sib : sib.nextElementSibling);
+      saveOrder(); drawAll(); grip.focus();
+    });
+    card.addEventListener('dragstart', e => {
+      dragCard = card; card.classList.add('dragging');
+      if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', card.dataset.card); }
+    });
+    card.addEventListener('dragover', e => {
+      if (!dragCard || dragCard === card) return;
+      e.preventDefault();                                                  // autorise le dépôt
+      const r = card.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+      hgroup.insertBefore(dragCard, after ? card.nextElementSibling : card);
+    });
+    card.addEventListener('drop', e => e.preventDefault());
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging'); card.draggable = false; dragCard = null;
+      saveOrder(); drawAll();
+    });
+  });
+
+  // curseur « Espace en haut » : place le plus haut cours plus ou moins bas dans le graphique (comme la poignée ◀)
+  $('topPad').addEventListener('input', e => {
+    topPad = Math.min(0.6, Math.max(0, +e.target.value / 100));
+    store.set('mm.top', String(Math.round(topPad * 100)));
+    syncSlider(); drawPrice();
+  });
+
+  // cartes d'histogrammes : un clic sur le titre replie la carte (résumé d'une ligne), l'état est mémorisé
+  document.querySelectorAll('.chead').forEach(h => {
+    const body = h.closest('.card').querySelector('.cbody'), key = 'mm.card.' + h.dataset.key, car = h.querySelector('.car');
+    const set = open => {
+      body.hidden = !open; h.setAttribute('aria-expanded', String(open)); car.textContent = open ? '▾' : '▸';
+      h.classList.toggle('closed', !open); store.set(key, open ? '1' : '0');
+      if (open) drawAll();
+    };
+    h.addEventListener('click', () => set(body.hidden));
+    if (store.get(key) === '0') set(false);
+  });
+
+  // curseur « Espace à droite » : décale la fenêtre sans changer la largeur des barres (comme la poignée ▲)
+  $('rightPad').addEventListener('input', e => setRightPadPct(+e.target.value));
+
+  function buttons(id, items, get, set) {
+    const box = $(id);
+    items.forEach(x => {
+      const b = document.createElement('button'); b.textContent = x; b.className = get() === x ? 'on' : '';
+      b.onclick = () => { set(x); [...box.children].forEach(c => c.className = c === b ? 'on' : ''); if (tab === 'sec') selectRange(x); else refresh(); };
+      box.appendChild(b);
+    });
+  }
+  buttons('ranges', Object.keys(MONTHS), () => range, x => { range = x; });
+  const zoomBtn = f => () => tab === 'cmp' ? cmpZoomBy(f) : withTabCtx(() => zoomAt(anchorFrac(0.5), f));
+  $('zIn').addEventListener('click', zoomBtn(0.8));
+  $('zOut').addEventListener('click', zoomBtn(1.25));
+
+  // statut de la mise à jour automatique (status_data.js, écrit par update_all.py) : date, et dernière séance de chaque source
+  (() => {
+    const st = window.STATUS, el = $('dataStatus'); if (!st || !el) return;
+    const names = { stockbee: 'Stockbee', vix: 'VIX', prices: 'Prix', sectors: 'Secteurs' };
+    const when = new Date(st.updated);
+    const stamp = isNaN(when) ? st.updated : when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
+    // données périmées : la mise à jour est quotidienne, donc plus de 30 h sans mise à jour = un passage a été sauté ou a échoué
+    const ageH = isNaN(when) ? null : (Date.now() - when.getTime()) / 3600000;
+    const stale = ageH != null && ageH > 30 ? ` <span class="neg">⚠ données vieilles de ${Math.round(ageH)} h : la mise à jour automatique n'a pas tourné</span> · ` : ' · ';
+    el.innerHTML = `Dernière mise à jour automatique : <b>${stamp}</b>${stale}` + Object.entries(names).map(([k, label]) => {
+      const s = st.sources && st.sources[k]; if (!s) return '';
+      const d = s.last ? fmtDate(s.last, { day: 'numeric', month: 'short' }) : '?';
+      return s.ok ? `${label} ${d} ✓` : `<span class="neg" title="${(s.error || '').replace(/"/g, '&quot;')}">${label} ${d} ⚠ non mis à jour</span>`;
+    }).filter(Boolean).join(' · ') + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+  })();
+
+  // bouton « Actualiser » : recharge la page avec un paramètre anti-cache pour récupérer les dernières données publiées
+  $('refreshBtn').addEventListener('click', () => {
+    const b = $('refreshBtn'); b.disabled = true; b.textContent = '↻ Actualisation…';
+    location.search = '?v=' + Date.now();
+  });
+
+  new ResizeObserver(drawAll).observe(document.querySelector('.wrap'));
+  window.addEventListener('resize', drawAll);          // la hauteur dépend de la fenêtre (vh) : le ResizeObserver ne la voit pas
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(drawAll, 50));
+  refresh();
+  { const st = store.get('mm.tab'); if (st === 'cmp' || st === 'sec') setTab(st); }
+})();
+</script>
+</body>
+</html>

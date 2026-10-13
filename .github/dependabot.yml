@@ -1,0 +1,11 @@
+# Propose chaque semaine les mises a jour des dependances Python et des actions GitHub (pull requests a relire et fusionner).
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

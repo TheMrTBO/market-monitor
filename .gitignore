@@ -1,0 +1,14 @@
+# --- secrets et fichiers locaux : ne jamais publier ---
+.env
+.env.*
+.venv/
+.claude/
+.DS_Store
+
+# --- produits locaux, inutiles dans le depot ---
+cache/
+monitor_data.js
+monitor_data.json
+*.log
+__pycache__/
+_site/
