@@ -17,7 +17,7 @@ TradingView toutes les 30 min de 20:15 à 01:15 UTC en semaine (le post-market d
 l'été et 21:00-01:00 UTC l'hiver). Hors fenêtre, `fetch_postmarket.py` ne fait rien : pas de commit, pas de déploiement. Le
 relevé final (post-market terminé) est fait par le passage de `05:43`. Aucune clé ; données TradingView différées de 15 min.
 
-Horaires (UTC) : `22:17` et un rattrapage à `05:43` le lendemain. Les week-ends et jours fériés US, seules les données BTC changent. GitHub peut retarder une exécution
+Horaires (UTC) : `22:17`, puis `01:17` et `03:17` (le breadth du jour est publié après la clôture à une heure variable ; d'ici là le tableau de bord affiche « en attente »), et un rattrapage à `05:43` le lendemain. Les week-ends et jours fériés US, seules les données BTC changent. GitHub peut retarder une exécution
 de quelques minutes à quelques dizaines de minutes ; c'est normal. Lancement manuel possible à tout moment :
 onglet **Actions** > « Mise à jour des données et publication » > **Run workflow**.
 

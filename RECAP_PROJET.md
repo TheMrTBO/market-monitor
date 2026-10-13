@@ -235,6 +235,13 @@ toucher un titre → graphique + fiche, « ‹ Scan » pour revenir.
 - Méta : date de la séance, « post-market en cours / terminé », heure du relevé (heure locale).
 - Prévu : vue « Résultats » (Benzinga : BPA, CA, surprise), masquée tant que la source n'est pas branchée.
 
+### Séance du jour en attente (13/10/2026, demande utilisateur)
+Après 16 h à New York, si QQQ a coté ce jour-là mais que le breadth n'est pas publié (Stockbee, calcul maison), la séance du jour
+(`PENDING`) est ajoutée à `SB` avec une ligne vide : « Stats du » et le badge passent au jour même sur **tous les onglets**. Les cases
+du MM sans donnée affichent « — » + « en attente » (sans jauge ni record), la note dit lesquelles et l'heure du prochain essai ; badge
+« breadth en attente » ; SA : T2108 / VIX « en attente des données · dernier : … » ; infobulles « En attente des données ». Une séance
+passée choisie dans « Stats du » s'affiche normalement. Passages supplémentaires du workflow à 01:17 et 03:17 UTC. Test 16.
+
 ### Autres
 Pied de page de statut dans un bloc repliable « Sources et état des données » (date, ✓/⚠ par source, écart calcul maison /
 Stockbee). Thème clair/sombre/système pour le cadre (les graphiques de prix restent noirs).
