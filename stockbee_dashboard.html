@@ -2093,7 +2093,7 @@
     const cell = {
       sym: r => {
         const w = watchGet(r.s, r._d), t = w && tagOf(w.tag);
-        const sub = pmWatch ? `${fmtDate(r._d, { day: 'numeric', month: 'short' })} · ${esc(w && w.note ? w.note : pmSector(r))}` : pmSector(r);
+        const sub = pmWatch ? `${fmtDate(r._d, { day: 'numeric', month: 'short' })} · ${esc(w && w.note ? w.note : r._old ? r.n : pmSector(r))}` : pmSector(r);
         return `<td class="sym l" title="${esc(r.n)}"><div class="symw"><button class="tagb${t ? ' tg-' + t.tone : ''}" data-k="${pmId(r)}" aria-pressed="${!!w}" ` +
           `aria-label="${w ? 'Ne plus suivre ' + r.s : 'Suivre ' + r.s}" title="${w ? t.label + ' : toucher pour retirer' : 'Suivre ce titre'}">${t ? t.icon : '☆'}</button>` +
           `<div>${r.s}<span class="tsub" title="${esc(w && w.note ? w.note : r.ind || '')}">${sub}</span></div></div></td>`;
@@ -2176,7 +2176,7 @@
   });
   $('pmRows').addEventListener('click', e => {
     const tb = e.target.closest('.tagb');
-    if (tb) {                                            // ☆ : suivre avec la 1re étiquette ; titre déjà suivi : ne plus suivre
+    if (tb && tb.dataset && tb.dataset.k) {                                            // ☆ : suivre avec la 1re étiquette ; titre déjà suivi : ne plus suivre
       const r = pmShown.find(x => pmId(x) === tb.dataset.k); if (!r) return;
       watchSet(r, r._d, { tag: watchGet(r.s, r._d) ? null : TAGS[0].id }); renderPM(); return;
     }
