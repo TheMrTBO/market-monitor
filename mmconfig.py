@@ -56,7 +56,8 @@ def front_config():
     return {
         "market": {k: m[k] for k in ("timezone", "close_hour", "postmarket_end_hour", "premarket_start_hour")},
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
-        "postmarket": {k: pm[k] for k in ("min_price", "min_volume", "min_change", "max_per_side", "keep_sessions")},
+        "postmarket": {**{k: pm[k] for k in ("min_price", "min_volume", "min_change", "max_per_side", "keep_sessions")},
+                       "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])]},
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
@@ -116,6 +117,9 @@ def check():
     pm = load("postmarket")
     if not (pm["min_price"] > 0 and pm["min_volume"] > 0 and pm["min_change"] > 0 and pm["max_per_side"] > 0 and pm["keep_sessions"] > 0):
         errors.append("postmarket : seuils strictement positifs attendus")
+    for l in pm.get("links", []):
+        if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|tv)\}", l.get("url", "")):
+            errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}} ou {{tv}} attendus")
     groups = {g for g, _ in load("display")["sectors"]["groups"]} - {"all"}
     syms = [e["symbol"] for e in sectors()]
     if len(set(syms)) != len(syms):

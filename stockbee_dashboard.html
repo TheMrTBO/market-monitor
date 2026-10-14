@@ -72,7 +72,7 @@
   .pmfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; margin: 6px 0 0; }
   .pmfacts div { min-width: 0; } .pmfacts dt { color: var(--muted); font-size: 11px; margin-bottom: 1px; }
   .pmfacts dd { margin: 0; font-variant-numeric: tabular-nums; }
-  .pmnote { color: var(--muted); font-size: 12px; margin: 10px 0 2px; } .pmnote a { color: var(--up); }
+  .pmnote { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 12px; margin: 10px 0 2px; } .pmnote a { color: var(--up); padding: 4px 0; }
   body[data-tab="sec"] #sub { display: none; }
   .secsplit { display: grid; grid-template-columns: minmax(560px, 46%) minmax(0, 1fr); gap: 8px; align-items: start; }
   @media (max-width: 1000px) { .secsplit { grid-template-columns: minmax(0, 1fr); } .secchart { position: static; } }
@@ -119,7 +119,7 @@
   .rk td.sym .tsub { display: none; }
   .copybtn { display: inline-flex; align-items: center; gap: 5px; align-self: center; border: 1px solid var(--border); background: none; color: var(--muted);
     border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
-  .copybtn:hover { color: var(--text); } .copybtn svg.i { width: 14px; height: 14px; }
+  .copybtn:hover { color: var(--text); } a.copybtn { text-decoration: none; } .copybtn svg.i { width: 14px; height: 14px; }
   .copybtn.done { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
   .copybtn:disabled { opacity: .5; cursor: default; }
   .rk .devc .trk { display: contents; }               /* piste de la barre d'écart : neutre sur grand écran (barre sous le chiffre) */
@@ -362,6 +362,9 @@
   .sheet input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--up); }
   .optrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
   .optrow label { display: flex; align-items: center; gap: 8px; }
+  .recapset { display: grid; gap: 6px; padding: 8px 0; }
+  .recapset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .recapset p { margin: 0; font-size: 12px; color: var(--muted); } .recapset p.bad { color: var(--down); }
   .slider { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; color: var(--muted); }
   .slider input[type=range] { width: 100%; accent-color: var(--up); }
   .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
@@ -597,6 +600,7 @@
         <div class="sechead">
           <b>Scan post-market · volume</b><button class="tipbtn" data-tip="pmscan" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
           <button class="copybtn" id="pmCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
+          <a class="copybtn" id="pmRecap" target="_blank" rel="noopener" hidden title="Ton récap privé des news de la dernière séance (claude.ai)">Récap news ↗</a>
           <span class="secmeta" id="pmMeta"></span>
         </div>
         <div class="secfilt" id="pmFilt" role="group" aria-label="Filtrer le scan"></div>
@@ -795,6 +799,12 @@
   <div class="optrow"><label><input type="checkbox" id="optAlpha"> Histogrammes : premier plan translucide</label></div>
   <div class="optrow"><span>Moyenne mobile sur les histogrammes</span><span class="seg sm" id="hmaSeg"><button data-n="0">Aucune</button><button data-n="5">5 j</button><button data-n="10">10 j</button><button data-n="20">20 j</button></span></div>
   <div class="optrow"><span style="color:var(--muted)">Revenir à l'affichage par défaut</span><button id="resetView">Réinitialiser</button></div>
+  <h4>Récap news privé</h4>
+  <div class="recapset">
+    <label for="optRecap">Lien de ta page de récap (claude.ai)</label>
+    <input type="url" id="optRecap" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://claude.ai/artifact/…">
+    <p id="optRecapMsg">Enregistré seulement sur cet appareil, jamais dans le site. Ajoute un bouton « Récap news » dans l'onglet Post-market.</p>
+  </div>
 </aside>
 <div class="pop" id="pop" role="dialog" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -2067,7 +2077,10 @@
       fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
       fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : 'séance pas encore jouée');
-    $('pmNote').innerHTML = `<a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.t)}" target="_blank" rel="noopener">Ouvrir sur TradingView ↗</a>`;
+    const link = u => u.replace(/\{sym\}/g, encodeURIComponent(r.s)).replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
+    const rc = recapUrl();
+    $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('') +
+      (rc ? `<a href="${rc}#${encodeURIComponent(r.s)}" target="_blank" rel="noopener" title="Bloc de ${r.s} dans ton récap privé (dernière séance)">Récap news ↗</a>` : '');
     pmRedraw();
   }
   $('pmHead').addEventListener('click', e => {
@@ -2096,6 +2109,22 @@
     lab.textContent = ok ? `${pmShown.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
     clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
   });
+  // récap news privé (page claude.ai) : lien collé dans Réglages, gardé sur l'appareil (hors « mm. » : « Réinitialiser » ne l'efface pas)
+  function recapOk(u) { return /^https:\/\/claude\.ai\/[\w\/.\-]+$/.test(u || ''); }
+  function recapUrl() { const u = store.get('perso.recap'); return recapOk(u) ? u : null; }
+  function applyRecap() {
+    const u = recapUrl(), b = $('pmRecap');
+    b.hidden = !u; if (u) b.href = u;
+    $('optRecap').value = store.get('perso.recap') || '';
+  }
+  $('optRecap').addEventListener('change', () => {
+    const v = $('optRecap').value.trim().replace(/[#?].*$/, ''), msg = $('optRecapMsg');
+    if (v && !recapOk(v)) { msg.textContent = 'Lien refusé : il doit commencer par https://claude.ai/'; msg.classList.add('bad'); return; }
+    try { if (v) localStorage.setItem('perso.recap', v); else localStorage.removeItem('perso.recap'); } catch (e) { /* stockage indisponible */ }
+    msg.textContent = v ? 'Enregistré sur cet appareil. Bouton « Récap news » ajouté dans l\'onglet Post-market.' : 'Lien retiré de cet appareil.';
+    msg.classList.remove('bad'); applyRecap(); if (tab === 'pm') renderPM();
+  });
+  applyRecap();
   $('pmBack').addEventListener('click', () => { $('view-pm').classList.remove('detail'); renderPM(); });
   $('pmFilt').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
