@@ -34,9 +34,8 @@ icon = "✕"
 label = "Piège"
 tone = "down"
 
-# Suivis (étoiles) : gardés dans le navigateur ; sauvegarde facultative dans un dépôt GitHub PRIVÉ choisi dans Réglages
-# (jeton limité à ce dépôt, gardé sur l'appareil, jamais dans ce dépôt public).
+# Suivis (étoiles) : jeu privé postmarket_watch (datasets.toml), sauvegardé dans le stockage privé (storage.toml [private]) ;
+# le navigateur n'en garde qu'une copie de travail.
 [watch]
 note_max = 140                       # longueur maximale de la note d'un suivi
-sync_path = "suivis.json"            # fichier du dépôt privé
-sync_message = "Suivis post-market"  # début du message de chaque enregistrement
+sync_message = "Suivis post-market"  # début du message de chaque enregistrement (commit)

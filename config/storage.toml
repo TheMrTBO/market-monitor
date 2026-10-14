@@ -9,3 +9,14 @@ serving = "js_files"
 backend = "git_csv"
 root = "data-store"        # dossier local où est extraite la branche `data` (git worktree, ou actions/checkout en CI)
 branch = "data"
+
+# Données PRIVÉES (jeux private = true de datasets.toml : suivis post-market). Même modèle et même format que [store]
+# (git_csv : un CSV par mois, en-tête = colonnes du modèle, lignes triées par clé), dans un dépôt GitHub PRIVÉ de
+# l'utilisateur : lisible tel quel par mm/store (open_store(private=True)). Écrit aujourd'hui par le site, depuis le navigateur
+# (transport "github_api" : API Git de GitHub, un commit atomique par sauvegarde, jeton limité à ce dépôt gardé sur l'appareil).
+# Demain : un autre transport (API, base) — seul le module d'accès change, le modèle et les fichiers restent identiques.
+[private]
+backend = "git_csv"
+transport = "github_api"
+repo = ""          # propriétaire/nom du dépôt privé ; vide = saisi dans Réglages sur chaque appareil (une saisie y prime toujours)
+branch = "main"

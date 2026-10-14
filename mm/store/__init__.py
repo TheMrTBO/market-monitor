@@ -33,11 +33,13 @@ class Dataset:
     columns: dict          # nom -> (type, nullable)
     partition: str         # month | day
     partition_by: str
+    private: bool = False  # jeu privé : jamais dans le stockage public (et inversement)
 
     @classmethod
     def from_config(cls, name, d):
         cols = {c: (t.rstrip("?"), t.endswith("?")) for c, t in d["columns"].items()}
-        return cls(name, d.get("description", ""), tuple(d["primary_key"]), cols, d["partition"], d["partition_by"])
+        return cls(name, d.get("description", ""), tuple(d["primary_key"]), cols, d["partition"], d["partition_by"],
+                   bool(d.get("private", False)))
 
     def key(self, row):
         return tuple(row[k] for k in self.primary_key)
@@ -48,9 +50,9 @@ class Dataset:
         return v[:7] if self.partition == "month" else v
 
 
-def datasets():
-    """Jeux de données déclarés dans config/datasets.toml."""
-    return {k: Dataset.from_config(k, v) for k, v in mmconfig.load("datasets")["datasets"].items()}
+def datasets(private=False):
+    """Jeux de données déclarés dans config/datasets.toml : publics (défaut) ou privés (private = true), jamais mélangés."""
+    return {k: d for k, v in mmconfig.load("datasets")["datasets"].items() if (d := Dataset.from_config(k, v)).private == private}
 
 
 DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -122,10 +124,13 @@ class Store:
         raise NotImplementedError
 
 
-def open_store(root=None):
-    """Store configuré dans config/storage.toml ([store]) ; `root` remplace le dossier configuré (tests)."""
-    cfg = mmconfig.load("storage")["store"]
+def open_store(root=None, private=False):
+    """Store configuré dans config/storage.toml : [store] (public, branche `data`) ou [private] (dépôt privé de l'utilisateur,
+    extrait dans `root`, obligatoire). `root` remplace le dossier configuré (tests). Un store ne voit que ses propres jeux."""
+    cfg = mmconfig.load("storage")["private" if private else "store"]
+    if private and not root:
+        raise ValueError("stockage privé : indiquer le dossier où le dépôt privé est extrait (root)")
     if cfg["backend"] == "git_csv":
         from .git_csv import GitCsvStore
-        return GitCsvStore(Path(root) if root else HERE / cfg["root"])
+        return GitCsvStore(Path(root) if root else HERE / cfg["root"], private=private)
     raise NotImplementedError(f"backend de stockage non implémenté : {cfg['backend']}")

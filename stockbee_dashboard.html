@@ -859,6 +859,19 @@
 
   // ------------------------------------------------------------------ configuration (config/*.toml → config_data.js, généré par mmconfig.py)
   const CFG = window.MM_CONFIG;
+  // GitHub Pages garde chaque fichier 10 min en cache : juste après une mise en ligne, la page peut être plus récente que sa
+  // config. Il manque une section attendue → rechargement forcé une fois (fichiers frais), sinon message clair (jamais de page cassée).
+  const CFG_NEEDS = ['market', 'schedule', 'postmarket.links', 'postmarket.tags', 'postmarket.watch', 'postmarket.copy_separator', 'private.store', 'private.datasets.postmarket_watch'];
+  const cfgMissing = CFG_NEEDS.filter(p => p.split('.').reduce((o, k) => (o == null ? o : o[k]), CFG) == null);
+  if (cfgMissing.length) {
+    let retried = true;
+    try { retried = sessionStorage.getItem('mm.cfgreload') === '1'; if (!retried) sessionStorage.setItem('mm.cfgreload', '1'); } catch (e) { /* stockage indisponible : pas de boucle */ }
+    if (!retried) { location.search = '?v=' + Date.now(); return; }
+    document.querySelector('.wrap').innerHTML = '<div id="fatal">Mise en ligne en cours : la configuration du site n\'est pas encore à jour ' +
+      `(${cfgMissing.join(', ')}). Réessaie dans quelques minutes avec le bouton Actualiser ou en rechargeant la page.</div>`;
+    return;
+  }
+  try { sessionStorage.removeItem('mm.cfgreload'); } catch (e) { /* stockage indisponible */ }
 
   // ------------------------------------------------------------------ données
   const COL = Object.fromEntries(STOCKBEE.columns.map((c, i) => [c, i]));
@@ -2016,10 +2029,12 @@
   const TAGS = CFG.postmarket.tags, WCFG = CFG.postmarket.watch;   // config/postmarket.toml (mmconfig vérifie qu'il y a au moins une étiquette)
   const tagOf = id => TAGS.find(t => t.id === id) || TAGS[0];
   const pmId = r => r._k || r.s;                         // identifiant d'une ligne : symbole (scan) ou symbole|séance (suivis)
-  const ISO = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/;
+  const ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;   // horodatage UTC (Z ou décalage)
+  const tms = t => Date.parse(t);
   function watchValid(k, w) {                            // données venues d'un autre appareil ou d'un fichier : forme vérifiée avant usage
-    if (!w || typeof w !== 'object' || !/^[A-Z0-9.\-]{1,15}$/.test(w.s) || !/^\d{4}-\d{2}-\d{2}$/.test(w.d) || k !== w.s + '|' + w.d || !ISO.test(w.up || '')) return false;
+    if (!w || typeof w !== 'object' || !/^[A-Z0-9.\-]{1,15}$/.test(w.s) || !/^\d{4}-\d{2}-\d{2}$/.test(w.d) || k !== w.s + '|' + w.d || !ISO.test(w.up || '') || isNaN(tms(w.up))) return false;
     if (w.del === true) return true;
+    if (w.at != null && !ISO.test(w.at)) return false;
     return typeof w.tag === 'string' && typeof (w.note ?? '') === 'string' && (w.note || '').length <= WCFG.note_max && typeof (w.n ?? '') === 'string' && (w.n || '').length <= 200 &&
       ['c', 'pc', 'pch'].every(f => w[f] == null || Number.isFinite(w[f]));
   }
@@ -2027,7 +2042,7 @@
     const out = { v: 1, items: {} };
     for (const src of srcs) for (const [k, w] of Object.entries((src && src.items) || {})) {
       if (!watchValid(k, w)) continue;
-      const cur = out.items[k]; if (!cur || w.up > cur.up) out.items[k] = w;
+      const cur = out.items[k]; if (!cur || tms(w.up) > tms(cur.up)) out.items[k] = w;
     }
     return out;
   }
@@ -2056,18 +2071,98 @@
       return Object.assign(r, { _k: k, _d: w.d, _snap: sn, _w: w, since: last && last[0] > w.d && w.pc ? 100 * (last[4] / w.pc - 1) : null });
     });
   }
-  // sauvegarde des suivis dans un dépôt GitHub PRIVÉ (Réglages) : dépôt + jeton gardés sur l'appareil, envoyés seulement à api.github.com.
-  // Chaque enregistrement est un commit du dépôt privé : historique complet, rien n'est jamais écrasé sans fusion.
-  function syncCfg() {
-    const repo = store.get('perso.sync.repo') || '', token = store.get('perso.sync.token') || '';
+  // --- stockage privé des suivis : jeu postmarket_watch (config/datasets.toml, private = true), stockage [private] de
+  // config/storage.toml. Même format que mm/store (git_csv : un CSV par mois, en-tête = colonnes du modèle, lignes triées par clé ;
+  // contrat vérifié par tests/fixtures/postmarket_watch_2026-10.csv, côté site et côté Python). Transport github_api : API Git
+  // de GitHub depuis le navigateur, un commit atomique par sauvegarde ; dépôt + jeton gardés sur l'appareil, envoyés à api.github.com.
+  // Changer de stockage plus tard = remplacer privRead / privWrite ; le modèle, la fusion et l'interface ne bougent pas.
+  const PRIV = CFG.private.store, WDS_NAME = 'postmarket_watch', WDS = CFG.private.datasets[WDS_NAME];
+  const WCOLS = WDS.columns.map(([c, t]) => ({ c, t: t.replace('?', ''), opt: t.endsWith('?') }));   // ordre du modèle = ordre des colonnes du CSV
+  const toRow = w => w.del
+    ? { symbol: w.s, session_date: w.d, tag: null, note: null, deleted: true, created_at: null, updated_at: w.up, name: null, close: null, pm_price: null, pm_change_pct: null }
+    : { symbol: w.s, session_date: w.d, tag: w.tag, note: w.note || null, deleted: false, created_at: w.at || null, updated_at: w.up,
+        name: w.n || null, close: w.c ?? null, pm_price: w.pc ?? null, pm_change_pct: w.pch ?? null };
+  const toItem = r => r.deleted ? { s: r.symbol, d: r.session_date, del: true, up: r.updated_at }
+    : { s: r.symbol, d: r.session_date, tag: r.tag || TAGS[0].id, note: r.note || '', at: r.created_at || r.updated_at, up: r.updated_at,
+        n: r.name || '', c: r.close, pc: r.pm_price, pch: r.pm_change_pct };
+  function csvParse(text) {                              // RFC 4180 : guillemets, guillemets doublés, retours à la ligne dans un champ
+    const rows = []; let row = [], f = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; } else f += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { row.push(f); f = ''; }
+      else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(f); rows.push(row); row = []; f = ''; }
+      else f += ch;
+    }
+    if (q) throw new Error('guillemet non fermé');
+    if (f !== '' || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+  function csvToRows(text) {                             // contrôle strict : une seule valeur non conforme = fichier refusé, rien n'est réécrit
+    const [head, ...lines] = csvParse(text);
+    if (!head || head.join() !== WCOLS.map(x => x.c).join()) throw new Error('en-tête différent du modèle');
+    return lines.map(cells => {
+      if (cells.length !== WCOLS.length) throw new Error('nombre de colonnes');
+      const r = {};
+      WCOLS.forEach(({ c, t, opt }, i) => {
+        const v = cells[i];
+        if (v === '') { if (!opt) throw new Error(`${c} manquant`); r[c] = null; return; }
+        if (t === 'bool') { if (v !== 'true' && v !== 'false') throw new Error(c); r[c] = v === 'true'; }
+        else if (t === 'float' || t === 'int') { const n = Number(v); if (!Number.isFinite(n)) throw new Error(c); r[c] = n; }
+        else r[c] = v;
+      });
+      return r;
+    });
+  }
+  const csvCell = (v, t) => v == null ? '' : t === 'bool' ? String(!!v)
+    : t === 'float' ? (Number.isInteger(v) && Math.abs(v) < 1e16 ? v.toFixed(1) : String(v)) : String(v);   // comme repr() de Python
+  const csvQuote = x => /[",\r\n]/.test(x) ? '"' + x.replace(/"/g, '""') + '"' : x;
+  function rowsToCsv(rows) {                             // même texte que mm/store/git_csv.py : réécrire sans changement ne crée aucun commit
+    const key = r => WDS.primary_key.map(k => String(r[k]));
+    const sorted = rows.slice().sort((a, b) => { const ka = key(a), kb = key(b); for (let i = 0; i < ka.length; i++) if (ka[i] !== kb[i]) return ka[i] < kb[i] ? -1 : 1; return 0; });
+    return [WCOLS.map(x => x.c).join(','), ...sorted.map(r => WCOLS.map(({ c, t }) => csvQuote(csvCell(r[c], t))).join(','))].join('\n') + '\n';
+  }
+  const partPath = r => { const v = String(r[WDS.partition_by]).slice(0, 10); return `${WDS_NAME}/${v.slice(0, 4)}/${WDS.partition === 'month' ? v.slice(0, 7) : v}.csv`; };
+  function syncCfg() {                                   // dépôt : saisie de l'appareil, sinon config ; jeton : appareil seulement
+    const repo = store.get('perso.sync.repo') || PRIV.repo || '', token = store.get('perso.sync.token') || '';
     return /^[\w.-]+\/[\w.-]+$/.test(repo) && /^[\w-]{20,}$/.test(token) ? { repo, token } : null;
   }
   const ghHead = c => ({ Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
   const ghErr = st => st === 401 ? 'jeton refusé (expiré ou mal copié)'
     : st === 403 ? 'accès refusé : le jeton doit avoir « Contents : Read and write » sur ce dépôt'
     : st === 404 ? 'dépôt introuvable : vérifie le nom et que le jeton y a accès' : `GitHub a répondu ${st}`;
-  const b64e = t => { const b = new TextEncoder().encode(t); let x = ''; for (let i = 0; i < b.length; i += 0x8000) x += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(x); };
+  async function gh(c, method, path, body) {
+    const r = await fetch(`https://api.github.com/repos/${c.repo}${path}`, { method, cache: 'no-store',
+      headers: Object.assign(body ? { 'Content-Type': 'application/json' } : {}, ghHead(c)), body: body ? JSON.stringify(body) : undefined });
+    if (!r.ok) { const e = new Error(ghErr(r.status)); e.status = r.status; throw e; }
+    return r.json();
+  }
   const b64d = t => new TextDecoder().decode(Uint8Array.from(atob(String(t).replace(/\s/g, '')), ch => ch.charCodeAt(0)));
+  const blobCache = new Map();                           // contenu des fichiers par empreinte Git : on ne relit que ce qui a changé
+  async function privRead(c) {                           // { head, tree, files : { chemin: texte } } des partitions du jeu
+    let ref;
+    try { ref = await gh(c, 'GET', `/git/ref/heads/${encodeURIComponent(PRIV.branch)}`); }
+    catch (e) {
+      if (e.status === 409) throw new Error('dépôt vide : recrée-le en cochant « Add a README file »');
+      if (e.status === 404) { await gh(c, 'GET', ''); throw new Error(`branche « ${PRIV.branch} » introuvable dans le dépôt`); }
+      throw e;
+    }
+    const head = ref.object.sha, commit = await gh(c, 'GET', `/git/commits/${head}`);
+    const tree = await gh(c, 'GET', `/git/trees/${commit.tree.sha}?recursive=1`);
+    if (tree.truncated) throw new Error('dépôt trop volumineux pour être lu en une fois');
+    const re = new RegExp(`^${WDS_NAME}/\\d{4}/\\d{4}-\\d{2}(-\\d{2})?\\.csv$`), files = {};
+    for (const t of tree.tree) if (t.type === 'blob' && re.test(t.path)) {
+      if (!blobCache.has(t.sha)) blobCache.set(t.sha, b64d((await gh(c, 'GET', `/git/blobs/${t.sha}`)).content));
+      files[t.path] = blobCache.get(t.sha);
+    }
+    return { head, tree: commit.tree.sha, files };
+  }
+  async function privWrite(c, base, changes, message) {  // un seul commit pour toutes les partitions ; refusé si la branche a bougé
+    const tree = await gh(c, 'POST', '/git/trees', { base_tree: base.tree, tree: changes.map(f => ({ path: f.path, mode: '100644', type: 'blob', content: f.content })) });
+    const commit = await gh(c, 'POST', '/git/commits', { message, tree: tree.sha, parents: [base.head] });
+    await gh(c, 'PATCH', `/git/refs/heads/${encodeURIComponent(PRIV.branch)}`, { sha: commit.sha, force: false });
+  }
   let syncBusy = false, syncAgain = false;
   function syncStatus(msg, bad) {
     const el = $('syncMsg'); if (!el) return;
@@ -2076,34 +2171,30 @@
       : 'Non synchronisé : tes suivis ne sont que dans ce navigateur.');
     el.classList.toggle('bad', !!bad);
   }
-  async function watchSync() {                           // relire → fusionner → réécrire si besoin ; recommence si un autre appareil a écrit entre-temps
+  async function watchSync() {                           // relire → contrôler → fusionner → écrire les partitions modifiées ; reprise si conflit
     const c = syncCfg(); if (!c || typeof fetch !== 'function') { syncStatus(); return false; }
     if (syncBusy) { syncAgain = true; return false; }
     syncBusy = true; syncStatus('Synchronisation…');
-    const url = `https://api.github.com/repos/${c.repo}/contents/${WCFG.sync_path.split('/').map(encodeURIComponent).join('/')}`;
     let done = false;
     try {
       for (let essai = 0; essai < 3 && !done; essai++) {
-        const g = await fetch(url, { headers: ghHead(c), cache: 'no-store' });
-        let remote = null, sha = null;
-        if (g.ok) {
-          const j = await g.json(); sha = j.sha;
-          try { remote = JSON.parse(b64d(j.content)); } catch (e) { remote = null; }
-          if (!remote || remote.v !== 1 || typeof remote.items !== 'object' || Array.isArray(remote.items))   // format inconnu : on n'écrase jamais
-            throw new Error(`${WCFG.sync_path} illisible ou d'un autre format dans le dépôt (rien n'a été écrasé)`);
+        const base = await privRead(c), remote = { v: 1, items: {} };
+        for (const [path, text] of Object.entries(base.files)) {
+          let rows; try { rows = csvToRows(text); } catch (e) { throw new Error(`${path} illisible (${e.message}) : rien n'a été écrasé`); }
+          for (const r of rows) {
+            const w = toItem(r), k = w.s + '|' + w.d;
+            if (!watchValid(k, w) || partPath(r) !== path) throw new Error(`${path} : ligne ${k} non conforme, rien n'a été écrasé`);
+            remote.items[k] = w;
+          }
         }
-        else if (g.status === 404) { const rr = await fetch(`https://api.github.com/repos/${c.repo}`, { headers: ghHead(c), cache: 'no-store' }); if (!rr.ok) throw new Error(ghErr(rr.status)); }
-        else throw new Error(ghErr(g.status));
         const merged = watchMerge(remote, WATCH);
-        const changedHere = watchCanon(merged) !== watchCanon(WATCH);
-        if (changedHere) { WATCH = merged; watchSave(true); }
-        if (remote && watchCanon(watchMerge(remote)) === watchCanon(merged)) { done = true; break; }   // dépôt déjà à jour
-        merged.up = new Date().toISOString();
-        const body = { message: `${WCFG.sync_message} : ${Object.values(merged.items).filter(w => !w.del).length} suivis`, content: b64e(JSON.stringify(merged, null, 1)) };
-        if (sha) body.sha = sha;
-        const p = await fetch(url, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHead(c)), body: JSON.stringify(body) });
-        if (p.ok) done = true;
-        else if (p.status !== 409 && p.status !== 422) throw new Error(ghErr(p.status));   // 409 / 422 : modifié entre-temps → on relit
+        if (watchCanon(merged) !== watchCanon(WATCH)) { WATCH = merged; watchSave(true); }
+        const parts = {};
+        for (const w of Object.values(merged.items)) { const r = toRow(w), p = partPath(r); (parts[p] = parts[p] || []).push(r); }
+        const changes = Object.entries(parts).map(([path, rows]) => ({ path, content: rowsToCsv(rows) })).filter(f => f.content !== base.files[f.path]);
+        if (!changes.length) { done = true; break; }
+        try { await privWrite(c, base, changes, `${WCFG.sync_message} : ${watchCount()} suivis`); done = true; }
+        catch (e) { if (e.status !== 409 && e.status !== 422) throw e; }   // un autre appareil a écrit entre-temps : on relit et on refusionne
       }
       if (!done) throw new Error('le dépôt change trop vite, nouvel essai à la prochaine modification');
       store.set('perso.sync.at', new Date().toISOString()); syncStatus();
@@ -2260,7 +2351,7 @@
     watchSet(r, r._d, { note: v }); renderPM();
   });
   // Réglages : sauvegarde des suivis (dépôt GitHub privé + fichier)
-  function syncFields() { $('syncRepo').value = store.get('perso.sync.repo') || ''; $('syncToken').value = ''; $('syncToken').placeholder = store.get('perso.sync.token') ? 'Jeton enregistré sur cet appareil' : 'github_pat_…'; }
+  function syncFields() { $('syncRepo').value = store.get('perso.sync.repo') || ''; $('syncRepo').placeholder = PRIV.repo || 'propriétaire/nom-du-dépôt'; $('syncToken').value = ''; $('syncToken').placeholder = store.get('perso.sync.token') ? 'Jeton enregistré sur cet appareil' : 'github_pat_…'; }
   $('syncRepo').addEventListener('change', () => {
     const v = $('syncRepo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$|\/$/g, '');
     if (v && !/^[\w.-]+\/[\w.-]+$/.test(v)) { syncStatus('Dépôt refusé : écris propriétaire/nom, par exemple moi/mes-suivis.', true); return; }

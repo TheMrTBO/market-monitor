@@ -31,9 +31,10 @@ def _fmt(v):
 
 
 class GitCsvStore(Store):
-    def __init__(self, root):
+    def __init__(self, root, private=False):
         self.root = Path(root)
-        self.ds = datasets()
+        self.private = private
+        self.ds = datasets(private)          # stockage public : jeux publics seulement ; stockage privé : jeux privés seulement
 
     # --- fichiers -------------------------------------------------------------------------------------------------
     def _path(self, d, part):
@@ -68,7 +69,7 @@ class GitCsvStore(Store):
     # --- interface ------------------------------------------------------------------------------------------------
     def dataset(self, name):
         if name not in self.ds:
-            raise SchemaError(f"jeu de données inconnu : {name}")
+            raise SchemaError(f"jeu de données inconnu dans ce stockage ({'privé' if self.private else 'public'}) : {name}")
         return self.ds[name]
 
     def upsert(self, dataset, rows):
@@ -130,9 +131,14 @@ class GitCsvStore(Store):
                     "partition": d.partition, "partition_by": d.partition_by,
                     "columns": {c: t + ("?" if n else "") for c, (t, n) in d.columns.items()}}
             self._write_text(self.root / "_schema" / f"{name}.json", json.dumps(meta, ensure_ascii=False, indent=2) + "\n")
-        lines = ["# Market Monitor — données historiques", "",
+        head = (["# Market Monitor — données privées", "",
+                 "Dépôt **privé** de l'utilisateur : jeux `private = true` de `config/datasets.toml` (suivis post-market), écrits par le",
+                 "site (Réglages → sauvegarde). Même format que la branche `data` du dépôt public, lisible par `mm/store`.", ""]
+                if self.private else
+                ["# Market Monitor — données historiques", "",
                  "Branche **orpheline** `data` du dépôt `market-monitor` : stockage durable, en ajout seul, écrit par les workflows",
-                 "(module `mm/store/` de la branche `main`). Ne pas modifier à la main.", "",
+                 "(module `mm/store/` de la branche `main`). Ne pas modifier à la main.", ""])
+        lines = head + [
                  "- un dossier par jeu de données ; un fichier CSV par mois (`AAAA/AAAA-MM.csv`) ou par jour (`AAAA/AAAA-MM-JJ.csv`) ;",
                  "- modèle de chaque jeu (clé primaire, colonnes typées, `?` = valeur absente autorisée) : `_schema/<jeu>.json` ;",
                  "- dates ISO, horodatages UTC, valeur absente = champ vide ; lignes triées par clé primaire.", "",

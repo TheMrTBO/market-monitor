@@ -3,6 +3,8 @@
 # date, timestamp, int, float, text, bool ; « ? » = valeur absente autorisée. primary_key = unicité (upsert idempotent).
 # partition = découpage des fichiers en stockage git_csv (month = un fichier par mois, day = un fichier par jour),
 # selon la colonne partition_by (de type date ou timestamp).
+# private = true : jeu PRIVÉ, jamais écrit dans le stockage public ([store], branche `data` de ce dépôt public) ; il vit dans le
+# stockage privé ([private] de storage.toml), avec le même modèle et le même format.
 
 [datasets.stockbee_daily]
 description = "Breadth Stockbee (Market Monitor), une ligne par séance"
@@ -59,3 +61,11 @@ primary_key = ["run_id", "source"]
 partition = "month"
 partition_by = "started_at"
 columns = { run_id = "text", source = "text", started_at = "timestamp", duration_s = "float?", ok = "bool", attempts = "int", last_session = "date?", note = "text?" }
+
+[datasets.postmarket_watch]
+description = "Titres suivis de l'onglet Post-market (étoile, étiquette, note), un par titre et par séance ; un retrait est gardé (deleted = true) pour la fusion entre appareils ; la version la plus récente (updated_at) gagne"
+private = true
+primary_key = ["symbol", "session_date"]
+partition = "month"
+partition_by = "session_date"
+columns = { symbol = "text", session_date = "date", tag = "text?", note = "text?", deleted = "bool", created_at = "timestamp?", updated_at = "timestamp", name = "text?", close = "float?", pm_price = "float?", pm_change_pct = "float?" }

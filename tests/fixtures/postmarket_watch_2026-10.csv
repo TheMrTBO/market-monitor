@@ -1,0 +1,5 @@
+symbol,session_date,tag,note,deleted,created_at,updated_at,name,close,pm_price,pm_change_pct
+AEHL,2026-10-13,piege,"+150 %, sans news ""à vérifier""",false,2026-10-14T09:52:59.279Z,2026-10-14T09:52:59.312Z,Antelope Enterprise Holdings Limited Class A,8.55,21.45,150.88
+BRK.B,2026-10-02,setup,,false,2026-10-02T21:00:00.000Z,2026-10-02T21:00:00.000Z,Berkshire Hathaway Inc. Class B,500.0,505.0,1.0
+LQDA,2026-10-13,suivre,,false,2026-10-14T09:52:59.274Z,2026-10-14T09:52:59.274Z,Liquidia Corporation,26.81,38.2,42.48
+XYZ,2026-10-01,,,true,,2026-10-14T10:00:00.000Z,,,,

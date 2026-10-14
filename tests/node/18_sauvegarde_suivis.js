@@ -1,5 +1,7 @@
-// Suivis post-market : sauvegarde dans un dépôt GitHub privé (faux GitHub) — fusion par version la plus récente,
-// traces de retrait, reprise après conflit, jeton refusé sans perte locale, entrées invalides ignorées, import de fichier.
+// Suivis post-market : sauvegarde dans le stockage privé (jeu postmarket_watch, format git_csv) via l'API Git de GitHub (faux
+// GitHub en mémoire). Contrat de format : le site écrit exactement tests/fixtures/postmarket_watch_2026-10.csv (relu à l'octet
+// près par mm/store dans tests/test_store_private.py). Fusion par version la plus récente, traces de retrait, un commit atomique,
+// reprise après conflit, jeton refusé sans perte locale, fichier distant non conforme jamais écrasé, import de fichier.
 let EXT={};
 const fs=require('fs'),vm=require('vm');
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
@@ -49,76 +51,95 @@ const syms=A=>[...A.$('pmRows')._h.matchAll(/<tr data-s="([^"]+)"/g)].map(m=>m[1
 const go=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
 
 const tick=()=>new Promise(r=>setTimeout(r,30));
-const b64=o=>Buffer.from(o&&o.raw!==undefined?o.raw:JSON.stringify(o)).toString('base64'), unb64=t=>JSON.parse(Buffer.from(t,'base64').toString());
-function fakeGitHub(file){
-  const G={file,sha:file?'s1':null,puts:0,gets:0,fail:{},calls:[]};
+const FIX=fs.readFileSync('tests/fixtures/postmarket_watch_2026-10.csv','utf8');
+const HEADER=FIX.split('\n')[0];
+function fakeGit(files){                                  // files : { chemin: texte } ; une branche main
+  const G={files:{...files},head:'c0',commits:0,calls:[],fail:{},msgs:[]};
+  let n=0; const sha=t=>'b'+Buffer.from(t).toString('base64').slice(0,12)+(n++);
+  G.blobs={}; G.tree=()=>Object.entries(G.files).map(([path,t])=>{const s=sha(t);G.blobs[s]=t;return {path,type:'blob',sha:s};});
   G.fetch=async(url,o={})=>{
-    const m=o.method||'GET'; G.calls.push(m+' '+url+' '+((o.headers||{}).Authorization||''));
+    const m=o.method||'GET', p=url.replace('https://api.github.com/repos/moi/mes-suivis',''); G.calls.push(m+' '+url+' '+((o.headers||{}).Authorization||''));
     const res=(status,body)=>({ok:status>=200&&status<300,status,json:async()=>body});
-    if(G.fail.status){const st=G.fail.status;if(!G.fail.keep)G.fail={};return res(st,{});}
-    if(/\/contents\//.test(url)){
-      if(m==='GET'){G.gets++;return G.file?res(200,{sha:G.sha,content:b64(G.file)}):res(404,{});}
-      const b=JSON.parse(o.body);
-      if(G.fail.put409){G.fail.put409=false;return res(409,{});}
-      if((b.sha||null)!==G.sha)return res(409,{});
-      G.puts++;G.file=unb64(b.content);G.sha='s'+(G.puts+1);G.msg=b.message;return res(200,{});
+    if(G.fail.status){const st=G.fail.status;G.fail={};return res(st,{});}
+    if(m==='GET'&&p==='/git/ref/heads/main')return res(200,{object:{sha:G.head}});
+    if(m==='GET'&&p.startsWith('/git/commits/'))return res(200,{tree:{sha:'t-'+G.head}});
+    if(m==='GET'&&p.startsWith('/git/trees/'))return res(200,{truncated:false,tree:G.tree().concat([{path:'README.md',type:'blob',sha:'r'}])});
+    if(m==='GET'&&p.startsWith('/git/blobs/'))return res(200,{content:Buffer.from(G.blobs[p.split('/').pop()]).toString('base64')});
+    if(m==='POST'&&p==='/git/trees'){const b=JSON.parse(o.body);G.pending={base:b.base_tree,entries:b.tree};return res(201,{sha:'nt'});}
+    if(m==='POST'&&p==='/git/commits'){const b=JSON.parse(o.body);G.pendingParent=b.parents[0];G.pendingMsg=b.message;return res(201,{sha:'nc'});}
+    if(m==='PATCH'&&p==='/git/refs/heads/main'){
+      if(G.fail.race){G.fail={};G.files['postmarket_watch/2026/2026-10.csv']=G.raceFile;G.head='c-autre';return res(422,{});}
+      if(G.pendingParent!==G.head||JSON.parse(o.body).force!==false)return res(422,{});
+      for(const e of G.pending.entries)G.files[e.path]=e.content; G.commits++; G.head='c'+G.commits; G.msgs.push(G.pendingMsg); return res(200,{});
     }
-    return res(200,{private:true});
+    if(m==='GET'&&p==='')return res(200,{private:true});
+    return res(404,{});
   };
   return G;
 }
-const it=(s,d,up,extra)=>({s,d,up,tag:'suivre',note:'',at:up,n:s+' Inc.',c:10,pc:11,pch:10,...extra});
 const W=ls=>JSON.parse(ls['perso.suivis']||'{"items":{}}').items;
 const cfg={'perso.sync.repo':'moi/mes-suivis','perso.sync.token':'github_pat_'+'x'.repeat(30)};
+const FIXITEMS={v:1,items:{
+  'AEHL|2026-10-13':{s:'AEHL',d:'2026-10-13',tag:'piege',note:'+150 %, sans news "à vérifier"',at:'2026-10-14T09:52:59.279Z',up:'2026-10-14T09:52:59.312Z',n:'Antelope Enterprise Holdings Limited Class A',c:8.55,pc:21.45,pch:150.88},
+  'BRK.B|2026-10-02':{s:'BRK.B',d:'2026-10-02',tag:'setup',note:'',at:'2026-10-02T21:00:00.000Z',up:'2026-10-02T21:00:00.000Z',n:'Berkshire Hathaway Inc. Class B',c:500,pc:505,pch:1},
+  'LQDA|2026-10-13':{s:'LQDA',d:'2026-10-13',tag:'suivre',note:'',at:'2026-10-14T09:52:59.274Z',up:'2026-10-14T09:52:59.274Z',n:'Liquidia Corporation',c:26.81,pc:38.2,pch:42.48},
+  'XYZ|2026-10-01':{s:'XYZ',d:'2026-10-01',del:true,up:'2026-10-14T10:00:00.000Z'}}};
 
 (async()=>{
-  // 1) première synchronisation au chargement : fusion local + distant
-  const remote={v:1,items:{
-    'AAA|2026-08-27':it('AAA','2026-08-27','2026-08-27T22:00:00.000Z',{note:'ancienne note'}),
-    'OLD|2026-08-26':{s:'OLD',d:'2026-08-26',del:true,up:'2026-08-28T08:00:00.000Z'},
-    'CCC|2026-08-27':it('CCC','2026-08-27','2026-08-27T23:00:00.000Z',{tag:'setup'}),
-    'BAD|2026-08-27':{s:'<img onerror=x>',d:'2026-08-27',up:'2026-08-27T23:00:00.000Z',tag:'suivre'}}};
-  const ls={...cfg,'perso.suivis':JSON.stringify({v:1,items:{
-    'AAA|2026-08-27':it('AAA','2026-08-27','2026-08-28T07:00:00.000Z',{note:'note récente'}),
-    'OLD|2026-08-26':it('OLD','2026-08-26','2026-08-26T22:30:00.000Z')}})};
-  const G=fakeGitHub(remote); EXT={fetch:G.fetch,TextEncoder,TextDecoder,btoa,atob};
+  // 1) contrat de format : dépôt vide de suivis → le site écrit exactement le fichier de référence (un seul commit)
+  let ls={...cfg,'perso.suivis':JSON.stringify(FIXITEMS)}, G=fakeGit({}); EXT={fetch:G.fetch,TextEncoder,TextDecoder,btoa,atob};
   let A=boot(ls,PM); A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}}); await tick();
-  ok('jeton envoyé seulement à api.github.com', G.calls.length>0 && G.calls.every(c=>/ https:\/\/api\.github\.com\/repos\/moi\/mes-suivis/.test(' '+c.split(' ').slice(1).join(' ')) && /Bearer github_pat_/.test(c)), G.calls.join(' | '));
-  ok('fusion : la note la plus récente gagne', G.file && G.file.items['AAA|2026-08-27'].note==='note récente', JSON.stringify(G.file&&G.file.items['AAA|2026-08-27']));
-  ok('fusion : le retrait distant plus récent gagne (pas de réapparition)', G.file.items['OLD|2026-08-26'].del===true && W(ls)['OLD|2026-08-26'].del===true);
-  ok('fusion : suivi d\'un autre appareil récupéré', W(ls)['CCC|2026-08-27'] && W(ls)['CCC|2026-08-27'].tag==='setup');
-  ok('entrée invalide ignorée (ni locale ni distante)', !W(ls)['BAD|2026-08-27'] && !G.file.items['BAD|2026-08-27']);
-  ok('un seul enregistrement, message de la config', G.puts===1 && /^Suivis post-market : 2 suivis$/.test(G.msg), G.puts+' '+G.msg);
-  ok('statut : synchronisé', /Synchronisé avec moi\/mes-suivis/.test(A.$('syncMsg')._t), A.$('syncMsg')._t);
-
-  // 2) rien de neuf : relecture sans réécriture
+  ok('format : fichier écrit = fichier de référence (lu à l\'identique par mm/store)', G.files['postmarket_watch/2026/2026-10.csv']===FIX, JSON.stringify(G.files['postmarket_watch/2026/2026-10.csv']));
+  ok('un seul commit, message de la config', G.commits===1 && G.msgs[0]==='Suivis post-market : 3 suivis', G.msgs.join());
+  ok('jeton envoyé seulement à api.github.com', G.calls.every(c=>/^[A-Z]+ https:\/\/api\.github\.com\/repos\/moi\/mes-suivis/.test(c) && /Bearer github_pat_/.test(c)));
   await A.L.syncNow.click(); await tick();
-  ok('rien de neuf : pas de nouvel enregistrement', G.puts===1, G.puts);
+  ok('rien de neuf : aucun commit', G.commits===1);
 
-  // 3) conflit (un autre appareil a écrit entre-temps) : on relit et on recommence
+  // 2) fusion avec un autre appareil : la version la plus récente gagne, retraits respectés, partitions par mois
+  const autre=HEADER+'\n'+[
+    'AEHL,2026-10-13,piege,ancienne note,false,2026-10-14T09:52:59.279Z,2026-10-14T08:00:00.000Z,Antelope,8.55,21.45,150.88',
+    'LQDA,2026-10-13,,,true,,2026-10-15T08:00:00.000Z,,,,',
+    'XYZ,2026-10-01,setup,revenu,false,2026-10-01T22:00:00.000Z,2026-10-13T00:00:00.000Z,XYZ Corp,5.0,6.0,20.0'].join('\n')+'\n';
+  const sept=HEADER+'\nOLD,2026-09-30,suivre,,false,2026-09-30T22:00:00.000Z,2026-09-30T22:00:00.000Z,Old Inc.,10.0,11.0,10.0\n';
+  ls={...cfg,'perso.suivis':JSON.stringify(FIXITEMS)}; G=fakeGit({'postmarket_watch/2026/2026-10.csv':autre,'postmarket_watch/2026/2026-09.csv':sept}); EXT={fetch:G.fetch,TextEncoder,TextDecoder,btoa,atob};
+  A=boot(ls,PM); A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}}); await tick();
+  ok('fusion : ma note plus récente gagne', W(ls)['AEHL|2026-10-13'].note==='+150 %, sans news "à vérifier"');
+  ok('fusion : retrait plus récent d\'un autre appareil appliqué ici', W(ls)['LQDA|2026-10-13'].del===true);
+  ok('fusion : mon retrait plus récent gagne (pas de réapparition)', W(ls)['XYZ|2026-10-01'].del===true && /\nXYZ,2026-10-01,,,true,/.test(G.files['postmarket_watch/2026/2026-10.csv']));
+  ok('fusion : suivi d\'un autre mois récupéré, sa partition inchangée', W(ls)['OLD|2026-09-30'] && G.files['postmarket_watch/2026/2026-09.csv']===sept);
+  ok('fusion : un commit, seule la partition modifiée', G.commits===1);
+
+  // 3) conflit : un autre appareil écrit pendant la sauvegarde → relecture, refusion, puis commit
   A.L.pmRows.click({target:{closest:sel=>sel==='.tagb'?{dataset:{k:'BBB'}}:null}});
-  G.fail.put409=true; await A.L.syncNow.click(); await tick();
-  ok('conflit : reprise puis enregistrement', G.puts===2 && G.file.items['BBB|2026-08-27'] && G.file.items['BBB|2026-08-27'].tag==='suivre', G.puts);
+  G.raceFile=G.files['postmarket_watch/2026/2026-10.csv'].replace('\n','\nZZZ,2026-10-05,setup,,false,2026-10-05T22:00:00.000Z,2026-10-20T00:00:00.000Z,Zed,1.0,2.0,100.0\n');
+  G.fail.race=true; await A.L.syncNow.click(); await tick();
+  ok('conflit : rien de perdu (mon ajout et celui de l\'autre appareil)', G.commits===2 && /\nZZZ,2026-10-05,/.test(G.files['postmarket_watch/2026/2026-10.csv']) && W(ls)['ZZZ|2026-10-05'] && G.files['postmarket_watch/2026/2026-08.csv'] && /\nBBB,2026-08-27,suivre/.test(G.files['postmarket_watch/2026/2026-08.csv']), Object.keys(G.files).join());
 
-  // 4) jeton refusé : message clair, suivis locaux intacts
-  const avant=ls['perso.suivis']; G.fail={status:401};
-  A.L.pmRows.click({target:{closest:sel=>sel==='.tagb'?{dataset:{k:'AAA'}}:null}});   // retrait local de AAA
+  // 4) jeton refusé : message clair, rien de perdu localement, puis reprise
+  G.fail={status:401}; A.L.pmRows.click({target:{closest:sel=>sel==='.tagb'?{dataset:{k:'BBB'}}:null}});
   await A.L.syncNow.click(); await tick();
   ok('jeton refusé : message', /jeton refusé/.test(A.$('syncMsg')._t), A.$('syncMsg')._t);
-  ok('jeton refusé : retrait gardé sur l\'appareil', W(ls)['AAA|2026-08-27'].del===true && ls['perso.suivis']!==avant);
-  G.fail={}; await A.L.syncNow.click(); await tick();
-  ok('jeton réparé : le retrait part au dépôt', G.file.items['AAA|2026-08-27'].del===true);
+  ok('jeton refusé : retrait gardé sur l\'appareil', W(ls)['BBB|2026-08-27'].del===true);
+  await A.L.syncNow.click(); await tick();
+  ok('reprise : le retrait part au dépôt', /\nBBB,2026-08-27,,,true,/.test(G.files['postmarket_watch/2026/2026-08.csv']));
 
-  // 5) fichier distant illisible : erreur, rien d'écrasé
-  const putsAvant=G.puts;
-  G.file={raw:'pas du json'}; await A.L.syncNow.click(); await tick();
-  ok('fichier distant illisible : signalé, pas réécrit', /illisible/.test(A.$('syncMsg')._t) && G.puts===putsAvant, A.$('syncMsg')._t);
-  G.file={v:2,autre:true}; await A.L.syncNow.click(); await tick();
-  ok('fichier distant d\'un autre format : signalé, pas réécrit', /autre format/.test(A.$('syncMsg')._t) && G.puts===putsAvant && G.file.v===2, A.$('syncMsg')._t);
+  // 5) fichier distant non conforme : erreur, jamais écrasé
+  const c0=G.commits;
+  G.files['postmarket_watch/2026/2026-10.csv']='symbol,autre\nA,b\n'; await A.L.syncNow.click(); await tick();
+  ok('en-tête différent : signalé, pas réécrit', /illisible \(en-tête différent du modèle\)/.test(A.$('syncMsg')._t) && G.commits===c0, A.$('syncMsg')._t);
+  G.files['postmarket_watch/2026/2026-10.csv']=HEADER+'\nAAA,2026-10-01,suivre,,peut-être,,2026-10-01T00:00:00Z,,,,\n'; await A.L.syncNow.click(); await tick();
+  ok('valeur non conforme : signalée, pas réécrit', /illisible \(deleted\)/.test(A.$('syncMsg')._t) && G.commits===c0, A.$('syncMsg')._t);
+  G.files['postmarket_watch/2026/2026-10.csv']=HEADER+'\nAAA,2026-09-01,suivre,,false,,2026-10-01T00:00:00Z,,,,\n'; await A.L.syncNow.click(); await tick();
+  ok('ligne dans la mauvaise partition : signalée, pas réécrit', /non conforme/.test(A.$('syncMsg')._t) && G.commits===c0, A.$('syncMsg')._t);
 
-  // 6) import d'une sauvegarde : fusion sans écrasement
+  // 6) dépôt vide (sans README) : message utile
+  ls={...cfg}; G=fakeGit({}); G.fail={status:409}; EXT={fetch:G.fetch,TextEncoder,TextDecoder,btoa,atob};
+  A=boot(ls,PM); await tick();                            // synchronisation au chargement : la 1re lecture répond « dépôt vide »
+  ok('dépôt vide : conseil README', /Add a README file/.test(A.$('syncMsg')._t), A.$('syncMsg')._t);
+
+  // 7) import d'une sauvegarde fichier : fusion, entrées invalides ignorées
   const B_ls={}; EXT={}; const B=boot(B_ls,PM);
-  await B.L.wImport.change({target:{value:'x',files:[{text:async()=>JSON.stringify({v:1,items:{'ZZZ|2026-07-01':it('ZZZ','2026-07-01','2026-07-01T22:00:00.000Z'),'BAD|x':{s:'BAD'}}})}]}});
+  await B.L.wImport.change({target:{value:'x',files:[{text:async()=>JSON.stringify({v:1,items:{'ZZZ|2026-07-01':{s:'ZZZ',d:'2026-07-01',tag:'suivre',note:'',at:'2026-07-01T22:00:00.000Z',up:'2026-07-01T22:00:00.000Z',n:'Z',c:1,pc:2,pch:100},'BAD|x':{s:'BAD'}}})}]}});
   ok('import : suivi ajouté, entrée invalide ignorée', W(B_ls)['ZZZ|2026-07-01'] && !W(B_ls)['BAD|x'] && /1 suivis \(1 nouveaux\)/.test(B.$('syncMsg')._t), B.$('syncMsg')._t);
   ok('sans dépôt réglé : statut « que dans ce navigateur »', /que dans ce navigateur/.test((boot({},PM)).$('syncMsg')._t));
 

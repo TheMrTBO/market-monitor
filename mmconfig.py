@@ -66,6 +66,10 @@ def front_config():
         "sectors": {"groups": d["sectors"]["groups"], "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
+        "private": {"store": {k: load("storage")["private"][k] for k in ("backend", "transport", "repo", "branch")},
+                    # colonnes en LISTE ordonnée : l'ordre du modèle est celui des fichiers CSV (les clés JSON sont triées ici)
+                    "datasets": {k: {**{f: v[f] for f in ("primary_key", "partition", "partition_by")}, "columns": [[c, t] for c, t in v["columns"].items()]}
+                                 for k, v in load("datasets")["datasets"].items() if v.get("private")}},
     }
 
 
@@ -125,8 +129,8 @@ def check():
     w = pm.get("watch", {})
     if not (isinstance(w.get("note_max"), int) and 0 < w["note_max"] <= 1000):
         errors.append("postmarket.watch.note_max : entier entre 1 et 1000 attendu")
-    if not re.fullmatch(r"[\w.\-/]+\.json", str(w.get("sync_path", ""))) or not w.get("sync_message"):
-        errors.append("postmarket.watch : sync_path (fichier .json) et sync_message attendus")
+    if not w.get("sync_message"):
+        errors.append("postmarket.watch : sync_message attendu")
     if not isinstance(pm.get("copy_separator"), str) or not pm["copy_separator"]:
         errors.append("postmarket.copy_separator : texte non vide attendu")
     tags = pm.get("tags", [])
@@ -158,7 +162,18 @@ def check():
         errors.append(f"storage : serving inconnu « {st.get('serving')} » (attendus : js_files, store)")
     if st.get("store", {}).get("backend") not in BACKENDS:
         errors.append(f"storage.store : backend inconnu « {st.get('store', {}).get('backend')} » (attendus : {', '.join(sorted(BACKENDS))})")
+    pv = st.get("private", {})
+    private_ds = [k for k, ds in load("datasets")["datasets"].items() if ds.get("private")]
+    if private_ds:
+        if pv.get("backend") != "git_csv" or pv.get("transport") != "github_api" or not pv.get("branch"):
+            errors.append("storage.private : backend git_csv, transport github_api et branch attendus (jeux privés : " + ", ".join(private_ds) + ")")
+        if pv.get("repo") and not re.fullmatch(r"[\w.-]+/[\w.-]+", pv["repo"]):
+            errors.append("storage.private.repo : propriétaire/nom attendu (ou vide)")
+    if "postmarket_watch" not in private_ds:
+        errors.append("datasets.postmarket_watch : jeu privé attendu (suivis de l'onglet Post-market)")
     for key, ds in load("datasets")["datasets"].items():
+        if "private" in ds and not isinstance(ds["private"], bool):
+            errors.append(f"datasets.{key} : private doit valoir true ou false")
         if ds.get("partition") not in {"month", "day"}:
             errors.append(f"datasets.{key} : partition « {ds.get('partition')} » (attendus : month, day)")
         if ds["columns"].get(ds.get("partition_by", ""), "").rstrip("?") not in {"date", "timestamp"} or ds["columns"][ds["partition_by"]].endswith("?"):

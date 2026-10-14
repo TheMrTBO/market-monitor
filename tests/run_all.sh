@@ -24,6 +24,8 @@ echo "--- test Python : scan post-market (seance, resultats, lendemain, controle
 python3 tests/test_postmarket.py || fail=1
 echo "--- test Python : stockage historique (mm/store)"
 python3 tests/test_store.py || fail=1
+echo "--- test Python : stockage privé (suivis) : séparation public / privé, format identique au site"
+python3 tests/test_store_private.py || fail=1
 echo "--- test Python : synchronisation vers la branche data (dépôts Git temporaires)"
 python3 tests/test_store_sync.py || fail=1
 exit $fail

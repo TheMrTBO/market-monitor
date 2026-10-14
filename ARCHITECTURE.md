@@ -50,11 +50,11 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
 | `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
-| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, séparateur du bouton Copier, lien de la fiche (`[[links]]` : Finviz), étiquettes de suivi (`[[tags]]`), suivis (`[watch]` : longueur de note, fichier et message de sauvegarde) | `fetch_postmarket.py`, front |
+| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, séparateur du bouton Copier, lien de la fiche (`[[links]]` : Finviz), étiquettes de suivi (`[[tags]]`), suivis (`[watch]` : longueur de note, message de sauvegarde) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
-| `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
-| `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
+| `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition ; `private = true` = jeu privé (`postmarket_watch`) | `mm/store/`, front (jeux privés) |
+| `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique public : backend `git_csv`, dossier, branche) et `[private]` (données privées : backend `git_csv`, transport `github_api`, dépôt, branche) | `mm/store/`, front (`[private]`) |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
 ⚠️ `schedule.toml` → `cron_job_org` doit être **recopié à la main** dans cron-job.org (aucune API utilisée) ;
 `github_fallback` doit correspondre aux workflows (`--check` échoue sinon).
@@ -72,19 +72,24 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
   push refusé → recommence (sans doublon). Mise à jour complète : `--run-id` ajoute le journal `runs` ; scan : `--only postmarket_data.js`.
 - **Migrer vers une base** (plus tard) : écrire `mm/store/<backend>.py` (même interface `Store`), changer
   `storage.toml` → `[store] backend`, copier (`read` → `upsert`), double écriture, bascule. Le modèle ne change pas.
+- **Données privées** (`[private]`, jeux `private = true` : `postmarket_watch` = suivis) : **même modèle, même format git_csv**,
+  dans un **dépôt GitHub privé** de l'utilisateur (jamais dans ce dépôt public ni sur la branche `data`). Séparation stricte :
+  `open_store()` ne voit que les jeux publics, `open_store(root, private=True)` que les jeux privés (écriture croisée refusée,
+  schémas et README séparés). Écrit aujourd'hui par le site (navigateur → API Git de GitHub : relire → contrôler → fusionner →
+  **un commit atomique** des partitions modifiées ; branche déplacée entre-temps → on recommence). Contrat de format :
+  `tests/fixtures/postmarket_watch_2026-10.csv`, écrit à l'identique par le site (test node 18) et relu / réécrit à l'octet près
+  par `mm/store` (`tests/test_store_private.py`). Plus tard (robot qui suit les titres étoilés, base de données) :
+  `open_store(root=<dépôt privé extrait>, private=True)` ou nouveau backend ; côté site, remplacer `privRead` / `privWrite`.
 
 ### Données personnelles (jamais dans ce dépôt public)
 Clés `perso.*` du stockage local, hors `mm.*` : le bouton « Réinitialiser » des Réglages ne les efface pas.
-- `perso.suivis` : titres suivis de l'onglet Post-market, un par couple titre + séance :
-  `{ v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } } }` ; un retrait garde une trace
-  `{ s, d, del: true, up }`. Toute entrée est vérifiée avant usage (`watchValid`) ; la fusion garde, pour chaque clé, la version
-  la plus récente (`up`).
-- Sauvegarde : `perso.sync.repo` + `perso.sync.token` (Réglages) → fichier `[watch].sync_path` d'un **dépôt GitHub privé**
-  de l'utilisateur, via l'API contents (relire → fusionner → réécrire avec le `sha` ; 409/422 = autre appareil → on recommence,
-  3 essais). Le jeton (fine-grained, « Contents : Read and write » sur ce seul dépôt) reste sur l'appareil et n'est envoyé qu'à
-  api.github.com. Fichier distant illisible ou d'un autre format : erreur, jamais écrasé. Déclenchement : chargement, retour sur
-  la page (30 s mini), 1,5 s après chaque modification, bouton « Synchroniser ». Copie de secours : « Télécharger / Importer une
-  sauvegarde » (fichier JSON, fusion à l'import).
+- `perso.suivis` : **copie de travail** des suivis (la référence est le stockage privé, voir §4 bis) :
+  `{ v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } } }`, retrait = `{ s, d, del: true, up }`.
+  Toute entrée est vérifiée (`watchValid`) ; fusion : pour chaque clé, la version la plus récente (`up` = `updated_at`) gagne.
+- `perso.sync.repo` (sinon `[private].repo`) et `perso.sync.token` (jeton fine-grained « Contents : Read and write » sur ce
+  seul dépôt) : saisis dans Réglages, gardés sur l'appareil, envoyés seulement à api.github.com. Synchronisation : chargement,
+  retour sur la page (30 s mini), 1,5 s après chaque modification, bouton « Synchroniser ». Fichier distant non conforme
+  (en-tête, valeur, partition) : erreur, **jamais écrasé**. Secours : « Télécharger / Importer une sauvegarde » (JSON, fusion).
 - Limite : graphique et « Depuis » seulement pour les titres du dernier scan (`hist` du robot).
 - Ancienne clé `perso.recap` (récap news retiré le 14/10/2026) : effacée au chargement.
 
