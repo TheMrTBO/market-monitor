@@ -109,6 +109,8 @@ Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Détail 
 - Bornes de valeurs des contrôles (`validate_data.py` : ex. 0-5 000 titres, VIX 5-150) → déclarées par source en phase 2.
 - Liste des fichiers copiés dans `_site` (deux workflows) et chargés par le front → générée par `build.py` en phase 3.
 - Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente) dans le front → phase 4.
+- Constantes d'interface des onglets Secteurs / Post-market : seuil « liste et détail empilés » (`isStacked`, ≤ 1000 px),
+  seuils du balayage entre titres (60 px, horizontal ≥ 2 × vertical, < 700 ms) → phase 4.
 - `fetch_data.py` (univers Polygon, âge max du cache), `breadth_own.py` (formules TC2000 : ne pas modifier sans accord).
 
 ## 9. Pièges principaux (détail : `RECAP_PROJET.md` §9)
