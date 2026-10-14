@@ -457,6 +457,13 @@
     .rk th, .rk td { padding-left: 6px; padding-right: 6px; }
     .rk td { padding-top: 7px; padding-bottom: 7px; }
     .rk td.dev { width: 120px; }
+    /* Secteurs : largeurs figées, le tableau tient toujours dans l'écran (aucun défilement horizontal parasite) ; Symbole prend le reste */
+    #secTable { table-layout: fixed; width: 100%; }
+    #secTable th.c-rank { width: 54px; } #secTable th.c-dev { width: 106px; } #secTable th.c-delta { width: 66px; }
+    #secTable td .tag { font-size: 10px; padding-left: 4px; padding-right: 4px; }   /* « nouveau » tient dans Δ 5 j, « 48/65 séances » dans Écart */
+    #secTable td { overflow: hidden; }                  /* filet de sécurité : un contenu trop long est coupé dans sa cellule, il n'élargit pas le tableau */
+    #secTable td.sym { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #secTable td.sym .tsub { max-width: 100%; }
     /* première colonne figée (Rang / Symbole) : fond opaque qui reprend les rayures et la sélection de la ligne ; coin d'en-tête au-dessus de tout */
     .rk thead th:first-child { position: sticky; top: 0; left: 0; z-index: 4; }
     .rk tbody td:first-child { z-index: 2; box-shadow: 1px 0 0 var(--border); }
