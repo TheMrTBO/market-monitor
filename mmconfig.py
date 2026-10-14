@@ -118,8 +118,8 @@ def check():
     if not (pm["min_price"] > 0 and pm["min_volume"] > 0 and pm["min_change"] > 0 and pm["max_per_side"] > 0 and pm["keep_sessions"] > 0):
         errors.append("postmarket : seuils strictement positifs attendus")
     for l in pm.get("links", []):
-        if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|tv)\}", l.get("url", "")):
-            errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}} ou {{tv}} attendus")
+        if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|symd|tv)\}", l.get("url", "")):
+            errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}}, {{symd}} ou {{tv}} attendus")
     groups = {g for g, _ in load("display")["sectors"]["groups"]} - {"all"}
     syms = [e["symbol"] for e in sectors()]
     if len(set(syms)) != len(syms):
