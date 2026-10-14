@@ -1,4 +1,11 @@
-# Où sont stockées les données. Aujourd'hui : fichiers *_data.js commités sur main (lus directement par le site).
-# Refonte phase 3 : backend "git_csv" (branche orpheline `data`, CSV mensuels / JSONL par relevé, ajout seul).
-# Plus tard : "postgres", "sqlite"… — seul le module de stockage changera ; le modèle logique est dans datasets.toml.
-backend = "js_files"
+# Stockage des données. Deux niveaux :
+#  - serving : ce que lit le site aujourd'hui. "js_files" = fichiers *_data.js commités sur main (jusqu'à la phase 3c).
+#  - [store] : l'historique durable, en ajout seul (phase 3). backend "git_csv" = fichiers CSV sur la branche orpheline
+#    `data` de ce dépôt, extraite dans le dossier `root` (non versionné sur main). Plus tard : "postgres", "sqlite"… ;
+#    seul le module mm/store/ change, le modèle logique (datasets.toml) et les scripts restent identiques.
+serving = "js_files"
+
+[store]
+backend = "git_csv"
+root = "data-store"        # dossier local où est extraite la branche `data` (git worktree, ou actions/checkout en CI)
+branch = "data"

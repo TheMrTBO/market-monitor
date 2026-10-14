@@ -19,13 +19,15 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
 | `fetch_history.py` · `fetch_data.py` | Historique des clôtures Polygon (cache Actions, hors dépôt) pour le calcul maison ; client Polygon. |
+| `mm/store/` | **Stockage historique** (phase 3) : interface `Store` (upsert idempotent, read, latest), backend `git_csv`, conversion des `*_data.js` (`importers.py`), CLI `python -m mm.store import|check|stats`. |
+| `data-store/` | Branche orpheline **`data`** extraite localement (`git worktree`, ignorée sur `main`) : CSV de l'historique. |
 | `validate_data.py` | Contrôles de cohérence par source (fraîcheur lue dans `config/sources.toml`, bornes de valeurs dans le code). |
 | `*_data.js`, `status_data.js` | Données publiées (variables globales `window.X`), commitées par le robot sur `main`. |
 | `stockbee_dashboard.html` | **Tout le front** (HTML + CSS + JS, canvas, aucune librairie) ; ~3 100 lignes, découpage prévu (phase 4). |
 | `.github/workflows/update.yml` | Mise à jour complète + publication. |
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, 16 tests Node (dashboard en DOM simulé), 3 tests Python. |
+| `tests/` | `run_all.sh` (tout) : config, 16 tests Node (dashboard en DOM simulé), 4 tests Python (dont `test_store.py`). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
 ## 3. Flux
@@ -50,11 +52,23 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
-| `datasets.toml` | **modèle logique** des données (futures tables, clés primaires, types) — pas encore utilisé | phase 3 |
-| `storage.toml` | backend de stockage (`js_files` aujourd'hui) | phase 3 |
+| `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
+| `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
 ⚠️ `schedule.toml` → `cron_job_org` doit être **recopié à la main** dans cron-job.org (aucune API utilisée) ;
 `github_fallback` doit correspondre aux workflows (`--check` échoue sinon).
+
+## 4 bis. Stockage historique (phase 3)
+- **Où** : branche orpheline `data` du même dépôt (aucun service ni secret en plus ; `GITHUB_TOKEN` suffit pour y écrire).
+  Localement : `git fetch origin data && git worktree add data-store data` (dossier ignoré sur `main`).
+- **Format** : `<jeu>/<AAAA>/<AAAA-MM>.csv` (ou `-JJ` pour les jeux journaliers), en-tête = colonnes du modèle, lignes
+  triées par clé primaire ; `_schema/<jeu>.json` et `README.md` générés. Lisible par Excel, Python, DuckDB.
+- **Règles** : chaque lot est contrôlé avant écriture (colonnes, types, obligatoires) ; upsert par clé primaire (relancer
+  = aucun doublon, fichier inchangé = pas de commit) ; **aucune suppression**.
+- **Post-market** : `postmarket_scan` garde **chaque relevé** (`taken_at`) ; la liste finale d'une séance = son dernier
+  relevé (jamais l'union : un titre repassé sous le seuil n'en fait pas partie) ; `postmarket_next` = lendemain.
+- **Migrer vers une base** (plus tard) : écrire `mm/store/<backend>.py` (même interface `Store`), changer
+  `storage.toml` → `[store] backend`, copier (`read` → `upsert`), double écriture, bascule. Le modèle ne change pas.
 
 ## 5. Invariants (ne jamais casser)
 1. **Dépôt public** : aucun secret, clé, e-mail personnel, chemin local, donnée du dossier parent. Clés en GitHub Secrets
@@ -79,7 +93,9 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 |---|---|---|
 | 0 | CI des tests sur chaque PR | ✅ (PR « CI ») |
 | 1 | Configuration centralisée `config/` + `mmconfig.py` + `config_data.js` | ✅ (PR « config centralisée ») |
-| 3a-c | Stockage historique : branche orpheline `data` (CSV mensuels, JSONL par relevé post-market, ajout seul, upsert idempotent), couche `mm/store/` (backend `git_csv`, migrable vers Postgres via `storage.toml`), `build.py` génère les fichiers du site, plus de `*_data.js` commités sur `main` | à faire (priorité suivante) |
+| 3a | Stockage : `mm/store/` (interface + backend `git_csv`), branche `data`, reprise de l'historique (43 446 lignes, 2018 →) | ✅ (PR « stockage 3a ») |
+| 3b | Les workflows synchronisent leurs `*_data.js` vers le stockage après chaque passage (double écriture), journal `runs` | à faire |
+| 3c | `build.py` génère les fichiers du site depuis le stockage ; plus de `*_data.js` commités sur `main` ; « Stats du » sans limite de 20 séances | à faire |
 | 2 | Paquet Python `mm/` (une interface commune par source, `python -m mm run`) | à faire |
 | 4 | Front découpé en modules ES natifs (un par onglet + moteur de graphique) | à faire |
 | 5 | Alertes (source muette, pas de liste post-market un jour de semaine), journal des passages | à faire |
