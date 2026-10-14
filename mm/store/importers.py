@@ -82,6 +82,14 @@ def postmarket(data):
     return {"postmarket_scan": scan, "postmarket_next": nxt}
 
 
+def runs(status, run_id):
+    """Journal d'un passage de update_all.py (status_data.js) : une ligne par source."""
+    started = status.get("started") or status["updated"]
+    return {"runs": [{"run_id": run_id, "source": name, "started_at": started, "duration_s": s.get("duration"), "ok": bool(s["ok"]),
+                      "attempts": s.get("attempts", 1), "last_session": s.get("last"), "note": s.get("error") or s.get("note")}
+                     for name, s in status.get("sources", {}).items()]}
+
+
 # fichier publié -> fonction de conversion (les fichiers absents sont ignorés)
 SOURCES = {
     "stockbee_data.js": stockbee,
@@ -93,9 +101,13 @@ SOURCES = {
 }
 
 
-def from_js_files(store, folder, only=None):
-    """Synchronise les fichiers publiés de `folder` vers le stockage. Renvoie {jeu: statistiques d'upsert}."""
+def from_js_files(store, folder, only=None, run_id=None):
+    """Synchronise les fichiers publiés de `folder` vers le stockage. Renvoie {jeu: statistiques d'upsert}.
+    run_id : identifiant du passage ; s'il est fourni, status_data.js alimente le journal `runs` (mise à jour complète)."""
     report = {}
+    if run_id and (Path(folder) / "status_data.js").exists():
+        for dataset, rows in runs(load_js(Path(folder) / "status_data.js"), run_id).items():
+            report[dataset] = store.upsert(dataset, rows)
     for fname, conv in SOURCES.items():
         if only and fname not in only:
             continue

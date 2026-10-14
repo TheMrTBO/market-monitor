@@ -54,8 +54,8 @@ partition_by = "session_date"
 columns = { session_date = "date", ticker = "text", next_session = "date", next_change_pct = "float?", next_gap_pct = "float?" }
 
 [datasets.runs]
-description = "Journal des passages : statut par source, dernière séance obtenue, heure de 1re disponibilité (calage des horaires)"
+description = "Journal des passages de la mise à jour complète : statut par source, durée, dernière séance obtenue (heure de 1re disponibilité = 1er passage où last_session atteint la séance)"
 primary_key = ["run_id", "source"]
 partition = "month"
 partition_by = "started_at"
-columns = { run_id = "text", source = "text", started_at = "timestamp", duration_s = "float", ok = "bool", attempts = "int", last_session = "date?", note = "text?" }
+columns = { run_id = "text", source = "text", started_at = "timestamp", duration_s = "float?", ok = "bool", attempts = "int", last_session = "date?", note = "text?" }

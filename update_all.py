@@ -107,8 +107,13 @@ def run_step(name, script, out_file, restore, attempts, waits):
 
 def main():
     t0 = time.time()
-    sources = {name: run_step(name, script, out, restore, att, waits) for name, script, out, restore, att, waits in STEPS}
-    status = {"updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "sources": sources}
+    started = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    sources = {}
+    for name, script, out, restore, att, waits in STEPS:
+        t = time.time()
+        sources[name] = run_step(name, script, out, restore, att, waits)
+        sources[name]["duration"] = round(time.time() - t, 1)     # journal des passages (stockage, jeu runs)
+    status = {"started": started, "updated": datetime.now(timezone.utc).isoformat(timespec="seconds"), "sources": sources}
     try:                                            # heure du dernier scan post-market (bouton « Actualiser », voir fetch_postmarket.py)
         pm = json.loads((lambda t: t[t.index("=") + 1:].strip().rstrip(";"))((HERE / "postmarket_data.js").read_text()))["snaps"]
         status["pm"] = pm[-1]["at"] if pm else None

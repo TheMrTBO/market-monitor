@@ -6,6 +6,10 @@ cd "$(dirname "$0")/.." || exit 1
 fail=0
 echo "--- configuration (config/*.toml, config_data.js à jour, créneaux des workflows)"
 python3 mmconfig.py --check || fail=1
+echo "--- syntaxe des workflows GitHub (YAML)"
+if command -v ruby >/dev/null; then
+  ruby -ryaml -e 'ARGV.each { |f| YAML.safe_load(File.read(f), aliases: true) }; puts "workflows : YAML valide (#{ARGV.size})"' .github/workflows/*.yml || fail=1
+else echo "ruby absent : contrôle YAML sauté"; fi
 for f in tests/node/*.js; do
   out=$(node "$f" 2>&1); code=$?
   n=$(printf '%s' "$out" | grep -ci "error")
@@ -20,4 +24,6 @@ echo "--- test Python : scan post-market (seance, resultats, lendemain, controle
 python3 tests/test_postmarket.py || fail=1
 echo "--- test Python : stockage historique (mm/store)"
 python3 tests/test_store.py || fail=1
+echo "--- test Python : synchronisation vers la branche data (dépôts Git temporaires)"
+python3 tests/test_store_sync.py || fail=1
 exit $fail

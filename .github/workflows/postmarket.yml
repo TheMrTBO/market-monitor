@@ -83,9 +83,38 @@ jobs:
         with:
           path: _site
 
+      # Stockage historique (refonte phase 3b) : les fichiers publiés sont recopiés sur la branche orpheline `data`
+      # (ajout seul, upsert sans doublon, chaque ligne contrôlée). Un échec ici n'empêche pas la publication du site ;
+      # il est signalé en fin de job. Voir ARCHITECTURE.md §4 bis et mm/store/sync.py.
+      - name: Récupérer le stockage historique (branche data)
+        id: store_checkout
+        if: ${{ !cancelled() && steps.commit.outputs.changed == 'true' }}
+        continue-on-error: true
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          ref: data
+          path: data-store
+
+      - name: Synchroniser le stockage historique (branche data)
+        id: store
+        if: ${{ !cancelled() && steps.commit.outputs.changed == 'true' && steps.store_checkout.outcome == 'success' }}
+        continue-on-error: true
+        env:                                 # auteur des commits sur la branche data
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: python -m mm.store sync --only postmarket_data.js --message "Scan post-market du $(date -u '+%Y-%m-%d %H:%M UTC')"
+
+      - name: Signaler un échec du stockage (le site est publié)
+        if: steps.store_checkout.outcome == 'failure' || steps.store.outcome == 'failure'
+        run: |
+          echo "::error::Le stockage historique (branche data) n'a pas pu être mis à jour (voir « Synchroniser le stockage »)."
+          exit 1
+
   deploy:
     needs: scan
-    if: needs.scan.outputs.changed == 'true'
+    if: ${{ !cancelled() && needs.scan.outputs.changed == 'true' }}   # publie même si seul le stockage a échoué
     runs-on: ubuntu-24.04
     environment:
       name: github-pages
