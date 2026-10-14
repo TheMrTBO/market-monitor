@@ -343,6 +343,10 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
   bougies jaunes sur fond noir.
 - Un passage du workflow **pendant la séance** (fusion de PR, Run workflow) écrivait une bougie du jour partielle pour QQQ / IWM
   et les secteurs : corrigé (`session_still_open`, pas de bougie du jour avant 16 h à New York ; le BTC garde la sienne).
+- **Yahoo, le soir** : la bougie du jour revient parfois sans clôture (NaN) → la source « recule » d'une séance. update_all garde
+  alors la version précédente (plus récente) et marque l'étape OK avec une note « source en retard » (avant : 3 essais puis échec).
+- **Planification GitHub** : au 1er soir (13/10), aucun créneau planifié avant 00:15 UTC, puis des créneaux sautés et un passage
+  de 22:17 UTC parti à 01:13 UTC. Relais manuel depuis la session ce soir-là ; solution durable à décider (déclencheur externe).
 - yfinance renvoie parfois du bruit de virgule flottante : les prix sont arrondis à 4 décimales à l'écriture.
 
 ---

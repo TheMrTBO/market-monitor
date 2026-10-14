@@ -2,7 +2,8 @@
 """Test : une etape de mise a jour qui produit des donnees invalides doit etre annulee (anciennes donnees restaurees).
 
 Simule, dans un dossier temporaire, cinq scripts de recuperation factices :
-  - stockbee, prices : ne changent rien (donnees deja valides)        -> doivent rester "ok"
+  - stockbee : ne change rien (donnees deja valides)                  -> doit rester "ok"
+  - prices  : renvoie une seance de moins (source en retard)         -> version precedente gardee, "ok" avec une note
   - vix     : tronque la serie (donnees trop anciennes)               -> doit etre annule et restaure a l'identique
   - sectors : ecrit un fichier quasi vide (1 ETF au lieu de 55)       -> doit etre annule et restaure a l'identique
   - breadth : ecrit un calcul maison tronque (3 seances)              -> doit etre annule et restaure a l'identique
@@ -20,7 +21,13 @@ DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "breadth_data.js", "v
 
 STUBS = {
     "fetch_stockbee.py": 'print("stub stockbee : donnees deja a jour")\n',
-    "fetch_prices.py": 'print("stub prices : donnees deja a jour")\n',
+    # prices : la source renvoie une derniere seance de moins (Yahoo le soir, cloture du jour absente) -> version precedente
+    # conservee, sans echec
+    "fetch_prices.py": (
+        'import json\nd = json.loads(open("prices_data.js").read().split("=", 1)[1].strip().rstrip(";"))\n'
+        'd = {k: v[:-1] for k, v in d.items()}\nopen("prices_data.js", "w").write("window.PRICES = " + json.dumps(d) + ";\\n")\n'
+        'print("Ecrit : prices_data.js")\n'
+    ),
     "fetch_sectors.py": (
         'open("sectors_data.js", "w").write(\'window.SECTORS = {"asof":"2026-10-12","dates":["2026-10-12"],'
         '"symbols":[{"s":"XLK","n":"x","g":"y","c":[1]}]};\\n\')\nprint("Ecrit : sectors_data.js")\n'
@@ -59,7 +66,8 @@ def main():
 
         checks = {
             "stockbee ok": status["stockbee"]["ok"] is True,
-            "prices ok": status["prices"]["ok"] is True,
+            "prices en retard d'une seance : ok, version precedente gardee": status["prices"]["ok"] is True and "en retard" in status["prices"].get("note", ""),
+            "prices restaure a l'identique": (work / "prices_data.js").read_bytes() == before["prices_data.js"],
             "breadth en echec": status["breadth"]["ok"] is False,
             "breadth restaure a l'identique": (work / "breadth_data.js").read_bytes() == before["breadth_data.js"],
             "vix en echec": status["vix"]["ok"] is False,
