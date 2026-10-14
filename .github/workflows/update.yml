@@ -11,7 +11,7 @@ on:
   workflow_dispatch:           # lancement manuel : onglet Actions > « Run workflow »
   push:
     branches: [main]
-    paths: ['.github/workflows/update.yml', 'stockbee_dashboard.html', 'index.html', 'config_data.js', 'config/**', '*.py']   # code ou config modifiés : republication
+    paths: ['.github/workflows/update.yml', 'stockbee_dashboard.html', 'index.html', 'config_data.js', 'config/**', '*.py', 'mm/**']   # code ou config modifiés : republication
 
 permissions:
   contents: write              # commit des fichiers de données
@@ -95,6 +95,29 @@ jobs:
             exit 1
           fi
 
+      # Stockage historique (refonte phase 3b) : les fichiers publiés sont recopiés sur la branche orpheline `data`
+      # (ajout seul, upsert sans doublon, chaque ligne contrôlée). Un échec ici n'empêche pas la publication du site ;
+      # il est signalé en fin de job. Voir ARCHITECTURE.md §4 bis et mm/store/sync.py.
+      - name: Récupérer le stockage historique (branche data)
+        id: store_checkout
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          ref: data
+          path: data-store
+
+      - name: Synchroniser le stockage historique (branche data)
+        id: store
+        if: ${{ !cancelled() && steps.store_checkout.outcome == 'success' }}
+        continue-on-error: true
+        env:                                 # auteur des commits sur la branche data
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: python -m mm.store sync --run-id "${{ github.run_id }}-${{ github.run_attempt }}" --message "Données du $(date -u '+%Y-%m-%d %H:%M UTC') (mise à jour)"
+
       - name: Préparer le site
         run: |
           mkdir -p _site
@@ -107,9 +130,9 @@ jobs:
           path: _site
 
       - name: Signaler un échec de source (le site est publié avec les dernières données valides)
-        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.history.outcome == 'failure'
+        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.history.outcome == 'failure' || steps.store_checkout.outcome == 'failure' || steps.store.outcome == 'failure'
         run: |
-          echo "::error::Au moins une source n'a pas pu être mise à jour (voir les étapes « Compléter l'historique » et « Récupérer les données »)."
+          echo "::error::Au moins une source ou le stockage historique n'a pas pu être mis à jour (voir les étapes « Compléter l'historique », « Récupérer les données » et « Synchroniser le stockage »)."
           exit 1
 
   deploy:
