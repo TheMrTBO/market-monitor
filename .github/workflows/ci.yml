@@ -1,0 +1,31 @@
+name: Tests
+
+# Lance toute la suite de tests (Node : dashboard dans un DOM simulé ; Python : robot, contrôles, calcul maison, post-market)
+# sur chaque pull request, avant fusion. Aucune clé, aucun accès réseau, aucune écriture : permissions en lecture seule.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true        # un nouveau push sur la PR annule le passage précédent
+
+jobs:
+  tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065  # v5
+        with:
+          python-version: '3.12'
+
+      - name: Versions
+        run: python --version && node --version
+
+      - name: Tests (Node + Python)
+        run: bash tests/run_all.sh
