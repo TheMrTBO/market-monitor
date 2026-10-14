@@ -346,7 +346,8 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 - **Yahoo, le soir** : la bougie du jour revient parfois sans clôture (NaN) → la source « recule » d'une séance. update_all garde
   alors la version précédente (plus récente) et marque l'étape OK avec une note « source en retard » (avant : 3 essais puis échec).
 - **Planification GitHub** : au 1er soir (13/10), aucun créneau planifié avant 00:15 UTC, puis des créneaux sautés et un passage
-  de 22:17 UTC parti à 01:13 UTC. Relais manuel depuis la session ce soir-là ; solution durable à décider (déclencheur externe).
+  de 22:17 UTC parti à 01:13 UTC. Relais manuel depuis la session ce soir-là ; solution retenue le 14/10 : **cron-job.org** déclenche les
+  deux workflows (voir AUTOMATISATION.md), les créneaux GitHub restent en secours.
 - yfinance renvoie parfois du bruit de virgule flottante : les prix sont arrondis à 4 décimales à l'écriture.
 
 ---

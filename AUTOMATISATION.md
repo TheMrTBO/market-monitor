@@ -21,6 +21,30 @@ Horaires (UTC) : `22:17`, puis `01:17` et `03:17` (le breadth du jour est publi�
 de quelques minutes à quelques dizaines de minutes ; c'est normal. Lancement manuel possible à tout moment :
 onglet **Actions** > « Mise à jour des données et publication » > **Run workflow**.
 
+## Déclencheur externe : cron-job.org (depuis le 14/10/2026)
+La planification de GitHub (`schedule`) n'est pas fiable sur ce dépôt : le premier soir (13/10), presque tous les créneaux ont
+été sautés, un passage de 22:17 UTC est parti à 01:13 UTC et des créneaux de 00:xx UTC sont partis à 04:31 et 06:01 UTC. Les
+workflows sont donc **déclenchés par cron-job.org** (gratuit), qui appelle l'API GitHub `workflow_dispatch` à l'heure exacte.
+Les créneaux `schedule` des workflows restent en place comme **secours** : si les deux partent pour le même passage, le second
+attend la fin du premier (groupe `concurrency: market-monitor`) ou apparaît « annulé » ; ce n'est pas une erreur.
+
+| Tâche cron-job.org | URL (POST) | Horaire (UTC) |
+|---|---|---|
+| Scan post-market | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/postmarket.yml/dispatches` | minutes 7, 22, 37, 52 ; heures 20-23, 0, 1 ; lundi → samedi |
+| Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | minute 17 ; heures 22, 1, 3, 5 ; tous les jours |
+
+Réglages communs : en-têtes `Authorization: Bearer <jeton>`, `Accept: application/vnd.github+json`,
+`X-GitHub-Api-Version: 2022-11-28` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.
+Hors fenêtre (ex. samedi soir), `fetch_postmarket.py` ne fait rien : pas de commit.
+
+**Jeton** : jeton GitHub *fine-grained*, limité au seul dépôt `market-monitor`, permissions **Actions : Read and write** et
+**Metadata : Read-only**, expiration 1 an (créé le 14/10/2026 : **à renouveler avant le 14/10/2027**). Il ne permet ni de lire
+ou modifier le code, ni de lire les Secrets. Il n'est stocké que chez cron-job.org, jamais dans le dépôt.
+Un jeton volé permettrait seulement de lancer, annuler ou désactiver les workflows et d'effacer journaux et cache : en cas de
+doute, **révoquer** (GitHub > Settings > Developer settings > Fine-grained tokens) puis en recréer un.
+Les branches fusionnées sont supprimées (réglage « Automatically delete head branches ») : le jeton ne peut lancer que les
+workflows de `main`.
+
 ## Aucune information privée
 - **Une seule clé : `POLYGON_API_KEY`** (plan gratuit Polygon / Massive), stockée **uniquement** dans les GitHub Secrets
   (Settings > Secrets and variables > Actions > New repository secret). Elle n'est jamais écrite dans un fichier du dépôt.
