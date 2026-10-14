@@ -85,7 +85,15 @@ def run_step(name, script, out_file, restore, attempts, waits):
                 errors = validate_data.validate(name, out_path)
                 new_last = last_date(name, out_path)
                 if not errors and old_last and new_last and new_last < old_last:
-                    errors = [f"{name} : donnees plus anciennes que la version precedente ({new_last} < {old_last})"]
+                    # source en retard sur nos donnees (ex. Yahoo renvoie le soir la bougie du jour sans cloture) : on garde la
+                    # version precedente, qui est plus recente ; ce n'est pas un echec tant qu'elle reste valide (fraicheur)
+                    rollback()
+                    stale = validate_data.validate(name, out_path)
+                    if not stale:
+                        note = f"source en retard ({new_last}), version precedente conservee ({old_last})"
+                        print(f"[{name}] OK (essai {i + 1}) : {note}", flush=True)
+                        return {"ok": True, "attempts": i + 1, "last": old_last, "note": note}
+                    errors = [f"{name} : donnees plus anciennes que la version precedente ({new_last} < {old_last}) ; " + " ; ".join(stale)[:200]]
                 if not errors:
                     print(f"[{name}] OK ({time.time() - t0:.0f}s, essai {i + 1}) : {' | '.join(tail[-2:])}", flush=True)
                     return {"ok": True, "attempts": i + 1, "last": new_last}
