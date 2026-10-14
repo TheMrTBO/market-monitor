@@ -1,0 +1,30 @@
+{
+  "name": "postmarket_scan",
+  "description": "Chaque relevé du scan post-market (toutes les 15 min) : ce que montrait le scan à l'heure du relevé ; la liste finale d'une séance = son dernier relevé",
+  "primary_key": [
+    "session_date",
+    "taken_at",
+    "ticker"
+  ],
+  "partition": "day",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "taken_at": "timestamp",
+    "closed": "bool",
+    "ticker": "text",
+    "symbol": "text",
+    "name": "text",
+    "sector": "text?",
+    "industry": "text?",
+    "close": "float?",
+    "change_pct": "float?",
+    "pm_price": "float?",
+    "pm_change_pct": "float?",
+    "pm_volume": "int",
+    "rvol": "float?",
+    "market_cap": "int?",
+    "float_shares": "int?",
+    "earnings": "text?"
+  }
+}

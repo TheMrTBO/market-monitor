@@ -1,0 +1,20 @@
+{
+  "name": "runs",
+  "description": "Journal des passages : statut par source, dernière séance obtenue, heure de 1re disponibilité (calage des horaires)",
+  "primary_key": [
+    "run_id",
+    "source"
+  ],
+  "partition": "month",
+  "partition_by": "started_at",
+  "columns": {
+    "run_id": "text",
+    "source": "text",
+    "started_at": "timestamp",
+    "duration_s": "float",
+    "ok": "bool",
+    "attempts": "int",
+    "last_session": "date?",
+    "note": "text?"
+  }
+}

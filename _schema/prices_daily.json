@@ -1,0 +1,19 @@
+{
+  "name": "prices_daily",
+  "description": "Bougies journalières QQQ, IWM (Yahoo) et BTC (Coinbase)",
+  "primary_key": [
+    "symbol",
+    "session_date"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "symbol": "text",
+    "session_date": "date",
+    "open": "float",
+    "high": "float",
+    "low": "float",
+    "close": "float",
+    "volume": "float"
+  }
+}

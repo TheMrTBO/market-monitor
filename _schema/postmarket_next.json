@@ -1,0 +1,17 @@
+{
+  "name": "postmarket_next",
+  "description": "Séance suivante des titres de la liste finale (variation clôture à clôture, gap). Liste finale = dernier relevé (max taken_at) de postmarket_scan",
+  "primary_key": [
+    "session_date",
+    "ticker"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "ticker": "text",
+    "next_session": "date",
+    "next_change_pct": "float?",
+    "next_gap_pct": "float?"
+  }
+}

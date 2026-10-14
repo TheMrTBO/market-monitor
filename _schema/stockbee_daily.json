@@ -1,0 +1,27 @@
+{
+  "name": "stockbee_daily",
+  "description": "Breadth Stockbee (Market Monitor), une ligne par séance",
+  "primary_key": [
+    "session_date"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "up4": "int?",
+    "down4": "int?",
+    "ratio5": "float?",
+    "ratio10": "float?",
+    "up25q": "int?",
+    "down25q": "int?",
+    "up25m": "int?",
+    "down25m": "int?",
+    "up50m": "int?",
+    "down50m": "int?",
+    "up13_34d": "int?",
+    "down13_34d": "int?",
+    "universe": "int?",
+    "t2108": "float?",
+    "sp500": "float?"
+  }
+}

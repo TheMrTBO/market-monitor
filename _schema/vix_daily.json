@@ -1,0 +1,16 @@
+{
+  "name": "vix_daily",
+  "description": "VIX (CBOE)",
+  "primary_key": [
+    "session_date"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "open": "float",
+    "high": "float",
+    "low": "float",
+    "close": "float"
+  }
+}

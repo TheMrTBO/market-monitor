@@ -1,0 +1,21 @@
+{
+  "name": "breadth_own_daily",
+  "description": "Calcul maison du breadth (clôtures Polygon / Massive)",
+  "primary_key": [
+    "session_date"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "up4": "int",
+    "down4": "int",
+    "ratio5": "float?",
+    "ratio10": "float?",
+    "up25m": "int?",
+    "down25m": "int?",
+    "up25q": "int?",
+    "down25q": "int?",
+    "t2108": "float?"
+  }
+}
