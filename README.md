@@ -18,4 +18,4 @@ Lecture rapide : `duckdb -c "select * from read_csv_auto('prices_daily/*/*.csv')
 | `vix_daily` | session_date | month | VIX (CBOE) |
 | `postmarket_scan` | session_date, taken_at, ticker | day | Chaque relevé du scan post-market (toutes les 15 min) : ce que montrait le scan à l'heure du relevé ; la liste finale d'une séance = son dernier relevé |
 | `postmarket_next` | session_date, ticker | month | Séance suivante des titres de la liste finale (variation clôture à clôture, gap). Liste finale = dernier relevé (max taken_at) de postmarket_scan |
-| `runs` | run_id, source | month | Journal des passages : statut par source, dernière séance obtenue, heure de 1re disponibilité (calage des horaires) |
+| `runs` | run_id, source | month | Journal des passages de la mise à jour complète : statut par source, durée, dernière séance obtenue (heure de 1re disponibilité = 1er passage où last_session atteint la séance) |

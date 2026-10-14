@@ -1,6 +1,6 @@
 {
   "name": "runs",
-  "description": "Journal des passages : statut par source, dernière séance obtenue, heure de 1re disponibilité (calage des horaires)",
+  "description": "Journal des passages de la mise à jour complète : statut par source, durée, dernière séance obtenue (heure de 1re disponibilité = 1er passage où last_session atteint la séance)",
   "primary_key": [
     "run_id",
     "source"
@@ -11,7 +11,7 @@
     "run_id": "text",
     "source": "text",
     "started_at": "timestamp",
-    "duration_s": "float",
+    "duration_s": "float?",
     "ok": "bool",
     "attempts": "int",
     "last_session": "date?",
