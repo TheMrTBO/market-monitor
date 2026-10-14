@@ -72,7 +72,7 @@
   .pmfacts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 16px; margin: 6px 0 0; }
   .pmfacts div { min-width: 0; } .pmfacts dt { color: var(--muted); font-size: 11px; margin-bottom: 1px; }
   .pmfacts dd { margin: 0; font-variant-numeric: tabular-nums; }
-  .pmnote { color: var(--muted); font-size: 12px; margin: 10px 0 2px; } .pmnote a { color: var(--up); }
+  .pmnote { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 12px; margin: 10px 0 2px; } .pmnote a { color: var(--up); padding: 4px 0; }
   body[data-tab="sec"] #sub { display: none; }
   .secsplit { display: grid; grid-template-columns: minmax(560px, 46%) minmax(0, 1fr); gap: 8px; align-items: start; }
   @media (max-width: 1000px) { .secsplit { grid-template-columns: minmax(0, 1fr); } .secchart { position: static; } }
@@ -2067,7 +2067,8 @@
       fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
       fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : 'séance pas encore jouée');
-    $('pmNote').innerHTML = `<a href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(r.t)}" target="_blank" rel="noopener">Ouvrir sur TradingView ↗</a>`;
+    const link = u => u.replace(/\{sym\}/g, encodeURIComponent(r.s)).replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
+    $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('');
     pmRedraw();
   }
   $('pmHead').addEventListener('click', e => {

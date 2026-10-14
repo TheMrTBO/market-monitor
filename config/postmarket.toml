@@ -6,3 +6,18 @@ min_change = 4           # variation post-market > +4 % (hausses) ou < -4 % (bai
 max_per_side = 150       # titres par sens ; limite atteinte = liste marquée « tronquée »
 keep_sessions = 20       # séances gardées dans postmarket_data.js (l'historique complet viendra du stockage, refonte phase 3)
 chart_bars = 65          # bougies journalières (~3 mois) pour la fiche détail
+
+# Liens de la fiche d'un titre, dans cet ordre, ouverts dans un nouvel onglet.
+# {sym} = symbole (LQDA) ; {tv} = symbole TradingView avec la place de cotation (NASDAQ:LQDA).
+# Dépôts SEC sans filtre de type : les émetteurs étrangers déposent des 6-K, pas des 8-K.
+[[links]]
+label = "TradingView"
+url = "https://www.tradingview.com/chart/?symbol={tv}"
+
+[[links]]
+label = "News Benzinga"
+url = "https://www.benzinga.com/quote/{sym}/news"
+
+[[links]]
+label = "Dépôts SEC"
+url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={sym}&owner=include&count=40"
