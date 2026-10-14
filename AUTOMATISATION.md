@@ -34,11 +34,15 @@ attend la fin du premier (groupe `concurrency: market-monitor`) ou apparaît « 
 | Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | minute 17 ; heures 22, 1, 3, 5 ; tous les jours |
 
 Réglages communs : en-têtes `Authorization: Bearer <jeton>`, `Accept: application/vnd.github+json`,
-`X-GitHub-Api-Version: 2022-11-28` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.
+`X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.
 Hors fenêtre (ex. samedi soir), `fetch_postmarket.py` ne fait rien : pas de commit.
+Mis en service le 14/10/2026 : « Test run » des deux tâches = réponse 204, exécutions `workflow_dispatch` réussies sur GitHub.
+Piège : coller la commande `curl` dans *Request body* donne une erreur 400 ; le corps doit être exactement `{"ref":"main"}`
+(guillemets droits), avec l'en-tête `Content-Type: application/json`.
 
 **Jeton** : jeton GitHub *fine-grained*, limité au seul dépôt `market-monitor`, permissions **Actions : Read and write** et
-**Metadata : Read-only**, expiration 1 an (créé le 14/10/2026 : **à renouveler avant le 14/10/2027**). Il ne permet ni de lire
+**Metadata : Read-only**, **sans date d'expiration** (choix de l'utilisateur, 14/10/2026 : pas de coupure surprise ; en
+contrepartie, le révoquer et en recréer un en cas de doute ou à chaque changement d'outil de déclenchement). Il ne permet ni de lire
 ou modifier le code, ni de lire les Secrets. Il n'est stocké que chez cron-job.org, jamais dans le dépôt.
 Un jeton volé permettrait seulement de lancer, annuler ou désactiver les workflows et d'effacer journaux et cache : en cas de
 doute, **révoquer** (GitHub > Settings > Developer settings > Fine-grained tokens) puis en recréer un.
