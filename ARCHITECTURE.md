@@ -50,7 +50,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
 | `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
-| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, liens de la fiche (TradingView, News Benzinga, Dépôts SEC) | `fetch_postmarket.py`, front |
+| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |

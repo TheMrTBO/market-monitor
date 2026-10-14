@@ -8,16 +8,7 @@ keep_sessions = 20       # séances gardées dans postmarket_data.js (l'historiq
 chart_bars = 65          # bougies journalières (~3 mois) pour la fiche détail
 
 # Liens de la fiche d'un titre, dans cet ordre, ouverts dans un nouvel onglet.
-# {sym} = symbole (LQDA) ; {tv} = symbole TradingView avec la place de cotation (NASDAQ:LQDA).
-# Dépôts SEC sans filtre de type : les émetteurs étrangers déposent des 6-K, pas des 8-K.
+# {sym} = symbole (LQDA) ; {symd} = symbole avec un tiret pour les classes d'actions (BRK.B → BRK-B) ; {tv} = symbole TradingView (NASDAQ:LQDA).
 [[links]]
-label = "TradingView"
-url = "https://www.tradingview.com/chart/?symbol={tv}"
-
-[[links]]
-label = "News Benzinga"
-url = "https://www.benzinga.com/quote/{sym}/news"
-
-[[links]]
-label = "Dépôts SEC"
-url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={sym}&owner=include&count=40"
+label = "Finviz"
+url = "https://finviz.com/quote.ashx?t={symd}"
