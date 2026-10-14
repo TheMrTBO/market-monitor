@@ -1,5 +1,7 @@
 # Market Monitor — récapitulatif complet du projet
 
+> Point d'entrée à jour : **`ARCHITECTURE.md`** (structure, configuration `config/`, invariants, refonte). Ce récapitulatif garde l'historique des décisions.
+
 > Document de reprise. À lire en premier dans une nouvelle discussion : il contient l'état exact du projet, les décisions
 > prises (et pourquoi), les pièges rencontrés, et le plan des prochains travaux.
 > Dernière mise à jour : 13 octobre 2026 (refonte UX de l'onglet principal + mobile, branche `feat/ux-onglet-principal`). Dépôt : https://github.com/TheMrTBO/market-monitor · Site : https://themrtbo.github.io/market-monitor/

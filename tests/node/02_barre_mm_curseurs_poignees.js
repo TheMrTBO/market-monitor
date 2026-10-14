@@ -18,7 +18,7 @@ const ls={};
 const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
   requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},getComputedStyle:()=>({getPropertyValue:k=>({'--s10':'#eda100','--s20':'#eb6834','--s50':'#6250d6','--s200':'#1baf7a'})[k]||'#000'}),setTimeout,console};
 sb.window=sb;vm.createContext(sb);
-for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
 vm.runInContext(main,sb);
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const reset=()=>{for(const k of Object.keys(rects))delete rects[k];};

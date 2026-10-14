@@ -22,15 +22,19 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import mmconfig
+
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "postmarket_data.js"
-NY = ZoneInfo("America/New_York")
+MARKET = mmconfig.load("market")
+PM = mmconfig.load("postmarket")      # filtres du scan, limites : config/postmarket.toml
+NY = ZoneInfo(MARKET["timezone"])
 URL = "https://scanner.tradingview.com/america/scan"
 HEADERS = {"Content-Type": "application/json", "User-Agent": "Mozilla/5.0 (market-monitor; +github.com/TheMrTBO/market-monitor)"}
-KEEP = 20                      # seances conservees
-LIMIT = 150                    # titres par sens (hausses, baisses) ; limite atteinte = liste tronquee, signalee ("trunc")
-FILTERS = {"price": 3, "vol": 100_000, "chg": 4}
-HIST_BARS = 65                 # ~3 mois de bougies pour la fiche detail
+KEEP = PM["keep_sessions"]     # seances conservees
+LIMIT = PM["max_per_side"]     # titres par sens (hausses, baisses) ; limite atteinte = liste tronquee, signalee ("trunc")
+FILTERS = {"price": PM["min_price"], "vol": PM["min_volume"], "chg": PM["min_change"]}   # cles courtes ecrites dans le fichier
+HIST_BARS = PM["chart_bars"]   # bougies journalieres pour la fiche detail
 
 # colonnes TradingView -> cle courte dans le fichier
 TV_COLS = [
@@ -46,9 +50,9 @@ COLS = ["t", "s", "n", "sec", "ind", "c", "ch", "pc", "pch", "pv", "rv", "cap", 
 def session_now(now_utc):
     """(seance, close) : seance reguliere dont le post-market est disponible, ou (None, None) hors fenetre."""
     t = now_utc.astimezone(NY)
-    if t.hour >= 16:
-        d, closed = t.date(), t.hour >= 20
-    elif t.hour < 4:
+    if t.hour >= MARKET["close_hour"]:
+        d, closed = t.date(), t.hour >= MARKET["postmarket_end_hour"]
+    elif t.hour < MARKET["premarket_start_hour"]:
         d, closed = t.date() - timedelta(days=1), True
         while d.weekday() >= 5:
             d -= timedelta(days=1)
@@ -99,7 +103,7 @@ def earnings_tag(r, d):
     for ts, tm in ((r.get("ed"), r.get("et")), (r.get("en"), r.get("ent"))):
         if ny_date(ts) == d:
             hour = datetime.fromtimestamp(ts, timezone.utc).astimezone(NY).hour
-            if tm == 1 or (tm != -1 and hour >= 16):
+            if tm == 1 or (tm != -1 and hour >= MARKET["close_hour"]):
                 return "amc"
             if tm == -1 or hour < 10:
                 return "bmo"

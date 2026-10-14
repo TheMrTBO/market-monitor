@@ -22,7 +22,7 @@ function boot(extra){
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
     getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6','--text':'#1b2230'})[k]||'#000'}),setTimeout,console};
   sb.location={search:''};sb.window=sb;vm.createContext(sb);
-  for(const f of ['stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','status_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+  for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','status_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(extra)vm.runInContext(extra,sb);
   vm.runInContext(main,sb);
   return {L,els,R,Sx,sb,$};

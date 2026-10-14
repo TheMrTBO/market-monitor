@@ -1,7 +1,7 @@
 # Market Monitor — consignes de travail
 
-Lis d'abord **`RECAP_PROJET.md`** (état, architecture, décisions, pièges, plan des prochains travaux), puis
-`AUTOMATISATION.md` pour le pipeline GitHub.
+Lis d'abord **`ARCHITECTURE.md`** (carte des fichiers, flux, configuration, invariants, recettes, refonte en cours) ;
+puis, si besoin d'historique, `RECAP_PROJET.md` (décisions, pièges) et `AUTOMATISATION.md` (GitHub, cron-job.org).
 
 ## Règles
 - Langue : **français**. Réponses concises ; après toute modification, un récapitulatif : fichier · ce qui change · pourquoi.
@@ -11,7 +11,11 @@ Lis d'abord **`RECAP_PROJET.md`** (état, architecture, décisions, pièges, pla
 - **Gratuit** : n'introduire aucune dépendance ni source payante sans demander. Pas de changement de source de données
   sans accord de l'utilisateur. Ne pas modifier les formules TC2000 sans accord.
 - Toujours `git pull --rebase origin main` avant de modifier (le robot GitHub commit les données sur `main`).
-- Avant de publier : `bash tests/run_all.sh` et `python3 validate_data.py` doivent passer.
+- Avant de publier : `bash tests/run_all.sh` et `python3 validate_data.py` doivent passer (la CI relance les tests sur chaque PR).
+- **Aucun paramètre métier en dur** : seuils, filtres, horaires, listes, libellés vont dans `config/*.toml` ; puis
+  `python3 mmconfig.py --js --check`. `config_data.js` est généré : ne jamais l'éditer.
+- **Toute modification de structure met à jour `ARCHITECTURE.md` dans la même PR** (c'est le point d'entrée des sessions).
+- Refonte en cours (décision du 14/10/2026) : pas de nouvelle fonction avant la fin de la phase 3 (voir `ARCHITECTURE.md` §7).
 - Le site est en https (https://themrtbo.github.io/market-monitor/) : **vérifier visuellement** (captures, émulation mobile)
   les changements d'interface ; le rendu n'a jamais été contrôlé à l'écran jusqu'ici.
 - Sandbox de Claude : `pip` et l'écriture dans `.git/config` y sont bloqués ; yfinance se lance avec
@@ -19,8 +23,9 @@ Lis d'abord **`RECAP_PROJET.md`** (état, architecture, décisions, pièges, pla
   seulement sur demande explicite.
 
 ## Structure
-Front : un seul fichier `stockbee_dashboard.html` (canvas, aucune librairie). Données : `*_data.js` écrits par
-`update_all.py`. Tests : `tests/`. Workflow : `.github/workflows/update.yml`.
+Voir `ARCHITECTURE.md`. En bref : front = `stockbee_dashboard.html` (canvas, aucune librairie) ; paramètres = `config/` lus
+par `mmconfig.py` ; données = `*_data.js` écrits par `update_all.py` ; tests = `tests/` ; workflows = `update.yml`,
+`postmarket.yml`, `ci.yml` ; déclenchement = cron-job.org (secours : `schedule` GitHub).
 Scan post-market : `fetch_postmarket.py` → `postmarket_data.js` (aussi lancé seul par `.github/workflows/postmarket.yml`).
 Calcul maison du breadth : `fetch_history.py` (clôtures brutes + splits, cache hors dépôt) → `breadth_own.py` →
 `breadth_data.js`. Clé `POLYGON_API_KEY` : GitHub Secret ou `.env` local, jamais dans un fichier versionné.

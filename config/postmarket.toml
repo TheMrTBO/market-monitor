@@ -1,0 +1,8 @@
+# Scan post-market (fetch_postmarket.py, screener public TradingView, différé de 15 min) = preset TradingView de l'utilisateur.
+# Chaque relevé REMPLACE la liste de la séance (un titre repassé sous le seuil ne correspond plus au scan : il en sort).
+min_price = 3            # clôture > 3 $
+min_volume = 100000      # volume post-market > 100 000 actions
+min_change = 4           # variation post-market > +4 % (hausses) ou < -4 % (baisses)
+max_per_side = 150       # titres par sens ; limite atteinte = liste marquée « tronquée »
+keep_sessions = 20       # séances gardées dans postmarket_data.js (l'historique complet viendra du stockage, refonte phase 3)
+chart_bars = 65          # bougies journalières (~3 mois) pour la fiche détail

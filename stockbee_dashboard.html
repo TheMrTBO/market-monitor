@@ -758,19 +758,22 @@
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['stockbee_data.js', 'breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
+    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
 </script>
 <script>
 (function () {
-  if (!window.STOCKBEE || !window.PRICES) {
+  if (!window.STOCKBEE || !window.PRICES || !window.MM_CONFIG) {
     document.querySelector('.wrap').innerHTML =
-      '<div id="fatal">Données introuvables : lance <code>python fetch_stockbee.py</code> et <code>python fetch_prices.py</code> dans ce dossier ' +
-      '(<code>stockbee_data.js</code> et <code>prices_data.js</code> doivent être à côté de ce HTML).</div>';
+      '<div id="fatal">Données introuvables : lance <code>python mmconfig.py --js</code>, <code>python fetch_stockbee.py</code> et <code>python fetch_prices.py</code> dans ce dossier ' +
+      '(<code>config_data.js</code>, <code>stockbee_data.js</code> et <code>prices_data.js</code> doivent être à côté de ce HTML).</div>';
     return;
   }
+
+  // ------------------------------------------------------------------ configuration (config/*.toml → config_data.js, généré par mmconfig.py)
+  const CFG = window.MM_CONFIG;
 
   // ------------------------------------------------------------------ données
   const COL = Object.fromEntries(STOCKBEE.columns.map((c, i) => [c, i]));
@@ -796,12 +799,12 @@
     for (const k of ['up4', 'down4', 'ratio5', 'ratio10']) row[COL[k]] = own(r[0], k);
     SB.set(r[0], row);
   }
-  // Séance du jour terminée (16 h passées à New York, QQQ a coté ce jour-là) mais breadth pas encore publié (Stockbee, calcul
+  // Séance du jour terminée (heure de clôture passée à New York, QQQ a coté ce jour-là) mais breadth pas encore publié (Stockbee, calcul
   // maison) : on l'ajoute aux séances avec une ligne vide, pour que tous les onglets passent au jour même ; les chiffres
   // manquants s'affichent « en attente des données » au lieu de reprendre en silence ceux de la veille.
   const NYNOW = (() => {
     try {
-      const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', hourCycle: 'h23' })
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: CFG.market.timezone, year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', hourCycle: 'h23' })
         .formatToParts(new Date()).map(x => [x.type, x.value]));
       return { d: `${p.year}-${p.month}-${p.day}`, h: +p.hour };
     } catch (e) { return null; }
@@ -809,7 +812,7 @@
   const PENDING = (() => {
     const q = ((window.PRICES || {}).QQQ || []).map(r => r[0]); let d = q[q.length - 1];
     if (!d || !NYNOW) return null;
-    if (d === NYNOW.d && NYNOW.h < 16) d = q[q.length - 2];          // séance en cours : sa bougie est partielle, on ne l'annonce pas
+    if (d === NYNOW.d && NYNOW.h < CFG.market.close_hour) d = q[q.length - 2];          // séance en cours : sa bougie est partielle, on ne l'annonce pas
     const lastSb = [...SB.keys()].sort().pop();
     return d && (!lastSb || d > lastSb) ? d : null;
   })();
@@ -874,7 +877,8 @@
   const maColor = i => MAS[i].color || MA_DEFAULT[i].color;
   let histAlpha = store.get('mm.hsolid') === '1' ? 1 : 0.6;   // −X % au premier plan : translucide (0,6) ou opaque (1)
   // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
-  const TH = { ratio5: [1, 1.5], rq: [1, 1.5], rm: [1, 2] };
+  const TH = { ratio5: CFG.breadth.ratio5, rq: CFG.breadth.rq, rm: CFG.breadth.rm };   // seuils : config/display.toml
+  const T2E = CFG.breadth.t2108_extremes;                                              // T2108 : zones extrêmes
   // Records sur 3 mois (63 séances) : ▲ = au-dessus du plus haut des 63 séances précédentes, ▼ = sous le plus bas.
   // Couleur selon le côté : bleu = côté hausses, rouge = côté baisses (un record du nombre de baisses de 25 % est rouge).
   let HMA = (() => { const v = store.get('mm.hma'); return v == null ? 10 : +v || 0; })();   // moyenne mobile sur les histogrammes (0 = aucune)
@@ -1589,19 +1593,8 @@
   }
   let secRows = [];            // une ligne par ETF : {x, rank, score, dev, delta, isNew, count}
   // groupes (filtres) et libellé court du thème de chaque ETF, tiré de sa description (colonne « Groupe ») ; ETF inconnu : sa catégorie
-  const GRP = [['all', 'Tous'], ['Secteur', 'Secteurs'], ['Industrie', 'Industries'], ['Thème', 'Thèmes'], ['Matières', 'Matières'], ['Pays / région', 'Pays']];
-  const THEME = {
-    CIBR: 'Cybersécurité', CLOU: 'Cloud', XLK: 'Technologie', DRAM: 'Mémoire', XOP: 'Pétrole et gaz (E&P)', QTUM: 'Informatique quantique',
-    XLE: 'Énergie', DISK: 'Mémoire (active)', IYZ: 'Télécoms', HYDR: 'Hydrogène', XLV: 'Santé', XLC: 'Communication', GDX: 'Mines d\'or',
-    BKCH: 'Blockchain', PPH: 'Pharmaceutique', XBI: 'Biotech (équipondéré)', LIT: 'Lithium et batteries', SLV: 'Argent métal', UFO: 'Espace',
-    PBJ: 'Agroalimentaire', XLB: 'Matériaux', XRT: 'Distribution', XLF: 'Finance', XLU: 'Services aux collectivités', URA: 'Uranium',
-    KWEB: 'Internet chinois', XHB: 'Construction résidentielle', EWQ: 'France', TAN: 'Solaire', XAR: 'Aéronautique et défense',
-    NCLD: 'Neocloud (IA)', XLI: 'Industriels', XLY: 'Conso. discrétionnaire', XLP: 'Conso. de base', XLRE: 'Immobilier', SMH: 'Semi-conducteurs',
-    IGV: 'Logiciels', IBB: 'Biotech (grandes cap.)', IHI: 'Dispositifs médicaux', KRE: 'Banques régionales', KIE: 'Assurance',
-    JETS: 'Compagnies aériennes', IYT: 'Transport', OIH: 'Services pétroliers', XME: 'Métaux et mines', COPX: 'Mines de cuivre',
-    REMX: 'Terres rares', MOO: 'Agriculture', ICLN: 'Énergie propre', NLR: 'Nucléaire', BOTZ: 'Robotique et IA', ARKK: 'Innovation (ARK)',
-    FDN: 'Internet', PAVE: 'Infrastructures US', FINX: 'Fintech',
-  };
+  const GRP = CFG.sectors.groups;        // filtres : config/display.toml
+  const THEME = CFG.sectors.labels;      // libellé court de chaque ETF : config/sectors.toml
   const theme = x => THEME[x.s] || x.g;
   let secGroup = store.get('mm.secgrp') || 'all', secBuiltEnd = -1;
   function secEnd() {                               // séance du classement : séance choisie dans « Stats du », sinon la dernière
@@ -1876,15 +1869,7 @@
   // Instantané relevé par le robot (fetch_postmarket.py) : prix > 3 $, volume post-market > 100 000, |variation post-market| > 4 %,
   // tri par volume post-market. Un instantané par séance ; on affiche celui de la séance choisie dans « Stats du » (sinon le dernier).
   const PM = window.POSTMARKET && Array.isArray(window.POSTMARKET.snaps) ? window.POSTMARKET : null;
-  const SECTOR_FR = {
-    'Commercial Services': 'Services aux entreprises', 'Communications': 'Télécoms', 'Consumer Durables': 'Biens durables',
-    'Consumer Non-Durables': 'Conso. courante', 'Consumer Services': 'Services aux consommateurs', 'Distribution Services': 'Distribution',
-    'Electronic Technology': 'Électronique', 'Energy Minerals': 'Énergie fossile', 'Finance': 'Finance', 'Government': 'Administration',
-    'Health Services': 'Services de santé', 'Health Technology': 'Technologie médicale', 'Industrial Services': 'Services industriels',
-    'Miscellaneous': 'Divers', 'Non-Energy Minerals': 'Métaux et minerais', 'Process Industries': 'Industries de transformation',
-    'Producer Manufacturing': 'Biens d\'équipement', 'Retail Trade': 'Commerce de détail', 'Technology Services': 'Logiciels et services tech',
-    'Transportation': 'Transport', 'Utilities': 'Services aux collectivités',
-  };
+  const SECTOR_FR = CFG.sector_fr;      // secteurs TradingView traduits : config/display.toml
   const pmSector = r => SECTOR_FR[r.sec] || r.sec || '—';
   const pmRowOf = a => {                              // + dv : volume post-market en dollars ≈ volume × cours post-market (TradingView ne le donne pas)
     const r = Object.fromEntries(PM.cols.map((k, i) => [k, a[i]])), px = r.pc != null ? r.pc : r.c;
@@ -1961,7 +1946,7 @@
       ? rows.map(r => `<tr data-s="${r.s}" class="${r.s === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
       : `<tr><td class="empty" colspan="${cols.length}">Aucun titre avec ces filtres pour cette séance.</td></tr>`;
     $('pmMeta').innerHTML = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}` +
-      (snap.trunc ? ' · <span class="wait" title="Le robot relève au plus 150 titres par sens : il y en avait davantage">liste tronquée à 150 titres</span>' : '');
+      (snap.trunc ? ` · <span class="wait" title="Le robot relève au plus ${CFG.postmarket.max_per_side} titres par sens : il y en avait davantage">liste tronquée à ${CFG.postmarket.max_per_side} titres</span>` : '');
     const sel = $('pmRows').querySelector && $('pmRows').querySelector('tr.sel');
     fitPmLayout();
     if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
@@ -2239,11 +2224,11 @@
     const pw = W - MPAD.l - MPAD.r, ph = H - MPAD.t - MPAD.b;
     const slots = n + (win.atEnd ? Math.round(n * rightPad) : 0), bw = pw / slots, X = i => MPAD.l + (i + 0.5) * bw;
     bx.bw = bw;
-    let lo = 0, hi = 100, ticks = [20, 50, 70], refs = [20, 70];        // T2108 : mêmes repères 20 / 70 que l'onglet MM
+    let lo = 0, hi = 100, ticks = [T2E[0], 50, T2E[1]], refs = T2E.slice();        // T2108 : mêmes repères que l'onglet MM
     if (!isT) {
       lo = Math.min(...vis.map(b => b.l)); hi = Math.max(...vis.map(b => b.h));
       const p = (hi - lo) * 0.08 || 1; lo = Math.max(0, lo - p); hi += p;
-      ticks = niceTicks(lo, hi, 4); refs = [20, 30].filter(v => v > lo && v < hi);
+      ticks = niceTicks(lo, hi, 4); refs = CFG.vix.refs.filter(v => v > lo && v < hi);
     }
     const Y = v => MPAD.t + (hi - v) / (hi - lo) * ph;
     g.lineWidth = 1; g.textAlign = 'right'; g.textBaseline = 'middle';
@@ -2291,7 +2276,7 @@
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
   // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
   // Couleurs catégorielles (ni bleu ni rouge, réservés aux hausses / baisses), validées sur le fond noir des graphiques.
-  const B100_COL = { QQQ: '#199e70', IWM: '#d95926', BTC: '#9085e9' };
+  const B100_COL = CFG.colors.base100;   // config/display.toml
   let cmpMode = store.get('mm.cmpmode') === 'b100' ? 'b100' : 'side';
   const B100 = { name: 'Base 100', cv: $('b100cv'), vis: [], bw: 0, ser: [] };
   const b100At = (s, d) => { let v = null; for (const b of s.v) { if (b.d > d) break; v = b; } return v; };   // dernière clôture ≤ d
@@ -2683,7 +2668,7 @@
   // statut de la mise à jour automatique (status_data.js, écrit par update_all.py) : date, et dernière séance de chaque source
   (() => {
     const st = window.STATUS, el = $('dataStatus'); if (!st || !el) return;
-    const names = { stockbee: 'Stockbee', breadth: 'Calcul maison', vix: 'VIX', prices: 'Prix', sectors: 'Secteurs', postmarket: 'Post-market' };
+    const names = Object.fromEntries(Object.entries(CFG.sources).map(([k, v]) => [k, v.label]));   // config/sources.toml
     const when = new Date(st.updated);
     const stamp = isNaN(when) ? st.updated : when.toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' });
     // données périmées : la mise à jour est quotidienne, donc plus de 30 h sans mise à jour = un passage a été sauté ou a échoué
@@ -2787,7 +2772,7 @@
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
     const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
-    const t2S = t21 == null ? ['neutral', '—'] : t21 < 20 ? ['warn', '< 20 %'] : t21 > 70 ? ['warn', '> 70 %'] : ['neutral', '20 à 70 %'];
+    const t2S = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
     const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
     const idx = CMP.map(n => { const b = barAt(n); return b ? { n, b } : null; }).filter(Boolean);
@@ -2852,16 +2837,16 @@
       rm: ['Ratio ±25 % mois', `<p>Même calcul sur <b>un mois</b> : plus nerveux que le trimestre et plus étiré, d'où un seuil haut placé à <b>2</b>. ${kRule('rm')}</p>
         ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → zone ${rmS[1]}.</div>
         <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
-      t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous 20 % et au-dessus de 70 % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
+      t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous ${T2E[0]} % et au-dessus de ${T2E[1]} % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
         <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p>
         <p>Pointillé : notre calcul (clôture du jour ÷ clôture 20 séances plus tôt, prix de départ ≥ 5 $). Sur juil.-oct. 2026 : corrélation 0,99 à 1,00 avec Stockbee, écart moyen de 2 % (+25 %) et 8 % (−25 %).</p><p class="src">Source : Stockbee ; pointillé : calcul maison (Polygon / Massive).</p>`],
       sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
-        <p>Lignes pointillées horizontales : <b>20 %</b> et <b>70 %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
+        <p>Lignes pointillées horizontales : <b>${T2E[0]} %</b> et <b>${T2E[1]} %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
         <p>Courbe pointillée : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive). Corrélation 0,98 avec Stockbee sur 33 séances, mais quelques points au-dessus (biais de 0 à +6 points selon la période).</p><p class="src">Source : Stockbee ; pointillé : calcul maison.</p>`],
       savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
-        <p>Lignes pointillées : <b>20</b> et <b>30</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
+        <p>Lignes pointillées : <b>${CFG.vix.refs[0]}</b> et <b>${CFG.vix.refs[1]}</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
       b100: ['Base 100', `<p>Chaque courbe vaut <b>100</b> à sa première clôture de la période affichée ; 108 = +8 % depuis ce point. On compare ainsi QQQ, IWM et BTC sur une même échelle, quel que soit leur prix.</p>
         <p>BTC cote aussi le week-end : les séances manquantes de QQQ et IWM sont reliées. La légende donne les valeurs à la séance survolée ou figée (sinon la dernière).</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p>
@@ -2879,10 +2864,10 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
-    pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; 3 $</b>, <b>volume post-market &gt; 100 000</b> et <b>variation post-market &gt; +4 %</b> (Hausses) ou <b>&lt; −4 %</b> (Baisses).</p>
+    pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; ${CFG.postmarket.min_price} $</b>, <b>volume post-market &gt; ${nf(CFG.postmarket.min_volume)}</b> et <b>variation post-market &gt; +${CFG.postmarket.min_change} %</b> (Hausses) ou <b>&lt; −${CFG.postmarket.min_change} %</b> (Baisses).</p>
       <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. <b>Vol AH</b> = nombre d'actions échangées.</p>
       <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. Filtre <b>Résultats</b> : titres qui ont publié leurs résultats trimestriels ce soir après la clôture (AMC) ou ce matin avant l'ouverture (BMO), indiqué aussi dans la fiche. <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
-      <p>Le robot relève le scan toutes les 15 min pendant le post-market, puis encore 4 fois dans la nuit (données TradingView différées de 15 min). Chaque relevé remplace la liste de la séance : elle montre exactement ce que donne le scan à l'heure du relevé (un titre repassé sous 4 % en sort). Une liste par séance, 20 séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
+      <p>Le robot relève le scan toutes les 15 min pendant le post-market, puis encore 4 fois dans la nuit (données TradingView différées de 15 min). Chaque relevé remplace la liste de la séance : elle montre exactement ce que donne le scan à l'heure du relevé (un titre repassé sous 4 % en sort). Une liste par séance, ${CFG.postmarket.keep_sessions} séances gardées ; le scan suit la séance choisie dans <b>Stats du</b>.</p>
       <p>Clic sur un en-tête : trier · ↑ ↓ : titre précédent / suivant.</p><p class="src">Source : TradingView (screener public) · graphiques : Yahoo Finance.</p>`],
     pmchart: ['Graphique du titre', `<p>Bougies journalières sur environ 3 mois et moyennes mobiles (réglages de l'onglet MM). Le point <b>AH</b> marque le cours post-market relevé, juste après la séance du scan.</p><p class="src">Source : Yahoo Finance · TradingView.</p>`],
     secrank: ['Classement avgC7 / avgC65', `<p><b>Score</b> = moyenne des 7 dernières clôtures ÷ moyenne des 65 dernières (formule TC2000). Au-dessus de 1, les cours récents sont au-dessus de leur moyenne d'environ 3 mois.</p>
@@ -2925,34 +2910,50 @@
   // publié par le robot GitHub (cron 22:17, 01:17, 03:17 et 05:43 UTC) et l'heure du dernier scan post-market (clé « pm », workflow du soir toutes
   // les 30 min) ; si une nouvelle version existe, « Afficher » recharge la page.
   const hm = d => d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Paris' });
-  const inPostMarket = t => {                         // créneau du workflow du soir qui tombe pendant le post-market (16 h - 20 h 30, New York, lun.-ven.)
-    const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+  // prochaine publication, calculée depuis les expressions cron de config/schedule.toml (déclencheur cron-job.org, en UTC)
+  const cronField = (f, lo, hi) => {                  // « 7,22,37,52 », « 5-8 », « */15 », « * » → ensemble de valeurs
+    const out = new Set();
+    for (const part of f.split(',')) {
+      const [rng, step] = part.split('/'), st = +(step || 1);
+      const [a, b] = rng === '*' ? [lo, hi] : rng.includes('-') ? rng.split('-').map(Number) : [+rng, step ? hi : +rng];
+      for (let v = a; v <= b; v += st) out.add(v === 7 && hi === 7 ? 0 : v);   // jour de semaine : 7 = dimanche = 0
+    }
+    return out;
+  };
+  const cronOf = expr => { const [mi, h, dom, mo, dow] = expr.split(/\s+/);
+    return { mi: cronField(mi, 0, 59), h: cronField(h, 0, 23), dom: cronField(dom, 1, 31), mo: cronField(mo, 1, 12), dow: cronField(dow, 0, 7),
+             anyDom: dom === '*', anyDow: dow === '*' }; };
+  const cronHit = (c, t) => c.mi.has(t.getUTCMinutes()) && c.h.has(t.getUTCHours()) && c.mo.has(t.getUTCMonth() + 1) &&
+    (c.anyDom || c.anyDow ? c.dom.has(t.getUTCDate()) && c.dow.has(t.getUTCDay()) : c.dom.has(t.getUTCDate()) || c.dow.has(t.getUTCDay()));
+  const CRON = Object.fromEntries(Object.entries(CFG.schedule).map(([k, v]) => [k, cronOf(v.cron)]));
+  const M = CFG.market;
+  const inPostMarket = t => {                         // créneau du scan qui tombe pendant le post-market (clôture → fin + 30 min, New York, lun.-ven.)
+    const p = Object.fromEntries(new Intl.DateTimeFormat('en-US', { timeZone: M.timezone, weekday: 'short', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
       .formatToParts(t).map(x => [x.type, x.value]));
     const mins = +p.hour * 60 + +p.minute;
-    return !['Sat', 'Sun'].includes(p.weekday) && mins >= 16 * 60 && mins <= 20 * 60 + 30;
+    return !['Sat', 'Sun'].includes(p.weekday) && mins >= M.close_hour * 60 && mins <= M.postmarket_end_hour * 60 + 30;
   };
-  const nextRun = mainOnly => {                             // {t, pm} : prochaine publication (passage quotidien, ou scan post-market du soir)
-    const n = new Date(); let best = null;
-    for (let k = 0; k < 3; k++) for (const [h, m] of [[1, 17], [3, 17], [5, 17], [5, 43], [6, 17], [7, 17], [8, 17], [22, 17]]) {   // cron-job.org (tâche B) + secours GitHub ; à déplacer dans config/ (refonte, phase 1)
-      const t = new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + k, h, m)); if (t > n && (!best || t < best.t)) best = { t, pm: false };
+  const nextRun = mainOnly => {                       // {t, pm} : prochaine mise à jour (ou prochain scan post-market utile), 3 jours au plus
+    const n = new Date(), t0 = Math.floor(n / 60000) * 60000 + 60000;
+    for (let k = 0; k < 3 * 1440; k++) {
+      const t = new Date(t0 + k * 60000);
+      if (CRON.update && cronHit(CRON.update, t)) return { t, pm: false };
+      if (!mainOnly && CRON.postmarket && cronHit(CRON.postmarket, t) && inPostMarket(t)) return { t, pm: true };
     }
-    for (let k = 0; !mainOnly && k < 4 * 24 * 3; k++) {             // créneaux du scan post-market : minutes 7, 22, 37 et 52 de chaque heure
-      const t = new Date(Math.floor(n / 900000) * 900000 + 420000 + k * 900000);
-      if (t > n && inPostMarket(t)) { if (!best || t < best.t) best = { t, pm: true }; break; }
-    }
-    return best || { t: n, pm: false };
+    return { t: n, pm: false };
   };
   const nextTxt = mainOnly => { const r = nextRun(mainOnly); return hm(r.t) + (r.pm ? ' (scan post-market)' : ''); };
   let checkedAt = new Date();
   function freshInfo() {
     const st = window.STATUS, when = st ? new Date(st.updated) : null, ok = when && !isNaN(when);
-    const failed = st && st.sources ? Object.entries(st.sources).filter(([, v]) => !v.ok).map(([k]) => ({ stockbee: 'Stockbee', breadth: 'calcul maison', vix: 'VIX', prices: 'prix', sectors: 'secteurs', postmarket: 'post-market' })[k] || k) : [];
-    return { when: ok ? when : null, stale: ok && (Date.now() - when.getTime()) / 3600000 > 30, failed, last: DATES().slice(-1)[0] };
+    const failedKeys = st && st.sources ? Object.entries(st.sources).filter(([, v]) => !v.ok).map(([k]) => k) : [];
+    const failed = failedKeys.map(k => (CFG.sources[k] || {}).inline || k);
+    return { when: ok ? when : null, stale: ok && (Date.now() - when.getTime()) / 3600000 > 30, failed, failedKeys, last: DATES().slice(-1)[0] };
   }
   function renderFresh() {
     const f = freshInfo(), b = $('refreshBtn');
     // le calcul maison ne fait que compléter / contrôler Stockbee : son échec est signalé discrètement, sans alerte orange
-    const main = f.failed.filter(x => x !== 'calcul maison'), side = f.failed.length > main.length;
+    const main = f.failedKeys.filter(k => k !== 'breadth').map(k => (CFG.sources[k] || {}).inline || k), side = f.failedKeys.length > main.length;
     const warn = f.stale ? '· ⚠ données en retard' : main.length ? `· ⚠ ${main.join(', ')} en échec` : '';
     // onglet Post-market : le badge donne le scan affiché (date de la séance + heure du relevé), pas la séance du breadth Stockbee
     const ps = tab === 'pm' && PM && PM.snaps.length ? PM.snaps[PM.snaps.length - 1] : null;
@@ -2972,7 +2973,7 @@
     const t = $('toast'), f = freshInfo(), day = f.last ? fmtDate(f.last, { weekday: 'long', day: 'numeric', month: 'long' }) : '?';
     const M = {
       ok: ['ok', '✓', `<b>Déjà à jour.</b> Séance du ${day}${f.when ? `, publiée à ${hm(f.when)}` : ''}${pmTxt}. Prochaine mise à jour automatique vers ${nextTxt()}.` +
-        (f.failed.length ? ` <span style="color:var(--faint)">Non mis à jour : ${f.failed.join(', ')}${f.failed.every(x => x === 'calcul maison') ? ' (contrôle croisé, sans effet sur les chiffres affichés)' : ''}.</span>` : ''), ''],
+        (f.failed.length ? ` <span style="color:var(--faint)">Non mis à jour : ${f.failed.join(', ')}${f.failedKeys.every(k => k === 'breadth') ? ' (contrôle croisé, sans effet sur les chiffres affichés)' : ''}.</span>` : ''), ''],
       reloaded: ['ok', '✓', `<b>Actualisé : nouvelles données chargées.</b> Séance du ${day}${pmTxt}. Prochaine mise à jour automatique vers ${nextTxt()}.`, ''],
       new: ['nw', '↑', '<b>Nouvelles données publiées.</b>', '<div class="act"><button class="pri" data-act="reload">Afficher</button><button data-act="close">Plus tard</button></div>'],
       err: ['er', '!', `<b>Vérification impossible</b> (connexion ?). Les données affichées sont celles de la séance du ${day}.`, '<div class="act"><button data-act="retry">Réessayer</button></div>'] }[kind];

@@ -25,20 +25,14 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+import mmconfig
 import validate_data
 
 HERE = Path(__file__).resolve().parent
 STATUS = HERE / "status_data.js"
 
-# (nom, script, fichier principal, fichiers a restaurer en cas d'echec, tentatives, attentes entre tentatives en secondes)
-STEPS = [
-    ("stockbee", "fetch_stockbee.py", "stockbee_data.js", ("stockbee_data.js", "stockbee_market_monitor.csv"), 3, (30, 90)),
-    ("breadth", "breadth_own.py", "breadth_data.js", ("breadth_data.js",), 1, (0,)),
-    ("vix", "fetch_vix.py", "vix_data.js", ("vix_data.js",), 3, (30, 90)),
-    ("prices", "fetch_prices.py", "prices_data.js", ("prices_data.js",), 3, (60, 180)),   # Yahoo : 429 possibles depuis une IP de serveur
-    ("sectors", "fetch_sectors.py", "sectors_data.js", ("sectors_data.js",), 3, (60, 180)),
-    ("postmarket", "fetch_postmarket.py", "postmarket_data.js", ("postmarket_data.js",), 2, (30,)),
-]
+# Etapes : config/sources.toml (nom, script, fichier principal, fichiers a restaurer, essais, attentes entre essais)
+STEPS = [(t["name"], t["script"], t["output"], tuple(t["restore"]), t["attempts"], tuple(t["waits"])) for t in mmconfig.steps()]
 
 
 def last_date(name, path):

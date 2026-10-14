@@ -1,0 +1,72 @@
+# Étapes de la mise à jour (update_all.py), dans l'ordre d'exécution. Chaque étape = un script indépendant ; si son fichier
+# est invalide (validate_data.py) ou plus ancien que la version publiée, l'ancienne version est restaurée.
+# label = nom affiché ; label_inline = même nom au fil d'une phrase
+# attempts = essais ; waits = attentes entre essais (secondes) ; restore = fichiers à restaurer en cas d'échec
+# freshness : contrôle de fraîcheur (min_rows = nombre minimal de lignes, max_age = âge max de la dernière date en jours,
+#             max_gap = plus grand trou toléré entre deux dates en jours ; week-ends et jours fériés tolérés)
+
+[[step]]
+name = "stockbee"
+label = "Stockbee"
+label_inline = "Stockbee"   # dans une phrase (« … en échec »)
+script = "fetch_stockbee.py"
+output = "stockbee_data.js"
+restore = ["stockbee_data.js", "stockbee_market_monitor.csv"]
+attempts = 3
+waits = [30, 90]
+freshness = { min_rows = 1500, max_age = 6, max_gap = 12 }
+
+[[step]]
+name = "breadth"
+label = "Calcul maison"
+label_inline = "calcul maison"   # dans une phrase (« … en échec »)
+script = "breadth_own.py"
+output = "breadth_data.js"
+restore = ["breadth_data.js"]
+attempts = 1
+waits = [0]
+freshness = { min_rows = 10, max_age = 6, max_gap = 12 }
+
+[[step]]
+name = "vix"
+label = "VIX"
+label_inline = "VIX"   # dans une phrase (« … en échec »)
+script = "fetch_vix.py"
+output = "vix_data.js"
+restore = ["vix_data.js"]
+attempts = 3
+waits = [30, 90]
+freshness = { min_rows = 1500, max_age = 6, max_gap = 12 }
+
+[[step]]
+name = "prices"
+label = "Prix"
+label_inline = "prix"   # dans une phrase (« … en échec »)
+script = "fetch_prices.py"
+output = "prices_data.js"
+restore = ["prices_data.js"]
+attempts = 3
+waits = [60, 180]          # Yahoo : 429 possibles depuis une IP de serveur
+freshness = { min_rows = 1500, max_age = 5, max_gap = 8, btc_min_rows = 2500, btc_max_age = 3, btc_max_gap = 3 }
+
+[[step]]
+name = "sectors"
+label = "Secteurs"
+label_inline = "secteurs"   # dans une phrase (« … en échec »)
+script = "fetch_sectors.py"
+output = "sectors_data.js"
+restore = ["sectors_data.js"]
+attempts = 3
+waits = [60, 180]
+freshness = { min_rows = 250, max_age = 6, max_gap = 12, min_symbols = 50 }
+
+[[step]]
+name = "postmarket"
+label = "Post-market"
+label_inline = "post-market"   # dans une phrase (« … en échec »)
+script = "fetch_postmarket.py"
+output = "postmarket_data.js"
+restore = ["postmarket_data.js"]
+attempts = 2
+waits = [30]
+freshness = { max_age = 7, max_gap = 20, max_snapshots = 30 }

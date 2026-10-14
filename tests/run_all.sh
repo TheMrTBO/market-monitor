@@ -4,6 +4,8 @@
 # Un test echoue si Node retourne une erreur ou si sa sortie contient "Error".
 cd "$(dirname "$0")/.." || exit 1
 fail=0
+echo "--- configuration (config/*.toml, config_data.js à jour, créneaux des workflows)"
+python3 mmconfig.py --check || fail=1
 for f in tests/node/*.js; do
   out=$(node "$f" 2>&1); code=$?
   n=$(printf '%s' "$out" | grep -ci "error")
