@@ -58,7 +58,8 @@ def front_config():
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
         "postmarket": {**{k: pm[k] for k in ("min_price", "min_volume", "min_change", "max_per_side", "keep_sessions")},
                        "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])],
-                       "tags": [{k: t[k] for k in ("id", "icon", "label", "tone")} for t in pm.get("tags", [])]},
+                       "tags": [{k: t[k] for k in ("id", "icon", "label", "tone")} for t in pm.get("tags", [])],
+                       "copy_separator": pm["copy_separator"], "watch": pm["watch"]},
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
@@ -119,8 +120,15 @@ def check():
     if not (pm["min_price"] > 0 and pm["min_volume"] > 0 and pm["min_change"] > 0 and pm["max_per_side"] > 0 and pm["keep_sessions"] > 0):
         errors.append("postmarket : seuils strictement positifs attendus")
     for l in pm.get("links", []):
-        if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|tv)\}", l.get("url", "")):
-            errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}} ou {{tv}} attendus")
+        if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|symd|tv)\}", l.get("url", "")):
+            errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}}, {{symd}} ou {{tv}} attendus")
+    w = pm.get("watch", {})
+    if not (isinstance(w.get("note_max"), int) and 0 < w["note_max"] <= 1000):
+        errors.append("postmarket.watch.note_max : entier entre 1 et 1000 attendu")
+    if not re.fullmatch(r"[\w.\-/]+\.json", str(w.get("sync_path", ""))) or not w.get("sync_message"):
+        errors.append("postmarket.watch : sync_path (fichier .json) et sync_message attendus")
+    if not isinstance(pm.get("copy_separator"), str) or not pm["copy_separator"]:
+        errors.append("postmarket.copy_separator : texte non vide attendu")
     tags = pm.get("tags", [])
     if not tags:
         errors.append("postmarket.tags : au moins une étiquette de suivi attendue")

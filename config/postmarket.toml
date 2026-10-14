@@ -6,21 +6,13 @@ min_change = 4           # variation post-market > +4 % (hausses) ou < -4 % (bai
 max_per_side = 150       # titres par sens ; limite atteinte = liste marquée « tronquée »
 keep_sessions = 20       # séances gardées dans postmarket_data.js (l'historique complet viendra du stockage, refonte phase 3)
 chart_bars = 65          # bougies journalières (~3 mois) pour la fiche détail
+copy_separator = ", "    # bouton « Copier » : séparateur des tickers (se colle dans une liste TradingView, une note, un tableur)
 
 # Liens de la fiche d'un titre, dans cet ordre, ouverts dans un nouvel onglet.
-# {sym} = symbole (LQDA) ; {tv} = symbole TradingView avec la place de cotation (NASDAQ:LQDA).
-# Dépôts SEC sans filtre de type : les émetteurs étrangers déposent des 6-K, pas des 8-K.
+# {sym} = symbole (LQDA) ; {symd} = symbole avec un tiret pour les classes d'actions (BRK.B → BRK-B) ; {tv} = symbole TradingView (NASDAQ:LQDA).
 [[links]]
-label = "TradingView"
-url = "https://www.tradingview.com/chart/?symbol={tv}"
-
-[[links]]
-label = "News Benzinga"
-url = "https://www.benzinga.com/quote/{sym}/news"
-
-[[links]]
-label = "Dépôts SEC"
-url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={sym}&owner=include&count=40"
+label = "Finviz"
+url = "https://finviz.com/quote.ashx?t={symd}"
 
 # Étiquettes de suivi (onglet Post-market, gardées sur l'appareil). La 1re est celle de l'étoile de la liste ;
 # les autres se choisissent dans la fiche. tone = couleur du thème : warn, up, down ou muted.
@@ -41,3 +33,10 @@ id = "piege"
 icon = "✕"
 label = "Piège"
 tone = "down"
+
+# Suivis (étoiles) : gardés dans le navigateur ; sauvegarde facultative dans un dépôt GitHub PRIVÉ choisi dans Réglages
+# (jeton limité à ce dépôt, gardé sur l'appareil, jamais dans ce dépôt public).
+[watch]
+note_max = 140                       # longueur maximale de la note d'un suivi
+sync_path = "suivis.json"            # fichier du dépôt privé
+sync_message = "Suivis post-market"  # début du message de chaque enregistrement

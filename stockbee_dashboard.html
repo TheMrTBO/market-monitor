@@ -119,7 +119,7 @@
   .rk td.sym .tsub { display: none; }
   .copybtn { display: inline-flex; align-items: center; gap: 5px; align-self: center; border: 1px solid var(--border); background: none; color: var(--muted);
     border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
-  .copybtn:hover { color: var(--text); } a.copybtn { text-decoration: none; } .copybtn svg.i { width: 14px; height: 14px; }
+  .copybtn:hover { color: var(--text); } .copybtn svg.i { width: 14px; height: 14px; }
   .copybtn.done { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
   .copybtn:disabled { opacity: .5; cursor: default; }
   .rk .devc .trk { display: contents; }               /* piste de la barre d'écart : neutre sur grand écran (barre sous le chiffre) */
@@ -362,7 +362,6 @@
   .sheet input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--up); }
   .optrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
   .optrow label { display: flex; align-items: center; gap: 8px; }
-  .recapset { display: grid; gap: 6px; padding: 8px 0; }
   /* suivis Post-market : étiquette dans la cellule Symbole, réglage dans la fiche */
   .symw { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .symw > div { min-width: 0; }
@@ -377,8 +376,7 @@
   .watchset .wtags button.on { background: color-mix(in srgb, currentColor 14%, transparent); border-color: currentColor; }
   .watchset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
   .watchset .wmeta { font-size: 12px; color: var(--muted); }
-  .recapset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
-  .recapset p { margin: 0; font-size: 12px; color: var(--muted); } .recapset p.bad { color: var(--down); }
+
   .slider { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; color: var(--muted); }
   .slider input[type=range] { width: 100%; accent-color: var(--up); }
   .slider output { color: var(--text); font-variant-numeric: tabular-nums; text-align: right; }
@@ -614,7 +612,6 @@
         <div class="sechead">
           <b>Scan post-market · volume</b><button class="tipbtn" data-tip="pmscan" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
           <button class="copybtn" id="pmCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
-          <a class="copybtn" id="pmRecap" target="_blank" rel="noopener" hidden title="Ton récap privé des news de la dernière séance (claude.ai)">Récap news ↗</a>
           <span class="secmeta" id="pmMeta"></span>
         </div>
         <div class="secfilt" id="pmFilt" role="group" aria-label="Filtrer le scan"></div>
@@ -643,7 +640,7 @@
         <dl class="pmfacts" id="pmFacts"></dl>
         <div class="watchset" id="pmWatchSet" hidden>
           <div class="wtags" id="pmWTags" role="group" aria-label="Étiquette de suivi"></div>
-          <input type="text" id="pmWNote" maxlength="140" autocomplete="off" placeholder="Note : pourquoi tu le suis (enregistrée sur cet appareil)">
+          <input type="text" id="pmWNote" autocomplete="off" placeholder="Note : pourquoi tu le suis (enregistrée sur cet appareil)">
           <span class="wmeta" id="pmWMeta"></span>
         </div>
         <p class="pmnote" id="pmNote"></p>
@@ -818,12 +815,6 @@
   <div class="optrow"><label><input type="checkbox" id="optAlpha"> Histogrammes : premier plan translucide</label></div>
   <div class="optrow"><span>Moyenne mobile sur les histogrammes</span><span class="seg sm" id="hmaSeg"><button data-n="0">Aucune</button><button data-n="5">5 j</button><button data-n="10">10 j</button><button data-n="20">20 j</button></span></div>
   <div class="optrow"><span style="color:var(--muted)">Revenir à l'affichage par défaut</span><button id="resetView">Réinitialiser</button></div>
-  <h4>Récap news privé</h4>
-  <div class="recapset">
-    <label for="optRecap">Lien de ta page de récap (claude.ai)</label>
-    <input type="url" id="optRecap" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://claude.ai/artifact/…">
-    <p id="optRecapMsg">Enregistré seulement sur cet appareil, jamais dans le site. Ajoute un bouton « Récap news » dans l'onglet Post-market.</p>
-  </div>
 </aside>
 <div class="pop" id="pop" role="dialog" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -2000,28 +1991,105 @@
   let pmDir = ['up', 'down', 'all'].includes(store.get('mm.pmdir')) ? store.get('mm.pmdir') : 'up';
   let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'dv', dir: -1 }, pmCur = null, pmShown = [];
   // suivis : un par couple titre + séance, gardés sur l'appareil (clé « perso.suivis », hors « mm. » : « Réinitialiser » ne les efface pas).
-  // Format prêt pour une synchronisation : { v: 1, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } | { s, d, del: true, up } } }
+  // Format : { v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } | { s, d, del: true, up } } }.
+  // Fusion entre appareils : pour chaque clé, la version la plus récente (up) gagne ; un retrait garde une trace (del) pour ne pas réapparaître.
   let pmWatch = store.get('mm.pmwatch') === '1', pmTagF = 'all', pmWSorted = false;
-  const TAGS = (CFG.postmarket.tags || []).length ? CFG.postmarket.tags : [{ id: 'suivre', icon: '★', label: 'À suivre', tone: 'warn' }];
+  const TAGS = CFG.postmarket.tags, WCFG = CFG.postmarket.watch;   // config/postmarket.toml (mmconfig vérifie qu'il y a au moins une étiquette)
   const tagOf = id => TAGS.find(t => t.id === id) || TAGS[0];
   const pmId = r => r._k || r.s;                         // identifiant d'une ligne : symbole (scan) ou symbole|séance (suivis)
-  let WATCH = (() => { try { const j = JSON.parse(localStorage.getItem('perso.suivis') || 'null'); if (j && j.v === 1 && j.items) return j; } catch (e) { /* illisible : on repart de zéro */ } return { v: 1, items: {} }; })();
-  function watchSave() { WATCH.up = new Date().toISOString(); try { localStorage.setItem('perso.suivis', JSON.stringify(WATCH)); } catch (e) { /* stockage indisponible */ } }
+  const ISO = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/;
+  function watchValid(k, w) {                            // données venues d'un autre appareil ou d'un fichier : forme vérifiée avant usage
+    if (!w || typeof w !== 'object' || !/^[A-Z0-9.\-]{1,15}$/.test(w.s) || !/^\d{4}-\d{2}-\d{2}$/.test(w.d) || k !== w.s + '|' + w.d || !ISO.test(w.up || '')) return false;
+    if (w.del === true) return true;
+    return typeof w.tag === 'string' && typeof (w.note ?? '') === 'string' && (w.note || '').length <= WCFG.note_max &&
+      ['c', 'pc', 'pch'].every(f => w[f] == null || Number.isFinite(w[f]));
+  }
+  function watchMerge(...srcs) {                         // union par clé, la version la plus récente gagne ; entrées invalides ignorées
+    const out = { v: 1, items: {} };
+    for (const src of srcs) for (const [k, w] of Object.entries((src && src.items) || {})) {
+      if (!watchValid(k, w)) continue;
+      const cur = out.items[k]; if (!cur || w.up > cur.up) out.items[k] = w;
+    }
+    return out;
+  }
+  const watchCanon = W => JSON.stringify(Object.keys(W.items).sort().map(k => [k, Object.keys(W.items[k]).sort().map(f => [f, W.items[k][f]])]));
+  let WATCH = (() => { try { return watchMerge(JSON.parse(localStorage.getItem('perso.suivis') || 'null')); } catch (e) { return { v: 1, items: {} }; } })();
+  function watchSave(fromSync) {
+    WATCH.up = new Date().toISOString();
+    try { localStorage.setItem('perso.suivis', JSON.stringify(WATCH)); } catch (e) { syncStatus('Stockage du navigateur indisponible : ce suivi sera perdu à la fermeture.', true); }
+    if (!fromSync) { clearTimeout(watchSave.t); watchSave.t = setTimeout(() => watchSync(), 1500); }   // sauvegarde distante peu après la modification
+  }
   function watchGet(s, d) { const w = WATCH.items[s + '|' + d]; return w && !w.del ? w : null; }
   function watchSet(r, d, patch) {                       // patch : { tag } ou { note } ; tag null = ne plus suivre (trace gardée pour la synchronisation)
     const k = r.s + '|' + d, now = new Date().toISOString(), cur = watchGet(r.s, d);
+    if ('note' in patch) patch = { note: String(patch.note).trim().slice(0, WCFG.note_max) };
     if (patch.tag === null) { if (cur) WATCH.items[k] = { s: r.s, d, del: true, up: now }; }
-    else WATCH.items[k] = Object.assign(cur || { s: r.s, d, at: now, tag: TAGS[0].id, note: '', n: r.n, c: r.c, pc: r.pc, pch: r.pch }, patch, { up: now });
+    else WATCH.items[k] = Object.assign({}, cur || { s: r.s, d, at: now, tag: TAGS[0].id, note: '', n: r.n, c: r.c, pc: r.pc, pch: r.pch }, patch, { up: now });
     watchSave();
   }
   const watchCount = () => Object.values(WATCH.items).filter(w => !w.del).length;
   function pmWatchRows() {                               // lignes des titres suivis, toutes séances ; séance sortie du fichier = chiffres gardés au moment du suivi
+    const idx = new Map((PM ? PM.snaps : []).map(sn => [sn.d, { sn, rows: new Map(sn.rows.map(a => { const r = pmRowOf(a); return [r.s, a]; })) }]));
     return Object.entries(WATCH.items).filter(([, w]) => !w.del).map(([k, w]) => {
-      const sn = PM && PM.snaps.find(x => x.d === w.d), row = sn && sn.rows.map(pmRowOf).find(x => x.s === w.s);
-      const r = row || { s: w.s, n: w.n || w.s, t: w.s, c: w.c, pc: w.pc, pch: w.pch, ch: null, pv: null, dv: null, rv: null, cap: null, flt: null, nx: null, _old: true };
+      const e = idx.get(w.d), raw = e && e.rows.get(w.s), sn = e ? e.sn : null;
+      const r = raw ? pmRowOf(raw) : { s: w.s, n: w.n || w.s, t: w.s, c: w.c, pc: w.pc, pch: w.pch, ch: null, pv: null, dv: null, rv: null, cap: null, flt: null, nx: null, _old: true };
       const H = pmHist[w.s], last = H && H[H.length - 1];
-      return Object.assign(r, { _k: k, _d: w.d, _snap: sn || null, _w: w, since: last && last[0] > w.d && w.pc ? 100 * (last[4] / w.pc - 1) : null });
+      return Object.assign(r, { _k: k, _d: w.d, _snap: sn, _w: w, since: last && last[0] > w.d && w.pc ? 100 * (last[4] / w.pc - 1) : null });
     });
+  }
+  // sauvegarde des suivis dans un dépôt GitHub PRIVÉ (Réglages) : dépôt + jeton gardés sur l'appareil, envoyés seulement à api.github.com.
+  // Chaque enregistrement est un commit du dépôt privé : historique complet, rien n'est jamais écrasé sans fusion.
+  function syncCfg() {
+    const repo = store.get('perso.sync.repo') || '', token = store.get('perso.sync.token') || '';
+    return /^[\w.-]+\/[\w.-]+$/.test(repo) && /^[\w-]{20,}$/.test(token) ? { repo, token } : null;
+  }
+  const ghHead = c => ({ Authorization: 'Bearer ' + c.token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' });
+  const ghErr = st => st === 401 ? 'jeton refusé (expiré ou mal copié)'
+    : st === 403 ? 'accès refusé : le jeton doit avoir « Contents : Read and write » sur ce dépôt'
+    : st === 404 ? 'dépôt introuvable : vérifie le nom et que le jeton y a accès' : `GitHub a répondu ${st}`;
+  const b64e = t => { const b = new TextEncoder().encode(t); let x = ''; for (let i = 0; i < b.length; i += 0x8000) x += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(x); };
+  const b64d = t => new TextDecoder().decode(Uint8Array.from(atob(String(t).replace(/\s/g, '')), ch => ch.charCodeAt(0)));
+  let syncBusy = false, syncAgain = false;
+  function syncStatus(msg, bad) {
+    const el = $('syncMsg'); if (!el) return;
+    const c = syncCfg(), at = store.get('perso.sync.at');
+    el.textContent = msg || (c ? (at ? `Synchronisé avec ${c.repo} le ${new Date(at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : `Prêt : ${c.repo}`)
+      : 'Non synchronisé : tes suivis ne sont que dans ce navigateur.');
+    el.classList.toggle('bad', !!bad);
+  }
+  async function watchSync() {                           // relire → fusionner → réécrire si besoin ; recommence si un autre appareil a écrit entre-temps
+    const c = syncCfg(); if (!c || typeof fetch !== 'function') { syncStatus(); return false; }
+    if (syncBusy) { syncAgain = true; return false; }
+    syncBusy = true; syncStatus('Synchronisation…');
+    const url = `https://api.github.com/repos/${c.repo}/contents/${WCFG.sync_path.split('/').map(encodeURIComponent).join('/')}`;
+    let done = false;
+    try {
+      for (let essai = 0; essai < 3 && !done; essai++) {
+        const g = await fetch(url, { headers: ghHead(c), cache: 'no-store' });
+        let remote = null, sha = null;
+        if (g.ok) { const j = await g.json(); sha = j.sha; try { remote = JSON.parse(b64d(j.content)); } catch (e) { throw new Error(`${WCFG.sync_path} illisible dans le dépôt (copie gardée sur l'appareil)`); } }
+        else if (g.status === 404) { const rr = await fetch(`https://api.github.com/repos/${c.repo}`, { headers: ghHead(c), cache: 'no-store' }); if (!rr.ok) throw new Error(ghErr(rr.status)); }
+        else throw new Error(ghErr(g.status));
+        const merged = watchMerge(remote, WATCH);
+        const changedHere = watchCanon(merged) !== watchCanon(WATCH);
+        if (changedHere) { WATCH = merged; watchSave(true); }
+        if (remote && watchCanon(watchMerge(remote)) === watchCanon(merged)) { done = true; break; }   // dépôt déjà à jour
+        merged.up = new Date().toISOString();
+        const body = { message: `${WCFG.sync_message} : ${Object.values(merged.items).filter(w => !w.del).length} suivis`, content: b64e(JSON.stringify(merged, null, 1)) };
+        if (sha) body.sha = sha;
+        const p = await fetch(url, { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHead(c)), body: JSON.stringify(body) });
+        if (p.ok) done = true;
+        else if (p.status !== 409 && p.status !== 422) throw new Error(ghErr(p.status));   // 409 / 422 : modifié entre-temps → on relit
+      }
+      if (!done) throw new Error('le dépôt change trop vite, nouvel essai à la prochaine modification');
+      store.set('perso.sync.at', new Date().toISOString()); syncStatus();
+      if (tab === 'pm') renderPM();
+      return true;
+    } catch (e) {
+      syncStatus(`Échec de la sauvegarde : ${e.message}. Tes suivis restent sur cet appareil.`, true); return false;
+    } finally {
+      syncBusy = false; if (syncAgain) { syncAgain = false; watchSync(); }
+    }
   }
   function pmSnap() {                                   // instantané de la séance choisie (ou le plus proche avant), sinon le dernier
     if (!PM || !PM.snaps.length) return null;
@@ -2147,11 +2215,10 @@
       fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
       fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : r._old ? '— (séance sortie du fichier)' : 'séance pas encore jouée');
-    const link = u => u.replace(/\{sym\}/g, encodeURIComponent(r.s)).replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
-    const rc = recapUrl();
-    $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('') +
-      (rc ? `<a href="${rc}#${encodeURIComponent(r.s)}" target="_blank" rel="noopener" title="Bloc de ${r.s} dans ton récap privé (dernière séance)">Récap news ↗</a>` : '');
-    const w = watchGet(r.s, r._d), note = $('pmWNote');       // suivi : étiquette + note, pour cette séance
+    const link = u => u.replace(/\{symd\}/g, encodeURIComponent(r.s.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(r.s))
+      .replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
+    $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('');
+    const w = watchGet(r.s, r._d), note = $('pmWNote'); note.maxLength = WCFG.note_max;       // suivi : étiquette + note, pour cette séance
     $('pmWatchSet').hidden = false;
     $('pmWTags').innerHTML = `<button data-wt="" class="${w ? '' : 'on'}" aria-pressed="${!w}">Non suivi</button>` +
       TAGS.map(t => `<button data-wt="${t.id}" class="tg-${t.tone}${w && w.tag === t.id ? ' on' : ''}" aria-pressed="${!!(w && w.tag === t.id)}">${t.icon} ${t.label}</button>`).join('');
@@ -2187,7 +2254,7 @@
   });
   // copie des tickers du tableau (ordre et filtres affichés) : « LQDA, TCRT, … » — se colle dans une liste TradingView, une note, un tableur
   $('pmCopy').addEventListener('click', async () => {
-    const syms = [...new Set(pmShown.map(r => r.s))], b = $('pmCopy'), txt = syms.join(', '); if (!txt) return;
+    const syms = [...new Set(pmShown.map(r => r.s))], b = $('pmCopy'), txt = syms.join(CFG.postmarket.copy_separator); if (!txt) return;
     let ok = false;
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (x) { /* repli ci-dessous */ }
     if (!ok) {                                           // repli : ancien navigateur ou page hors https
@@ -2200,22 +2267,7 @@
     lab.textContent = ok ? `${syms.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
     clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
   });
-  // récap news privé (page claude.ai) : lien collé dans Réglages, gardé sur l'appareil (hors « mm. » : « Réinitialiser » ne l'efface pas)
-  function recapOk(u) { return /^https:\/\/claude\.ai\/[\w\/.\-]+$/.test(u || ''); }
-  function recapUrl() { const u = store.get('perso.recap'); return recapOk(u) ? u : null; }
-  function applyRecap() {
-    const u = recapUrl(), b = $('pmRecap');
-    b.hidden = !u; if (u) b.href = u;
-    $('optRecap').value = store.get('perso.recap') || '';
-  }
-  $('optRecap').addEventListener('change', () => {
-    const v = $('optRecap').value.trim().replace(/[#?].*$/, ''), msg = $('optRecapMsg');
-    if (v && !recapOk(v)) { msg.textContent = 'Lien refusé : il doit commencer par https://claude.ai/'; msg.classList.add('bad'); return; }
-    try { if (v) localStorage.setItem('perso.recap', v); else localStorage.removeItem('perso.recap'); } catch (e) { /* stockage indisponible */ }
-    msg.textContent = v ? 'Enregistré sur cet appareil. Bouton « Récap news » ajouté dans l\'onglet Post-market.' : 'Lien retiré de cet appareil.';
-    msg.classList.remove('bad'); applyRecap(); if (tab === 'pm') renderPM();
-  });
-  applyRecap();
+  try { localStorage.removeItem('perso.recap'); } catch (e) { /* ancien lien du récap news (retiré le 14/10/2026) */ }
   $('pmBack').addEventListener('click', () => { $('view-pm').classList.remove('detail'); renderPM(); });
   $('pmFilt').addEventListener('click', e => {
     const b = e.target.closest('button'); if (!b) return;
