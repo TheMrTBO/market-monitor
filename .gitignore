@@ -12,3 +12,6 @@ monitor_data.json
 *.log
 __pycache__/
 _site/
+
+# --- stockage historique : branche `data` extraite localement (git worktree), jamais sur main ---
+data-store/

@@ -23,7 +23,7 @@ CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
 FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "datasets", "storage")
-BACKENDS = {"js_files", "git_csv", "postgres", "sqlite"}
+BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
 
@@ -132,8 +132,16 @@ def check():
             errors.append(f"datasets.{key} : types inconnus pour {bad}")
         if any(k not in ds["columns"] for k in ds["primary_key"]):
             errors.append(f"datasets.{key} : clé primaire hors colonnes")
-    if load("storage")["backend"] not in BACKENDS:
-        errors.append(f"storage : backend inconnu « {load('storage')['backend']} » (attendus : {', '.join(sorted(BACKENDS))})")
+    st = load("storage")
+    if st.get("serving") not in {"js_files", "store"}:
+        errors.append(f"storage : serving inconnu « {st.get('serving')} » (attendus : js_files, store)")
+    if st.get("store", {}).get("backend") not in BACKENDS:
+        errors.append(f"storage.store : backend inconnu « {st.get('store', {}).get('backend')} » (attendus : {', '.join(sorted(BACKENDS))})")
+    for key, ds in load("datasets")["datasets"].items():
+        if ds.get("partition") not in {"month", "day"}:
+            errors.append(f"datasets.{key} : partition « {ds.get('partition')} » (attendus : month, day)")
+        if ds["columns"].get(ds.get("partition_by", ""), "").rstrip("?") not in {"date", "timestamp"} or ds["columns"][ds["partition_by"]].endswith("?"):
+            errors.append(f"datasets.{key} : partition_by doit nommer une colonne date ou timestamp obligatoire")
     if not JS.exists() or JS.read_text() != js_text():
         errors.append("config_data.js n'est pas à jour : lance python mmconfig.py --js")
     return errors
