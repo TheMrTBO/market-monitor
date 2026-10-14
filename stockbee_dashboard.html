@@ -117,6 +117,12 @@
   .stack.detail .seccol.go-prev > .card { animation: dprev .2s ease-out; }
   @media (prefers-reduced-motion: reduce) { .seccol > .card { animation: none !important; } }
   .rk td.sym .tsub { display: none; }
+  .copybtn { display: inline-flex; align-items: center; gap: 5px; align-self: center; border: 1px solid var(--border); background: none; color: var(--muted);
+    border-radius: 999px; padding: 3px 10px; font: inherit; font-size: 12px; cursor: pointer; }
+  .copybtn:hover { color: var(--text); } .copybtn svg.i { width: 14px; height: 14px; }
+  .copybtn.done { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, transparent); }
+  .copybtn:disabled { opacity: .5; cursor: default; }
+  .rk .devc .trk { display: contents; }               /* piste de la barre d'écart : neutre sur grand écran (barre sous le chiffre) */
   #secCanvas { height: calc(100vh - 215px); min-height: 340px; }
   .secinfo { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
   .rk th, .rk td { text-align: right; }
@@ -440,16 +446,27 @@
     /* onglets Secteurs et Post-market : liste plein écran / détail (règles .stack, communes avec la tablette) ; barre ‹ › au-dessus des onglets */
     .stack.detail .detnav { bottom: calc(70px + env(safe-area-inset-bottom)); }
     #view-pm .chartbar #pmTitle { width: 100%; font-size: 15px; }
-    #pmTable .c-cap, #pmTable .c-nx, #pmTable .c-rv { display: none; }   /* mobile : Symbole · Var AH · Vol AH $ · Vol AH (le reste dans la fiche) */
+    /* mobile : toutes les colonnes du scan ; le tableau défile horizontalement, Symbole reste figé à gauche */
+    #pmTable th, #pmTable td { white-space: nowrap; }
+    #pmTable td.dev { width: 128px; }
     #pmTable td.sym .tsub { max-width: 120px; }
     #pmCanvas { height: 38vh; height: 38svh; min-height: 240px; }
     #view-sec .chartbar #secTitle { width: 100%; font-size: 15px; }
     .rk .c-grp { display: none; }
-    .rk td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rk td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); max-width: 128px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .rk th, .rk td { padding-left: 6px; padding-right: 6px; }
     .rk td { padding-top: 7px; padding-bottom: 7px; }
-    .rk td.dev { width: 108px; }
-    .rk th:first-child, .rk td:first-child { position: static; }
+    .rk td.dev { width: 120px; }
+    /* première colonne figée (Rang / Symbole) : fond opaque qui reprend les rayures et la sélection de la ligne ; coin d'en-tête au-dessus de tout */
+    .rk thead th:first-child { position: sticky; top: 0; left: 0; z-index: 4; }
+    .rk tbody td:first-child { z-index: 2; box-shadow: 1px 0 0 var(--border); }
+    .rk tbody tr:nth-child(even) td:first-child { background: color-mix(in srgb, var(--grid) 40%, var(--panel)); }
+    .rk tbody tr.sel td:first-child { background: color-mix(in srgb, var(--up) 22%, var(--panel)); }
+    .rk td.empty:first-child { position: static; box-shadow: none; }
+    /* barre d'écart à gauche du chiffre (et non dessous) : lisible même quand la colonne est étroite */
+    .rk .devc { gap: 6px; padding-right: 0; }
+    .rk .devc .trk { display: block; position: relative; flex: 1; align-self: stretch; min-width: 24px; }
+    .rk .devc .v { flex: none; }
     .secfilt { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
     .secfilt button { flex: none; padding: 6px 12px; }
     #secCanvas { height: 38vh; height: 38svh; min-height: 240px; }
@@ -487,6 +504,7 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
     <symbol id="i-candle" viewBox="0 0 24 24"><path d="M6 5v3M6 16v3M18 4v4M18 15v5"/><rect x="4" y="8" width="4" height="8" rx="1"/><rect x="16" y="8" width="4" height="7" rx="1"/><path d="M12 3v18"/></symbol>
@@ -571,6 +589,7 @@
       <div class="card seclist">
         <div class="sechead">
           <b>Scan post-market · volume</b><button class="tipbtn" data-tip="pmscan" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <button class="copybtn" id="pmCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
           <span class="secmeta" id="pmMeta"></span>
         </div>
         <div class="secfilt" id="pmFilt" role="group" aria-label="Filtrer le scan"></div>
@@ -1737,7 +1756,7 @@
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
       sym: r => `<td class="sym l" title="${esc(r.x.n)}">${r.x.s}<span class="tsub">${theme(r.x)}</span></td>`,
       grp: r => `<td class="grp l c-grp" title="${esc(r.x.d || r.x.n)}">${theme(r.x)}</td>`,
-      dev: r => r.dev != null ? `<td class="dev"><div class="devc">${dbar(r.dev)}<span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div></td>` : `<td><span class="tag">${r.count}/65 séances</span></td>`,
+      dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div></td>` : `<td><span class="tag">${r.count}/65 séances</span></td>`,
       delta: r => `<td>${delta(r)}</td>`,
     };
     const esc = t => String(t).replace(/"/g, '&quot;');
@@ -1963,7 +1982,7 @@
   function pmEmpty(msg) {
     $('pmFilt').innerHTML = ''; $('pmHead').innerHTML = ''; $('pmMeta').textContent = '';
     $('pmRows').innerHTML = `<tr><td class="empty">${msg}</td></tr>`;
-    pmCur = null; pmShown = []; pmDetail(null); $('view-pm').classList.add('nodata'); $('view-pm').classList.remove('detail');
+    pmCur = null; pmShown = []; $('pmCopy').disabled = true; pmDetail(null); $('view-pm').classList.add('nodata'); $('view-pm').classList.remove('detail');
   }
   function renderPM() {
     if (!PM) { pmEmpty('Données introuvables : lance <code>python fetch_postmarket.py</code> (fichier <code>postmarket_data.js</code> à côté de ce HTML).'); return; }
@@ -1986,7 +2005,7 @@
       const c = typeof va === 'string' ? va.localeCompare(vb, 'fr') : va - vb;
       return c * pmSort.dir || b.pv - a.pv;
     });
-    pmShown = rows;
+    pmShown = rows; $('pmCopy').disabled = !rows.length;
     $('pmHead').innerHTML = cols.map(d => `<th class="sortable c-${d.id}${d.l ? ' l' : ''}" data-k="${d.id}" title="${d.title || 'Trier par ' + d.label}">` +
       `${d.label}<span class="arr">${pmSort.k === d.id ? (pmSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
     // échelle des barres : 90e centile des |variations| (un extrême à +400 % n'écrase pas les autres barres)
@@ -1994,7 +2013,7 @@
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const cell = {
       sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
-      pch: r => `<td class="dev"><div class="devc"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
+      pch: r => `<td class="dev"><div class="devc"><span class="trk"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i></span><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
       dv: r => `<td>${big(r.dv)}</td>`,
       pv: r => `<td>${big(r.pv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
@@ -2054,6 +2073,21 @@
     pmSel = tr.dataset.s;
     if (isStacked()) { $('view-pm').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }   // empilé : vue détail
     renderPM();
+  });
+  // copie des tickers du tableau (ordre et filtres affichés) : « LQDA, TCRT, … » — se colle dans une liste TradingView, une note, un tableur
+  $('pmCopy').addEventListener('click', async () => {
+    const b = $('pmCopy'), txt = pmShown.map(r => r.s).join(', '); if (!txt) return;
+    let ok = false;
+    try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (x) { /* repli ci-dessous */ }
+    if (!ok) {                                           // repli : ancien navigateur ou page hors https
+      const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      try { ok = document.execCommand('copy'); } catch (x) { ok = false; }
+      ta.remove();
+    }
+    const lab = b.querySelector('span');
+    lab.textContent = ok ? `${pmShown.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
+    clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
   });
   $('pmBack').addEventListener('click', () => { $('view-pm').classList.remove('detail'); renderPM(); });
   $('pmFilt').addEventListener('click', e => {
