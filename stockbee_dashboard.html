@@ -376,6 +376,11 @@
   .watchset .wtags button.on { background: color-mix(in srgb, currentColor 14%, transparent); border-color: currentColor; }
   .watchset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
   .watchset .wmeta { font-size: 12px; color: var(--muted); }
+  .syncset { display: grid; gap: 6px; padding: 8px 0; }
+  .syncset label { font-size: 13px; margin-top: 4px; }
+  .syncset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .syncset .hint, #syncMsg { margin: 0; font-size: 12px; color: var(--muted); } #syncMsg.bad { color: var(--down); }
+  .syncbtns { display: flex; flex-wrap: wrap; gap: 8px; }
 
   .slider { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; color: var(--muted); }
   .slider input[type=range] { width: 100%; accent-color: var(--up); }
@@ -640,7 +645,7 @@
         <dl class="pmfacts" id="pmFacts"></dl>
         <div class="watchset" id="pmWatchSet" hidden>
           <div class="wtags" id="pmWTags" role="group" aria-label="Étiquette de suivi"></div>
-          <input type="text" id="pmWNote" autocomplete="off" placeholder="Note : pourquoi tu le suis (enregistrée sur cet appareil)">
+          <input type="text" id="pmWNote" autocomplete="off" placeholder="Note : pourquoi tu le suis">
           <span class="wmeta" id="pmWMeta"></span>
         </div>
         <p class="pmnote" id="pmNote"></p>
@@ -815,6 +820,20 @@
   <div class="optrow"><label><input type="checkbox" id="optAlpha"> Histogrammes : premier plan translucide</label></div>
   <div class="optrow"><span>Moyenne mobile sur les histogrammes</span><span class="seg sm" id="hmaSeg"><button data-n="0">Aucune</button><button data-n="5">5 j</button><button data-n="10">10 j</button><button data-n="20">20 j</button></span></div>
   <div class="optrow"><span style="color:var(--muted)">Revenir à l'affichage par défaut</span><button id="resetView">Réinitialiser</button></div>
+  <h4>Suivis post-market : sauvegarde</h4>
+  <div class="syncset">
+    <p class="hint">Sans sauvegarde, tes suivis ne sont que dans ce navigateur : Safari peut les effacer après 7 jours sans visite.
+      Synchronisés avec un dépôt GitHub <b>privé</b>, ils sont sur tous tes appareils, avec un historique de chaque modification.</p>
+    <label for="syncRepo">Dépôt privé (propriétaire/nom)</label>
+    <input type="text" id="syncRepo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="propriétaire/nom-du-dépôt">
+    <label for="syncToken">Jeton GitHub limité à ce dépôt</label>
+    <input type="password" id="syncToken" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…">
+    <div class="syncbtns"><button type="button" id="syncNow">Synchroniser</button><button type="button" id="syncForget">Oublier sur cet appareil</button></div>
+    <p id="syncMsg" role="status"></p>
+    <div class="syncbtns"><button type="button" id="wExport">Télécharger une sauvegarde</button><button type="button" id="wImportBtn">Importer une sauvegarde</button>
+      <input type="file" id="wImport" accept="application/json,.json" hidden></div>
+    <p class="hint">Le jeton reste sur cet appareil et n'est envoyé qu'à GitHub. N'utilise ce réglage que sur tes appareils personnels.</p>
+  </div>
 </aside>
 <div class="pop" id="pop" role="dialog" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -2001,7 +2020,7 @@
   function watchValid(k, w) {                            // données venues d'un autre appareil ou d'un fichier : forme vérifiée avant usage
     if (!w || typeof w !== 'object' || !/^[A-Z0-9.\-]{1,15}$/.test(w.s) || !/^\d{4}-\d{2}-\d{2}$/.test(w.d) || k !== w.s + '|' + w.d || !ISO.test(w.up || '')) return false;
     if (w.del === true) return true;
-    return typeof w.tag === 'string' && typeof (w.note ?? '') === 'string' && (w.note || '').length <= WCFG.note_max &&
+    return typeof w.tag === 'string' && typeof (w.note ?? '') === 'string' && (w.note || '').length <= WCFG.note_max && typeof (w.n ?? '') === 'string' && (w.n || '').length <= 200 &&
       ['c', 'pc', 'pch'].every(f => w[f] == null || Number.isFinite(w[f]));
   }
   function watchMerge(...srcs) {                         // union par clé, la version la plus récente gagne ; entrées invalides ignorées
@@ -2067,7 +2086,12 @@
       for (let essai = 0; essai < 3 && !done; essai++) {
         const g = await fetch(url, { headers: ghHead(c), cache: 'no-store' });
         let remote = null, sha = null;
-        if (g.ok) { const j = await g.json(); sha = j.sha; try { remote = JSON.parse(b64d(j.content)); } catch (e) { throw new Error(`${WCFG.sync_path} illisible dans le dépôt (copie gardée sur l'appareil)`); } }
+        if (g.ok) {
+          const j = await g.json(); sha = j.sha;
+          try { remote = JSON.parse(b64d(j.content)); } catch (e) { remote = null; }
+          if (!remote || remote.v !== 1 || typeof remote.items !== 'object' || Array.isArray(remote.items))   // format inconnu : on n'écrase jamais
+            throw new Error(`${WCFG.sync_path} illisible ou d'un autre format dans le dépôt (rien n'a été écrasé)`);
+        }
         else if (g.status === 404) { const rr = await fetch(`https://api.github.com/repos/${c.repo}`, { headers: ghHead(c), cache: 'no-store' }); if (!rr.ok) throw new Error(ghErr(rr.status)); }
         else throw new Error(ghErr(g.status));
         const merged = watchMerge(remote, WATCH);
@@ -2162,9 +2186,9 @@
       sym: r => {
         const w = watchGet(r.s, r._d), t = w && tagOf(w.tag);
         const sub = pmWatch ? `${fmtDate(r._d, { day: 'numeric', month: 'short' })} · ${esc(w && w.note ? w.note : r._old ? r.n : pmSector(r))}` : pmSector(r);
-        return `<td class="sym l" title="${esc(r.n)}"><div class="symw"><button class="tagb${t ? ' tg-' + t.tone : ''}" data-k="${pmId(r)}" aria-pressed="${!!w}" ` +
+        return `<td class="sym l" title="${esc(r.n)}"><div class="symw"><button class="tagb${t ? ' tg-' + t.tone : ''}" data-k="${esc(pmId(r))}" aria-pressed="${!!w}" ` +
           `aria-label="${w ? 'Ne plus suivre ' + r.s : 'Suivre ' + r.s}" title="${w ? t.label + ' : toucher pour retirer' : 'Suivre ce titre'}">${t ? t.icon : '☆'}</button>` +
-          `<div>${r.s}<span class="tsub" title="${esc(w && w.note ? w.note : r.ind || '')}">${sub}</span></div></div></td>`;
+          `<div>${esc(r.s)}<span class="tsub" title="${esc(w && w.note ? w.note : r.ind || '')}">${sub}</span></div></div></td>`;
       },
       pch: r => `<td class="dev"><div class="devc"><span class="trk"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i></span><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
       dv: r => `<td>${big(r.dv)}</td>`,
@@ -2177,9 +2201,9 @@
     if (!pmSel || !rows.some(r => pmId(r) === pmSel)) pmSel = rows.length ? pmId(rows[0]) : null;
     if (pmSel) store.set('mm.pmsel', pmSel);
     $('pmRows').innerHTML = rows.length
-      ? rows.map(r => `<tr data-s="${pmId(r)}" class="${pmId(r) === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
+      ? rows.map(r => `<tr data-s="${esc(pmId(r))}" class="${pmId(r) === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
       : `<tr><td class="empty" colspan="${cols.length}">${pmWatch ? `Aucun titre suivi${pmTagF !== 'all' ? ' avec cette étiquette' : ''} : touche ☆ devant un symbole du scan pour le garder en vue.` : 'Aucun titre avec ces filtres pour cette séance.'}</td></tr>`;
-    if (pmWatch) $('pmMeta').textContent = `${all.length} titre${all.length > 1 ? 's' : ''} suivi${all.length > 1 ? 's' : ''} · gardés sur cet appareil · « Depuis » : titres du dernier scan seulement`;
+    if (pmWatch) $('pmMeta').textContent = `${all.length} titre${all.length > 1 ? 's' : ''} suivi${all.length > 1 ? 's' : ''} · ${syncCfg() ? 'sauvegardés sur GitHub (privé)' : 'sur cet appareil seulement : sauvegarde dans Réglages'} · « Depuis » : titres du dernier scan seulement`;
     else $('pmMeta').innerHTML = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}` +
       (snap.trunc ? ` · <span class="wait" title="Le robot relève au plus ${CFG.postmarket.max_per_side} titres par sens : il y en avait davantage">liste tronquée à ${CFG.postmarket.max_per_side} titres</span>` : '');
     const sel = $('pmRows').querySelector && $('pmRows').querySelector('tr.sel');
@@ -2235,6 +2259,46 @@
     const r = pmRowSel, v = $('pmWNote').value.trim(); if (!r || (!v && !watchGet(r.s, r._d))) return;
     watchSet(r, r._d, { note: v }); renderPM();
   });
+  // Réglages : sauvegarde des suivis (dépôt GitHub privé + fichier)
+  function syncFields() { $('syncRepo').value = store.get('perso.sync.repo') || ''; $('syncToken').value = ''; $('syncToken').placeholder = store.get('perso.sync.token') ? 'Jeton enregistré sur cet appareil' : 'github_pat_…'; }
+  $('syncRepo').addEventListener('change', () => {
+    const v = $('syncRepo').value.trim().replace(/^https:\/\/github\.com\//, '').replace(/\.git$|\/$/g, '');
+    if (v && !/^[\w.-]+\/[\w.-]+$/.test(v)) { syncStatus('Dépôt refusé : écris propriétaire/nom, par exemple moi/mes-suivis.', true); return; }
+    try { if (v) localStorage.setItem('perso.sync.repo', v); else localStorage.removeItem('perso.sync.repo'); } catch (e) { /* stockage indisponible */ }
+    syncFields(); syncStatus(); if (v) watchSync();
+  });
+  $('syncToken').addEventListener('change', () => {
+    const v = $('syncToken').value.trim(); if (!v) return;
+    if (!/^[\w-]{20,}$/.test(v)) { $('syncToken').value = ''; syncStatus('Jeton refusé : copie le jeton complet (il commence souvent par github_pat_).', true); return; }
+    store.set('perso.sync.token', v); syncFields(); watchSync();
+  });
+  $('syncNow').addEventListener('click', () => syncCfg() ? watchSync() : syncStatus('Renseigne d\'abord le dépôt privé et le jeton.', true));
+  $('syncForget').addEventListener('click', () => {
+    try { ['perso.sync.repo', 'perso.sync.token', 'perso.sync.at'].forEach(k => localStorage.removeItem(k)); } catch (e) { /* stockage indisponible */ }
+    syncFields(); syncStatus('Dépôt et jeton oubliés sur cet appareil. Tes suivis restent dans ce navigateur et dans le dépôt.');
+  });
+  $('wExport').addEventListener('click', () => {                 // copie de secours, indépendante de GitHub
+    const url = URL.createObjectURL(new Blob([JSON.stringify(WATCH, null, 1)], { type: 'application/json' })), a = document.createElement('a');
+    a.href = url; a.download = `suivis-post-market-${new Date().toISOString().slice(0, 10)}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  $('wImportBtn').addEventListener('click', () => $('wImport').click());
+  $('wImport').addEventListener('change', async e => {          // fusion : rien n'est écrasé, la version la plus récente de chaque suivi gagne
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    try {
+      const before = watchCount(), merged = watchMerge(JSON.parse(await f.text()), WATCH);
+      if (watchCanon(merged) !== watchCanon(WATCH)) { WATCH = merged; watchSave(); }
+      syncStatus(`Sauvegarde importée : ${watchCount()} suivis (${Math.max(0, watchCount() - before)} nouveaux).`);
+      if (tab === 'pm') renderPM();
+    } catch (x) { syncStatus('Fichier illisible : choisis une sauvegarde téléchargée depuis ce site.', true); }
+    e.target.value = '';
+  });
+  syncFields(); syncStatus();
+  let syncLast = 0;
+  document.addEventListener('visibilitychange', () => {          // retour sur la page : récupère les suivis des autres appareils
+    if (document.visibilityState === 'visible' && Date.now() - syncLast > 30000) { syncLast = Date.now(); watchSync(); }
+  });
+  if (syncCfg()) { syncLast = Date.now(); watchSync(); }
   $('pmHead').addEventListener('click', e => {
     const th = e.target.closest('th'); const d = th && PM_DEFS.find(x => x.id === th.dataset.k); if (!d) return;
     pmSort = pmSort.k === d.id ? { k: d.id, dir: -pmSort.dir } : { k: d.id, dir: d.dir };

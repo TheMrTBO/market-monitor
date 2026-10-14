@@ -50,7 +50,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
 | `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
-| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, liens de la fiche (TradingView, News Benzinga, Dépôts SEC), étiquettes de suivi (`[[tags]]`) | `fetch_postmarket.py`, front |
+| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, séparateur du bouton Copier, lien de la fiche (`[[links]]` : Finviz), étiquettes de suivi (`[[tags]]`), suivis (`[watch]` : longueur de note, fichier et message de sauvegarde) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
@@ -73,13 +73,20 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 - **Migrer vers une base** (plus tard) : écrire `mm/store/<backend>.py` (même interface `Store`), changer
   `storage.toml` → `[store] backend`, copier (`read` → `upsert`), double écriture, bascule. Le modèle ne change pas.
 
-### Données personnelles du navigateur (jamais dans le dépôt)
+### Données personnelles (jamais dans ce dépôt public)
 Clés `perso.*` du stockage local, hors `mm.*` : le bouton « Réinitialiser » des Réglages ne les efface pas.
-- `perso.recap` : lien de la page privée du récap news (Réglages).
-- `perso.suivis` : titres suivis de l'onglet Post-market, un par couple titre + séance. Format prêt pour une synchronisation
-  (dépôt GitHub privé prévu après la phase 3c) : `{ v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } } }` ;
-  un retrait garde une trace `{ s, d, del: true, up }` pour que la fusion entre appareils ne le fasse pas réapparaître.
-  Limite : graphique et « Depuis » seulement pour les titres du dernier scan (`hist` du robot).
+- `perso.suivis` : titres suivis de l'onglet Post-market, un par couple titre + séance :
+  `{ v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } } }` ; un retrait garde une trace
+  `{ s, d, del: true, up }`. Toute entrée est vérifiée avant usage (`watchValid`) ; la fusion garde, pour chaque clé, la version
+  la plus récente (`up`).
+- Sauvegarde : `perso.sync.repo` + `perso.sync.token` (Réglages) → fichier `[watch].sync_path` d'un **dépôt GitHub privé**
+  de l'utilisateur, via l'API contents (relire → fusionner → réécrire avec le `sha` ; 409/422 = autre appareil → on recommence,
+  3 essais). Le jeton (fine-grained, « Contents : Read and write » sur ce seul dépôt) reste sur l'appareil et n'est envoyé qu'à
+  api.github.com. Fichier distant illisible ou d'un autre format : erreur, jamais écrasé. Déclenchement : chargement, retour sur
+  la page (30 s mini), 1,5 s après chaque modification, bouton « Synchroniser ». Copie de secours : « Télécharger / Importer une
+  sauvegarde » (fichier JSON, fusion à l'import).
+- Limite : graphique et « Depuis » seulement pour les titres du dernier scan (`hist` du robot).
+- Ancienne clé `perso.recap` (récap news retiré le 14/10/2026) : effacée au chargement.
 
 ## 5. Invariants (ne jamais casser)
 1. **Dépôt public** : aucun secret, clé, e-mail personnel, chemin local, donnée du dossier parent. Clés en GitHub Secrets
