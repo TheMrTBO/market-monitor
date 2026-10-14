@@ -17,7 +17,7 @@ const document={getElementById:$,createElement:()=>mkEl('n'),querySelector:()=>m
 const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
   requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},getComputedStyle:()=>({getPropertyValue:()=>'#000'}),setTimeout,console};
 sb.window=sb;vm.createContext(sb);
-for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
 vm.runInContext(main,sb);
 const PT=8,PH=200-8-22;
 for(const i of [0,1,2,3]) L.maBar.click({target:{closest:q=>q==='.nm'?{dataset:{i:String(i)}}:null}});   // masque les MM : seules les bougies restent

@@ -1,0 +1,6 @@
+# Marché US : fuseau et heures de séance (heure de New York). Lu par le robot (Python) et par le dashboard (config_data.js).
+timezone = "America/New_York"
+open_hour = 9.5          # ouverture 9 h 30 (information)
+close_hour = 16          # clôture : avant, la bougie du jour est partielle (jamais enregistrée) ; après, la séance du jour devient courante
+postmarket_end_hour = 20 # fin du post-market
+premarket_start_hour = 4 # début du pre-market : TradingView vide alors les champs post-market (fin de la fenêtre de relevé)

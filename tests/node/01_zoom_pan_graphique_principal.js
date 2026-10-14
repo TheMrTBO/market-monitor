@@ -14,7 +14,7 @@ const document={getElementById:$,createElement:()=>mkEl('n'),querySelector:()=>m
 const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:()=>null,setItem(){}},
   requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},getComputedStyle:()=>({getPropertyValue:()=>'#000'}),setTimeout,console};
 sb.addEventListener=()=>{};sb.window=sb;vm.createContext(sb);
-for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
 vm.runInContext(main,sb);
 const strip=h=>h.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const reset=()=>{for(const k of Object.keys(rects))delete rects[k];};

@@ -54,8 +54,10 @@ RUNNER = (
 def main():
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
-        for name in ["update_all.py", "validate_data.py", *DATA]:
+        for name in ["update_all.py", "validate_data.py", "mmconfig.py", *DATA]:
             shutil.copy(ROOT / name, work / name)
+        shutil.copytree(ROOT / "config", work / "config")             # configuration centralisee (etapes, fraicheur)
+        shutil.copytree(ROOT / ".github", work / ".github")
         for name, code in STUBS.items():
             (work / name).write_text(code)
         before = {n: (work / n).read_bytes() for n in DATA}

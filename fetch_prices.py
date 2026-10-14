@@ -23,6 +23,7 @@ from pathlib import Path
 
 import requests
 
+import mmconfig
 import fetch_data as fd  # client Polygon (cadence, 429, 403) et parseurs de bougies Polygon / Binance
 
 HERE = Path(__file__).resolve().parent
@@ -52,8 +53,9 @@ def session_still_open(day_iso):
     """Vrai si `day_iso` est aujourd'hui a New York et que la seance n'est pas finie (avant 16 h) : sa bougie est partielle,
     on ne l'enregistre pas (un passage du workflow pendant la seance ecrivait une bougie du jour incomplete)."""
     from zoneinfo import ZoneInfo
-    t = datetime.now(ZoneInfo("America/New_York"))
-    return day_iso == t.date().isoformat() and t.hour < 16
+    m = mmconfig.load("market")
+    t = datetime.now(ZoneInfo(m["timezone"]))
+    return day_iso == t.date().isoformat() and t.hour < m["close_hour"]
 
 
 COINBASE = "https://api.exchange.coinbase.com/products/BTC-USD/candles"

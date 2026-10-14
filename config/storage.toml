@@ -1,0 +1,4 @@
+# Où sont stockées les données. Aujourd'hui : fichiers *_data.js commités sur main (lus directement par le site).
+# Refonte phase 3 : backend "git_csv" (branche orpheline `data`, CSV mensuels / JSONL par relevé, ajout seul).
+# Plus tard : "postgres", "sqlite"… — seul le module de stockage changera ; le modèle logique est dans datasets.toml.
+backend = "js_files"

@@ -21,7 +21,7 @@ const document={getElementById:$,createElement:()=>mkEl('n'),querySelector:()=>m
 const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
   requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},getComputedStyle:()=>({getPropertyValue:()=>'#000'}),setTimeout,console};
 sb.window=sb;vm.createContext(sb);
-for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
 vm.runInContext(main,sb);
 const reset=()=>{for(const k of Object.keys(drawn))delete drawn[k];};
 const show=l=>console.log(l.padEnd(34),'| +4% net4:',drawn.net4||0,'hist:',drawn.hist||0,'| +25%/mois hist25m:',drawn.hist25m||0,'net25m:',drawn.net25m||0,'| +25%/trim hist2:',drawn.hist2||0,'net25:',drawn.net25||0);

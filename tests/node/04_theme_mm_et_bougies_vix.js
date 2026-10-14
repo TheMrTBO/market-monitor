@@ -20,7 +20,7 @@ const vars={'--cbg':'#000000','--cgrid':'#1c1c1c','--cref':'#444444','--ctext':'
 const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
   requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},getComputedStyle:()=>({getPropertyValue:k=>vars[k]||'#000'}),setTimeout,console};
 sb.window=sb;vm.createContext(sb);
-for(const f of ['stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+for(const f of ['config_data.js','stockbee_data.js','prices_data.js','vix_data.js'])vm.runInContext(fs.readFileSync(f,'utf8'),sb);
 vm.runInContext(main,sb);
 const strip=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 console.log('barre des MM :',strip($('maBar')._h));

@@ -13,16 +13,16 @@ import sys
 from datetime import date
 from pathlib import Path
 
+import mmconfig
+
 HERE = Path(__file__).resolve().parent
 
-FILES = {
-    "stockbee": "stockbee_data.js",
-    "breadth": "breadth_data.js",
-    "vix": "vix_data.js",
-    "prices": "prices_data.js",
-    "sectors": "sectors_data.js",
-    "postmarket": "postmarket_data.js",
-}
+FILES = {t["name"]: t["output"] for t in mmconfig.steps()}          # config/sources.toml
+
+
+def fresh(name):
+    """Parametres de fraicheur de la source (config/sources.toml) : min_rows, max_age, max_gap, ..."""
+    return mmconfig.step(name)["freshness"]
 
 
 def load_js(path):
@@ -63,9 +63,10 @@ def check_stockbee(data, today):
     errors = []
     cols = {c: i for i, c in enumerate(data["columns"])}
     rows = data["rows"]
-    if len(rows) < 1500:
-        errors.append(f"stockbee : seulement {len(rows)} seances (minimum 1500)")
-    _check_dates([r[0] for r in rows], "stockbee", today, 6, 12, errors)
+    f = fresh("stockbee")
+    if len(rows) < f["min_rows"]:
+        errors.append(f"stockbee : seulement {len(rows)} seances (minimum {f['min_rows']})")
+    _check_dates([r[0] for r in rows], "stockbee", today, f["max_age"], f["max_gap"], errors)
     for k, lo, hi in (("up4", 0, 5000), ("down4", 0, 5000), ("t2108", 0, 100), ("up25q", 0, 8000), ("down25q", 0, 8000)):
         vals = [r[cols[k]] for r in rows[-250:] if r[cols[k]] is not None]
         if not vals:
@@ -87,10 +88,11 @@ def check_breadth(data, today, stockbee_path=None):
     errors = []
     cols = {c: i for i, c in enumerate(data["columns"])}
     rows = data["rows"]
-    if len(rows) < 10:
-        errors.append(f"breadth : seulement {len(rows)} seances (minimum 10)")
+    f = fresh("breadth")
+    if len(rows) < f["min_rows"]:
+        errors.append(f"breadth : seulement {len(rows)} seances (minimum {f['min_rows']})")
         return errors
-    _check_dates([r[0] for r in rows], "breadth", today, 6, 12, errors)
+    _check_dates([r[0] for r in rows], "breadth", today, f["max_age"], f["max_gap"], errors)
     for k in ("up4", "down4"):
         vals = [r[cols[k]] for r in rows[-250:]]
         if any(v is None or not isinstance(v, int) for v in vals):
@@ -124,9 +126,10 @@ def check_breadth(data, today, stockbee_path=None):
 
 def check_vix(data, today):
     errors = []
-    if len(data) < 1500:
-        errors.append(f"vix : seulement {len(data)} seances (minimum 1500)")
-    _check_dates([r[0] for r in data], "vix", today, 6, 12, errors)
+    f = fresh("vix")
+    if len(data) < f["min_rows"]:
+        errors.append(f"vix : seulement {len(data)} seances (minimum {f['min_rows']})")
+    _check_dates([r[0] for r in data], "vix", today, f["max_age"], f["max_gap"], errors)
     closes = [r[4] for r in data[-250:]]
     if min(closes) < 5 or max(closes) > 150:
         errors.append(f"vix : cloture hors bornes [5, 150] (min {min(closes)}, max {max(closes)})")
@@ -136,7 +139,9 @@ def check_vix(data, today):
 
 def check_prices(data, today):
     errors = []
-    for name, minimum, max_age, max_gap in (("QQQ", 1500, 5, 8), ("IWM", 1500, 5, 8), ("BTC", 2500, 3, 3)):
+    f = fresh("prices")
+    for name, minimum, max_age, max_gap in (("QQQ", f["min_rows"], f["max_age"], f["max_gap"]), ("IWM", f["min_rows"], f["max_age"], f["max_gap"]),
+                                            ("BTC", f["btc_min_rows"], f["btc_max_age"], f["btc_max_gap"])):
         rows = data.get(name) or []
         if len(rows) < minimum:
             errors.append(f"prices/{name} : seulement {len(rows)} bougies (minimum {minimum})")
@@ -149,12 +154,13 @@ def check_prices(data, today):
 def check_sectors(data, today):
     errors = []
     syms = data.get("symbols", [])
-    if len(syms) < 50:
-        errors.append(f"sectors : seulement {len(syms)} ETF (minimum 50)")
+    f = fresh("sectors")
+    if len(syms) < f["min_symbols"]:
+        errors.append(f"sectors : seulement {len(syms)} ETF (minimum {f['min_symbols']})")
     dates = data.get("dates", [])
-    if len(dates) < 250:
-        errors.append(f"sectors : seulement {len(dates)} seances (minimum 250)")
-    _check_dates(dates, "sectors", today, 6, 12, errors)
+    if len(dates) < f["min_rows"]:
+        errors.append(f"sectors : seulement {len(dates)} seances (minimum {f['min_rows']})")
+    _check_dates(dates, "sectors", today, f["max_age"], f["max_gap"], errors)
     if dates and data.get("asof") != dates[-1]:
         errors.append("sectors : asof different de la derniere date")
     stale = [s["s"] for s in syms if dates and not any(v is not None for v in s["c"][-6:])]
@@ -175,9 +181,10 @@ def check_postmarket(data, today):
     if not snaps:
         return errors
     dates = [s["d"] for s in snaps]
-    if len(snaps) > 30:
-        errors.append(f"postmarket : {len(snaps)} instantanes (maximum 30)")
-    _check_dates(dates, "postmarket", today, 7, 20, errors)
+    f = fresh("postmarket")
+    if len(snaps) > f["max_snapshots"]:
+        errors.append(f"postmarket : {len(snaps)} instantanes (maximum {f['max_snapshots']})")
+    _check_dates(dates, "postmarket", today, f["max_age"], f["max_gap"], errors)
     ich, iv, n = cols.index("pch"), cols.index("pv"), len(cols)
     f = data.get("filters", {})
     for s in snaps:

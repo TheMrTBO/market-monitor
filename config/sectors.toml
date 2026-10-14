@@ -1,0 +1,444 @@
+# Univers de l'onglet Secteurs : un bloc [[etf]] par ETF, dans l'ordre d'affichage par défaut.
+# symbol = ticker Yahoo · name = nom complet · group = catégorie (filtres) · origin = tc2000 (liste de l'utilisateur) ou ajout
+# label = libellé court de la colonne « Groupe » · description = texte au survol (vide = nom complet)
+# Ajouter un ETF ici suffit : fetch_sectors.py le télécharge, le dashboard l'affiche (label obligatoire).
+
+[[etf]]
+symbol = "CIBR"
+name = "First Trust NASDAQ Cybersecurity"
+group = "Thème"
+origin = "tc2000"
+label = "Cybersécurité"
+description = "Cybersécurité : éditeurs et fournisseurs de sécurité informatique"
+
+[[etf]]
+symbol = "CLOU"
+name = "Global X Cloud Computing"
+group = "Thème"
+origin = "tc2000"
+label = "Cloud"
+description = "Cloud computing : logiciels et infrastructures cloud"
+
+[[etf]]
+symbol = "XLK"
+name = "Technology Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Technologie"
+description = "Secteur technologie du S&P 500 : logiciel, semi-conducteurs, matériel"
+
+[[etf]]
+symbol = "DRAM"
+name = "Roundhill Memory"
+group = "Thème"
+origin = "tc2000"
+label = "Mémoire"
+description = "Mémoire : puces DRAM, HBM et NAND, et stockage (SK Hynix, Samsung, Micron…)"
+
+[[etf]]
+symbol = "XOP"
+name = "SPDR S&P Oil & Gas Exploration & Production"
+group = "Industrie"
+origin = "tc2000"
+label = "Pétrole et gaz (E&P)"
+description = "Pétrole et gaz : sociétés d'exploration et de production (E&P)"
+
+[[etf]]
+symbol = "QTUM"
+name = "Defiance Quantum"
+group = "Thème"
+origin = "tc2000"
+label = "Informatique quantique"
+description = "Informatique quantique et apprentissage automatique"
+
+[[etf]]
+symbol = "XLE"
+name = "Energy Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Énergie"
+description = "Secteur énergie du S&P 500 : majors pétrolières et services"
+
+[[etf]]
+symbol = "DISK"
+name = "Tema Memory"
+group = "Thème"
+origin = "tc2000"
+label = "Mémoire (active)"
+description = "Mémoire (gestion active) : DRAM, HBM et NAND, 15 à 100 titres mondiaux"
+
+[[etf]]
+symbol = "IYZ"
+name = "iShares U.S. Telecommunications"
+group = "Industrie"
+origin = "tc2000"
+label = "Télécoms"
+description = "Télécoms américains : opérateurs et équipementiers"
+
+[[etf]]
+symbol = "HYDR"
+name = "Global X Hydrogen"
+group = "Thème"
+origin = "tc2000"
+label = "Hydrogène"
+description = "Hydrogène : piles à combustible et électrolyse"
+
+[[etf]]
+symbol = "XLV"
+name = "Health Care Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Santé"
+description = "Secteur santé du S&P 500 : pharma, biotech, équipements médicaux"
+
+[[etf]]
+symbol = "XLC"
+name = "Communication Services Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Communication"
+description = "Secteur communication du S&P 500 : médias, internet, télécoms"
+
+[[etf]]
+symbol = "GDX"
+name = "VanEck Gold Miners"
+group = "Matières"
+origin = "tc2000"
+label = "Mines d'or"
+description = "Mines d'or : sociétés aurifères mondiales"
+
+[[etf]]
+symbol = "BKCH"
+name = "Global X Blockchain"
+group = "Thème"
+origin = "tc2000"
+label = "Blockchain"
+description = "Blockchain : mineurs, plateformes et infrastructure crypto"
+
+[[etf]]
+symbol = "PPH"
+name = "VanEck Pharmaceutical"
+group = "Industrie"
+origin = "tc2000"
+label = "Pharmaceutique"
+description = "Pharmaceutique : grands laboratoires"
+
+[[etf]]
+symbol = "XBI"
+name = "SPDR S&P Biotech"
+group = "Industrie"
+origin = "tc2000"
+label = "Biotech (équipondéré)"
+description = "Biotechnologie : sociétés de toutes tailles, équipondéré"
+
+[[etf]]
+symbol = "LIT"
+name = "Global X Lithium & Battery Tech"
+group = "Thème"
+origin = "tc2000"
+label = "Lithium et batteries"
+description = "Lithium et batteries : extraction et technologies de batteries"
+
+[[etf]]
+symbol = "SLV"
+name = "iShares Silver Trust"
+group = "Matières"
+origin = "tc2000"
+label = "Argent métal"
+description = "Argent métal : suit le cours de l'once d'argent"
+
+[[etf]]
+symbol = "UFO"
+name = "Procure Space"
+group = "Thème"
+origin = "tc2000"
+label = "Espace"
+description = "Espace : satellites, lanceurs et communications spatiales"
+
+[[etf]]
+symbol = "PBJ"
+name = "Invesco Food & Beverage"
+group = "Industrie"
+origin = "tc2000"
+label = "Agroalimentaire"
+description = "Agroalimentaire : aliments et boissons"
+
+[[etf]]
+symbol = "XLB"
+name = "Materials Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Matériaux"
+description = "Secteur matériaux du S&P 500 : chimie, métaux, emballages"
+
+[[etf]]
+symbol = "XRT"
+name = "SPDR S&P Retail"
+group = "Industrie"
+origin = "tc2000"
+label = "Distribution"
+description = "Distribution : commerce de détail américain, équipondéré"
+
+[[etf]]
+symbol = "XLF"
+name = "Financial Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Finance"
+description = "Secteur financier du S&P 500 : banques, assurances, gestion d'actifs"
+
+[[etf]]
+symbol = "XLU"
+name = "Utilities Select Sector SPDR"
+group = "Secteur"
+origin = "tc2000"
+label = "Services aux collectivités"
+description = "Secteur services aux collectivités du S&P 500 : électricité, gaz, eau"
+
+[[etf]]
+symbol = "URA"
+name = "Global X Uranium"
+group = "Thème"
+origin = "tc2000"
+label = "Uranium"
+description = "Uranium : mineurs d'uranium et filière nucléaire"
+
+[[etf]]
+symbol = "KWEB"
+name = "KraneShares CSI China Internet"
+group = "Pays / région"
+origin = "tc2000"
+label = "Internet chinois"
+description = "Internet chinois : grandes plateformes cotées (Tencent, Alibaba…)"
+
+[[etf]]
+symbol = "XHB"
+name = "SPDR S&P Homebuilders"
+group = "Industrie"
+origin = "tc2000"
+label = "Construction résidentielle"
+description = "Construction résidentielle : constructeurs et fournisseurs"
+
+[[etf]]
+symbol = "EWQ"
+name = "iShares MSCI France"
+group = "Pays / région"
+origin = "tc2000"
+label = "France"
+description = "Pays : actions françaises (MSCI France)"
+
+[[etf]]
+symbol = "TAN"
+name = "Invesco Solar"
+group = "Thème"
+origin = "tc2000"
+label = "Solaire"
+description = "Solaire : fabricants et développeurs d'énergie solaire"
+
+[[etf]]
+symbol = "XAR"
+name = "SPDR S&P Aerospace & Defense"
+group = "Industrie"
+origin = "tc2000"
+label = "Aéronautique et défense"
+description = "Aéronautique et défense : constructeurs et sous-traitants"
+
+[[etf]]
+symbol = "NCLD"
+name = "Roundhill Neocloud"
+group = "Thème"
+origin = "tc2000"
+label = "Neocloud (IA)"
+description = "Neocloud : cloud GPU et centres de données pour l'IA"
+
+[[etf]]
+symbol = "XLI"
+name = "Industrial Select Sector SPDR"
+group = "Secteur"
+origin = "ajout"
+label = "Industriels"
+description = "Secteur industrie du S&P 500 : aérospatiale, transport, machines"
+
+[[etf]]
+symbol = "XLY"
+name = "Consumer Discretionary Select Sector SPDR"
+group = "Secteur"
+origin = "ajout"
+label = "Conso. discrétionnaire"
+description = "Secteur consommation discrétionnaire du S&P 500 : auto, e-commerce, loisirs"
+
+[[etf]]
+symbol = "XLP"
+name = "Consumer Staples Select Sector SPDR"
+group = "Secteur"
+origin = "ajout"
+label = "Conso. de base"
+description = "Secteur consommation de base du S&P 500 : alimentation, ménage, distribution"
+
+[[etf]]
+symbol = "XLRE"
+name = "Real Estate Select Sector SPDR"
+group = "Secteur"
+origin = "ajout"
+label = "Immobilier"
+description = "Secteur immobilier du S&P 500 : foncières cotées"
+
+[[etf]]
+symbol = "SMH"
+name = "VanEck Semiconductor"
+group = "Industrie"
+origin = "ajout"
+label = "Semi-conducteurs"
+description = "Semi-conducteurs : plus grandes sociétés du secteur"
+
+[[etf]]
+symbol = "IGV"
+name = "iShares Expanded Tech-Software"
+group = "Industrie"
+origin = "ajout"
+label = "Logiciels"
+description = "Logiciels : éditeurs de logiciels et services"
+
+[[etf]]
+symbol = "IBB"
+name = "iShares Biotechnology"
+group = "Industrie"
+origin = "ajout"
+label = "Biotech (grandes cap.)"
+description = "Biotechnologie : grandes capitalisations biotech et sciences de la vie"
+
+[[etf]]
+symbol = "IHI"
+name = "iShares U.S. Medical Devices"
+group = "Industrie"
+origin = "ajout"
+label = "Dispositifs médicaux"
+description = "Dispositifs médicaux : équipements et fournitures médicales"
+
+[[etf]]
+symbol = "KRE"
+name = "SPDR S&P Regional Banking"
+group = "Industrie"
+origin = "ajout"
+label = "Banques régionales"
+description = "Banques régionales américaines"
+
+[[etf]]
+symbol = "KIE"
+name = "SPDR S&P Insurance"
+group = "Industrie"
+origin = "ajout"
+label = "Assurance"
+description = "Assurance : assureurs américains"
+
+[[etf]]
+symbol = "JETS"
+name = "U.S. Global Jets"
+group = "Industrie"
+origin = "ajout"
+label = "Compagnies aériennes"
+description = "Compagnies aériennes : transporteurs aériens"
+
+[[etf]]
+symbol = "IYT"
+name = "iShares Transportation Average"
+group = "Industrie"
+origin = "ajout"
+label = "Transport"
+description = "Transport : fret, rail et aérien (Dow Jones Transportation)"
+
+[[etf]]
+symbol = "OIH"
+name = "VanEck Oil Services"
+group = "Industrie"
+origin = "ajout"
+label = "Services pétroliers"
+description = "Services pétroliers : forage et équipements"
+
+[[etf]]
+symbol = "XME"
+name = "SPDR S&P Metals & Mining"
+group = "Matières"
+origin = "ajout"
+label = "Métaux et mines"
+description = "Métaux et mines : acier, cuivre, aluminium, charbon"
+
+[[etf]]
+symbol = "COPX"
+name = "Global X Copper Miners"
+group = "Matières"
+origin = "ajout"
+label = "Mines de cuivre"
+description = "Mines de cuivre : producteurs de cuivre"
+
+[[etf]]
+symbol = "REMX"
+name = "VanEck Rare Earth/Strategic Metals"
+group = "Matières"
+origin = "ajout"
+label = "Terres rares"
+description = "Terres rares et métaux stratégiques"
+
+[[etf]]
+symbol = "MOO"
+name = "VanEck Agribusiness"
+group = "Matières"
+origin = "ajout"
+label = "Agriculture"
+description = "Agriculture : semences, engrais, machines agricoles"
+
+[[etf]]
+symbol = "ICLN"
+name = "iShares Global Clean Energy"
+group = "Thème"
+origin = "ajout"
+label = "Énergie propre"
+description = "Énergie propre : solaire, éolien et hydraulique mondial"
+
+[[etf]]
+symbol = "NLR"
+name = "VanEck Uranium+Nuclear Energy"
+group = "Thème"
+origin = "ajout"
+label = "Nucléaire"
+description = "Nucléaire : uranium et énergie nucléaire"
+
+[[etf]]
+symbol = "BOTZ"
+name = "Global X Robotics & Artificial Intelligence"
+group = "Thème"
+origin = "ajout"
+label = "Robotique et IA"
+description = "Robotique et intelligence artificielle"
+
+[[etf]]
+symbol = "ARKK"
+name = "ARK Innovation"
+group = "Thème"
+origin = "ajout"
+label = "Innovation (ARK)"
+description = "Innovation de rupture : croissance, gestion active (ARK)"
+
+[[etf]]
+symbol = "FDN"
+name = "First Trust Dow Jones Internet"
+group = "Thème"
+origin = "ajout"
+label = "Internet"
+description = "Internet : grandes sociétés internet américaines"
+
+[[etf]]
+symbol = "PAVE"
+name = "Global X U.S. Infrastructure Development"
+group = "Thème"
+origin = "ajout"
+label = "Infrastructures US"
+description = "Infrastructures américaines : construction, matériaux, ingénierie"
+
+[[etf]]
+symbol = "FINX"
+name = "Global X FinTech"
+group = "Thème"
+origin = "ajout"
+label = "Fintech"
+description = "Fintech : paiements et services financiers numériques"

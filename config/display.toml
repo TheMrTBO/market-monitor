@@ -1,0 +1,43 @@
+# Affichage : seuils, couleurs, libellés. Lu par le dashboard via config_data.js (généré : python mmconfig.py --js).
+
+[breadth]
+# seuils des cases du MM (bas, haut) : couleur rouge sous le bas, bleue à partir du haut, grise entre les deux
+ratio5 = [1, 1.5]
+rq = [1, 1.5]
+rm = [1, 2]
+t2108_extremes = [20, 70]   # T2108 : zones extrêmes (orange)
+
+[vix]
+refs = [20, 30]            # lignes de repère du graphique VIX
+
+[colors]
+# Base 100 de l'onglet SA (ni bleu ni rouge, réservés aux hausses / baisses), validées sur fond noir
+base100 = { QQQ = "#199e70", IWM = "#d95926", BTC = "#9085e9" }
+
+[sectors]
+# filtres de l'onglet Secteurs : [clé (groupe de config/sectors.toml ou all), libellé]
+groups = [["all", "Tous"], ["Secteur", "Secteurs"], ["Industrie", "Industries"], ["Thème", "Thèmes"], ["Matières", "Matières"], ["Pays / région", "Pays"]]
+
+[postmarket.sector_fr]
+# traduction des secteurs TradingView (anglais) affichés sous chaque ticker
+"Commercial Services" = "Services aux entreprises"
+"Communications" = "Télécoms"
+"Consumer Durables" = "Biens durables"
+"Consumer Non-Durables" = "Conso. courante"
+"Consumer Services" = "Services aux consommateurs"
+"Distribution Services" = "Distribution"
+"Electronic Technology" = "Électronique"
+"Energy Minerals" = "Énergie fossile"
+"Finance" = "Finance"
+"Government" = "Administration"
+"Health Services" = "Services de santé"
+"Health Technology" = "Technologie médicale"
+"Industrial Services" = "Services industriels"
+"Miscellaneous" = "Divers"
+"Non-Energy Minerals" = "Métaux et minerais"
+"Process Industries" = "Industries de transformation"
+"Producer Manufacturing" = "Biens d'équipement"
+"Retail Trade" = "Commerce de détail"
+"Technology Services" = "Logiciels et services tech"
+"Transportation" = "Transport"
+"Utilities" = "Services aux collectivités"
