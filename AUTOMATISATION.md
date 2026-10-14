@@ -30,8 +30,8 @@ attend la fin du premier (groupe `concurrency: market-monitor`) ou apparaît « 
 
 | Tâche cron-job.org | URL (POST) | Horaire (UTC) |
 |---|---|---|
-| Scan post-market | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/postmarket.yml/dispatches` | minutes 7, 22, 37, 52 ; heures 20-23, 0, 1 ; lundi → samedi |
-| Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | minute 17 ; heures 22, 1, 3, 5 ; tous les jours |
+| Scan post-market | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/postmarket.yml/dispatches` | `7,22,37,52 0,1,20,21,22,23 * * 1-6` |
+| Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | `17 1,3,5-8,22 * * *` : 00:17, 03:17, 05:17, 08:17, 09:17, 10:17 (heure d'été de Paris ; Polygon et Stockbee publient la séance précédente pendant la nuit, à une heure variable), tous les jours |
 
 Réglages communs : en-têtes `Authorization: Bearer <jeton>`, `Accept: application/vnd.github+json`,
 `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.
