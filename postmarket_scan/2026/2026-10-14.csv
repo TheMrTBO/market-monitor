@@ -8,3 +8,7 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-14,2026-10-14T21:07:37+00:00,false,NASDAQ:GLND,GLND,Greenland Energy Company,Finance,Financial Conglomerates,3.9,76.47,3.73,-4.36,1333060,0.12,170547760,27517705,
 2026-10-14,2026-10-14T21:07:37+00:00,false,NASDAQ:NXGL,NXGL,"NexGel, Inc.",Process Industries,Chemicals: Specialty,5.46,34.81,5.22,-4.4,341251,4.39,16775212,,
 2026-10-14,2026-10-14T21:07:37+00:00,false,NASDAQ:RKLB,RKLB,Rocket Lab Corporation,Electronic Technology,Aerospace & Defense,59.18,-7.85,55.5,-6.22,2710245,0.13,35416850325,589338272,
+2026-10-14,2026-10-14T21:22:37+00:00,false,NASDAQ:AEHL,AEHL,Antelope Enterprise Holdings Limited Class A,Producer Manufacturing,Building Products,11.49,34.39,14.3,24.46,330981,0.23,218480713,16457836,
+2026-10-14,2026-10-14T21:22:37+00:00,false,NASDAQ:GLND,GLND,Greenland Energy Company,Finance,Financial Conglomerates,3.9,76.47,3.71,-4.87,1454458,0.13,170547760,27517705,
+2026-10-14,2026-10-14T21:22:37+00:00,false,NASDAQ:RKLB,RKLB,Rocket Lab Corporation,Electronic Technology,Aerospace & Defense,59.18,-7.85,54.25,-8.33,3174915,0.15,35416850325,589338272,
+2026-10-14,2026-10-14T21:22:37+00:00,false,NASDAQ:VNDA,VNDA,Vanda Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,4.22,-1.86,3.98,-5.69,194165,0.2,255152556,57198923,
