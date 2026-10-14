@@ -21,3 +21,23 @@ url = "https://www.benzinga.com/quote/{sym}/news"
 [[links]]
 label = "Dépôts SEC"
 url = "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK={sym}&owner=include&count=40"
+
+# Étiquettes de suivi (onglet Post-market, gardées sur l'appareil). La 1re est celle de l'étoile de la liste ;
+# les autres se choisissent dans la fiche. tone = couleur du thème : warn, up, down ou muted.
+[[tags]]
+id = "suivre"
+icon = "★"
+label = "À suivre"
+tone = "warn"
+
+[[tags]]
+id = "setup"
+icon = "⚑"
+label = "Setup"
+tone = "up"
+
+[[tags]]
+id = "piege"
+icon = "✕"
+label = "Piège"
+tone = "down"

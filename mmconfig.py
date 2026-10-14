@@ -57,7 +57,8 @@ def front_config():
         "market": {k: m[k] for k in ("timezone", "close_hour", "postmarket_end_hour", "premarket_start_hour")},
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
         "postmarket": {**{k: pm[k] for k in ("min_price", "min_volume", "min_change", "max_per_side", "keep_sessions")},
-                       "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])]},
+                       "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])],
+                       "tags": [{k: t[k] for k in ("id", "icon", "label", "tone")} for t in pm.get("tags", [])]},
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
@@ -120,6 +121,14 @@ def check():
     for l in pm.get("links", []):
         if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|tv)\}", l.get("url", "")):
             errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}} ou {{tv}} attendus")
+    tags = pm.get("tags", [])
+    if not tags:
+        errors.append("postmarket.tags : au moins une étiquette de suivi attendue")
+    if len({t.get("id") for t in tags}) != len(tags):
+        errors.append("postmarket.tags : identifiants en double")
+    for t in tags:
+        if not (t.get("id") and t.get("icon") and t.get("label")) or t.get("tone") not in {"warn", "up", "down", "muted"}:
+            errors.append(f"postmarket.tags « {t.get('id', '?')} » : id, icon, label et tone (warn, up, down, muted) attendus")
     groups = {g for g, _ in load("display")["sectors"]["groups"]} - {"all"}
     syms = [e["symbol"] for e in sectors()]
     if len(set(syms)) != len(syms):

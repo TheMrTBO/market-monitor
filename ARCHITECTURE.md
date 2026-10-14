@@ -50,7 +50,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
 | `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
-| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, liens de la fiche (TradingView, News Benzinga, Dépôts SEC) | `fetch_postmarket.py`, front |
+| `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, liens de la fiche (TradingView, News Benzinga, Dépôts SEC), étiquettes de suivi (`[[tags]]`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
@@ -72,6 +72,14 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
   push refusé → recommence (sans doublon). Mise à jour complète : `--run-id` ajoute le journal `runs` ; scan : `--only postmarket_data.js`.
 - **Migrer vers une base** (plus tard) : écrire `mm/store/<backend>.py` (même interface `Store`), changer
   `storage.toml` → `[store] backend`, copier (`read` → `upsert`), double écriture, bascule. Le modèle ne change pas.
+
+### Données personnelles du navigateur (jamais dans le dépôt)
+Clés `perso.*` du stockage local, hors `mm.*` : le bouton « Réinitialiser » des Réglages ne les efface pas.
+- `perso.recap` : lien de la page privée du récap news (Réglages).
+- `perso.suivis` : titres suivis de l'onglet Post-market, un par couple titre + séance. Format prêt pour une synchronisation
+  (dépôt GitHub privé prévu après la phase 3c) : `{ v: 1, up, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } } }` ;
+  un retrait garde une trace `{ s, d, del: true, up }` pour que la fusion entre appareils ne le fasse pas réapparaître.
+  Limite : graphique et « Depuis » seulement pour les titres du dernier scan (`hist` du robot).
 
 ## 5. Invariants (ne jamais casser)
 1. **Dépôt public** : aucun secret, clé, e-mail personnel, chemin local, donnée du dossier parent. Clés en GitHub Secrets

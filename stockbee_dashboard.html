@@ -363,6 +363,20 @@
   .optrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--grid); }
   .optrow label { display: flex; align-items: center; gap: 8px; }
   .recapset { display: grid; gap: 6px; padding: 8px 0; }
+  /* suivis Post-market : étiquette dans la cellule Symbole, réglage dans la fiche */
+  .symw { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .symw > div { min-width: 0; }
+  .tagb { flex: none; width: 28px; height: 28px; margin: -4px 0 -4px -4px; border: 0; border-radius: 6px; background: none; color: var(--faint);
+          font-size: 15px; line-height: 1; cursor: pointer; }
+  .tagb:hover { background: var(--grid); color: var(--text); }
+  .tagb:focus-visible { outline: 2px solid var(--up); outline-offset: 1px; }
+  .tg-warn { color: var(--warn) !important; } .tg-up { color: var(--up) !important; } .tg-down { color: var(--down) !important; } .tg-muted { color: var(--muted) !important; }
+  .watchset { display: grid; gap: 8px; margin: 12px 0 2px; padding-top: 10px; border-top: 1px solid var(--grid); }
+  .watchset .wtags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .watchset .wtags button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+  .watchset .wtags button.on { background: color-mix(in srgb, currentColor 14%, transparent); border-color: currentColor; }
+  .watchset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+  .watchset .wmeta { font-size: 12px; color: var(--muted); }
   .recapset input { width: 100%; font: inherit; font-size: 14px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
   .recapset p { margin: 0; font-size: 12px; color: var(--muted); } .recapset p.bad { color: var(--down); }
   .slider { display: grid; grid-template-columns: 90px 1fr 44px; align-items: center; gap: 10px; padding: 6px 0; color: var(--muted); }
@@ -627,6 +641,11 @@
       <div class="card" id="pmCard">
         <div class="mini-title"><b>Fiche</b><span class="px" id="pmWhen"></span></div>
         <dl class="pmfacts" id="pmFacts"></dl>
+        <div class="watchset" id="pmWatchSet" hidden>
+          <div class="wtags" id="pmWTags" role="group" aria-label="Étiquette de suivi"></div>
+          <input type="text" id="pmWNote" maxlength="140" autocomplete="off" placeholder="Note : pourquoi tu le suis (enregistrée sur cet appareil)">
+          <span class="wmeta" id="pmWMeta"></span>
+        </div>
         <p class="pmnote" id="pmNote"></p>
       </div>
       <nav class="detnav" id="pmNav" aria-label="Navigation entre les titres"><button id="pmPrev" type="button">‹</button><span class="dpos" id="pmPos"></span><button id="pmNext" type="button">›</button></nav>
@@ -1706,8 +1725,9 @@
   function detNavSync(pfx, syms, sel) {
     const i = syms.indexOf(sel), p = i > 0 ? syms[i - 1] : null, n = i >= 0 && i < syms.length - 1 ? syms[i + 1] : null;
     const bp = $(pfx + 'Prev'), bn = $(pfx + 'Next'), what = pfx === 'sec' ? 'ETF' : 'Titre';
-    bp.textContent = p ? '‹ ' + p : '‹'; bp.disabled = !p; bp.setAttribute('aria-label', p ? `${what} précédent : ${p}` : 'Début de la liste');
-    bn.textContent = n ? n + ' ›' : '›'; bn.disabled = !n; bn.setAttribute('aria-label', n ? `${what} suivant : ${n}` : 'Fin de la liste');
+    const lab = x => String(x).split('|')[0];
+    bp.textContent = p ? '‹ ' + lab(p) : '‹'; bp.disabled = !p; bp.setAttribute('aria-label', p ? `${what} précédent : ${p}` : 'Début de la liste');
+    bn.textContent = n ? lab(n) + ' ›' : '›'; bn.disabled = !n; bn.setAttribute('aria-label', n ? `${what} suivant : ${n}` : 'Fin de la liste');
     $(pfx + 'Pos').textContent = i < 0 ? '' : `${i + 1} / ${syms.length}`;
   }
   function detSlide(view, d) {                           // court glissement du détail dans le sens de la navigation (CSS : vue empilée seulement)
@@ -1979,6 +1999,30 @@
   })();
   let pmDir = ['up', 'down', 'all'].includes(store.get('mm.pmdir')) ? store.get('mm.pmdir') : 'up';
   let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'dv', dir: -1 }, pmCur = null, pmShown = [];
+  // suivis : un par couple titre + séance, gardés sur l'appareil (clé « perso.suivis », hors « mm. » : « Réinitialiser » ne les efface pas).
+  // Format prêt pour une synchronisation : { v: 1, items: { "LQDA|2026-10-13": { s, d, tag, note, at, up, n, c, pc, pch } | { s, d, del: true, up } } }
+  let pmWatch = store.get('mm.pmwatch') === '1', pmTagF = 'all', pmWSorted = false;
+  const TAGS = (CFG.postmarket.tags || []).length ? CFG.postmarket.tags : [{ id: 'suivre', icon: '★', label: 'À suivre', tone: 'warn' }];
+  const tagOf = id => TAGS.find(t => t.id === id) || TAGS[0];
+  const pmId = r => r._k || r.s;                         // identifiant d'une ligne : symbole (scan) ou symbole|séance (suivis)
+  let WATCH = (() => { try { const j = JSON.parse(localStorage.getItem('perso.suivis') || 'null'); if (j && j.v === 1 && j.items) return j; } catch (e) { /* illisible : on repart de zéro */ } return { v: 1, items: {} }; })();
+  function watchSave() { WATCH.up = new Date().toISOString(); try { localStorage.setItem('perso.suivis', JSON.stringify(WATCH)); } catch (e) { /* stockage indisponible */ } }
+  function watchGet(s, d) { const w = WATCH.items[s + '|' + d]; return w && !w.del ? w : null; }
+  function watchSet(r, d, patch) {                       // patch : { tag } ou { note } ; tag null = ne plus suivre (trace gardée pour la synchronisation)
+    const k = r.s + '|' + d, now = new Date().toISOString(), cur = watchGet(r.s, d);
+    if (patch.tag === null) { if (cur) WATCH.items[k] = { s: r.s, d, del: true, up: now }; }
+    else WATCH.items[k] = Object.assign(cur || { s: r.s, d, at: now, tag: TAGS[0].id, note: '', n: r.n, c: r.c, pc: r.pc, pch: r.pch }, patch, { up: now });
+    watchSave();
+  }
+  const watchCount = () => Object.values(WATCH.items).filter(w => !w.del).length;
+  function pmWatchRows() {                               // lignes des titres suivis, toutes séances ; séance sortie du fichier = chiffres gardés au moment du suivi
+    return Object.entries(WATCH.items).filter(([, w]) => !w.del).map(([k, w]) => {
+      const sn = PM && PM.snaps.find(x => x.d === w.d), row = sn && sn.rows.map(pmRowOf).find(x => x.s === w.s);
+      const r = row || { s: w.s, n: w.n || w.s, t: w.s, c: w.c, pc: w.pc, pch: w.pch, ch: null, pv: null, dv: null, rv: null, cap: null, flt: null, nx: null, _old: true };
+      const H = pmHist[w.s], last = H && H[H.length - 1];
+      return Object.assign(r, { _k: k, _d: w.d, _snap: sn || null, _w: w, since: last && last[0] > w.d && w.pc ? 100 * (last[4] / w.pc - 1) : null });
+    });
+  }
   function pmSnap() {                                   // instantané de la séance choisie (ou le plus proche avant), sinon le dernier
     if (!PM || !PM.snaps.length) return null;
     const S = PM.snaps; if (!pinned) return S[S.length - 1];
@@ -1993,6 +2037,7 @@
     { id: 'rv', label: 'RVol', dir: -1, v: r => r.rv, title: 'Volume post-market ÷ volume journalier moyen sur 90 jours' },
     { id: 'cap', label: 'Cap.', dir: -1, v: r => r.cap, title: 'Capitalisation boursière (dollars)' },
     { id: 'nx', label: 'Lendemain', dir: -1, v: r => r.nx, title: 'Variation de la séance suivante, clôture à clôture', when: s => !!s.nextd },
+    { id: 'since', label: 'Depuis', dir: -1, v: r => r.since, watch: true, title: 'Dernière clôture connue par rapport au cours post-market au moment du suivi (titres du dernier scan seulement)' },
   ];
   const big = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 1) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : v >= 1e3 ? nf(v / 1e3, 0) + ' k' : nf(v);
   const pmTime = snap => new Date(snap.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -2004,51 +2049,76 @@
   function renderPM() {
     if (!PM) { pmEmpty('Données introuvables : lance <code>python fetch_postmarket.py</code> (fichier <code>postmarket_data.js</code> à côté de ce HTML).'); return; }
     const snap = pmSnap();
-    if (!snap) {
+    if (!snap && !pmWatch) {
       pmEmpty(PM.snaps.length ? `Pas de scan pour cette séance : historique depuis le ${fmtDate(PM.snaps[0].d)}.`
         : 'Aucun scan relevé pour l\'instant : le robot passe pendant le post-market (16 h – 20 h à New York, 22 h – 2 h à Paris).');
       return;
     }
-    pmCur = snap; $('view-pm').classList.remove('nodata');
-    const all = snap.rows.map(pmRowOf), side = r => pmDir === 'all' || (pmDir === 'up' ? r.pch > 0 : r.pch < 0);
-    const nUp = all.filter(r => r.pch > 0).length, nEr = all.filter(r => r.er && side(r)).length;
-    $('pmFilt').innerHTML = [['up', 'Hausses', nUp], ['down', 'Baisses', all.length - nUp], ['all', 'Les deux', all.length]]
-      .map(([k, l, n]) => `<button data-dir="${k}" class="${pmDir === k ? 'on' : ''}" aria-pressed="${pmDir === k}">${l}<span>${n}</span></button>`).join('') +
-      `<span class="fsep"></span><button data-er="1" class="${pmEarn ? 'on' : ''}" aria-pressed="${pmEarn}" title="Seulement les titres qui ont publié leurs résultats ce soir ou ce matin">Résultats<span>${nEr}</span></button>`;
-    const cols = PM_DEFS.filter(d => !d.when || d.when(snap)), def = PM_DEFS.find(d => d.id === pmSort.k) || PM_DEFS[2];
-    const rows = all.filter(r => side(r) && (!pmEarn || r.er)).sort((a, b) => {
+    pmCur = snap || (PM.snaps.length ? PM.snaps[PM.snaps.length - 1] : null); $('view-pm').classList.remove('nodata');
+    const def = PM_DEFS.find(d => d.id === pmSort.k) || PM_DEFS[2];
+    const sorter = (a, b) => {
       const va = def.v(a), vb = def.v(b);
-      if (va == null || vb == null) return va == null && vb == null ? b.pv - a.pv : va == null ? 1 : -1;
+      if (va == null || vb == null) return va == null && vb == null ? (b.pv || 0) - (a.pv || 0) : va == null ? 1 : -1;
       const c = typeof va === 'string' ? va.localeCompare(vb, 'fr') : va - vb;
-      return c * pmSort.dir || b.pv - a.pv;
-    });
+      return c * pmSort.dir || (b.pv || 0) - (a.pv || 0);
+    };
+    let all, rows, cols;
+    if (pmWatch) {                                       // suivis : toutes séances, filtre par étiquette ; tri par séance (récente d'abord) tant qu'on n'a pas trié
+      all = pmWatchRows();
+      const nTag = id => all.filter(r => r._w.tag === id).length;
+      if (pmTagF !== 'all' && !TAGS.some(t => t.id === pmTagF)) pmTagF = 'all';
+      $('pmFilt').innerHTML = `<button data-watch="0" title="Revenir au scan de la séance">‹ Scan</button><span class="fsep"></span>` +
+        `<button data-tag="all" class="${pmTagF === 'all' ? 'on' : ''}" aria-pressed="${pmTagF === 'all'}">Tous<span>${all.length}</span></button>` +
+        TAGS.map(t => `<button data-tag="${t.id}" class="${pmTagF === t.id ? 'on' : ''}" aria-pressed="${pmTagF === t.id}"><span class="tg-${t.tone}" style="margin:0 4px 0 0">${t.icon}</span>${t.label}<span>${nTag(t.id)}</span></button>`).join('');
+      cols = PM_DEFS.filter(d => d.id !== 'rv');
+      rows = all.filter(r => pmTagF === 'all' || r._w.tag === pmTagF)
+        .sort(pmWSorted ? sorter : (a, b) => b._d.localeCompare(a._d) || TAGS.indexOf(tagOf(a._w.tag)) - TAGS.indexOf(tagOf(b._w.tag)) || (b.dv || 0) - (a.dv || 0));
+    } else {
+      all = snap.rows.map(pmRowOf).map(r => Object.assign(r, { _d: snap.d, _snap: snap }));
+      const side = r => pmDir === 'all' || (pmDir === 'up' ? r.pch > 0 : r.pch < 0);
+      const nUp = all.filter(r => r.pch > 0).length, nEr = all.filter(r => r.er && side(r)).length;
+      $('pmFilt').innerHTML = [['up', 'Hausses', nUp], ['down', 'Baisses', all.length - nUp], ['all', 'Les deux', all.length]]
+        .map(([k, l, n]) => `<button data-dir="${k}" class="${pmDir === k ? 'on' : ''}" aria-pressed="${pmDir === k}">${l}<span>${n}</span></button>`).join('') +
+        `<span class="fsep"></span><button data-er="1" class="${pmEarn ? 'on' : ''}" aria-pressed="${pmEarn}" title="Seulement les titres qui ont publié leurs résultats ce soir ou ce matin">Résultats<span>${nEr}</span></button>` +
+        `<span class="fsep"></span><button data-watch="1" title="Tes titres suivis, toutes séances"><span class="tg-${TAGS[0].tone}" style="margin:0 4px 0 0">${TAGS[0].icon}</span>Suivis<span>${watchCount()}</span></button>`;
+      cols = PM_DEFS.filter(d => !d.watch && (!d.when || d.when(snap)));
+      rows = all.filter(r => side(r) && (!pmEarn || r.er)).sort(sorter);
+    }
     pmShown = rows; $('pmCopy').disabled = !rows.length;
     $('pmHead').innerHTML = cols.map(d => `<th class="sortable c-${d.id}${d.l ? ' l' : ''}" data-k="${d.id}" title="${d.title || 'Trier par ' + d.label}">` +
       `${d.label}<span class="arr">${pmSort.k === d.id ? (pmSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
     // échelle des barres : 90e centile des |variations| (un extrême à +400 % n'écrase pas les autres barres)
-    const absv = all.map(r => Math.abs(r.pch)).sort((a, b) => a - b), vmax = Math.max(8, absv[Math.floor(absv.length * 0.9)] || 0);
+    const absv = all.filter(r => r.pch != null).map(r => Math.abs(r.pch)).sort((a, b) => a - b), vmax = Math.max(8, absv[Math.floor(absv.length * 0.9)] || 0);
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
     const cell = {
-      sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
+      sym: r => {
+        const w = watchGet(r.s, r._d), t = w && tagOf(w.tag);
+        const sub = pmWatch ? `${fmtDate(r._d, { day: 'numeric', month: 'short' })} · ${esc(w && w.note ? w.note : pmSector(r))}` : pmSector(r);
+        return `<td class="sym l" title="${esc(r.n)}"><div class="symw"><button class="tagb${t ? ' tg-' + t.tone : ''}" data-k="${pmId(r)}" aria-pressed="${!!w}" ` +
+          `aria-label="${w ? 'Ne plus suivre ' + r.s : 'Suivre ' + r.s}" title="${w ? t.label + ' : toucher pour retirer' : 'Suivre ce titre'}">${t ? t.icon : '☆'}</button>` +
+          `<div>${r.s}<span class="tsub" title="${esc(w && w.note ? w.note : r.ind || '')}">${sub}</span></div></div></td>`;
+      },
       pch: r => `<td class="dev"><div class="devc"><span class="trk"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i></span><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
       dv: r => `<td>${big(r.dv)}</td>`,
       pv: r => `<td>${big(r.pv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
       cap: r => `<td class="c-cap">${r.cap == null ? '—' : big(r.cap)}</td>`,
       nx: r => `<td class="c-nx"><span class="${cls(r.nx)}">${pct(r.nx)}</span></td>`,
+      since: r => `<td class="c-since"><span class="${cls(r.since)}">${pct(r.since)}</span></td>`,
     };
-    if (!pmSel || !rows.some(r => r.s === pmSel)) pmSel = rows.length ? rows[0].s : null;
+    if (!pmSel || !rows.some(r => pmId(r) === pmSel)) pmSel = rows.length ? pmId(rows[0]) : null;
     if (pmSel) store.set('mm.pmsel', pmSel);
     $('pmRows').innerHTML = rows.length
-      ? rows.map(r => `<tr data-s="${r.s}" class="${r.s === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
-      : `<tr><td class="empty" colspan="${cols.length}">Aucun titre avec ces filtres pour cette séance.</td></tr>`;
-    $('pmMeta').innerHTML = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}` +
+      ? rows.map(r => `<tr data-s="${pmId(r)}" class="${pmId(r) === pmSel ? 'sel' : ''}">${cols.map(d => cell[d.id](r)).join('')}</tr>`).join('')
+      : `<tr><td class="empty" colspan="${cols.length}">${pmWatch ? `Aucun titre suivi${pmTagF !== 'all' ? ' avec cette étiquette' : ''} : touche ☆ devant un symbole du scan pour le garder en vue.` : 'Aucun titre avec ces filtres pour cette séance.'}</td></tr>`;
+    if (pmWatch) $('pmMeta').textContent = `${all.length} titre${all.length > 1 ? 's' : ''} suivi${all.length > 1 ? 's' : ''} · gardés sur cet appareil · « Depuis » : titres du dernier scan seulement`;
+    else $('pmMeta').innerHTML = `${fmtDate(snap.d)} · ${snap.closed ? 'post-market terminé' : 'post-market en cours'} · relevé à ${pmTime(snap)}` +
       (snap.trunc ? ` · <span class="wait" title="Le robot relève au plus ${CFG.postmarket.max_per_side} titres par sens : il y en avait davantage">liste tronquée à ${CFG.postmarket.max_per_side} titres</span>` : '');
     const sel = $('pmRows').querySelector && $('pmRows').querySelector('tr.sel');
-    detNavSync('pm', rows.map(r => r.s), pmSel);
+    detNavSync('pm', rows.map(pmId), pmSel);
     fitPmLayout();
     if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
-    pmDetail(rows.find(r => r.s === pmSel) || null);
+    pmDetail(rows.find(r => pmId(r) === pmSel) || null);
   }
   function fitPmLayout() {                               // la liste et le graphique prennent la hauteur disponible de la fenêtre
     const wrap = $('pmScroll'), cv = $('pmCanvas');
@@ -2063,8 +2133,8 @@
   // fiche du titre sélectionné : chiffres du scan + lendemain + résultats
   function pmDetail(r) {
     pmLoad(r);
-    if (!r) { $('pmTitle').textContent = ''; $('pmInfo').textContent = ''; $('pmFacts').innerHTML = ''; $('pmNote').innerHTML = ''; $('pmWhen').textContent = ''; pmRedraw(); return; }
-    const snap = pmCur, nx = snap.nextd ? fmtDate(snap.nextd, { day: 'numeric', month: 'short' }) : null;
+    if (!r) { $('pmTitle').textContent = ''; $('pmInfo').textContent = ''; $('pmFacts').innerHTML = ''; $('pmNote').innerHTML = ''; $('pmWhen').textContent = ''; $('pmWatchSet').hidden = true; pmRedraw(); return; }
+    const snap = r._snap || (r._old ? { d: r._d } : pmCur), nx = snap.nextd ? fmtDate(snap.nextd, { day: 'numeric', month: 'short' }) : null;
     $('pmTitle').textContent = `${r.s} · ${r.n}`;
     $('pmInfo').textContent = `${pmSector(r)}${r.ind ? ' · ' + r.ind : ''}${pmHist[r.s] ? '' : ' · graphique indisponible pour ce titre'}`;
     $('pmWhen').textContent = `séance du ${fmtDate(snap.d, { day: 'numeric', month: 'short' })}`;
@@ -2076,19 +2146,40 @@
       fact('Capitalisation', r.cap == null ? '—' : big(r.cap) + ' $') +
       fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
-      fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : 'séance pas encore jouée');
+      fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : r._old ? '— (séance sortie du fichier)' : 'séance pas encore jouée');
     const link = u => u.replace(/\{sym\}/g, encodeURIComponent(r.s)).replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
     const rc = recapUrl();
     $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('') +
       (rc ? `<a href="${rc}#${encodeURIComponent(r.s)}" target="_blank" rel="noopener" title="Bloc de ${r.s} dans ton récap privé (dernière séance)">Récap news ↗</a>` : '');
+    const w = watchGet(r.s, r._d), note = $('pmWNote');       // suivi : étiquette + note, pour cette séance
+    $('pmWatchSet').hidden = false;
+    $('pmWTags').innerHTML = `<button data-wt="" class="${w ? '' : 'on'}" aria-pressed="${!w}">Non suivi</button>` +
+      TAGS.map(t => `<button data-wt="${t.id}" class="tg-${t.tone}${w && w.tag === t.id ? ' on' : ''}" aria-pressed="${!!(w && w.tag === t.id)}">${t.icon} ${t.label}</button>`).join('');
+    if (document.activeElement !== note) note.value = w ? w.note || '' : '';
+    $('pmWMeta').innerHTML = w ? `Suivi depuis le ${fmtDate(w.at.slice(0, 10), { day: 'numeric', month: 'short' })}` +
+      (r.since != null ? ` · <span class="${cls(r.since)}">${pct(r.since)}</span> depuis (dernière clôture / cours post-market)` : '') : 'Choisis une étiquette pour garder ce titre en vue.';
     pmRedraw();
   }
+  $('pmWTags').addEventListener('click', e => {
+    const b = e.target.closest('button'), r = pmRowSel; if (!b || !r) return;
+    watchSet(r, r._d, { tag: b.dataset.wt || null }); renderPM();
+  });
+  $('pmWNote').addEventListener('change', () => {          // une note suffit à suivre le titre (1re étiquette)
+    const r = pmRowSel, v = $('pmWNote').value.trim(); if (!r || (!v && !watchGet(r.s, r._d))) return;
+    watchSet(r, r._d, { note: v }); renderPM();
+  });
   $('pmHead').addEventListener('click', e => {
     const th = e.target.closest('th'); const d = th && PM_DEFS.find(x => x.id === th.dataset.k); if (!d) return;
     pmSort = pmSort.k === d.id ? { k: d.id, dir: -pmSort.dir } : { k: d.id, dir: d.dir };
+    if (pmWatch) pmWSorted = true;
     renderPM();
   });
   $('pmRows').addEventListener('click', e => {
+    const tb = e.target.closest('.tagb');
+    if (tb) {                                            // ☆ : suivre avec la 1re étiquette ; titre déjà suivi : ne plus suivre
+      const r = pmShown.find(x => pmId(x) === tb.dataset.k); if (!r) return;
+      watchSet(r, r._d, { tag: watchGet(r.s, r._d) ? null : TAGS[0].id }); renderPM(); return;
+    }
     const tr = e.target.closest('tr'); if (!tr || !tr.dataset.s) return;
     pmSel = tr.dataset.s;
     if (isStacked()) { $('view-pm').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }   // empilé : vue détail
@@ -2096,7 +2187,7 @@
   });
   // copie des tickers du tableau (ordre et filtres affichés) : « LQDA, TCRT, … » — se colle dans une liste TradingView, une note, un tableur
   $('pmCopy').addEventListener('click', async () => {
-    const b = $('pmCopy'), txt = pmShown.map(r => r.s).join(', '); if (!txt) return;
+    const syms = [...new Set(pmShown.map(r => r.s))], b = $('pmCopy'), txt = syms.join(', '); if (!txt) return;
     let ok = false;
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (x) { /* repli ci-dessous */ }
     if (!ok) {                                           // repli : ancien navigateur ou page hors https
@@ -2106,7 +2197,7 @@
       ta.remove();
     }
     const lab = b.querySelector('span');
-    lab.textContent = ok ? `${pmShown.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
+    lab.textContent = ok ? `${syms.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
     clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
   });
   // récap news privé (page claude.ai) : lien collé dans Réglages, gardé sur l'appareil (hors « mm. » : « Réinitialiser » ne l'efface pas)
@@ -2130,6 +2221,8 @@
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.dir) { pmDir = b.dataset.dir; store.set('mm.pmdir', pmDir); }
     else if (b.dataset.er) { pmEarn = !pmEarn; store.set('mm.pmer', pmEarn ? '1' : '0'); }
+    else if (b.dataset.watch) { pmWatch = b.dataset.watch === '1'; pmWSorted = false; pmTagF = 'all'; store.set('mm.pmwatch', pmWatch ? '1' : '0'); }
+    else if (b.dataset.tag) pmTagF = b.dataset.tag;
     renderPM();
   });
   document.addEventListener('keydown', e => {          // ↑ ↓ : titre précédent / suivant dans l'ordre affiché
@@ -2140,9 +2233,9 @@
     pmGo(e.key === 'ArrowDown' ? 1 : -1);
   });
   function pmGo(d) {                                     // titre précédent / suivant dans l'ordre affiché (tri + filtres) ; false en bout de liste
-    const j = pmShown.findIndex(r => r.s === pmSel) + d;
+    const j = pmShown.findIndex(r => pmId(r) === pmSel) + d;
     if (j < 0 || j >= pmShown.length) return false;
-    pmSel = pmShown[j].s; renderPM(); detSlide('view-pm', d); return true;
+    pmSel = pmId(pmShown[j]); renderPM(); detSlide('view-pm', d); return true;
   }
   detNavBind('view-pm', 'pm', pmGo);
 
@@ -2170,8 +2263,8 @@
     pmCtx.sym = r ? r.s : null;
   }
   function pmAhMark() {                                  // {p : cours post-market, i : index de la séance du scan, chg}
-    const r = pmRowSel; if (!r || r.pc == null || !pmCur) return null;
-    const i = T.indexOf(pmCur.d); return i < 0 ? null : { p: r.pc, i, chg: r.pch };
+    const r = pmRowSel, d = (r && r._d) || (pmCur && pmCur.d); if (!r || r.pc == null || !d) return null;
+    const i = T.indexOf(d); return i < 0 ? null : { p: r.pc, i, chg: r.pch };
   }
   function drawAhMark(g, c, Y, ah) {                     // point « AH » une demi-barre après la séance du scan, relié à la clôture
     const b = bars.get(T[ah.i]); if (!b) return;
