@@ -7,3 +7,10 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-15,2026-10-15T20:37:38+00:00,false,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,4.34,1.4,4.57,5.3,160989,0.15,383945950,66432551,
 2026-10-15,2026-10-15T20:37:38+00:00,false,NYSE:GWRE,GWRE,"Guidewire Software, Inc.",Technology Services,Information Technology Services,175.77,6.58,168.0401,-4.4,119674,0.08,14411851120,81279117,
 2026-10-15,2026-10-15T20:37:38+00:00,false,NYSE:KNX,KNX,Knight-Swift Transportation Holdings Inc. Class A,Transportation,Trucking,65.28,3.27,61.55,-5.71,645712,0.17,10624711311,158182068,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NASDAQ:AMRO,AMRO,Amaero Inc.,Producer Manufacturing,Metal Fabrication,4.41,,4.01,-9.07,160169,,4204172952,,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NASDAQ:HNRG,HNRG,Hallador Energy Co,Utilities,Electric Utilities,12.71,2.33,12.06,-5.11,110165,0.13,599192062,35928503,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,4.34,1.4,4.52,4.15,163756,0.16,383945950,66432551,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NYSE:CNS,CNS,"Cohen & Steers, Inc.",Finance,Investment Managers,68.98,3.9,73.6936,6.83,100265,0.34,3547057222,27772083,amc
+2026-10-15,2026-10-15T20:52:42+00:00,false,NYSE:GWRE,GWRE,"Guidewire Software, Inc.",Technology Services,Information Technology Services,175.77,6.58,168.0401,-4.4,119674,0.08,14411851120,81279117,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NYSE:KNX,KNX,Knight-Swift Transportation Holdings Inc. Class A,Transportation,Trucking,65.28,3.27,61.55,-5.71,645712,0.17,10624711311,158182068,
+2026-10-15,2026-10-15T20:52:42+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,10.46,3.56,10.98,4.97,320108,0.4,753093932,54610103,
