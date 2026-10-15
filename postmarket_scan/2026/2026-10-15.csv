@@ -1,3 +1,9 @@
 session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
 2026-10-15,2026-10-15T20:22:43+00:00,false,NYSE:GWRE,GWRE,"Guidewire Software, Inc.",Technology Services,Information Technology Services,175.77,6.58,168.0401,-4.4,119674,0.08,14411851120,81279117,
 2026-10-15,2026-10-15T20:22:43+00:00,false,NYSE:RSKD,RSKD,Riskified Ltd. Class A,Technology Services,Packaged Software,8.61,6.43,8.26,-4.07,475335,0.28,1136844866,67399109,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NASDAQ:AMRO,AMRO,Amaero Inc.,Producer Manufacturing,Metal Fabrication,4.41,,4.12,-6.58,150888,,4204172952,,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NASDAQ:HNRG,HNRG,Hallador Energy Co,Utilities,Electric Utilities,12.71,2.33,12.06,-5.11,110165,0.13,599192062,35928503,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NASDAQ:PPTA,PPTA,Perpetua Resources Corp.,Non-Energy Minerals,Precious Metals,18.515,6.53,17.64,-4.73,109611,0.08,2316148667,116332088,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,4.34,1.4,4.57,5.3,160989,0.15,383945950,66432551,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NYSE:GWRE,GWRE,"Guidewire Software, Inc.",Technology Services,Information Technology Services,175.77,6.58,168.0401,-4.4,119674,0.08,14411851120,81279117,
+2026-10-15,2026-10-15T20:37:38+00:00,false,NYSE:KNX,KNX,Knight-Swift Transportation Holdings Inc. Class A,Transportation,Trucking,65.28,3.27,61.55,-5.71,645712,0.17,10624711311,158182068,
