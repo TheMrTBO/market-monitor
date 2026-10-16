@@ -12,3 +12,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-16,2026-10-16T21:07:36+00:00,false,NASDAQ:INTR,INTR,"Inter & Co., Inc. Class A",Finance,Major Banks,6.73,-0.44,7.0098,4.16,484242,0.08,2961235442,240422943,
 2026-10-16,2026-10-16T21:07:36+00:00,false,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,8.29,20.32,191546,3.38,13942794,1044036,
 2026-10-16,2026-10-16T21:07:36+00:00,false,NYSE:GRNT,GRNT,"Granite Ridge Resources, Inc.",Energy Minerals,Oil & Gas Production,5.45,7.07,5.1935,-4.71,114178,0.1,718856319,66733749,
+2026-10-16,2026-10-16T21:22:37+00:00,false,NASDAQ:ADTN,ADTN,"ADTRAN Holdings, Inc.",Electronic Technology,Computer Peripherals,6.31,-3.37,6.86,8.72,233494,0.12,514147695,74772954,
+2026-10-16,2026-10-16T21:22:37+00:00,false,NASDAQ:CMRC,CMRC,"Commerce.com, Inc.",Technology Services,Packaged Software,3.44,-3.37,3.25,-5.52,123772,0.13,285034932,73294917,
+2026-10-16,2026-10-16T21:22:37+00:00,false,NASDAQ:INTR,INTR,"Inter & Co., Inc. Class A",Finance,Major Banks,6.73,-0.44,7.0098,4.16,484242,0.08,2961235442,240422943,
+2026-10-16,2026-10-16T21:22:37+00:00,false,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,8.4018,21.94,205269,3.6,13942794,1044036,
+2026-10-16,2026-10-16T21:22:37+00:00,false,NYSE:GRNT,GRNT,"Granite Ridge Resources, Inc.",Energy Minerals,Oil & Gas Production,5.45,7.07,5.1935,-4.71,114178,0.1,718856319,66733749,
