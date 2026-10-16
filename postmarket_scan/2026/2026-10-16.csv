@@ -1,0 +1,2 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-16,2026-10-16T20:22:42+00:00,false,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,26.59,-14.31,27.85,4.74,155394,0.08,952015214,31110612,
