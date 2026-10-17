@@ -73,3 +73,6 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-16,2026-10-17T00:22:32+00:00,true,NASDAQ:NCNO,NCNO,nCino Inc,Technology Services,Packaged Software,20.51,-2.89,17.58,-14.29,244540,0.09,2168649046,97811192,
 2026-10-16,2026-10-17T00:22:32+00:00,true,NASDAQ:NEXT,NEXT,NextDecade Corp.,Energy Minerals,Oil & Gas Production,6.26,4.16,6.0,-4.15,327895,0.12,1666320822,127573686,
 2026-10-16,2026-10-17T00:22:32+00:00,true,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,8.2,19.01,272593,4.65,13942794,1044036,
+2026-10-16,2026-10-17T00:29:42+00:00,true,NASDAQ:NCNO,NCNO,nCino Inc,Technology Services,Packaged Software,20.51,-2.89,17.58,-14.29,244540,0.09,2168649046,97811192,
+2026-10-16,2026-10-17T00:29:42+00:00,true,NASDAQ:NEXT,NEXT,NextDecade Corp.,Energy Minerals,Oil & Gas Production,6.26,4.16,6.0,-4.15,327895,0.12,1666320822,127573686,
+2026-10-16,2026-10-17T00:29:42+00:00,true,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,8.2,19.01,272593,4.65,13942794,1044036,
