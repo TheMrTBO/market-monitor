@@ -68,3 +68,5 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-16,2026-10-16T23:52:43+00:00,false,NASDAQ:CMRC,CMRC,"Commerce.com, Inc.",Technology Services,Packaged Software,3.44,-3.37,3.25,-5.52,123772,0.13,285034932,73294917,
 2026-10-16,2026-10-16T23:52:43+00:00,false,NASDAQ:GEMI,GEMI,"Gemini Space Station, Inc. Class A",Finance,Investment Banks/Brokers,3.57,-7.99,3.74,4.76,166246,0.08,462858372,40664347,
 2026-10-16,2026-10-16T23:52:43+00:00,false,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,7.83,13.64,268015,4.58,13942794,1044036,
+2026-10-16,2026-10-17T00:07:40+00:00,true,NASDAQ:NEXT,NEXT,NextDecade Corp.,Energy Minerals,Oil & Gas Production,6.26,4.16,6.0,-4.15,327895,0.12,1666320822,127573686,
+2026-10-16,2026-10-17T00:07:40+00:00,true,NASDAQ:RPGL,RPGL,Republic Power Group Limited Class A,Technology Services,Information Technology Services,6.89,-48.31,7.6801,11.47,268706,4.59,13942794,1044036,
