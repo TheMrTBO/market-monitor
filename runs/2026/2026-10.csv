@@ -185,3 +185,9 @@ run_id,source,started_at,duration_s,ok,attempts,last_session,note
 38986534859-1,sectors,2026-10-17T00:29:10+00:00,4.6,true,1,2026-10-16,"source en retard (2026-10-15), version precedente conservee (2026-10-16)"
 38986534859-1,stockbee,2026-10-17T00:29:10+00:00,11.9,true,1,2026-10-16,
 38986534859-1,vix,2026-10-17T00:29:10+00:00,0.4,true,1,2026-10-15,
+38990203700-1,breadth,2026-10-17T01:17:51+00:00,7.8,true,1,2026-10-15,
+38990203700-1,postmarket,2026-10-17T01:17:51+00:00,1.2,true,1,2026-10-16,
+38990203700-1,prices,2026-10-17T01:17:51+00:00,6.8,true,1,2026-10-16,"source en retard (2026-10-15), version precedente conservee (2026-10-16)"
+38990203700-1,sectors,2026-10-17T01:17:51+00:00,5.2,true,1,2026-10-16,"source en retard (2026-10-15), version precedente conservee (2026-10-16)"
+38990203700-1,stockbee,2026-10-17T01:17:51+00:00,13.2,true,1,2026-10-16,
+38990203700-1,vix,2026-10-17T01:17:51+00:00,0.5,true,1,2026-10-15,
