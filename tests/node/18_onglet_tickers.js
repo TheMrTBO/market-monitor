@@ -114,10 +114,17 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
   ok('mobile : toucher une ligne ouvre la fiche (vue détail)',F.$('view-tk').classList._s.has('detail')&&ls2['mm.tksel']==='AMD');
   F.L.tkBack.click({});
   ok('mobile : « ‹ Liste » revient à la liste',!F.$('view-tk').classList._s.has('detail'));
-  // action hors filtres : pas de graphique, message
-  const hors=T.rows.find(x=>!x[col.kept]&&x[col.ti]!=null)[0];
+  // action hors filtres : graphique depuis le fichier « hors filtres » de son industrie, chargé pour sa fiche
+  const hr=T.rows.find(x=>!x[col.kept]&&x[col.ti]!=null&&T.inds[x[col.ind]][2]), hors=hr[0], xf=T.inds[hr[col.ind]][2];
   F.sb.innerWidth=1200; F.$('tkInput').value=hors; F.L.tkGo.click();
-  ok('action hors filtres : graphique indisponible, expliqué',/hors filtres/.test(F.$('tkInfo')._t||''),hors+' : '+F.$('tkInfo')._t);
+  const sx=F.document.body.children.find(c=>c.src&&c.src.includes(xf+'.js'));
+  ok('action hors filtres : signalée, fichier hors filtres demandé',/hors filtres/.test(F.$('tkInfo')._t||'')&&!!sx,hors+' : '+(sx&&sx.src));
+  vm.runInContext(fs.readFileSync(sx.src.split('?')[0],'utf8'),F.sb); F.R.tkCanvas=[]; sx.onload();
+  const b2=(F.R.tkCanvas||[]).filter(r=>r[3]>0&&r[3]<20&&r[4]>0&&(r[0]==='#f6e24b'||r[0]==='#cf5148')).length;
+  ok('action hors filtres : bougies japonaises',b2>20,b2+' corps de bougie');
+  // action sans historique de cours : graphique indisponible, expliqué
+  const nh=T.rows.find(x=>!x[col.kept]&&x[col.c]==null);
+  if(nh){F.$('tkInput').value=nh[0]; F.L.tkGo.click(); ok('action sans historique : graphique indisponible, expliqué',/pas d'historique/.test(F.$('tkInfo')._t||''),nh[0]+' : '+F.$('tkInfo')._t);}
 }
 // post-market : même fiche standard + informations du scan ; liste du scan → onglet Tickers ; « Ajouter à Tickers »
 {

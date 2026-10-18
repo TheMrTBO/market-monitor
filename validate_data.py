@@ -243,6 +243,18 @@ def check_industries(data, today, folder=None):
             if tk.get("asof") != data.get("asof") or sum(r[kept] for r in tk["rows"]) != total or len(tk["rows"]) < total \
                     or any(not 0 <= r[tk["cols"].index("ind")] < len(tk["inds"]) for r in tk["rows"]):
                 errors.append(f"industries : {tk_file.name} incohérent (séance, actions retenues ou industries)")
+            bad_x = []                        # fichiers des actions hors filtres (publish_all) : présents, même séance
+            for ind in tk["inds"]:
+                if len(ind) > 2 and ind[2]:
+                    try:
+                        text = (Path(folder) / f"{ind[2]}.js").read_text()
+                        x = json.loads(text[text.index("] = ") + 4:].strip().rstrip(";"))
+                        if x.get("asof") != data.get("asof") or not x.get("rows"):
+                            bad_x.append(ind[2])
+                    except (OSError, ValueError):
+                        bad_x.append(ind[2])
+            if bad_x:
+                errors.append(f"industries : {len(bad_x)} fichier(s) hors filtres absent(s) ou incohérent(s) ({', '.join(bad_x[:3])})")
         except (OSError, ValueError, KeyError, IndexError, TypeError):
             errors.append(f"industries : {tk_file.name} absent ou illisible")
     return errors

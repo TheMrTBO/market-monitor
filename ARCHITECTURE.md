@@ -158,7 +158,8 @@ l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers 
   en tête du lot Yahoo du lendemain (`config/short.toml postmarket_first`).
 - Onglet Tickers : liste + fiche côte à côte (bureau) ou liste / fiche (mobile, ‹ › et balayage, comme le post-market) ;
   fiche = bougies (fichier `industries/<industrie>.js`, chargé à la demande), TI65 dans le temps, cap, flottant, short ;
-  action « hors filtres » : pas de graphique (absente des fichiers d'industrie).
+  action « hors filtres » : graphique depuis `industries/<industrie>--hors.js` (`publish_all`, chargé seulement pour sa fiche) ;
+  seules les actions sans historique de cours Polygon (≈ 130 : introductions récentes, ADR) n'ont pas de graphique.
 - Onglet Tickers : short interest Yahoo (`fetch_short.py`) publié deux fois par mois par les marchés ; rafraîchi par lots de 800
   (cycle complet de ~5 200 actions en ~7 passages). Yahoo n'a pas d'API officielle : en cas de blocage, les valeurs déjà
   publiées restent (date du relevé affichée). Créneau cron-job.org `17 12 * * 1-6` à créer à la main (sinon : secours GitHub).

@@ -160,7 +160,8 @@ def check():
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
-            and ind["output"].get("volume_unit", 0) >= 1):
+            and ind["output"].get("volume_unit", 0) >= 1 and isinstance(ind["output"].get("publish_all"), bool)
+            and re.fullmatch(r"-{2}[a-z0-9-]+", ind["output"].get("extra_suffix", ""))):
         errors.append("industries : universe.market, universe.type, universe.scan_limit > 0 et output.volume_unit ≥ 1 attendus")
     if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
         errors.append("display.sectors.views : clés etf et tv attendues")

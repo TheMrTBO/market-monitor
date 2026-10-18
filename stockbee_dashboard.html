@@ -2106,7 +2106,7 @@
       <p><b>Thèmes</b> : les industries de ta liste, de la mieux à la moins bien classée. <span class="heat hot">chaud</span> = top ${CFG.tickers.hot_top_pct} % des industries, ${TIN} &gt; 1 et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <span class="heat emerging">émergent</span> = ${TIN} &gt; 1 et au moins ${CFG.tickers.emerging_min_delta} places gagnées en ${TI.delta} séances. Seuils : config/display.toml [tickers].</p>
       <p>Clic sur une action ou un thème : onglet Secteurs (bougies, ${TIN}). Toutes les actions US sont reconnues ; « hors filtres » = ne compte pas dans l'indice de son industrie (${filt}).</p>
       <p class="src">Sources : TradingView (classification, capitalisation), Polygon (cours), Yahoo Finance (flottant, short interest, rafraîchi par lots ; publié deux fois par mois).</p>`];
-    if (kind === 'tkchart') return ['Graphique de l\'action', `<p>Bougies journalières (cours Polygon ajustés des splits) et moyennes mobiles (réglages de l'onglet MM) ; dessous, le ${TIN} dans le temps et la fiche : capitalisation, flottant, short interest (Yahoo, date du relevé), secteur et industrie avec leur rang.</p><p>Action « hors filtres » : pas de graphique (elle n'est pas dans les fichiers de la vue TradingView).</p>`];
+    if (kind === 'tkchart') return ['Graphique de l\'action', `<p>Bougies journalières (cours Polygon ajustés des splits) et moyennes mobiles (réglages de l'onglet MM) ; dessous, le ${TIN} dans le temps et la fiche : capitalisation, flottant, short interest (Yahoo, date du relevé), secteur et industrie avec leur rang.</p><p>Action « hors filtres » (prix, volume ou capitalisation sous les seuils) : graphique depuis un fichier à part, chargé seulement pour sa fiche ; elle ne compte pas dans l'indice de son industrie.</p>`];
     if (kind === 'tk') return {
       sym: ['Ticker', '<p>Symbole ; dessous, nom de la société (« hors filtres » : pas dans l\'indice de son industrie).</p>'],
       sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
@@ -2563,7 +2563,7 @@
     const [indName, secIx] = T.inds[c.ind], secName = T.secs[secIx], R = tkRanks();
     const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
     const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
-    return { s: c.s, n: c.n, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind,
+    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind,
              secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
   }
   const TK_DEFS = {
@@ -2695,8 +2695,11 @@
   // --- fiche et graphique de l'action sélectionnée : bougies (fichier de son industrie), TI65 dans le temps, chiffres clés
   const tkCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null, n: 0 };
   function tkStock(r) {                                  // {D, x} pour secBarsFor ; {wait} pendant le chargement ; {none} sans graphique
-    const I = IND && IND.industries.find(i => i.k === r.indName);
-    if (!I || !r.kept) return { none: true };
+    // action retenue : fichier de son industrie ; hors filtres : fichier « hors filtres » de l'industrie (s'il est publié)
+    if (r.c == null) return { none: true };              // pas d'historique de cours (introduction récente, absente de Polygon)
+    const ix = window.TICKERS.inds.findIndex(i => i[0] === r.indName);
+    const I = r.kept ? IND && IND.industries.find(i => i.k === r.indName) : ix >= 0 && window.TICKERS.inds[ix][2] ? { k: r.indName + ' (hors filtres)', f: window.TICKERS.inds[ix][2] } : null;
+    if (!I) return { none: true };
     const F = window.TV_STOCKS && window.TV_STOCKS[I.f];
     if (!F) { if (!tvFailed.has(I.f)) { tvLoad(I, renderTickers); return { wait: true }; } return { none: true }; }
     const row = F.rows.find(x => x[0] === r.s); if (!row) return { none: true };
@@ -2762,8 +2765,8 @@
     if (!r) { ['tkTitle', 'tkInfo', 'tkWhen', 'tkScoreNow'].forEach(i => { $(i).textContent = ''; }); $('tkFacts').innerHTML = ''; $('tkLinks').innerHTML = ''; tkRedraw(); return; }
     const last = tkCtx.bars.size ? [...tkCtx.bars.values()].pop() : null;
     $('tkTitle').textContent = `${r.s} · ${r.n}`;
-    $('tkInfo').textContent = `${r.indName} (${tvSecLabel(r.secName)})` + (S.wait ? ' · chargement du graphique…'
-      : S.none ? ` · graphique indisponible : action hors filtres (prix ≥ ${nf(TIC.min_price)} $, volume moyen ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $)` : '');
+    $('tkInfo').textContent = `${r.indName} (${tvSecLabel(r.secName)})` + (r.kept ? '' : ' · hors filtres (ne compte pas dans l\'indice de l\'industrie)')
+      + (S.wait ? ' · chargement du graphique…' : S.none ? ' · graphique indisponible (pas d\'historique de cours : introduction récente ou titre absent de Polygon)' : '');
     $('tkWhen').textContent = `séance du ${fmtDate(window.TICKERS.asof, { day: 'numeric', month: 'short' })}`;
     $('tkScoreName').textContent = 'Score ' + TIN;
     const dv = r.ti == null ? null : (r.ti - 1) * 100;

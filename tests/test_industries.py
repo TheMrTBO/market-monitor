@@ -130,6 +130,12 @@ with tempfile.TemporaryDirectory() as tmp:
     check("composition publiée relue (date du scan, mêmes actions)", scan_d == dates[-1]
           and sorted(r["name"] for r in rows_back) == sorted(row) and sorted(m["s"] for m in fi.select(rows_back, close, vol)) == kept)
     check("index illisible : pas de composition", fi.published_universe(Path(tmp) / "absent.js") == (None, None))
+    xf, xn = fi.extras(dates, close, vol, ohlc, tv, members, keep=70)
+    check("actions hors filtres : un fichier par industrie, suffixe --hors, actions sans cours exclues",
+          xn.get("Banks", "").endswith(fi.CFG["output"]["extra_suffix"]) and [r[0] for r in xf[xn["Banks"]]["rows"]] == ["EEE", "PNY", "SML"]
+          and "PRF" not in str(xf) and all("AAA" != r[0] for f in xf.values() for r in f["rows"]))
+    tk2 = fi.tickers(dates, close, vol, tv, members, dates[-1], False, xn)
+    check("index des tickers : fichier hors filtres de l'industrie", dict((i[0], i[2]) for i in tk2["inds"])["Banks"] == xn["Banks"])
     def boom():
         raise RuntimeError("TradingView injoignable")
     called = []

@@ -15,7 +15,9 @@ Sorties :
   industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, vu (unité des volumes), rows:[[symbole, nom, cap, [clôtures], [volumes / vu],
                              [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
-  tickers_data.js            window.TICKERS = {asof, scan, fallback, secs, inds, cols, rows} : toutes les actions ordinaires
+  industries/<f>--hors.js    mêmes colonnes, actions hors filtres de l'industrie (publish_all) : graphique de leur fiche.
+  tickers_data.js            window.TICKERS = {asof, scan, fallback, secs, inds:[[nom, secteur, fichier hors filtres]], cols, rows} :
+                             toutes les actions ordinaires
                              US du scanner (retenues ou non) avec secteur, industrie, capitalisation, flottant, TI65 (onglet
                              Tickers, chargé à l'ouverture). Sert aussi de composition publiée : une séance déjà publiée la
                              reprend (TradingView non réinterrogé) et, si TradingView ne répond pas, la dernière composition
@@ -156,6 +158,33 @@ def num(v):
     return None if v is None or (isinstance(v, float) and math.isnan(v)) else float(f"{v:.6g}")
 
 
+def stock_row(t, name, cap, close, vol, ohlc, lo, unit):
+    """[symbole, nom, cap, clôtures, volumes / unit, (ouvertures, plus hauts, plus bas si l'OHLC est en cache)]."""
+    return [t, name, int(cap) if cap else None, [num(v) for v in close[t][lo:]],
+            [None if v is None else round(v / unit) for v in vol[t][lo:]],
+            *([num(v) for v in arr[lo:]] for arr in ohlc.get(t, ()))]
+
+
+def extras(dates, close, vol, ohlc, tv_rows, members, keep=CFG["output"]["stock_sessions"]):
+    """Fichiers des actions hors filtres ({fichier: payload}, {industrie: fichier}) : mêmes colonnes que les fichiers
+    d'industrie, chargés seulement pour la fiche d'une de ces actions (onglet Tickers). Actions sans cours : rien."""
+    if not CFG["output"]["publish_all"]:
+        return {}, {}
+    kept, lo, unit = {m["s"] for m in members}, max(0, len(dates) - keep), CFG["output"]["volume_unit"]
+    by_ind = defaultdict(list)
+    for r in universe_rows(tv_rows):
+        if r["name"] not in kept and r["name"] in close:
+            by_ind[r["industry"]].append(r)
+    files, names, taken = {}, {}, set()
+    for ind, rs in sorted(by_ind.items()):
+        f = slug(ind, taken) + CFG["output"]["extra_suffix"]   # « -- » n'apparaît jamais dans un nom d'industrie (slug)
+        names[ind] = f
+        files[f] = {"asof": dates[-1], "dates": dates[lo:], "vu": unit,
+                    "rows": [stock_row(r["name"], r.get("description") or r["name"], r.get("market_cap_basic"), close, vol, ohlc, lo, unit)
+                             for r in sorted(rs, key=lambda r: r["name"])]}
+    return files, names
+
+
 def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], ohlc=None):
     """(payload de industries_data.js, {fichier: payload de industries/<fichier>.js}). Un indice : c (courbe de tendance :
     pas de bougie, un indice équipondéré n'a pas de vrai plus haut / plus bas) ; une action : [symbole, nom, cap, clôtures,
@@ -177,10 +206,7 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
         ts, f = [m["s"] for m in ms], slug(ind, taken)
         industries.append({"k": ind, "sec": sec_of[ind], "f": f, "n": len(ts),
                            "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)})
-        rows = [[m["s"], m["n"], int(m["cap"]) if m["cap"] else None, [num(v) for v in close[m["s"]][lo:]],
-                 [None if v is None else round(v / unit) for v in vol[m["s"]][lo:]],
-                 *([num(v) for v in arr[lo:]] for arr in ohlc.get(m["s"], ()))]     # OHLC : seulement s'il est en cache
-                for m in sorted(ms, key=lambda m: m["s"])]
+        rows = [stock_row(m["s"], m["n"], m["cap"], close, vol, ohlc, lo, unit) for m in sorted(ms, key=lambda m: m["s"])]
         files[f] = {"asof": dates[-1], "dates": dates[lo:], "vu": unit, "rows": rows}
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
 
@@ -204,7 +230,7 @@ def published_universe(path=None):
         return None, None
 
 
-def tickers(dates, close, vol, tv_rows, members, scan, fallback):
+def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=None):
     """Payload de tickers_data.js : une ligne par action de l'univers (cols = TK_COLS)."""
     rows = universe_rows(tv_rows)
     by_ind = defaultdict(list)
@@ -236,7 +262,8 @@ def tickers(dates, close, vol, tv_rows, members, scan, fallback):
                     None if not c or ti65(c, n - 1 - delta) is None else round(ti65(c, n - 1 - delta), 4),
                     rank.get(t), num(c[-1]) if c and c[-1] else None, round(sum(vs) / len(vs)) if vs else None])
     return {"asof": dates[-1], "scan": scan, "fallback": fallback, "secs": secs,
-            "inds": [[k, secs.index(max(set(by_ind[k]), key=by_ind[k].count))] for k in inds], "cols": TK_COLS, "rows": out}
+            "inds": [[k, secs.index(max(set(by_ind[k]), key=by_ind[k].count)), (extra_names or {}).get(k)] for k in inds],
+            "cols": TK_COLS, "rows": out}
 
 
 def composition(asof, scan, prev, scanner=None):
@@ -294,7 +321,9 @@ def main():
     members = select(tv, close, vol)
     payload, files = compute(dates, close, vol, members, ohlc=ohlc)
     payload["comp"] = {"asof": scan, "fallback": fallback}     # date de la composition (secours si TradingView a échoué)
-    tk = tickers(dates, close, vol, tv, members, scan, fallback)
+    extra_files, extra_names = extras(dates, close, vol, ohlc, tv, members)
+    files.update(extra_files)
+    tk = tickers(dates, close, vol, tv, members, scan, fallback, extra_names)
     write(payload, files, tk)
     ranked = sum(i["n"] >= CFG["index"]["min_members"] for i in payload["industries"])
     print(f"{len(tk['rows'])} actions dans l'index, {len(members)} retenues : {len(payload['sectors'])} secteurs, "
