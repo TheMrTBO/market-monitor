@@ -130,3 +130,10 @@ ok('retour Secteurs', /<tr data-s=/.test(A.$('secRows')._h));
   ok('après rechargement, rien de neuf : « Déjà à jour »', /Déjà à jour/.test(G.$('toast')._h) && !SS['mm.reload'], strip(G.$('toast')._h).slice(0,140));
   if(bad)process.exit(1);
 })();
+// garde-fou : aucune règle CSS d'un autre onglet ne masque une colonne du scan (classes .c-<colonne> partagées par .rk)
+{
+  const css=(fs.readFileSync('stockbee_dashboard.html','utf8').match(/<style>([\s\S]*?)<\/style>/)||['',''])[1];
+  const cols=['sym','pch','dv','pv','rv','cap','nx'];
+  const hid=[...css.matchAll(/([^{}]+)\{[^}]*display:\s*none[^}]*\}/g)].map(m=>m[1]).filter(sel=>sel.split(',').some(x=>/\.rk\b/.test(x)&&!/#secTable/.test(x)&&cols.some(c=>new RegExp('\\.c-'+c+'\\b').test(x))));
+  console.log((hid.length?'Error ':'ok    ')+'aucune colonne du scan masquée par une règle .rk générale'+(hid.length?' : '+hid.join(' | '):''));
+}

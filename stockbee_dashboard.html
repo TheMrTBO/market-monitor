@@ -80,7 +80,7 @@
   .rk th.c-open { width: 34px; }
   .rk button.drill { border: 1px solid var(--border); background: none; color: var(--up); border-radius: 7px; width: 26px; height: 24px; padding: 0; font-size: 16px; line-height: 1; cursor: pointer; }
   .rk button.drill:hover { background: color-mix(in srgb, var(--up) 18%, transparent); }
-  .rk td.cnt, .rk td.brd, .rk td.cap { color: var(--muted); font-variant-numeric: tabular-nums; }
+  #secTable td.cnt, #secTable td.brd, #secTable td.cap { color: var(--muted); font-variant-numeric: tabular-nums; }
   .secopen { border: 1px solid color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 14%, transparent); color: var(--text);
              border-radius: 999px; padding: 3px 12px; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .secinfo a { color: var(--up); }
@@ -508,7 +508,7 @@
     #secTable td.dev .trk { display: none; }          /* mobile : la miniature du TI65 remplace la barre de l'écart */
     .rk .mob { display: inline; }
     #secTable th.c-brd { width: 50px; } #secTable th.c-open { width: 34px; }
-    .rk .c-cnt, .rk .c-cap { display: none; }
+    #secTable .c-cnt, #secTable .c-cap { display: none; }   /* onglet Secteurs seulement : le post-market garde sa colonne Cap. */
     /* vue TradingView : noms longs (industries) ; colonnes resserrées, « % > 1 » et barre d'écart passent sous le nom / disparaissent */
     #secTable th.c-rank { width: 58px; }
     #secTable.tv th.c-dev { width: 72px; } #secTable.tv th.c-open { width: 32px; }
