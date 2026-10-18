@@ -133,8 +133,8 @@ l'onglet Secteurs (secteurs → industries → actions, TI65). Détail : proposi
   qui masquent des lignes sans changer les rangs) → actions d'une industrie. Graphiques : bougies pour les ETF et les actions
   (vrais cours) ; courbe de tendance pour un secteur / une industrie (un indice équipondéré n'a pas de vrai plus haut / plus
   bas), avec sous le score la carte « % des actions au TI65 > 1 » dans le temps (décision du 18/10/2026). Le passage du
-  cache à l'OHLC retélécharge chaque séance une fois (~27 min au 1er passage de `update.yml`) ; d'ici là, les actions sont
-  en courbe.
+  cache à l'OHLC et l'allongement à 190 séances retéléchargent chaque séance une fois : 2 passages de `update.yml` (~20 + ~18 min),
+  les plus récentes d'abord ; d'ici là, les séances anciennes restent en courbe.
 - **Calendrier du matin** (mesuré du 13 au 17/10/2026) : Polygon (plan gratuit) publie la séance D entre 03:17 et 05:17 UTC
   à D+1 ; le passage de 05:17 UTC la prend (site à jour vers 05:30 UTC), 06:17 et 07:17 UTC rattrapent. Échéance : début
   du pre-market US = 04:00 à New York = **08:00 UTC** (heure d'été US) ou 09:00 UTC (hiver US), soit 10:00 à Paris, mais 09:00
@@ -143,7 +143,7 @@ l'onglet Secteurs (secteurs → industries → actions, TI65). Détail : proposi
   changements d'heure. Le soir, la vue TradingView montre la veille (alerte « séance … pas encore publiée » dans l'onglet).
 - Vue TradingView : composition (titres retenus) figée par séance : les passages suivants de la même séance la reprennent
   des fichiers publiés sans réinterroger TradingView (`--rescan` pour forcer). Fichiers d'industrie chargés avec `?v=<séance>`.
-- Vue TradingView : historique limité au cache Polygon (`config/sources.toml [history] sessions`, 130) ; composition des
+- Vue TradingView : historique limité au cache Polygon (`config/sources.toml [history] sessions`, 190 ≈ 6 mois de TI65 ; au plus `max_downloads` = 100 séances téléchargées par passage, ≈ 20 min) ; composition des
   secteurs / industries = celle du jour, appliquée à tout l'historique ; TradingView ne fournit aucun historique d'industrie
   (indices recalculés ici, ils ne reproduisent pas la variation affichée par TradingView, pondérée par capitalisation).
   Pas encore copiée dans le stockage historique (branche `data`).

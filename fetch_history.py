@@ -88,9 +88,10 @@ def fetch_day(api, d):
     return {r["T"]: [r["c"], r["v"], r.get("o"), r.get("h"), r.get("l")] for r in data.get("results") or []}
 
 
-def update(api, sessions, end, keep=400, log=print):
+def update(api, sessions, end, keep=400, log=print, max_downloads=0):
     """Complete le cache jusqu'a `sessions` seances en remontant depuis `end`, met a jour les splits, elague. Retourne le nombre
-    de seances telechargees."""
+    de seances telechargees. max_downloads > 0 : au plus autant de telechargements par passage (les plus recentes d'abord) ;
+    le reste est repris au passage suivant (un rattrapage long ne deborde jamais sur la duree d'un passage)."""
     d, got, downloaded = end, 0, 0
     log(f"Historique : {sessions} seances en remontant depuis {end}")
     while got < sessions:
@@ -99,6 +100,9 @@ def update(api, sessions, end, keep=400, log=print):
             continue
         rows = read_day(d, need_ohlc=True)      # seance sans OHLC (ancien cache) : retelechargee une fois
         if rows is None:
+            if max_downloads and downloaded >= max_downloads:
+                log(f"Plafond de {max_downloads} telechargements atteint : la suite au prochain passage")
+                break
             try:
                 rows = fetch_day(api, d)
             except fd.PlanError:                # le plan gratuit peut refuser la seance du jour (fin de journee non diffusee)
@@ -143,6 +147,8 @@ def main():
     ap.add_argument("--sessions", type=int, default=h["sessions"], help=f"seances recentes en cache ({h['sessions']})")
     ap.add_argument("--keep", type=int, default=h["keep"], help=f"seances conservees au maximum ({h['keep']})")
     ap.add_argument("--rate", type=float, default=h["rate"], help=f"appels/min ({h['rate']} = plan gratuit)")
+    ap.add_argument("--max-downloads", type=int, default=h["max_downloads"],
+                    help=f"telechargements au plus par passage ({h['max_downloads']} ; 0 = sans limite, ex. en local)")
     args = ap.parse_args()
 
     fd.load_env()
@@ -152,7 +158,7 @@ def main():
     api = fd.Polygon(key, args.rate)
     try:
         fd.load_universe(api, refresh=False)    # rafraichi si plus de 7 jours (cache/universe.json)
-        update(api, args.sessions, fd.last_session_end(), keep=args.keep)
+        update(api, args.sessions, fd.last_session_end(), keep=args.keep, max_downloads=args.max_downloads)
     except fd.PlanError as e:
         sys.exit(f"Acces refuse par ton plan Polygon (403) : {e}")
     except KeyboardInterrupt:

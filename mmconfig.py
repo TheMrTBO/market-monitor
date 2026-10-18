@@ -144,8 +144,11 @@ def check():
     if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["stock_sessions"]:
         errors.append("display.ti65.spark : la miniature des actions demande spark + long − 1 séances ≤ industries.output.stock_sessions")
     hist = load("sources").get("history", {})
-    if not (isinstance(hist.get("sessions"), int) and hist["sessions"] <= hist.get("keep", 0) and hist.get("rate", 0) > 0):
-        errors.append("sources.history : sessions (entier) ≤ keep et rate > 0 attendus")
+    if not (isinstance(hist.get("sessions"), int) and hist["sessions"] <= hist.get("keep", 0) and hist.get("rate", 0) > 0
+            and isinstance(hist.get("max_downloads"), int) and hist["max_downloads"] >= 0):
+        errors.append("sources.history : sessions (entier) ≤ keep, rate > 0 et max_downloads (entier ≥ 0) attendus")
+    elif hist["max_downloads"] and hist["max_downloads"] / hist["rate"] > 40:
+        errors.append("sources.history : max_downloads / rate dépasse 40 min (un passage du robot doit rester court)")
     elif ind["output"]["stock_sessions"] > hist["sessions"]:
         errors.append("industries.output.stock_sessions dépasse sources.history.sessions (historique Polygon téléchargé)")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):

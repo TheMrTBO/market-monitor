@@ -25,7 +25,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-24.04   # version fixe : « ubuntu-latest » migre vers Ubuntu 26 à partir du 19 oct. 2026
-    timeout-minutes: 60       # premier passage : téléchargement de ~130 séances à 5 appels/min (~27 min) ; ensuite 1-2 appels
+    timeout-minutes: 60       # rattrapage d'historique : au plus 100 séances par passage (~20 min, config/sources.toml) ; ensuite 1-2 appels
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-        run: python fetch_history.py   # profondeur : config/sources.toml [history] (130 séances)
+        run: python fetch_history.py   # profondeur et plafond par passage : config/sources.toml [history] (190 séances, 100 par passage)
         # cache d'avant l'OHLC (ouverture, plus haut, plus bas) : chaque séance est retéléchargée une fois (~27 min au 1er passage)
 
       - name: Sauvegarder l'historique des clôtures

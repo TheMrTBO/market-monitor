@@ -7,11 +7,13 @@
 
 [history]
 # historique Polygon (fetch_history.py, cache hors dépôt) : séances complétées à chaque passage et séances gardées au plus.
-# 130 : calcul maison du breadth (fenêtre trimestrielle) et vue TradingView (miniature du TI65 sur 3 mois : 63 + 65 − 1
-# = 127 séances). Augmenter = un téléchargement unique plus long au passage suivant (5 appels/min, plan gratuit).
-sessions = 130
+# 190 (décision du 18/10/2026) : courbes du TI65 sur ~6 mois dans la vue TradingView (190 − 64 = 126 séances) ; couvre
+# aussi le calcul maison du breadth (fenêtre trimestrielle). Augmenter = rattrapage unique, réparti sur plusieurs passages
+# (max_downloads) ; 5 appels/min sur le plan gratuit, soit 1 séance = 12 s.
+sessions = 190
 keep = 400
-rate = 5          # appels par minute (plan gratuit Polygon / Massive)
+rate = 5               # appels par minute (plan gratuit Polygon / Massive)
+max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 min) : un passage tient toujours avant le suivant
 
 [[step]]
 name = "stockbee"

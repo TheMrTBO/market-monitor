@@ -87,8 +87,9 @@ l'exécution (`git pull --rebase -X theirs`, 3 essais) et enregistre le cache so
 
 ## Calcul maison du breadth (+4 % / −4 %, ratios 5 / 10 j)
 - `fetch_history.py` télécharge, une fois par jour, la clôture, le volume, l'ouverture, le plus haut et le plus bas de tous les titres US (un appel `grouped daily` ; profondeur : `config/sources.toml [history]`)
-  et conserve les splits à part ; l'historique (~130 séances) vit dans le cache Actions `cache/`, jamais dans le dépôt.
-  **Le tout premier passage dure ~27 min** (~130 appels à 5/min, limite du plan gratuit) ; ensuite 1 à 2 appels par jour.
+  et conserve les splits à part ; l'historique (190 séances, `config/sources.toml [history]`) vit dans le cache Actions `cache/`, jamais dans le dépôt.
+  **Un rattrapage** (cache vide, passage à l'OHLC, allongement) télécharge au plus 100 séances par passage (~20 min à 5 appels/min,
+  limite du plan gratuit), les plus récentes d'abord, la suite au passage suivant ; ensuite 1 à 2 appels par jour.
 - `breadth_own.py` applique les formules TC2000 (identiques à celles de Stockbee) et écrit `breadth_data.js`.
 - **Période de transition** : Stockbee reste la référence affichée ; notre calcul est tracé en **pointillé** sur
   l'histogramme +4 % / −4 %, et complète automatiquement une séance que Stockbee n'a pas (encore) publiée. Le pied de page

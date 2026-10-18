@@ -22,6 +22,6 @@ min_members = 3               # en dessous : secteur ou industrie affiché sans 
 few_members = 5               # en dessous : étiquette « peu de titres »
 
 [output]
-stock_sessions = 130          # séances par action dans industries/<industrie>.js (fiche action : graphique et TI65)
+stock_sessions = 190          # séances par action dans industries/<industrie>.js (fiche action : graphique, TI65 sur ~6 mois)
 folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie
 volume_unit = 1000            # volumes des actions écrits en milliers (fichiers plus légers) ; l'unité est écrite dans le fichier
