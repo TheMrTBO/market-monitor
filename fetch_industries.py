@@ -175,6 +175,27 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
 
 
+def published_members(asof):
+    """Composition déjà publiée pour la séance `asof` ([{s, n, sec, ind, cap}]), ou None (autre séance, fichiers illisibles).
+    Une séance garde ainsi la même composition d'un passage à l'autre : les nombreux passages de la nuit et du matin ne
+    réinterrogent pas TradingView et ne réécrivent pas les fichiers (capitalisation ou titre à la limite d'un seuil)."""
+    try:
+        text = OUT.read_text()
+        data = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
+        if data.get("asof") != asof:
+            return None
+        out = []
+        for i in data["industries"]:
+            t = (FOLDER / f"{i['f']}.js").read_text()
+            rows = json.loads(t[t.index("] = ") + 4:].strip().rstrip(";"))["rows"]
+            if len(rows) != i["n"]:
+                return None
+            out += [{"s": r[0], "n": r[1], "sec": i["sec"], "ind": i["k"], "cap": r[2]} for r in rows]
+        return out or None
+    except (OSError, ValueError, KeyError, IndexError):
+        return None
+
+
 def write(payload, files):
     """Écrit industries_data.js et un fichier par industrie ; retire les fichiers d'industries disparues."""
     FOLDER.mkdir(exist_ok=True)
@@ -190,6 +211,10 @@ def write(payload, files):
 
 
 def main():
+    import argparse
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--rescan", action="store_true", help="réinterroger TradingView même si la séance est déjà publiée")
+    args = ap.parse_args()
     import fetch_data as fd                       # importe requests : seulement si on exécute le calcul
     import fetch_history as fh
     dates, history = fh.load_history()
@@ -201,14 +226,20 @@ def main():
     except (OSError, ValueError, KeyError):
         sys.exit("Univers introuvable (cache/universe.json) : lance python fetch_history.py.")
     close, vol, ohlc = series(dates, history, universe, fh.load_splits_file())
-    tv = scan_tradingview()
-    if not tv:
-        sys.exit("TradingView : aucune action reçue ; fichiers non modifiés.")
-    members = select(tv, close, vol)
+    members = None if args.rescan else published_members(dates[-1])
+    if members is not None:                       # séance déjà publiée : même composition (titres encore en cache seulement)
+        members = [m for m in members if m["s"] in close]
+        tv = []
+        print(f"Séance {dates[-1]} déjà publiée : composition reprise ({len(members)} actions), TradingView non interrogé")
+    else:
+        tv = scan_tradingview()
+        if not tv:
+            sys.exit("TradingView : aucune action reçue ; fichiers non modifiés.")
+        members = select(tv, close, vol)
     payload, files = compute(dates, close, vol, members, ohlc=ohlc)
     write(payload, files)
     ranked = sum(i["n"] >= CFG["index"]["min_members"] for i in payload["industries"])
-    print(f"{len(tv)} actions TradingView, {len(members)} retenues : {len(payload['sectors'])} secteurs, "
+    print(f"{f'{len(tv)} actions TradingView' if tv else 'Composition reprise'}, {len(members)} retenues : {len(payload['sectors'])} secteurs, "
           f"{len(payload['industries'])} industries ({ranked} classables), {len(dates)} séances ({dates[0]} -> {dates[-1]})")
     print(f"Écrit : {OUT.name} et {len(files)} fichiers dans {FOLDER.name}/")
 

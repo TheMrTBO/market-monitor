@@ -72,6 +72,8 @@ ok('% > 1 = valeur du fichier à la dernière séance',r1[0].cells[2]===pc,r1[0]
 const sp=r1[0].h.match(/<polyline points="([^"]+)" class="(u|d)"/);
 const nSp=Array.from({length:CFG.ti65.spark},(_,j)=>sc(s0.c,IND.dates.length-CFG.ti65.spark+j)).filter(v=>v!=null).length;
 ok('miniature : un point par séance avec un TI65 (sur '+CFG.ti65.spark+'), couleur selon le dernier',!!sp&&sp[1].split(' ').length===nSp&&sp[2]===(sc(s0.c,IND.dates.length-1)>=1?'u':'d'),sp&&sp[2]);
+const lateExp=IND.asof<A.sb.SECTORS.asof;
+ok('alerte si la séance TradingView est en retard sur les ETF',lateExp===/pas encore publiée/.test(A.$('secMeta')._h||''),lateExp?strip(A.$('secMeta')._h):'à jour');
 ok('fil d\'Ariane : Secteurs seul, avec bulle',crumbs(A).length===1&&/data-tip="lvl:sec"/.test(A.$('secFilt')._h),crumbs(A).join(' > '));
 ok('pastille TI65 > 1 seule (pas de pastilles de secteur à ce niveau)',chips(A).length===1&&chips(A)[0].k==='1');
 ok('graphique : courbe (cache local sans OHLC), pas de bougies',bodies(A)===0&&(A.Sx.secCanvas||{})['#d6d6d6']>0,bodies(A)+' corps');
@@ -108,8 +110,8 @@ chip(A,{sec:S});
 const I=inds.filter(i=>i.n>=5).sort((a,b)=>b.n-a.n)[0];
 open(A,I.k);
 const script=A.document.body.children.find(c=>c.src&&c.src.includes(I.f));
-ok('ouvrir une industrie : chargement du fichier',!!script&&script.src===CFG.industries.folder+'/'+I.f+'.js'&&/Chargement des actions/.test(A.$('secRows')._h));
-vm.runInContext(fs.readFileSync(script.src,'utf8'),A.sb);
+ok('ouvrir une industrie : chargement du fichier, versionné par la séance',!!script&&script.src===CFG.industries.folder+'/'+I.f+'.js?v='+IND.asof.replace(/-/g,'')&&/Chargement des actions/.test(A.$('secRows')._h),script&&script.src);
+vm.runInContext(fs.readFileSync(script.src.split('?')[0],'utf8'),A.sb);
 const F=A.sb.TV_STOCKS[I.f];
 F.rows.forEach(r=>{const c=r[3];r[5]=c.map(v=>v==null?null:v*0.99);r[6]=c.map(v=>v==null?null:v*1.02);r[7]=c.map(v=>v==null?null:v*0.98);});   // OHLC simulé
 A.R.secCanvas=[];script.onload();

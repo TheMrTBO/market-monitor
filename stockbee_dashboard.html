@@ -1754,12 +1754,14 @@
     return { kind: 'stk', key, dates: F.dates, ind, items: tvItems(key, () => F.rows.map(([s, n, cap, c, v, o, h, l]) =>
       ({ s, n, lbl: s, sub: n, cap, c, v, ...(o ? { op: o, h, l } : {}) }))) };
   }
-  function tvLoad(ind) {                             // actions d'une industrie : un fichier, chargé une fois (?v= de la page : cache cassé)
+  function tvLoad(ind) {                             // actions d'une industrie : un fichier, chargé une fois
     if (tvLoading.has(ind.f)) return;
     tvLoading.add(ind.f);
+    // version = séance des données (le fichier ne change qu'avec elle) : jamais un fichier de la veille en cache à côté
+    // du classement du jour ; ?v= de la page (bouton « Actualiser ») en plus
     const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;
     const el = document.createElement('script');
-    el.src = `${TIC.folder}/${encodeURIComponent(ind.f)}.js${m ? '?v=' + m[1] : ''}`;
+    el.src = `${TIC.folder}/${encodeURIComponent(ind.f)}.js?v=${IND.asof.replace(/-/g, '')}${m ? m[1] : ''}`;
     el.onload = () => { tvLoading.delete(ind.f); if (!(window.TV_STOCKS && window.TV_STOCKS[ind.f])) tvFailed.add(ind.f); renderSectors(); };
     el.onerror = () => { tvLoading.delete(ind.f); tvFailed.add(ind.f); renderSectors(); };
     (document.head || document.body).appendChild(el);
@@ -2094,6 +2096,9 @@
     const nRanked = secRows.filter(r => r.rank != null).length, short = secRows.length - nRanked;
     const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées' }[D.kind];
     $('secMeta').textContent = `${fmtDate(D.dates[secBuiltEnd])} · ${nRanked} ${unit}${short ? ` · ${short} sans rang` : ''}`;
+    const late = secView === 'tv' && !pinned && SEC && IND && IND.asof < SEC.asof;   // séance des ETF plus récente que celle de TradingView
+    $('secMeta').classList.toggle('late', !!late);
+    if (late) $('secMeta').innerHTML = `<span class="neg" title="Les actions viennent de l'historique Polygon (plan gratuit), publié le lendemain matin de la séance">⚠ séance du ${fmtDate(SEC.asof, { day: 'numeric', month: 'short' })} pas encore publiée</span> · ` + escH($('secMeta').textContent);
     const sel = body.querySelector && body.querySelector('tr.sel');
     const lblOf = new Map(sorted.map(r => [r.x.s, r.x.lbl || r.x.s]));
     detNavSync('sec', sorted.map(r => r.x.s), secSel, { etf: 'ETF', sec: 'Secteur', ind: 'Industrie', stk: 'Titre' }[D.kind], s => lblOf.get(s) || s);

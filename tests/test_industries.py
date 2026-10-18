@@ -117,6 +117,10 @@ with tempfile.TemporaryDirectory() as tmp:
     t0 = p.stat().st_mtime_ns
     fi.write(payload, files)
     check("fichier inchangé : pas réécrit", p.stat().st_mtime_ns == t0)
+    pm = fi.published_members(dates[-1])
+    check("composition publiée relue pour la même séance (TradingView non réinterrogé)", pm is not None
+          and sorted(m["s"] for m in pm) == kept and {m["ind"] for m in pm} == set(inds))
+    check("autre séance : composition à refaire", fi.published_members("2099-01-01") is None)
     text = p.read_text()
     check("format : window.TV_STOCKS[<fichier>]", text.startswith('(window.TV_STOCKS = window.TV_STOCKS || {})["soft"] = '))
     data = json.loads(fi.OUT.read_text().split("=", 1)[1].strip().rstrip(";"))
