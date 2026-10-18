@@ -5,6 +5,9 @@
 # la composition est celle du jour du calcul, appliquée à tout l'historique. Réglages calibrés le 18/10/2026.
 
 [universe]
+market = "america"            # marché du scanner TradingView
+type = "stock"                # type d'instrument du scanner (les ETF et fonds sont exclus)
+scan_limit = 20000            # lignes demandées au scanner (≈ 5 700 en octobre 2026) ; atteinte = liste tronquée, refusée
 exchanges = ["NYSE", "NASDAQ", "AMEX"]
 subtype = "common"            # actions ordinaires (TradingView) ; il faut aussi qu'elles soient dans l'univers Polygon (type CS)
 min_price = 3.0               # dernière clôture, dollars
@@ -21,3 +24,4 @@ few_members = 5               # en dessous : étiquette « peu de titres »
 [output]
 stock_sessions = 130          # séances par action dans industries/<industrie>.js (fiche action : graphique et TI65)
 folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie
+volume_unit = 1000            # volumes des actions écrits en milliers (fichiers plus légers) ; l'unité est écrite dans le fichier

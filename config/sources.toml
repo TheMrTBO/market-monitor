@@ -5,6 +5,14 @@
 # freshness : contrôle de fraîcheur (min_rows = nombre minimal de lignes, max_age = âge max de la dernière date en jours,
 #             max_gap = plus grand trou toléré entre deux dates en jours ; week-ends et jours fériés tolérés)
 
+[history]
+# historique Polygon (fetch_history.py, cache hors dépôt) : séances complétées à chaque passage et séances gardées au plus.
+# 130 : calcul maison du breadth (fenêtre trimestrielle) et vue TradingView (miniature du TI65 sur 3 mois : 63 + 65 − 1
+# = 127 séances). Augmenter = un téléchargement unique plus long au passage suivant (5 appels/min, plan gratuit).
+sessions = 130
+keep = 400
+rate = 5          # appels par minute (plan gratuit Polygon / Massive)
+
 [[step]]
 name = "stockbee"
 label = "Stockbee"

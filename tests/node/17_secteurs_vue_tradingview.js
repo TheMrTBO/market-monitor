@@ -136,6 +136,19 @@ const tipEl=D.document.body.children[D.document.body.children.length-1];
 ok('carte « % > 1 » : infobulle au survol',/des actions avec un TI65 &gt; 1|Indisponible/.test(tipEl.innerHTML),strip(tipEl.innerHTML));
 ok('bulle de la carte « % > 1 »',/largeur/.test(tip(D,'secbrd')));
 
+// 5 bis) noms venus de TradingView piégés (HTML) : toujours affichés comme du texte, jamais interprétés
+{
+  const evil='<img src=x onerror=alert(1)>';
+  const X=boot({'mm.secview':'tv'},{after:`(()=>{const I=window.INDUSTRIES,s=I.sectors[0],old=s.k;s.k=old+${JSON.stringify(evil)};I.industries.forEach(i=>{if(i.sec===old){i.sec=s.k;i.k=i.k+${JSON.stringify(evil)};}});})();`});
+  tab(X);
+  const S0=X.sb.INDUSTRIES.sectors[0].k;
+  const raw=()=>[X.$('secRows')._h,X.$('secFilt')._h,X.$('secChips')._h,X.$('secInfo')._h||'',X.$('secMeta')._h||'',X.$('pop')._h||''].join('');
+  X.L.secRows.click({target:{closest:sel=>sel==='[data-open]'?{dataset:{open:S0}}:null}});
+  tip(X,'tvsec:'+S0);
+  const bad=/<img/i.test(raw()), shown=/&lt;img/.test(raw());
+  ok('noms piégés : aucun HTML injecté (affichés échappés)',!bad&&shown,bad?'INJECTION':'échappé');
+}
+
 // 6) retour aux ETF, absence du fichier TradingView
 view(A,'etf');
 ok('retour ETF : 55 lignes, pas de pastilles TradingView',rows(A).length===A.sb.SECTORS.symbols.length&&A.$('secChips').hidden===true);

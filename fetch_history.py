@@ -11,7 +11,7 @@ stockes ne sont jamais reecrits, donc une mise a jour incrementale ne peut pas m
 Reprenable : les seances deja presentes ne sont pas retelechargees ; un jour ferie est note (liste vide) pour ne pas etre
 redemande. L'univers (actions ordinaires NYSE/Nasdaq/AMEX) est rafraichi s'il a plus de 7 jours.
 
-Usage : python3 fetch_history.py [--sessions 72] [--keep 400] [--rate 5]
+Usage : python3 fetch_history.py [--sessions N] [--keep N] [--rate N]   (défauts : config/sources.toml [history])
 Cle : POLYGON_API_KEY (variable d'environnement, GitHub Secret, ou fichier .env local).
 """
 import argparse
@@ -22,6 +22,7 @@ import sys
 from datetime import date, timedelta
 
 import fetch_data as fd
+import mmconfig
 
 HISTORY = fd.CACHE / "history"
 SPLITS_FILE = fd.CACHE / "splits.json"
@@ -138,9 +139,10 @@ def prune(keep):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--sessions", type=int, default=72, help="nombre minimal de seances recentes en cache (72)")
-    ap.add_argument("--keep", type=int, default=400, help="seances conservees au maximum (400)")
-    ap.add_argument("--rate", type=float, default=5, help="appels/min (5 = plan gratuit)")
+    h = mmconfig.load("sources")["history"]           # profondeur et rythme : config/sources.toml [history]
+    ap.add_argument("--sessions", type=int, default=h["sessions"], help=f"seances recentes en cache ({h['sessions']})")
+    ap.add_argument("--keep", type=int, default=h["keep"], help=f"seances conservees au maximum ({h['keep']})")
+    ap.add_argument("--rate", type=float, default=h["rate"], help=f"appels/min ({h['rate']} = plan gratuit)")
     args = ap.parse_args()
 
     fd.load_env()

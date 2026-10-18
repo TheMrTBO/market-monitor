@@ -143,6 +143,16 @@ def check():
         errors.append("display.ti65.spark : entier entre 2 et long attendu, avec spark_label")
     if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["stock_sessions"]:
         errors.append("display.ti65.spark : la miniature des actions demande spark + long − 1 séances ≤ industries.output.stock_sessions")
+    hist = load("sources").get("history", {})
+    if not (isinstance(hist.get("sessions"), int) and hist["sessions"] <= hist.get("keep", 0) and hist.get("rate", 0) > 0):
+        errors.append("sources.history : sessions (entier) ≤ keep et rate > 0 attendus")
+    elif ind["output"]["stock_sessions"] > hist["sessions"]:
+        errors.append("industries.output.stock_sessions dépasse sources.history.sessions (historique Polygon téléchargé)")
+    if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
+        errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
+    if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
+            and ind["output"].get("volume_unit", 0) >= 1):
+        errors.append("industries : universe.market, universe.type, universe.scan_limit > 0 et output.volume_unit ≥ 1 attendus")
     if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
         errors.append("display.sectors.views : clés etf et tv attendues")
     u, ix = ind["universe"], ind["index"]

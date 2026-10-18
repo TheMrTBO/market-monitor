@@ -30,6 +30,8 @@ short = 7
 long = 65
 spark = 63                 # séances de la miniature du TI65 dans les tableaux de l'onglet Secteurs (63 ≈ 3 mois)
 spark_label = "3 mois"     # en-tête de la colonne de la miniature
+delta = 5                  # colonne Δ : variation du rang sur `delta` séances
+breadth_ref = 50           # carte « % des actions avec un TI65 > 1 » : ligne de repère (en %)
 
 [postmarket.sector_fr]
 # traduction des secteurs TradingView (anglais) affichés sous chaque ticker

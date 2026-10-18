@@ -134,6 +134,25 @@ with tempfile.TemporaryDirectory() as tmp:
     data["sectors"][0]["c"][3] = None
     check("contrôle : indice incomplet refusé", any("incomplet" in e for e in validate_data.check_industries(data, today)))
 
+# --- scanner TradingView : paramètres de la config ; liste qui atteint scan_limit (tronquée) refusée
+import types
+seen = {}
+fake = types.ModuleType("fetch_postmarket")
+fake.scan = lambda payload: seen.setdefault("p", payload) and [{"d": ["AAA", "Alpha", "NYSE", "common", "Tech", "Soft", 1e9]}]
+sys.modules["fetch_postmarket"] = fake
+u = fi.CFG["universe"]
+rows = fi.scan_tradingview()
+check("scanner : marché, type, bourses et limite lus dans config/industries.toml",
+      seen["p"]["markets"] == [u["market"]] and seen["p"]["range"] == [0, u["scan_limit"]]
+      and seen["p"]["filter"][0]["right"] == u["type"] and seen["p"]["filter"][1]["right"] == u["exchanges"] and rows[0]["name"] == "AAA")
+fake.scan = lambda payload: [{"d": ["T%d" % i, "", "NYSE", "common", "S", "I", 1e9]} for i in range(u["scan_limit"])]
+try:
+    fi.scan_tradingview(); truncated = False
+except SystemExit:
+    truncated = True
+check("scanner : liste tronquée (limite atteinte) refusée, fichiers non modifiés", truncated)
+del sys.modules["fetch_postmarket"]
+
 for label, good in checks.items():
     print(("ok     " if good else "ECHEC  ") + label)
 sys.exit(0 if all(checks.values()) else 1)

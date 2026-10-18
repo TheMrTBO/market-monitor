@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-        run: python fetch_history.py --sessions 130   # trimestre ±25 % : 63 séances de fenêtre + ~65 points dès le 1er passage
+        run: python fetch_history.py   # profondeur : config/sources.toml [history] (130 séances)
         # cache d'avant l'OHLC (ouverture, plus haut, plus bas) : chaque séance est retéléchargée une fois (~27 min au 1er passage)
 
       - name: Sauvegarder l'historique des clôtures
@@ -76,9 +76,14 @@ jobs:
         if: steps.validate.outcome == 'failure'
         run: |
           git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
-          # industries : fichier principal + un fichier par industrie (premier passage : absents du dépôt, donc retirés)
-          git checkout -- industries_data.js industries 2>/dev/null || rm -rf industries_data.js industries
-          git clean -fdq -- industries
+          # industries : fichier principal + un fichier par industrie. Déjà publiés : on revient à la version du dépôt (et on
+          # retire les fichiers nouveaux) ; jamais publiés (premier passage) : on retire le produit invalide. Aucune suppression
+          # de fichier suivi en cas d'erreur de checkout.
+          if git ls-files --error-unmatch industries_data.js >/dev/null 2>&1; then
+            git checkout -- industries_data.js industries && git clean -fdq -- industries
+          else
+            rm -rf industries_data.js industries
+          fi
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
         run: |

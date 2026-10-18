@@ -1751,7 +1751,7 @@
       return { kind: 'stk', key: 'stk|' + ind.k + '|attente', dates: [], items: [], ind, wait: !tvFailed.has(ind.f) };
     }
     const key = 'stk|' + ind.k;
-    return { kind: 'stk', key, dates: F.dates, ind, items: tvItems(key, () => F.rows.map(([s, n, cap, c, v, o, h, l]) =>
+    return { kind: 'stk', key, dates: F.dates, vu: F.vu || 1, ind, items: tvItems(key, () => F.rows.map(([s, n, cap, c, v, o, h, l]) =>
       ({ s, n, lbl: s, sub: n, cap, c, v, ...(o ? { op: o, h, l } : {}) }))) };
   }
   function tvLoad(ind) {                             // actions d'une industrie : un fichier, chargé une fois
@@ -1802,7 +1802,7 @@
   }
   function secBuild(D) {
     const end = secEnd(D); secBuiltEnd = end; secD = D; secBuiltKey = D.key + '|' + end;
-    const now = end >= 0 ? secRanks(D, end) : new Map(), before = end >= 5 ? secRanks(D, end - 5) : new Map();
+    const now = end >= 0 ? secRanks(D, end) : new Map(), before = end >= TI.delta ? secRanks(D, end - TI.delta) : new Map();
     const idx = D.kind === 'sec' || D.kind === 'ind';
     secRows = D.items.map(x => {
       const n = now.get(x.s), b = before.get(x.s);
@@ -1823,7 +1823,7 @@
 
   // colonnes : triables (clic) et déplaçables (glisser-déposer des en-têtes) ; l'ordre est mémorisé (ETF et TradingView à part)
   const DEV_DEF = { label: 'Écart', k: 'dev', dir: -1, title: `Écart = ${TIN} − 1, en %` };
-  const DELTA_DEF = { label: 'Δ 5 j', k: 'delta', dir: -1, title: 'Rang il y a 5 séances − rang actuel' };
+  const DELTA_DEF = { label: `Δ ${TI.delta} j`, k: 'delta', dir: -1, title: `Rang il y a ${TI.delta} séances − rang actuel` };
   const SPARK_DEF = { label: TI.spark_label, k: '', title: `${TIN} des ${TI.spark} dernières séances, ${TI.spark_label} (ligne pointillée : 1,00)` };
   const SEC_DEFS = {
     rank:  { label: 'Rang', k: 'rank', dir: 1 },
@@ -2026,7 +2026,7 @@
         cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView, dollars) : T = milliers de milliards, Md = milliards, M = millions.</p>'],
         spark: [`${TIN} sur ${TI.spark_label}`, `<p>Miniature du ${TIN} sur les ${TI.spark} dernières séances (${TI.spark_label}) jusqu'à la séance du classement. Pointillé : 1,00. Bleue si la dernière valeur est au-dessus de 1, rouge sinon.</p><p>Les 5 dernières valeurs au survol de la cellule.</p>`],
         dev: ['Écart', `<p>${TIN} − 1, en %. La barre est proportionnelle au plus grand écart de la liste${lvl === 'etf' ? '' : ''} (sur mobile, la miniature la remplace).</p>`],
-        delta: ['Δ 5 j', '<p>Rang il y a 5 séances − rang du jour : ▲ l\'élément gagne des places, ▼ il en perd ; « nouveau » : pas de rang il y a 5 séances.</p>'],
+        delta: [`Δ ${TI.delta} j`, `<p>Rang il y a ${TI.delta} séances − rang du jour : ▲ l'élément gagne des places, ▼ il en perd ; « nouveau » : pas de rang il y a ${TI.delta} séances.</p>`],
       }[key] || null;
     }
     return null;
@@ -2200,7 +2200,7 @@
     const key = D.key + '|' + x.s + JSON.stringify(MAS.map(m => [m.len, m.type]));
     if (!secCache.has(key)) {
       const idx = []; D.dates.forEach((d, i) => { if (x.c[i] != null) idx.push(i); });
-      const closes = idx.map(i => x.c[i]), volK = D.kind === 'stk' ? 1000 : 1;   // volumes des actions : en milliers dans le fichier
+      const closes = idx.map(i => x.c[i]), volK = D.vu || 1;   // unité des volumes écrite dans le fichier des actions (vu)
       const sma = MAS.map(m => maSeries(closes, m.len, m.type));
       secCache.set(key, idx.map((i, k) => {
         const avg = n => { let t = 0; for (let j = k - n + 1; j <= k; j++) t += closes[j]; return t / n; };
@@ -2266,7 +2266,7 @@
     if (canOpen) open.textContent = D.kind === 'sec' ? `Industries (${IND.industries.filter(i => i.sec === x.s).length}) ›` : `Actions (${x.cnt}) ›`;
     $('secScoreNow').innerHTML = row.rank != null
       ? `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.score, 3)}</b> · écart <span class="${cls(row.dev)}">${pct(row.dev)}</span> · rang <b>${row.rank}</b>/${nR}` +
-        ` · Δ 5 j ${row.isNew ? 'nouveau' : row.delta > 0 ? '<span class="pos">▲ ' + row.delta + '</span>' : row.delta < 0 ? '<span class="neg">▼ ' + (-row.delta) + '</span>' : '='}`
+        ` · Δ ${TI.delta} j ${row.isNew ? 'nouveau' : row.delta > 0 ? '<span class="pos">▲ ' + row.delta + '</span>' : row.delta < 0 ? '<span class="neg">▼ ' + (-row.delta) + '</span>' : '='}`
       : row.tooFew ? `sans rang (moins de ${TIC.min_members} titres retenus)` : `sans rang (historique ${row.count}/${TI.long} séances)`;
   }
   function secRedraw() {
@@ -2321,10 +2321,10 @@
     if (!cvBrd.clientWidth || $('secBrdCard').hidden) return;
     const c = setup(cvBrd); if (!c.n) return;
     const { g, ph, X, pw } = c, vals = T.map(d => { const b = bars.get(d); return b && b.br != null ? b.br : null; });
-    const Y = v => PAD.t + (100 - v) / 100 * ph, y50 = Y(50);
-    grid(c, [0, 25, 50, 75, 100], Y, v => v + ' %'); xLabels(c);
+    const ref = TI.breadth_ref, Y = v => PAD.t + (100 - v) / 100 * ph, y50 = Y(ref);   // repère : config/display.toml [ti65] breadth_ref
+    grid(c, [...new Set([0, 25, ref, 75, 100])].sort((a, b) => a - b), Y, v => v + ' %'); xLabels(c);
     if (!vals.some(v => v != null)) return;
-    for (const [above, col] of [[true, '--upbg'], [false, '--downbg']]) {   // aire entre la courbe et 50 % : bleue au-dessus, rouge en dessous
+    for (const [above, col] of [[true, '--upbg'], [false, '--downbg']]) {   // aire entre la courbe et le repère : bleue au-dessus, rouge en dessous
       g.save(); g.beginPath(); g.rect(PAD.l, above ? PAD.t : y50, pw, above ? y50 - PAD.t : PAD.t + ph - y50); g.clip();
       g.fillStyle = css(col).replace(/[\d.]+\)$/, '0.32)'); g.beginPath(); let last = -1, open = false;
       vals.forEach((v, i) => { if (v == null) return; if (!open) { g.moveTo(X(i), y50); open = true; } g.lineTo(X(i), Y(v)); last = i; });
@@ -3383,12 +3383,12 @@
       <p>Clic sur un en-tête : trier · ↑ ↓ : titre précédent / suivant.</p><p class="src">Source : TradingView (screener public) · graphiques : Yahoo Finance.</p>`],
     pmchart: ['Graphique du titre', `<p>Bougies journalières sur environ 3 mois et moyennes mobiles (réglages de l'onglet MM). Le point <b>AH</b> marque le cours post-market relevé, juste après la séance du scan.</p><p class="src">Source : Yahoo Finance · TradingView.</p>`],
     secrank: [`Classement ${CFG.ti65.name}`, `<p><b>${CFG.ti65.name}</b> = moyenne des ${CFG.ti65.short} dernières clôtures ÷ moyenne des ${CFG.ti65.long} dernières (formule TC2000). Au-dessus de 1, les cours récents sont au-dessus de leur moyenne d'environ 3 mois.</p>
-      <p><b>Écart</b> = ${CFG.ti65.name} − 1, en %. La barre derrière le chiffre est proportionnelle au plus grand écart de la séance. <b>Δ 5 j</b> = rang d'il y a 5 séances − rang du jour (▲ : l'élément gagne des places).</p>
+      <p><b>Écart</b> = ${CFG.ti65.name} − 1, en %. La barre derrière le chiffre est proportionnelle au plus grand écart de la séance. <b>Δ ${CFG.ti65.delta} j</b> = rang d'il y a ${CFG.ti65.delta} séances − rang du jour (▲ : l'élément gagne des places).</p>
       <p><b>ETF</b> : 55 ETF sectoriels et thématiques ; les filtres masquent des lignes sans changer les rangs. <b>TradingView</b> : secteurs → industries (rang global, pastilles par secteur) → actions (classification TradingView). Un secteur ou une industrie = indice équipondéré de ses actions retenues (prix ≥ ${nf(CFG.industries.min_price)} $, volume moyen ≥ ${nf(CFG.industries.min_avg_volume)}, capitalisation ≥ ${nf(CFG.industries.min_market_cap / 1e6)} M$) ; <b>% > 1</b> = part de ces actions dont le ${CFG.ti65.name} dépasse 1. Moins de ${CFG.industries.min_members} titres : pas de rang ; moins de ${CFG.industries.few_members} : « peu de titres ».</p>
       <p><b>${CFG.ti65.spark_label}</b> : miniature du ${CFG.ti65.name} des ${CFG.ti65.spark} dernières séances. Le classement suit la séance choisie dans <b>Stats du</b>. Chaque filtre et chaque colonne a sa bulle ⓘ.</p>
       <p>Clic sur un en-tête : trier · glisser un en-tête : déplacer la colonne · ↑ ↓ : précédent / suivant · <b>›</b>, double-clic ou → : niveau suivant · ← ou fil d'Ariane : niveau précédent.</p><p class="src">Sources : Yahoo Finance (ETF, clôtures non ajustées des dividendes, comme TC2000) ; TradingView (classification, capitalisation) et Polygon (clôtures des actions, ajustées des splits).</p>`],
     sectrend: ['Graphique', `<p>ETF et actions : bougies journalières (cours réels). Secteur ou industrie : <b>courbe de tendance</b> de l'indice équipondéré (base 100) ; un indice n'a pas de vrai plus haut ni plus bas, donc pas de bougie. Moyennes mobiles : mêmes réglages que l'onglet MM (Réglages). La légende donne les valeurs de la séance survolée, sinon de la séance choisie dans <b>Stats du</b>, sinon de la dernière.</p><p class="src">Sources : Yahoo Finance (ETF) ; Polygon (actions TradingView).</p>`],
-    secbrd: [`% des actions avec un ${CFG.ti65.name} > 1`, `<p>Part des actions retenues du secteur ou de l'industrie dont le ${CFG.ti65.name} dépasse 1, à chaque séance : la <b>largeur</b> du mouvement. Le ${CFG.ti65.name} de l'indice (carte du dessus) en donne l'<b>ampleur</b>.</p><p>Au-dessus de 50 % (zone bleue) : la majorité des actions suit ; un indice qui monte avec une part qui baisse = mouvement porté par quelques titres.</p>`],
+    secbrd: [`% des actions avec un ${CFG.ti65.name} > 1`, `<p>Part des actions retenues du secteur ou de l'industrie dont le ${CFG.ti65.name} dépasse 1, à chaque séance : la <b>largeur</b> du mouvement. Le ${CFG.ti65.name} de l'indice (carte du dessus) en donne l'<b>ampleur</b>.</p><p>Au-dessus de ${CFG.ti65.breadth_ref} % (zone bleue)${CFG.ti65.breadth_ref === 50 ? ' : la majorité des actions suit' : ''} ; un indice qui monte avec une part qui baisse = mouvement porté par quelques titres.</p>`],
     secscore: ['Score dans le temps', `<p>Courbe : ${CFG.ti65.name} à chaque séance, la valeur qui fixe le rang du tableau. Ligne pointillée : <b>1,00</b> (moyenne courte = moyenne longue). Zone bleue : au-dessus ; rouge : en dessous.</p><p>Le point marque la séance du classement.</p>`],
   });
   const pop = $('pop'); let tipOpen = null, tipHoverTimer = 0;

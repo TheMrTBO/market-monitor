@@ -53,11 +53,11 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 |---|---|---|
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
-| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
+| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[history]` : profondeur de l'historique Polygon (séances, gardées, appels/min) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
-| `industries.toml` | vue TradingView : filtres des actions retenues (bourses, sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois ; il faut `spark + long − 1` ≤ `stock_sessions`, contrôlé par `--check`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
+| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
@@ -117,7 +117,8 @@ l'onglet Secteurs (secteurs → industries → actions, TI65). Détail : proposi
 - Bornes de valeurs des contrôles (`validate_data.py` : ex. 0-5 000 titres, VIX 5-150) → déclarées par source en phase 2.
 - Liste des fichiers copiés dans `_site` (deux workflows) et chargés par le front → générée par `build.py` en phase 3.
 - Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente) dans le front → phase 4.
-- Colonnes de la vue TradingView par niveau (`TV_LEVEL`) et largeurs mobiles (`#secTable.tv`) → phase 4.
+- Colonnes de la vue TradingView par niveau (`TV_LEVEL`), largeurs des colonnes (`#secTable`), taille de la miniature (60 × 18)
+  → phase 4. `display.toml [postmarket.sector_fr]` sert aussi à l'onglet Secteurs (nom historique, à renommer en phase 4).
 - Constantes d'interface des onglets Secteurs / Post-market : seuil « liste et détail empilés » (`isStacked`, ≤ 1000 px),
   seuils du balayage entre titres (60 px, horizontal ≥ 2 × vertical, < 700 ms) → phase 4.
 - `fetch_data.py` (univers Polygon, âge max du cache), `breadth_own.py` (formules TC2000 : ne pas modifier sans accord).
@@ -142,7 +143,7 @@ l'onglet Secteurs (secteurs → industries → actions, TI65). Détail : proposi
   changements d'heure. Le soir, la vue TradingView montre la veille (alerte « séance … pas encore publiée » dans l'onglet).
 - Vue TradingView : composition (titres retenus) figée par séance : les passages suivants de la même séance la reprennent
   des fichiers publiés sans réinterroger TradingView (`--rescan` pour forcer). Fichiers d'industrie chargés avec `?v=<séance>`.
-- Vue TradingView : historique limité au cache Polygon (`fetch_history.py --sessions 130` dans `update.yml`) ; composition des
+- Vue TradingView : historique limité au cache Polygon (`config/sources.toml [history] sessions`, 130) ; composition des
   secteurs / industries = celle du jour, appliquée à tout l'historique ; TradingView ne fournit aucun historique d'industrie
   (indices recalculés ici, ils ne reproduisent pas la variation affichée par TradingView, pondérée par capitalisation).
   Pas encore copiée dans le stockage historique (branche `data`).

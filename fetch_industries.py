@@ -12,7 +12,7 @@ Sorties :
                              k = nom TradingView, n = titres retenus, c = indice (aligné sur dates ; affiché en courbe de
                              tendance, pas en bougies), b = % des titres dont le
                              TI65 dépasse 1 (null si moins de min_members titres ont un TI65), f = fichier de l'industrie.
-  industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, rows:[[symbole, nom, cap, [clôtures], [volumes en milliers],
+  industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, vu (unité des volumes), rows:[[symbole, nom, cap, [clôtures], [volumes / vu],
                              [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
 """
@@ -36,9 +36,12 @@ TV_COLS = ["name", "description", "exchange", "subtype", "sector", "industry", "
 def scan_tradingview():
     """[{name, description, exchange, subtype, sector, industry, market_cap_basic}] : toutes les actions US des bourses retenues."""
     from fetch_postmarket import scan            # même client (en-têtes, essais) que le scan post-market
-    raw = scan({"columns": TV_COLS, "markets": ["america"], "range": [0, 20000],
-                "filter": [{"left": "type", "operation": "equal", "right": "stock"},
-                           {"left": "exchange", "operation": "in_range", "right": CFG["universe"]["exchanges"]}]})
+    u = CFG["universe"]
+    raw = scan({"columns": TV_COLS, "markets": [u["market"]], "range": [0, u["scan_limit"]],
+                "filter": [{"left": "type", "operation": "equal", "right": u["type"]},
+                           {"left": "exchange", "operation": "in_range", "right": u["exchanges"]}]})
+    if len(raw) >= u["scan_limit"]:              # liste peut-être tronquée : composition fausse, on garde l'ancienne
+        sys.exit(f"TradingView : {len(raw)} lignes = limite scan_limit atteinte (config/industries.toml) ; fichiers non modifiés.")
     return [dict(zip(TV_COLS, item["d"])) for item in raw]
 
 
@@ -150,7 +153,7 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     """(payload de industries_data.js, {fichier: payload de industries/<fichier>.js}). Un indice : c (courbe de tendance :
     pas de bougie, un indice équipondéré n'a pas de vrai plus haut / plus bas) ; une action : [symbole, nom, cap, clôtures,
     volumes k, ouvertures, plus hauts, plus bas] (bougies ; OHLC seulement s'il est en cache)."""
-    ohlc = ohlc or {}
+    ohlc, unit = ohlc or {}, CFG["output"]["volume_unit"]
     n = len(dates)
     by_sec, by_ind, sec_of = defaultdict(list), defaultdict(list), {}
     for m in members:
@@ -168,10 +171,10 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
         industries.append({"k": ind, "sec": sec_of[ind], "f": f, "n": len(ts),
                            "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)})
         rows = [[m["s"], m["n"], int(m["cap"]) if m["cap"] else None, [num(v) for v in close[m["s"]][lo:]],
-                 [None if v is None else round(v / 1000) for v in vol[m["s"]][lo:]],
+                 [None if v is None else round(v / unit) for v in vol[m["s"]][lo:]],
                  *([num(v) for v in arr[lo:]] for arr in ohlc.get(m["s"], ()))]     # OHLC : seulement s'il est en cache
                 for m in sorted(ms, key=lambda m: m["s"])]
-        files[f] = {"asof": dates[-1], "dates": dates[lo:], "rows": rows}
+        files[f] = {"asof": dates[-1], "dates": dates[lo:], "vu": unit, "rows": rows}
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
 
 
@@ -218,7 +221,7 @@ def main():
     import fetch_data as fd                       # importe requests : seulement si on exécute le calcul
     import fetch_history as fh
     dates, history = fh.load_history()
-    need = TI["long"] + 5
+    need = TI["long"] + TI["delta"]               # un TI65 aujourd'hui et il y a `delta` séances (colonne Δ)
     if len(dates) < need:
         sys.exit(f"Historique insuffisant : {len(dates)} séances en cache (minimum {need}). Lance python fetch_history.py.")
     try:
