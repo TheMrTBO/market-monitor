@@ -223,11 +223,6 @@ def check_industries(data, today, folder=None):
            or any(v is None or not v > 0 for v in x["c"])]
     if bad:
         errors.append(f"industries : {len(bad)} indice(s) incomplet(s) ou non positif(s) ({', '.join(bad[:3])})")
-    candles = [x["k"] for x in secs + inds if "o" in x and (any(len(x[f]) != len(dates) for f in "ohl") or any(
-        o is not None and not (l <= min(o, c) + 1e-6 and h >= max(o, c) - 1e-6 and l > 0)
-        for o, h, l, c in zip(x["o"], x["h"], x["l"], x["c"])))]
-    if candles:
-        errors.append(f"industries : {len(candles)} indice(s) aux bougies incohérentes ({', '.join(candles[:3])})")
     if folder is not None:
         missing = []
         for i in inds:

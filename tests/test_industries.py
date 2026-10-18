@@ -81,10 +81,6 @@ for _ in range(1, n):
 check("indice équipondéré : moyenne des variations (+1 % et -1 % -> 100)", abs(idx[-1] - exp) < 1e-9 and idx[0] == 100)
 j = fi.build_index(["JMP"], close, n)
 check("plafond : +300 % compté +50 %", abs(j[50] / j[49] - 1.5) < 1e-9)
-cc = fi.build_index(["CCC", "DDD"], close, n)
-o, h, l = fi.build_candles(["CCC", "DDD"], close, ohlc, cc)
-check("bougies d'indice : ouverture -1 %, plus haut +3 %, plus bas -3 % (titres stables)", o[59] is None
-      and abs(o[70] / cc[69] - 0.99) < 1e-9 and abs(h[70] / cc[69] - 1.03) < 1e-9 and abs(l[70] / cc[69] - 0.97) < 1e-9)
 check("indice : titre absent un jour ignoré ce jour-là", fi.build_index(["AAA"], {"AAA": [None] * 5 + close["AAA"][5:]}, n)[5] == 100)
 
 ti_a = fi.ti65(close["AAA"], n - 1)
@@ -105,9 +101,9 @@ check("fichier d'industrie : 70 dernières séances, une ligne par action", len(
       and [r[0] for r in soft["rows"]] == ["AAA", "BBB", "CCC"] and len(soft["rows"][0][3]) == 70 and soft["rows"][0][4][0] == 500)
 check("fichier d'industrie : OHLC des actions (null avant le cache OHLC)", len(soft["rows"][0]) == 8
       and soft["rows"][0][5][0] is None and soft["rows"][0][6][-1] == fi.num(close["AAA"][-1] * 1.03))
-check("indices : bougies présentes et cohérentes", all(len(x["o"]) == n for x in payload["sectors"] + payload["industries"]))
-p2, _ = fi.compute(dates, close, vol, members, keep=70)
-check("sans OHLC en cache : ni bougies d'indice ni colonnes OHLC", "o" not in p2["sectors"][0] and len(_[inds["Soft"]["f"]]["rows"][0]) == 5)
+check("indices : courbe seulement (pas de bougie d'indice)", all("o" not in x for x in payload["sectors"] + payload["industries"]))
+_, f2 = fi.compute(dates, close, vol, members, keep=70)
+check("sans OHLC en cache : pas de colonnes OHLC pour les actions", len(f2[inds["Soft"]["f"]]["rows"][0]) == 5)
 
 with tempfile.TemporaryDirectory() as tmp:
     fi.OUT, fi.FOLDER = Path(tmp) / "industries_data.js", Path(tmp) / "industries"
@@ -131,8 +127,6 @@ with tempfile.TemporaryDirectory() as tmp:
     p.unlink()
     errs = validate_data.check_industries(data, today, fi.FOLDER)
     check("contrôle : fichier d'industrie manquant refusé", any("fichier(s) d'industrie" in e for e in errs))
-    data["sectors"][0]["h"][70] = data["sectors"][0]["l"][70] / 2
-    check("contrôle : bougie d'indice incohérente refusée", any("bougies" in e for e in validate_data.check_industries(data, today)))
     data["sectors"][0]["c"][3] = None
     check("contrôle : indice incomplet refusé", any("incomplet" in e for e in validate_data.check_industries(data, today)))
 

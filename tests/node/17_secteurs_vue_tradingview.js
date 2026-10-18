@@ -1,5 +1,6 @@
 // Onglet Secteurs, vue TradingView : bascule ETF / TradingView, secteurs -> industries (rang global, pastilles de secteur)
-// -> actions classés par TI65, filtre TI65 > 1, miniature TI65, bulles d'information, bougies, chargement à la demande.
+// -> actions classés par TI65, filtre TI65 > 1, miniature TI65, bulles d'information, courbe de tendance des groupes et
+// carte « % > 1 », bougies des actions, chargement à la demande.
 const fs=require('fs'),vm=require('vm');
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
@@ -116,16 +117,22 @@ const r3=rows(A), exp3=order(F.rows,F.dates);
 ok('actions de l\'industrie, classées par TI65',r3.length===I.n&&r3.slice(0,exp3.length).map(r=>r.s).join('|')===exp3.join('|'),r3.slice(0,3).map(r=>r.s).join(', '));
 ok('colonnes du niveau actions',heads(A).join(',')==='rank,sym,cap,spark,dev,delta'&&!/data-open=/.test(A.$('secRows')._h),heads(A).join(','));
 ok('fiche action : bougies japonaises',bodies(A)>20,bodies(A)+' corps de bougie');
+ok('fiche action : pas de carte « % > 1 »',A.$('secBrdCard').hidden===true);
 ok('fiche action : lien Finviz',/finviz\.com\/quote\.ashx\?t=/.test(A.$('secInfo')._h));
 up(A,1);
 ok('remonter aux industries : filtre de secteur conservé, industrie sélectionnée',rows(A).length===inds.length&&(A.$('secRows')._h.match(/<tr data-s="([^"]+)" class="sel/)||[])[1].replace(/&amp;/g,'&')===I.k);
 up(A,0);
 ok('remonter aux secteurs : secteur quitté sélectionné',(A.$('secRows')._h.match(/<tr data-s="([^"]+)" class="sel/)||[])[1]===S);
 
-// 5) bougies d'indice quand industries_data.js a l'OHLC (simulé : ajouté au fichier chargé)
+// 5) groupes : courbe de tendance, même si le fichier avait des bougies d'indice ; carte « % > 1 » dans le temps
 const D=boot({'mm.secview':'tv'},{after:"window.INDUSTRIES.sectors.forEach(x=>{x.o=x.c.map(v=>v*0.995);x.h=x.c.map(v=>v*1.01);x.l=x.c.map(v=>v*0.99);});"});
 tab(D);
-ok('secteur : bougies d\'indice',bodies(D)>20,bodies(D)+' corps de bougie');
+ok('secteur : courbe de tendance, jamais de bougie d\'indice',bodies(D)===0&&(D.Sx.secCanvas||{})['#d6d6d6']>0,bodies(D)+' corps de bougie');
+ok('secteur : carte « % > 1 » affichée et tracée',D.$('secBrdCard').hidden===false&&(D.M.secBrdCv||[]).length>0&&/%<\/b> de \d+ actions/.test(D.$('secBrdNow')._h),strip(D.$('secBrdNow')._h));
+D.L.secBrdCv.pointermove({clientX:600,clientY:60,pageX:600,pageY:60});
+const tipEl=D.document.body.children[D.document.body.children.length-1];
+ok('carte « % > 1 » : infobulle au survol',/des actions avec un TI65 &gt; 1|Indisponible/.test(tipEl.innerHTML),strip(tipEl.innerHTML));
+ok('bulle de la carte « % > 1 »',/largeur/.test(tip(D,'secbrd')));
 
 // 6) retour aux ETF, absence du fichier TradingView
 view(A,'etf');
