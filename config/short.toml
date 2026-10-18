@@ -1,0 +1,15 @@
+# Short interest de l'onglet Tickers : Yahoo Finance (yfinance, déjà utilisé pour les ETF), rafraîchi par lots dans un
+# passage séparé l'après-midi (.github/workflows/short.yml), jamais dans la fenêtre du matin ni du post-market.
+# Le short interest est publié deux fois par mois (date du relevé conservée) : un cycle complet de l'univers en ~7 passages suffit.
+batch = 800            # actions rafraîchies au plus par passage (les plus anciennes d'abord)
+pause = 0.3            # secondes entre deux actions (politesse envers Yahoo)
+max_errors = 25        # erreurs consécutives avant d'arrêter le lot (Yahoo limite les appels) ; le reste au passage suivant
+stale_days = 35        # au-delà (date du relevé), la valeur est marquée « ancienne » dans l'onglet
+postmarket_first = true   # tickers du dernier scan post-market rafraîchis en premier (fiche complète dès le lendemain)
+
+[fields]               # champ du fichier = champ Yahoo (Ticker.info)
+flt = "floatShares"            # actions en circulation librement échangeables (flottant)
+sh = "sharesShort"             # actions vendues à découvert (dernier relevé)
+pct = "shortPercentOfFloat"    # part du flottant vendue à découvert (0-1)
+dtc = "shortRatio"             # days to cover = actions à découvert ÷ volume quotidien moyen
+date = "dateShortInterest"     # date du relevé (horodatage Unix)

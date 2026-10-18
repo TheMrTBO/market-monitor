@@ -2,7 +2,7 @@
 """Configuration centralisée du Market Monitor (dossier config/, format TOML, lu par la bibliothèque standard).
 
 Source unique des paramètres métier : horaires, heures de marché, étapes du robot et contrôles de fraîcheur, filtres du scan
-post-market, univers des ETF, seuils et libellés d'affichage, modèle logique des données, stockage.
+post-market, univers des ETF, vue TradingView (secteurs → industries → actions), seuils et libellés d'affichage, modèle logique des données, stockage.
   - le robot Python lit la config avec load("<fichier>") ;
   - le dashboard lit config_data.js (window.MM_CONFIG), GÉNÉRÉ par ce module : ne jamais l'éditer à la main ;
   - les créneaux `schedule` des workflows GitHub ne peuvent pas lire la config : check() vérifie qu'ils lui correspondent.
@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "datasets", "storage")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "short", "datasets", "storage")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -52,7 +52,7 @@ def sectors():
 
 def front_config():
     """Sous-ensemble de la config utile au dashboard (sérialisé dans config_data.js)."""
-    m, pm, d = load("market"), load("postmarket"), load("display")
+    m, pm, d, ind = load("market"), load("postmarket"), load("display"), load("industries")
     return {
         "market": {k: m[k] for k in ("timezone", "close_hour", "postmarket_end_hour", "premarket_start_hour")},
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
@@ -61,7 +61,13 @@ def front_config():
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
-        "sectors": {"groups": d["sectors"]["groups"], "labels": {e["symbol"]: e["label"] for e in sectors()}},
+        "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
+                    "labels": {e["symbol"]: e["label"] for e in sectors()}},
+        "ti65": d["ti65"],
+        "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
+                    "short_stale_days": load("short")["stale_days"]},
+        "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
+                       **{k: ind["universe"][k] for k in ("min_price", "min_avg_volume", "avg_volume_sessions", "min_market_cap")}},
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
     }
@@ -130,6 +136,43 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : champs vides {missing}")
         if e.get("group") not in groups:
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
+    ti, ind = load("display")["ti65"], load("industries")
+    if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
+        errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
+    if set(load("display")["sectors"]["group_tips"]) != {g for g, _ in load("display")["sectors"]["groups"]}:
+        errors.append("display.sectors.group_tips : une bulle par filtre de display.sectors.groups attendue")
+    if not (isinstance(ti.get("spark"), int) and 2 <= ti["spark"] <= ti["long"]) or not ti.get("spark_label"):
+        errors.append("display.ti65.spark : entier entre 2 et long attendu, avec spark_label")
+    if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["stock_sessions"]:
+        errors.append("display.ti65.spark : la miniature des actions demande spark + long − 1 séances ≤ industries.output.stock_sessions")
+    hist = load("sources").get("history", {})
+    if not (isinstance(hist.get("sessions"), int) and hist["sessions"] <= hist.get("keep", 0) and hist.get("rate", 0) > 0
+            and isinstance(hist.get("max_downloads"), int) and hist["max_downloads"] >= 0):
+        errors.append("sources.history : sessions (entier) ≤ keep, rate > 0 et max_downloads (entier ≥ 0) attendus")
+    elif hist["max_downloads"] and hist["max_downloads"] / hist["rate"] > 40:
+        errors.append("sources.history : max_downloads / rate dépasse 40 min (un passage du robot doit rester court)")
+    elif ind["output"]["stock_sessions"] > hist["sessions"]:
+        errors.append("industries.output.stock_sessions dépasse sources.history.sessions (historique Polygon téléchargé)")
+    tk = load("display").get("tickers", {})
+    if not (0 < tk.get("hot_top_pct", 0) <= 100 and 0 <= tk.get("hot_min_breadth", -1) <= 100
+            and tk.get("emerging_min_delta", 0) >= 1 and tk.get("max_tickers", 0) >= 1):
+        errors.append("display.tickers : 0 < hot_top_pct ≤ 100, 0 ≤ hot_min_breadth ≤ 100, emerging_min_delta ≥ 1, max_tickers ≥ 1 attendus")
+    if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
+        errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
+    if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
+            and ind["output"].get("volume_unit", 0) >= 1 and isinstance(ind["output"].get("publish_all"), bool)
+            and re.fullmatch(r"-{2}[a-z0-9-]+", ind["output"].get("extra_suffix", ""))):
+        errors.append("industries : universe.market, universe.type, universe.scan_limit > 0 et output.volume_unit ≥ 1 attendus")
+    if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
+        errors.append("display.sectors.views : clés etf et tv attendues")
+    u, ix = ind["universe"], ind["index"]
+    if not (u["min_price"] > 0 and u["min_avg_volume"] >= 0 and u["avg_volume_sessions"] > 0 and u["min_market_cap"] >= 0
+            and u["exchanges"] and u["subtype"]):
+        errors.append("industries.universe : seuils positifs, bourses et sous-type attendus")
+    if not (ix["base"] > 0 and 0 < ix["daily_return_clip"] and 1 <= ix["min_members"] <= ix["few_members"]):
+        errors.append("industries.index : base > 0, plafond > 0 et 1 ≤ min_members ≤ few_members attendus")
+    if not (ind["output"]["stock_sessions"] > ti["long"] and re.fullmatch(r"[a-z0-9_-]+", ind["output"]["folder"])):
+        errors.append("industries.output : stock_sessions > ti65.long et dossier en minuscules sans / attendus")
     for key, ds in load("datasets")["datasets"].items():
         bad = [c for c, t in ds["columns"].items() if t.rstrip("?") not in TYPES]
         if bad:
@@ -146,6 +189,20 @@ def check():
             errors.append(f"datasets.{key} : partition « {ds.get('partition')} » (attendus : month, day)")
         if ds["columns"].get(ds.get("partition_by", ""), "").rstrip("?") not in {"date", "timestamp"} or ds["columns"][ds["partition_by"]].endswith("?"):
             errors.append(f"datasets.{key} : partition_by doit nommer une colonne date ou timestamp obligatoire")
+    for s_ in steps():                           # étape à passage séparé : son workflow existe et la lance
+        wf = s_.get("separate")
+        if wf and (not (WORKFLOWS / wf).exists() or s_["script"] not in (WORKFLOWS / wf).read_text()):
+            errors.append(f"sources.{s_['name']} : workflow {wf} introuvable ou ne lance pas {s_['script']}")
+    site = load("storage").get("site", {})
+    listed = set(site.get("required", [])) | set(site.get("optional", [])) | {d + "/" for d in site.get("dirs", [])}
+    for s_ in steps():                           # tout fichier produit par une étape est publié
+        for f in s_["restore"]:
+            if f not in listed and not f.endswith(".csv"):
+                errors.append(f"storage.site : {f} (étape {s_['name']}) absent de la liste des fichiers publiés")
+    for wf in sorted(WORKFLOWS.glob("*.yml")):   # les workflows qui publient passent tous par build_site.py
+        text = wf.read_text()
+        if "upload-pages-artifact" in text and ("build_site.py" not in text or re.search(r"\bcp\s+index\.html", text)):
+            errors.append(f"{wf.name} : le site doit être préparé par build_site.py (liste unique config/storage.toml [site])")
     if not JS.exists() or JS.read_text() != js_text():
         errors.append("config_data.js n'est pas à jour : lance python mmconfig.py --js")
     return errors

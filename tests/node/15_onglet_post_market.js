@@ -62,7 +62,7 @@ ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les
 ok('fiche : titre', A.$('pmTitle')._t==='BBB · BBB Inc.', A.$('pmTitle')._t);
 ok('fiche : post-market et lendemain pas encore joué', /Post-market.*\+5,00 %/.test(strip(A.$('pmFacts')._h)) && /21,0 M \$ · 2,0 M actions/.test(strip(A.$('pmFacts')._h)) && /séance pas encore jouée/.test(A.$('pmFacts')._h));
 ok('graphique : bougies dessinées', (A.R.pmCanvas||[]).length>20, (A.R.pmCanvas||[]).length);
-ok('lien Finviz seul (config/postmarket.toml)', /finviz\.com\/quote\.ashx\?t=BBB/.test(A.$('pmNote')._h) && !/tradingview|benzinga|sec\.gov|Récap/.test(A.$('pmNote')._h), A.$('pmNote')._h);
+ok('liens externes : Finviz seul (config/postmarket.toml)', /finviz\.com\/quote\.ashx\?t=BBB/.test(A.$('pmNote')._h) && !/tradingview\.com|benzinga|sec\.gov|Récap/.test(A.$('pmNote')._h), A.$('pmNote')._h);
 // 3) filtres : Baisses, Résultats, Les deux ; tri par variation
 A.L.pmFilt.click({target:{closest:()=>({dataset:{dir:'down'}})}});
 ok('baisses par volume', syms(A).join()==='CCC,DDD', syms(A).join());
@@ -130,3 +130,10 @@ ok('retour Secteurs', /<tr data-s=/.test(A.$('secRows')._h));
   ok('après rechargement, rien de neuf : « Déjà à jour »', /Déjà à jour/.test(G.$('toast')._h) && !SS['mm.reload'], strip(G.$('toast')._h).slice(0,140));
   if(bad)process.exit(1);
 })();
+// garde-fou : aucune règle CSS d'un autre onglet ne masque une colonne du scan (classes .c-<colonne> partagées par .rk)
+{
+  const css=(fs.readFileSync('stockbee_dashboard.html','utf8').match(/<style>([\s\S]*?)<\/style>/)||['',''])[1];
+  const cols=['sym','pch','dv','pv','rv','cap','nx'];
+  const hid=[...css.matchAll(/([^{}]+)\{[^}]*display:\s*none[^}]*\}/g)].map(m=>m[1]).filter(sel=>sel.split(',').some(x=>/\.rk\b/.test(x)&&!/#secTable/.test(x)&&cols.some(c=>new RegExp('\\.c-'+c+'\\b').test(x))));
+  console.log((hid.length?'Error ':'ok    ')+'aucune colonne du scan masquée par une règle .rk générale'+(hid.length?' : '+hid.join(' | '):''));
+}

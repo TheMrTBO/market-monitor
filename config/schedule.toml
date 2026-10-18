@@ -15,3 +15,9 @@ file = "update.yml"
 label = "Mise à jour des données"
 cron_job_org = "17 1,3,5-8,22 * * *"
 github_fallback = ["17 22 * * *", "17 1 * * *", "17 3 * * *", "43 5 * * *"]
+
+[workflows.short]
+file = "short.yml"
+label = "Short interest"
+cron_job_org = "17 12 * * 1-6"     # 12:17 UTC du lundi au samedi : loin du matin (05-08 UTC) et du post-market (20-01 UTC)
+github_fallback = ["17 12 * * 1-6"]

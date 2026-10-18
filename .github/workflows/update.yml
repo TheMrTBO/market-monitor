@@ -25,7 +25,7 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-24.04   # version fixe : « ubuntu-latest » migre vers Ubuntu 26 à partir du 19 oct. 2026
-    timeout-minutes: 60       # premier passage : téléchargement de ~130 séances à 5 appels/min (~27 min) ; ensuite 1-2 appels
+    timeout-minutes: 60       # rattrapage d'historique : au plus 100 séances par passage (~20 min, config/sources.toml) ; ensuite 1-2 appels
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
@@ -52,7 +52,8 @@ jobs:
         continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
         env:
           POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-        run: python fetch_history.py --sessions 130   # trimestre ±25 % : 63 séances de fenêtre + ~65 points dès le 1er passage
+        run: python fetch_history.py   # profondeur et plafond par passage : config/sources.toml [history] (190 séances, 100 par passage)
+        # cache d'avant l'OHLC (ouverture, plus haut, plus bas) : chaque séance est retéléchargée une fois (~27 min au 1er passage)
 
       - name: Sauvegarder l'historique des clôtures
         if: always() && hashFiles('cache/**') != ''   # rien à sauvegarder si le téléchargement a échoué avant de créer le dossier
@@ -61,7 +62,7 @@ jobs:
           path: cache
           key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
 
-      - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels, scan post-market)
+      - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels, scan post-market, industries TradingView)
         id: fetch
         continue-on-error: true            # on publie quand même ce qui a été mis à jour ; l'échec reste signalé plus bas
         run: python update_all.py
@@ -73,13 +74,25 @@ jobs:
 
       - name: Annuler les fichiers invalides (retour aux dernières données valides du dépôt)
         if: steps.validate.outcome == 'failure'
-        run: git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
+        run: |
+          git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
+          # industries : fichier principal + un fichier par industrie. Déjà publiés : on revient à la version du dépôt (et on
+          # retire les fichiers nouveaux) ; jamais publiés (premier passage) : on retire le produit invalide. Aucune suppression
+          # de fichier suivi en cas d'erreur de checkout.
+          if git ls-files --error-unmatch industries_data.js >/dev/null 2>&1; then
+            git checkout -- industries_data.js industries && git clean -fdq -- industries
+            git checkout -- tickers_data.js 2>/dev/null || rm -f tickers_data.js   # index de l'onglet Tickers (ajouté après)
+          else
+            rm -rf industries_data.js industries tickers_data.js
+          fi
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js
+          if [ -f industries_data.js ]; then git add -A industries_data.js industries; fi   # -A : industries disparues retirées
+          if [ -f tickers_data.js ]; then git add tickers_data.js; fi                       # index de l'onglet Tickers
           if git diff --cached --quiet; then
             echo "Aucun changement de données."
           else
@@ -119,10 +132,7 @@ jobs:
         run: python -m mm.store sync --run-id "${{ github.run_id }}-${{ github.run_attempt }}" --message "Données du $(date -u '+%Y-%m-%d %H:%M UTC') (mise à jour)"
 
       - name: Préparer le site
-        run: |
-          mkdir -p _site
-          cp index.html stockbee_dashboard.html config_data.js stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js _site/
-          touch _site/.nojekyll
+        run: python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3

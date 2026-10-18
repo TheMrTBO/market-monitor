@@ -42,12 +42,13 @@ MIN_SESSIONS = 12          # 11 variations de seance pour le ratio 10 j + la sea
 
 
 def count_breadth(today, prev, universe, splits, threshold=THRESHOLD, min_vol=MIN_VOL):
-    """(nb haussiers, nb baissiers) entre deux seances. today / prev : {ticker: [close, volume]}."""
+    """(nb haussiers, nb baissiers) entre deux seances. today / prev : {ticker: [close, volume, ...]} (OHLC ignore)."""
     up = down = 0
-    for t, (c, v) in today.items():
+    for t, row in today.items():
+        c, v = row[0], row[1]
         if t not in universe or t not in prev:
             continue
-        c1, v1 = prev[t]
+        c1, v1 = prev[t][0], prev[t][1]
         ratio = splits.get(t)
         if ratio:                                     # split le jour J : veille ajustee (prix / ratio, volume * ratio)
             c1, v1 = c1 / ratio, v1 * ratio
@@ -78,7 +79,8 @@ def adjusted_series(dates, history, universe, splits):
     """
     n, raw = len(dates), {}
     for k, d in enumerate(dates):
-        for t, (c, _v) in history[d].items():
+        for t, row in history[d].items():
+            c = row[0]
             if t in universe and c and c > 0:
                 raw.setdefault(t, [None] * n)[k] = c
     adj = {t: list(v) for t, v in raw.items()}

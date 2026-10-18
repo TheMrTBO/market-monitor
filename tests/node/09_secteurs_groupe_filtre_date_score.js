@@ -41,7 +41,7 @@ console.log('libelles courts     :',rows(A).filter(r=>!cats.has(r.cells[2])).len
 console.log('ecart : barre derriere le chiffre, ancree a droite :',/<div class="devc"><i class="u" style="width:[\d.]+%"><\/i><span class="v pos">/.test(r0.h),'| plus grand |ecart| = 100 % :',rows(A).some(r=>/style="width:100%"/.test(r.h)));
 // 2) migration d'un ancien ordre memorise (Nom, Description, jauge)
 const B=boot({'mm.seccols':JSON.stringify(['delta','rank','sym','nm','grp','desc','dev','bar'])});tab(B);
-console.log('ordre migre         :',heads(B).map(h=>h.split(':')[0]).join(' > '),'(attendu : delta > rank > sym > grp > dev)');
+console.log('ordre migre         :',heads(B).map(h=>h.split(':')[0]).join(' > '),'(attendu : delta > rank > sym > grp > spark > dev ; miniature TI65 insérée après Groupe)');
 // 3) filtre par groupe : rangs globaux conserves
 A.L.secFilt.click({target:{closest:()=>({dataset:{g:'Matières'}})}});
 const rm=rows(A);

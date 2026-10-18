@@ -7,7 +7,8 @@
 
 ## 1. En une phrase
 Tableau de bord statique (GitHub Pages, https://themrtbo.github.io/market-monitor/) du marché US : breadth (Stockbee + calcul
-maison), QQQ / IWM / BTC, T2108, VIX, classement de 55 ETF sectoriels, scan post-market TradingView. Les données sont
+maison), QQQ / IWM / BTC, T2108, VIX, classement TI65 de 55 ETF sectoriels et des secteurs → industries → actions TradingView,
+scan post-market TradingView, onglet Tickers (une liste → secteur, industrie, tendance, short interest, thèmes chauds). Les données sont
 récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**, contrôlées, commitées, puis publiées.
 
 ## 2. Carte des fichiers
@@ -18,16 +19,20 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `config_data.js` | **Généré** (`python mmconfig.py --js`) : `window.MM_CONFIG`. Ne pas éditer. |
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
-| `fetch_history.py` · `fetch_data.py` | Historique des clôtures Polygon (cache Actions, hors dépôt) pour le calcul maison ; client Polygon. |
+| `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, affichés en courbe de tendance ; % de titres au TI65 > 1) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie) et `tickers_data.js` (toutes les actions US, retenues ou non : secteur, industrie, cap, flottant, TI65, rang dans l'industrie ; onglet Tickers ; sert aussi de composition publiée et de secours si TradingView ne répond pas). |
+| `fetch_short.py` | Short interest de l'onglet Tickers (flottant, actions à découvert, % du flottant, days to cover ; Yahoo via yfinance) → `short_data.js`, par lots (`config/short.toml`), lancé seul par `short.yml` l'après-midi. |
+| `build_site.py` | Prépare `_site` (GitHub Pages) depuis la liste unique `config/storage.toml [site]` ; appelé par les trois workflows. |
+| `fetch_history.py` · `fetch_data.py` | Historique Polygon (cache Actions, hors dépôt) : par titre `[clôture, volume, ouverture, plus haut, plus bas]` (OHLC ajouté le 18/10/2026 ; les lecteurs n'utilisent que `row[0]`, `row[1]` s'ils n'ont pas besoin de l'OHLC) ; client Polygon. |
 | `mm/store/` | **Stockage historique** (phase 3) : interface `Store` (upsert idempotent, read, latest), backend `git_csv`, conversion des `*_data.js` (`importers.py`), synchronisation vers la branche `data` (`sync.py`), CLI `python -m mm.store import|sync|check|stats`. |
 | `data-store/` | Branche orpheline **`data`** extraite localement (`git worktree`, ignorée sur `main`) : CSV de l'historique. |
 | `validate_data.py` | Contrôles de cohérence par source (fraîcheur lue dans `config/sources.toml`, bornes de valeurs dans le code). |
-| `*_data.js`, `status_data.js` | Données publiées (variables globales `window.X`), commitées par le robot sur `main`. |
+| `*_data.js`, `status_data.js`, `industries/` | Données publiées (variables globales `window.X` ; `industries/*.js` : `window.TV_STOCKS[<fichier>]`), commitées par le robot sur `main`. |
 | `stockbee_dashboard.html` | **Tout le front** (HTML + CSS + JS, canvas, aucune librairie) ; ~3 100 lignes, découpage prévu (phase 4). |
 | `.github/workflows/update.yml` | Mise à jour complète + publication. |
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
+| `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 16 tests Node (dashboard en DOM simulé), 5 tests Python (dont `test_store.py`, `test_store_sync.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 18 tests Node (dashboard en DOM simulé), 7 tests Python (dont `test_industries.py`, `test_short.py`, `test_store.py`, `test_store_sync.py`). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
 ## 3. Flux
@@ -40,8 +45,10 @@ cron-job.org (heure exacte, UTC)  ─┐            créneaux `schedule` GitHub 
             validate_data.py (contrôle) → commit des *_data.js sur main (rebase, 3 essais) → déploiement Pages
             python -m mm.store sync → branche `data` (historique, journal `runs`) ; échec signalé, n'empêche pas la publication
                                                                                                       ▼
-  navigateur : stockbee_dashboard.html charge config_data.js + *_data.js (?v=horodatage pour casser le cache)
+  navigateur : stockbee_dashboard.html charge config_data.js + *_data.js (?v=horodatage pour casser le cache) ;
+               industries/<industrie>.js à l'ouverture d'une industrie (onglet Secteurs, vue TradingView)
 ```
+Restauration d'une étape en échec : `restore` de `config/sources.toml` accepte un dossier (entrée finissant par `/`, ex. `industries/`).
 Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais deux écritures simultanées).
 
 ## 4. Configuration (`config/`)
@@ -49,12 +56,14 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 |---|---|---|
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
-| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** | `update_all.py`, `validate_data.py`, front |
+| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[history]` : profondeur de l'historique Polygon (séances, gardées, appels/min) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
-| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres Secteurs, traductions | front |
+| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
+| `display.toml` | `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
-| `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
+| `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique) | `mm/store/`, `build_site.py` |
+| `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
 ⚠️ `schedule.toml` → `cron_job_org` doit être **recopié à la main** dans cron-job.org (aucune API utilisée) ;
 `github_fallback` doit correspondre aux workflows (`--check` échoue sinon).
@@ -85,10 +94,13 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 
 ## 6. Recettes
 - **Ajouter un ETF** : un bloc `[[etf]]` dans `config/sectors.toml` → `python mmconfig.py --js`.
+- **Régler la vue TradingView** (seuils des actions retenues, titres minimum) : `config/industries.toml` → `--js --check` → tests ;
+  en local : `../tradingview-bot/venv/bin/python fetch_industries.py` (il faut le cache Polygon de `fetch_history.py`).
 - **Changer un seuil, un filtre, une heure** : le fichier de `config/` concerné → `--js --check` → tests.
 - **Changer un horaire** : `config/schedule.toml` + workflow (`github_fallback`) + cron-job.org (à la main) + `AUTOMATISATION.md`.
 - **Ajouter une source** (ex. Benzinga) : script `fetch_x.py` → fichier `x_data.js` ; étape `[[step]]` dans `config/sources.toml`
-  (avec `freshness`) ; contrôle `check_x` dans `validate_data.py` ; chargement dans le front ; copie dans `_site` des deux
+  (avec `freshness` ; `separate = "<workflow>"` si elle a son propre passage) ; contrôle `check_x` dans `validate_data.py` ;
+  chargement dans le front ; fichier dans `config/storage.toml [site]` (`--check` le vérifie), à la place de la copie dans `_site` des deux
   workflows ; test. Clé éventuelle : GitHub Secret, jamais dans le dépôt. (Phase 2 : un module + une entrée de config.)
 
 ## 7. Refonte en cours (décision utilisateur 14/10/2026 : « arranger avant d'itérer »)
@@ -102,13 +114,16 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 | 2 | Paquet Python `mm/` (une interface commune par source, `python -m mm run`) | à faire |
 | 4 | Front découpé en modules ES natifs (un par onglet + moteur de graphique) | à faire |
 | 5 | Alertes (source muette, pas de liste post-market un jour de semaine), journal des passages | à faire |
-Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Détail : proposition privée de l'utilisateur
+Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exceptions accordées le 18/10/2026 : vue TradingView de
+l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers (short interest Yahoo par lots, accord de l'utilisateur). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
 - Bornes de valeurs des contrôles (`validate_data.py` : ex. 0-5 000 titres, VIX 5-150) → déclarées par source en phase 2.
-- Liste des fichiers copiés dans `_site` (deux workflows) et chargés par le front → générée par `build.py` en phase 3.
+- Liste des fichiers chargés au démarrage par le front (chargeur en tête de `stockbee_dashboard.html`) → phase 3c (`_site` : déjà centralisé, `config/storage.toml [site]`).
 - Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente) dans le front → phase 4.
+- Colonnes de la vue TradingView par niveau (`TV_LEVEL`), largeurs des colonnes (`#secTable`), taille de la miniature (60 × 18)
+  → phase 4. `display.toml [postmarket.sector_fr]` sert aussi à l'onglet Secteurs (nom historique, à renommer en phase 4).
 - Constantes d'interface des onglets Secteurs / Post-market : seuil « liste et détail empilés » (`isStacked`, ≤ 1000 px),
   seuils du balayage entre titres (60 px, horizontal ≥ 2 × vertical, < 700 ms) → phase 4.
 - `fetch_data.py` (univers Polygon, âge max du cache), `breadth_own.py` (formules TC2000 : ne pas modifier sans accord).
@@ -119,3 +134,36 @@ Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Détail 
 - TradingView vide les champs post-market pendant la séance régulière ; données différées de 15 min.
 - `?v=` doit être numérique pour que le chargeur casse le cache des fichiers de données (cache Pages 10 min).
 - Ne pas utiliser « Re-run » d'une ancienne exécution (rejoue l'ancien workflow) : « Run workflow ».
+- Vue TradingView : navigation Secteurs → Industries (toutes, rang global ; pastilles de secteur et « TI65 > 1 » = filtres
+  qui masquent des lignes sans changer les rangs) → actions d'une industrie. Graphiques : bougies pour les ETF et les actions
+  (vrais cours) ; courbe de tendance pour un secteur / une industrie (un indice équipondéré n'a pas de vrai plus haut / plus
+  bas), avec sous le score la carte « % des actions au TI65 > 1 » dans le temps (décision du 18/10/2026). Le passage du
+  cache à l'OHLC et l'allongement à 190 séances retéléchargent chaque séance une fois : 2 passages de `update.yml` (~20 + ~18 min),
+  les plus récentes d'abord ; d'ici là, les séances anciennes restent en courbe.
+- **Calendrier du matin** (mesuré du 13 au 17/10/2026) : Polygon (plan gratuit) publie la séance D entre 03:17 et 05:17 UTC
+  à D+1 ; le passage de 05:17 UTC la prend (site à jour vers 05:30 UTC), 06:17 et 07:17 UTC rattrapent. Échéance : début
+  du pre-market US = 04:00 à New York = **08:00 UTC** (heure d'été US) ou 09:00 UTC (hiver US), soit 10:00 à Paris, mais 09:00
+  à Paris entre le changement d'heure européen et l'américain (fin octobre → 1er dimanche de novembre ; 2e → dernier dimanche
+  de mars). Les créneaux cron-job.org sont en **UTC** (vérifié sur les heures des commits) : ils ne bougent pas aux
+  changements d'heure. Le soir, la vue TradingView montre la veille (alerte « séance … pas encore publiée » dans l'onglet).
+- Vue TradingView : composition (titres retenus) figée par séance : les passages suivants de la même séance la reprennent
+  des fichiers publiés sans réinterroger TradingView (`--rescan` pour forcer). Fichiers d'industrie chargés avec `?v=<séance>`.
+- Vue TradingView : **secours** si TradingView ne répond pas (muet, vide, liste tronquée) : la dernière composition publiée
+  (`tickers_data.js`) est reprise avec les clôtures du jour (`comp.fallback`, signalé dans l'onglet Tickers) ; le passage suivant
+  réessaie. Sans composition publiée : arrêt, fichiers non modifiés.
+- **Fiche standard** d'un ticker (`stdFiche`, même contenu partout : Tickers, Post-market, niveau actions de Secteurs) :
+  clôture, TI65 de l'action et rang dans l'industrie, industrie (rang, écart, % > 1, chaud / émergent), secteur (rang),
+  capitalisation, flottant, short interest, liens (Finviz, Secteurs, Tickers) ; chaque onglet ajoute ses infos (post-market : cours
+  et volume AH, résultats, lendemain). Le scan post-market s'envoie dans Tickers (bouton « Tickers ») ; ses tickers passent
+  en tête du lot Yahoo du lendemain (`config/short.toml postmarket_first`).
+- Onglet Tickers : liste + fiche côte à côte (bureau) ou liste / fiche (mobile, ‹ › et balayage, comme le post-market) ;
+  fiche = bougies (fichier `industries/<industrie>.js`, chargé à la demande), TI65 dans le temps, cap, flottant, short ;
+  action « hors filtres » : graphique depuis `industries/<industrie>--hors.js` (`publish_all`, chargé seulement pour sa fiche) ;
+  seules les actions sans historique de cours Polygon (≈ 130 : introductions récentes, ADR) n'ont pas de graphique.
+- Onglet Tickers : short interest Yahoo (`fetch_short.py`) publié deux fois par mois par les marchés ; rafraîchi par lots de 800
+  (cycle complet de ~5 200 actions en ~7 passages). Yahoo n'a pas d'API officielle : en cas de blocage, les valeurs déjà
+  publiées restent (date du relevé affichée). Créneau cron-job.org `17 12 * * 1-6` à créer à la main (sinon : secours GitHub).
+- Vue TradingView : historique limité au cache Polygon (`config/sources.toml [history] sessions`, 190 ≈ 6 mois de TI65 ; au plus `max_downloads` = 100 séances téléchargées par passage, ≈ 20 min) ; composition des
+  secteurs / industries = celle du jour, appliquée à tout l'historique ; TradingView ne fournit aucun historique d'industrie
+  (indices recalculés ici, ils ne reproduisent pas la variation affichée par TradingView, pondérée par capitalisation).
+  Pas encore copiée dans le stockage historique (branche `data`).

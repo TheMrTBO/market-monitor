@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Historique des clotures NON ajustees : un fichier gzip par seance dans cache/history/ (hors depot, voir .gitignore).
+"""Historique des cours NON ajustes : un fichier gzip par seance dans cache/history/ (hors depot, voir .gitignore).
+Une ligne par titre : [cloture, volume, ouverture, plus haut, plus bas] (les deux premiers champs gardent leur place :
+les lecteurs qui n'utilisent que cloture et volume lisent row[0], row[1]). Les fichiers d'avant l'ajout de l'OHLC
+([cloture, volume]) restent lisibles ; update() les retelecharge pour completer l'ouverture, le plus haut et le plus bas.
 
 Une seance = 1 appel Polygon / Massive `grouped daily` (tous les titres US). Les splits sont conserves a part
 (cache/splits.json, un seul appel paginé par execution) et appliques au calcul, comme dans fetch_data.py : les prix
@@ -8,7 +11,7 @@ stockes ne sont jamais reecrits, donc une mise a jour incrementale ne peut pas m
 Reprenable : les seances deja presentes ne sont pas retelechargees ; un jour ferie est note (liste vide) pour ne pas etre
 redemande. L'univers (actions ordinaires NYSE/Nasdaq/AMEX) est rafraichi s'il a plus de 7 jours.
 
-Usage : python3 fetch_history.py [--sessions 72] [--keep 400] [--rate 5]
+Usage : python3 fetch_history.py [--sessions N] [--keep N] [--rate N]   (défauts : config/sources.toml [history])
 Cle : POLYGON_API_KEY (variable d'environnement, GitHub Secret, ou fichier .env local).
 """
 import argparse
@@ -19,6 +22,7 @@ import sys
 from datetime import date, timedelta
 
 import fetch_data as fd
+import mmconfig
 
 HISTORY = fd.CACHE / "history"
 SPLITS_FILE = fd.CACHE / "splits.json"
@@ -28,8 +32,9 @@ def day_path(d):
     return HISTORY / f"{d.isoformat()}.json.gz"
 
 
-def read_day(d):
-    """{ticker: [close, volume]} (vide = jour ferie), ou None si le jour est inconnu ou d'un ancien format."""
+def read_day(d, need_ohlc=False):
+    """{ticker: [close, volume, open, high, low]} (ou [close, volume] avant l'ajout de l'OHLC ; vide = jour ferie), ou None
+    si le jour est inconnu ou d'un ancien format. need_ohlc : None aussi pour une seance sans OHLC (a retelecharger)."""
     p = day_path(d)
     if not p.exists():
         return None
@@ -40,6 +45,8 @@ def read_day(d):
         return None
     if payload.get("adjusted") is not False:     # ancien format (cloture ajustee) : a retelecharger
         return None
+    if need_ohlc and payload["rows"] and not payload.get("ohlc"):   # seance sans ouverture / plus haut / plus bas
+        return None
     return payload["rows"]
 
 
@@ -47,7 +54,7 @@ def write_day(d, rows):
     HISTORY.mkdir(parents=True, exist_ok=True)
     tmp = day_path(d).with_suffix(".tmp")
     with gzip.open(tmp, "wt") as f:
-        json.dump({"adjusted": False, "rows": rows}, f, separators=(",", ":"))
+        json.dump({"adjusted": False, "ohlc": True, "rows": rows}, f, separators=(",", ":"))
     tmp.replace(day_path(d))
 
 
@@ -78,20 +85,24 @@ def load_splits_file():
 def fetch_day(api, d):
     data = api.get(f"{fd.POLYGON}/v2/aggs/grouped/locale/us/market/stocks/{d.isoformat()}",
                    {"adjusted": "false", "include_otc": "false"})
-    return {r["T"]: [r["c"], r["v"]] for r in data.get("results") or []}
+    return {r["T"]: [r["c"], r["v"], r.get("o"), r.get("h"), r.get("l")] for r in data.get("results") or []}
 
 
-def update(api, sessions, end, keep=400, log=print):
+def update(api, sessions, end, keep=400, log=print, max_downloads=0):
     """Complete le cache jusqu'a `sessions` seances en remontant depuis `end`, met a jour les splits, elague. Retourne le nombre
-    de seances telechargees."""
+    de seances telechargees. max_downloads > 0 : au plus autant de telechargements par passage (les plus recentes d'abord) ;
+    le reste est repris au passage suivant (un rattrapage long ne deborde jamais sur la duree d'un passage)."""
     d, got, downloaded = end, 0, 0
     log(f"Historique : {sessions} seances en remontant depuis {end}")
     while got < sessions:
         if d.weekday() >= 5:
             d -= timedelta(days=1)
             continue
-        rows = read_day(d)
+        rows = read_day(d, need_ohlc=True)      # seance sans OHLC (ancien cache) : retelechargee une fois
         if rows is None:
+            if max_downloads and downloaded >= max_downloads:
+                log(f"Plafond de {max_downloads} telechargements atteint : la suite au prochain passage")
+                break
             try:
                 rows = fetch_day(api, d)
             except fd.PlanError:                # le plan gratuit peut refuser la seance du jour (fin de journee non diffusee)
@@ -132,9 +143,12 @@ def prune(keep):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--sessions", type=int, default=72, help="nombre minimal de seances recentes en cache (72)")
-    ap.add_argument("--keep", type=int, default=400, help="seances conservees au maximum (400)")
-    ap.add_argument("--rate", type=float, default=5, help="appels/min (5 = plan gratuit)")
+    h = mmconfig.load("sources")["history"]           # profondeur et rythme : config/sources.toml [history]
+    ap.add_argument("--sessions", type=int, default=h["sessions"], help=f"seances recentes en cache ({h['sessions']})")
+    ap.add_argument("--keep", type=int, default=h["keep"], help=f"seances conservees au maximum ({h['keep']})")
+    ap.add_argument("--rate", type=float, default=h["rate"], help=f"appels/min ({h['rate']} = plan gratuit)")
+    ap.add_argument("--max-downloads", type=int, default=h["max_downloads"],
+                    help=f"telechargements au plus par passage ({h['max_downloads']} ; 0 = sans limite, ex. en local)")
     args = ap.parse_args()
 
     fd.load_env()
@@ -144,7 +158,7 @@ def main():
     api = fd.Polygon(key, args.rate)
     try:
         fd.load_universe(api, refresh=False)    # rafraichi si plus de 7 jours (cache/universe.json)
-        update(api, args.sessions, fd.last_session_end(), keep=args.keep)
+        update(api, args.sessions, fd.last_session_end(), keep=args.keep, max_downloads=args.max_downloads)
     except fd.PlanError as e:
         sys.exit(f"Acces refuse par ton plan Polygon (403) : {e}")
     except KeyboardInterrupt:

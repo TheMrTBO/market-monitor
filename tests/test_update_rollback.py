@@ -7,6 +7,8 @@ Simule, dans un dossier temporaire, cinq scripts de recuperation factices :
   - vix     : tronque la serie (donnees trop anciennes)               -> doit etre annule et restaure a l'identique
   - sectors : ecrit un fichier quasi vide (1 ETF au lieu de 55)       -> doit etre annule et restaure a l'identique
   - breadth : ecrit un calcul maison tronque (3 seances)              -> doit etre annule et restaure a l'identique
+  - industries : fichier principal tronque, un fichier d'industrie supprime, un autre ajoute
+                                                                      -> fichier et dossier industries/ restaures a l'identique
 Aucun acces reseau. Sortie : code 0 si le comportement est conforme.
 """
 import json
@@ -17,7 +19,9 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "breadth_data.js", "vix_data.js", "prices_data.js", "sectors_data.js"]
+DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "breadth_data.js", "vix_data.js", "prices_data.js", "sectors_data.js",
+        "industries_data.js"]
+FOLDER = "industries"                     # un fichier par industrie (config/industries.toml), restaure en bloc
 
 STUBS = {
     "fetch_stockbee.py": 'print("stub stockbee : donnees deja a jour")\n',
@@ -36,6 +40,12 @@ STUBS = {
         'import json\ntxt = open("breadth_data.js").read()\nd = json.loads(txt.split("=", 1)[1].strip().rstrip(";"))\n'
         'd["rows"] = d["rows"][:3]\nopen("breadth_data.js", "w").write("window.BREADTH_OWN = " + json.dumps(d) + ";\\n")\n'
         'print("Ecrit : breadth_data.js")\n'
+    ),
+    "fetch_industries.py": (
+        'import pathlib\nfiles = sorted(pathlib.Path("industries").glob("*.js"))\nfiles[0].unlink()\n'
+        'pathlib.Path("industries/nouvelle-industrie.js").write_text("x")\n'
+        'open("industries_data.js", "w").write(\'window.INDUSTRIES = {"asof":"2026-10-12","dates":[],"sectors":[],"industries":[]};\\n\')\n'
+        'print("Ecrit : industries_data.js")\n'
     ),
     "fetch_vix.py": (
         'import json\nrows = json.loads(open("vix_data.js").read().split("=", 1)[1].strip().rstrip(";"))\n'
@@ -58,6 +68,9 @@ def main():
             shutil.copy(ROOT / name, work / name)
         shutil.copytree(ROOT / "config", work / "config")             # configuration centralisee (etapes, fraicheur)
         shutil.copytree(ROOT / ".github", work / ".github")
+        shutil.copytree(ROOT / FOLDER, work / FOLDER)
+        folder = lambda: {q.name: q.read_bytes() for q in sorted((work / FOLDER).glob("*"))}
+        before_folder = folder()
         for name, code in STUBS.items():
             (work / name).write_text(code)
         before = {n: (work / n).read_bytes() for n in DATA}
@@ -76,6 +89,9 @@ def main():
             "sectors en echec": status["sectors"]["ok"] is False,
             "vix restaure a l'identique": (work / "vix_data.js").read_bytes() == before["vix_data.js"],
             "sectors restaure a l'identique": (work / "sectors_data.js").read_bytes() == before["sectors_data.js"],
+            "industries en echec": status["industries"]["ok"] is False,
+            "industries restaure a l'identique": (work / "industries_data.js").read_bytes() == before["industries_data.js"],
+            "dossier industries/ restaure a l'identique (fichier supprime remis, fichier ajoute retire)": folder() == before_folder,
             "code de sortie 1 (echec signale)": r.returncode == 1,
         }
         for label, ok in checks.items():

@@ -107,7 +107,8 @@ class FakeApi:
         self.calls.append(d)
         if d in self.holidays or d in self.unpublished:
             return {"results": []}
-        return {"results": [{"T": "AAA", "c": 10.0, "v": 200_000}, {"T": "BBB", "c": 5.0, "v": 1_000}]}
+        return {"results": [{"T": "AAA", "c": 10.0, "v": 200_000, "o": 9.5, "h": 10.5, "l": 9.0},
+                            {"T": "BBB", "c": 5.0, "v": 1_000, "o": 5.0, "h": 5.0, "l": 5.0}]}
 
     def pages(self, url, params=None):
         yield {"execution_date": params["execution_date.gte"], "ticker": "AAA", "split_from": 1, "split_to": 2}
@@ -134,7 +135,27 @@ with tempfile.TemporaryDirectory() as tmp:
     api3 = FakeApi(holidays={"2026-10-07"})
     fh.update(api3, 5, end, keep=400, log=lambda *_: None)
     checks["ancien format ajuste : retelecharge"] = api3.calls.count("2026-10-09") == 1 and \
-        fh.read_day(date(2026, 10, 9))["AAA"] == [10.0, 200_000]
+        fh.read_day(date(2026, 10, 9))["AAA"] == [10.0, 200_000, 9.5, 10.5, 9.0]
+    # seance sans OHLC (cache d'avant l'ajout) : lisible telle quelle, mais retelechargee une fois par update()
+    with gzip.open(p, "wt") as f:
+        json.dump({"adjusted": False, "rows": {"AAA": [10.0, 200_000]}}, f)
+    checks["seance sans OHLC : lisible (cloture, volume)"] = fh.read_day(date(2026, 10, 9))["AAA"] == [10.0, 200_000] \
+        and fh.read_day(date(2026, 10, 9), need_ohlc=True) is None
+    api5 = FakeApi(holidays={"2026-10-07"})
+    fh.update(api5, 5, end, keep=400, log=lambda *_: None)
+    # plafond par passage : les plus recentes d'abord, la suite au passage suivant
+    with tempfile.TemporaryDirectory() as tmp5:
+        h0 = fh.HISTORY
+        fh.HISTORY = Path(tmp5) / "history"
+        a6 = FakeApi(holidays={"2026-10-07"})
+        n6 = fh.update(a6, 5, end, keep=400, log=lambda *_: None, max_downloads=2)
+        first = fh.list_sessions()
+        n7 = fh.update(FakeApi(holidays={"2026-10-07"}), 5, end, keep=400, log=lambda *_: None, max_downloads=2)
+        checks["plafond par passage : 2 seances (les plus recentes), puis la suite"] = n6 == 2 and first == ["2026-10-08", "2026-10-09"] \
+            and n7 == 2 and len(fh.list_sessions()) == 3
+        fh.HISTORY = h0
+    checks["seance sans OHLC : retelechargee une fois, jour ferie non redemande"] = api5.calls.count("2026-10-09") == 1 \
+        and "2026-10-07" not in api5.calls and fh.read_day(date(2026, 10, 9), need_ohlc=True)["AAA"][2:] == [9.5, 10.5, 9.0]
     # jour du jour pas encore publie : ni ecrit comme ferie, ni bloquant
     with tempfile.TemporaryDirectory() as tmp2:
         fh.HISTORY, fh.SPLITS_FILE = Path(tmp2) / "history", Path(tmp2) / "splits.json"

@@ -9,3 +9,12 @@ serving = "js_files"
 backend = "git_csv"
 root = "data-store"        # dossier local où est extraite la branche `data` (git worktree, ou actions/checkout en CI)
 branch = "data"
+
+[site]
+# Fichiers publiés sur GitHub Pages (build_site.py, appelé par les workflows) : une seule liste pour tous les workflows.
+# required : absents = publication refusée ; optional : copiés s'ils existent (premier passage d'une nouvelle source) ;
+# dirs : dossiers copiés en entier s'ils existent.
+required = ["index.html", "stockbee_dashboard.html", "config_data.js", "stockbee_data.js", "breadth_data.js", "prices_data.js",
+            "vix_data.js", "sectors_data.js", "postmarket_data.js", "status_data.js"]
+optional = ["industries_data.js", "tickers_data.js", "short_data.js"]
+dirs = ["industries"]

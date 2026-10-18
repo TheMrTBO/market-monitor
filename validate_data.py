@@ -201,12 +201,91 @@ def check_postmarket(data, today):
     return errors
 
 
-CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors}
+def check_industries(data, today, folder=None):
+    """Vue TradingView (fetch_industries.py) : nombre de secteurs, d'industries et de titres, fraîcheur, indices positifs,
+    puis chaque fichier d'industrie (présent, même dernière séance, autant de titres que déclaré)."""
+    errors, f = [], fresh("industries")
+    secs, inds, dates = data.get("sectors", []), data.get("industries", []), data.get("dates", [])
+    if len(secs) < f["min_sectors"]:
+        errors.append(f"industries : seulement {len(secs)} secteurs (minimum {f['min_sectors']})")
+    if len(inds) < f["min_industries"]:
+        errors.append(f"industries : seulement {len(inds)} industries (minimum {f['min_industries']})")
+    total = sum(i["n"] for i in inds)
+    if total < f["min_stocks"] or total != sum(s["n"] for s in secs):
+        errors.append(f"industries : {total} titres dans les industries, {sum(s['n'] for s in secs)} dans les secteurs "
+                      f"(minimum {f['min_stocks']}, totaux égaux attendus)")
+    if len(dates) < f["min_rows"]:
+        errors.append(f"industries : seulement {len(dates)} séances (minimum {f['min_rows']})")
+    _check_dates(dates, "industries", today, f["max_age"], f["max_gap"], errors)
+    if dates and data.get("asof") != dates[-1]:
+        errors.append("industries : asof différent de la dernière date")
+    bad = [x["k"] for x in secs + inds if len(x["c"]) != len(dates) or len(x["b"]) != len(dates)
+           or any(v is None or not v > 0 for v in x["c"])]
+    if bad:
+        errors.append(f"industries : {len(bad)} indice(s) incomplet(s) ou non positif(s) ({', '.join(bad[:3])})")
+    if folder is not None:
+        missing = []
+        for i in inds:
+            try:                              # « (window.TV_STOCKS = …)["<f>"] = {…}; » : objet après « ] = »
+                text = (Path(folder) / f"{i['f']}.js").read_text()
+                p = json.loads(text[text.index("] = ") + 4:].strip().rstrip(";"))
+            except (OSError, ValueError):
+                missing.append(i["f"]); continue
+            if p.get("asof") != data.get("asof") or len(p.get("rows", [])) != i["n"] \
+                    or any(len(r[3]) != len(p["dates"]) for r in p["rows"]):
+                missing.append(i["f"])
+        if missing:
+            errors.append(f"industries : {len(missing)} fichier(s) d'industrie absent(s) ou incohérent(s) ({', '.join(missing[:3])})")
+        tk_file = Path(folder).parent / mmconfig.load("industries")["output"]["tickers_file"]
+        try:                                  # index de l'onglet Tickers : même séance, au moins toutes les actions retenues
+            tk = load_js(tk_file)
+            kept = tk["cols"].index("kept")
+            if tk.get("asof") != data.get("asof") or sum(r[kept] for r in tk["rows"]) != total or len(tk["rows"]) < total \
+                    or any(not 0 <= r[tk["cols"].index("ind")] < len(tk["inds"]) for r in tk["rows"]):
+                errors.append(f"industries : {tk_file.name} incohérent (séance, actions retenues ou industries)")
+            bad_x = []                        # fichiers des actions hors filtres (publish_all) : présents, même séance
+            for ind in tk["inds"]:
+                if len(ind) > 2 and ind[2]:
+                    try:
+                        text = (Path(folder) / f"{ind[2]}.js").read_text()
+                        x = json.loads(text[text.index("] = ") + 4:].strip().rstrip(";"))
+                        if x.get("asof") != data.get("asof") or not x.get("rows"):
+                            bad_x.append(ind[2])
+                    except (OSError, ValueError):
+                        bad_x.append(ind[2])
+            if bad_x:
+                errors.append(f"industries : {len(bad_x)} fichier(s) hors filtres absent(s) ou incohérent(s) ({', '.join(bad_x[:3])})")
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
+            errors.append(f"industries : {tk_file.name} absent ou illisible")
+    return errors
+
+
+def check_short(data, today):
+    """Short interest (fetch_short.py) : nombre de lignes, fraîcheur du dernier passage, valeurs plausibles."""
+    errors, f = [], fresh("short")
+    cols, rows = data.get("cols", []), data.get("rows", {})
+    if len(rows) < f["min_rows"]:
+        errors.append(f"short : seulement {len(rows)} actions (minimum {f['min_rows']})")
+    age = _age_days(data["updated"][:10], today)
+    if age > f["max_age"]:
+        errors.append(f"short : dernier passage il y a {age} jours (maximum {f['max_age']})")
+    ix = {k: cols.index(k) for k in ("flt", "sh", "pct", "dtc")}
+    bad = [s for s, r in rows.items() if len(r) != len(cols) or any(r[i] is not None and r[i] < 0 for i in ix.values())
+           or (r[ix["pct"]] is not None and r[ix["pct"]] > 5) or (r[ix["dtc"]] is not None and r[ix["dtc"]] > 1000)]
+    if bad:
+        errors.append(f"short : {len(bad)} ligne(s) incohérente(s) ({', '.join(bad[:3])})")
+    return errors
+
+
+CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
+          "industries": check_industries, "short": check_short}
 
 
 def validate(name, path=None, today=None):
     """Retourne la liste des erreurs (vide = valide) pour la source `name`."""
     path = Path(path) if path else HERE / FILES[name]
+    if not path.exists() and mmconfig.step(name).get("separate"):
+        return []                             # source à passage séparé pas encore produite : rien à contrôler (pas un échec)
     try:
         data = load_js(path)
     except (OSError, ValueError) as e:
@@ -214,6 +293,8 @@ def validate(name, path=None, today=None):
     try:
         if name == "breadth":                 # controle croise avec le fichier Stockbee voisin
             return check_breadth(data, today or date.today(), path.parent / FILES["stockbee"])
+        if name == "industries":              # fichiers des industries : dossier voisin (config/industries.toml)
+            return check_industries(data, today or date.today(), path.parent / mmconfig.load("industries")["output"]["folder"])
         return CHECKS[name](data, today or date.today())
     except (KeyError, IndexError, TypeError) as e:
         return [f"{name} : structure inattendue ({e.__class__.__name__}: {e})"]

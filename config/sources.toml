@@ -5,6 +5,16 @@
 # freshness : contrôle de fraîcheur (min_rows = nombre minimal de lignes, max_age = âge max de la dernière date en jours,
 #             max_gap = plus grand trou toléré entre deux dates en jours ; week-ends et jours fériés tolérés)
 
+[history]
+# historique Polygon (fetch_history.py, cache hors dépôt) : séances complétées à chaque passage et séances gardées au plus.
+# 190 (décision du 18/10/2026) : courbes du TI65 sur ~6 mois dans la vue TradingView (190 − 64 = 126 séances) ; couvre
+# aussi le calcul maison du breadth (fenêtre trimestrielle). Augmenter = rattrapage unique, réparti sur plusieurs passages
+# (max_downloads) ; 5 appels/min sur le plan gratuit, soit 1 séance = 12 s.
+sessions = 190
+keep = 400
+rate = 5               # appels par minute (plan gratuit Polygon / Massive)
+max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 min) : un passage tient toujours avant le suivant
+
 [[step]]
 name = "stockbee"
 label = "Stockbee"
@@ -70,3 +80,26 @@ restore = ["postmarket_data.js"]
 attempts = 2
 waits = [30]
 freshness = { max_age = 7, max_gap = 20, max_snapshots = 30 }
+
+[[step]]
+name = "industries"
+label = "Industries TradingView"
+label_inline = "industries TradingView"   # dans une phrase (« … en échec »)
+script = "fetch_industries.py"            # après fetch_history.py (clôtures Polygon en cache) ; scanner TradingView
+output = "industries_data.js"
+restore = ["industries_data.js", "industries/", "tickers_data.js"]   # « / » final : tout le dossier ; tickers : onglet Tickers
+attempts = 2
+waits = [30]
+freshness = { min_rows = 70, max_age = 6, max_gap = 12, min_sectors = 15, min_industries = 80, min_stocks = 1500 }
+
+[[step]]
+name = "short"
+label = "Short interest"
+label_inline = "short interest"   # dans une phrase (« … en échec »)
+script = "fetch_short.py"         # Yahoo (yfinance), par lots : config/short.toml
+output = "short_data.js"
+restore = ["short_data.js"]
+attempts = 1
+waits = [0]
+separate = "short.yml"            # lancé par son propre workflow l'après-midi, pas par update_all.py
+freshness = { max_age = 10, min_rows = 500 }
