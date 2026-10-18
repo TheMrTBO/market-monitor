@@ -57,7 +57,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `industries.toml` | vue TradingView : filtres des actions retenues (bourses, sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` en séances), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois ; il faut `spark + long − 1` ≤ `stock_sessions`, contrôlé par `--check`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.

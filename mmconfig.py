@@ -139,8 +139,10 @@ def check():
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
     if set(load("display")["sectors"]["group_tips"]) != {g for g, _ in load("display")["sectors"]["groups"]}:
         errors.append("display.sectors.group_tips : une bulle par filtre de display.sectors.groups attendue")
-    if not (isinstance(ti.get("spark"), int) and 2 <= ti["spark"] <= ti["long"]):
-        errors.append("display.ti65.spark : entier entre 2 et long attendu")
+    if not (isinstance(ti.get("spark"), int) and 2 <= ti["spark"] <= ti["long"]) or not ti.get("spark_label"):
+        errors.append("display.ti65.spark : entier entre 2 et long attendu, avec spark_label")
+    if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["stock_sessions"]:
+        errors.append("display.ti65.spark : la miniature des actions demande spark + long − 1 séances ≤ industries.output.stock_sessions")
     if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
         errors.append("display.sectors.views : clés etf et tv attendues")
     u, ix = ind["universe"], ind["index"]

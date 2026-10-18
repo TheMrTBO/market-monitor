@@ -88,9 +88,11 @@
   #secTable.tv td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px; }
   #secTable td.dev { width: 112px; }                /* Secteurs : la miniature du TI65 prend la place gagnée (Δ 5 j toujours visible) */
   /* vue TradingView : largeurs fixes, le nom (souvent long) prend le reste et passe à la ligne ; tout tient dans la carte */
-  #secTable.tv { table-layout: fixed; width: 100%; }
-  #secTable.tv th.c-rank { width: 58px; } #secTable.tv th.c-brd { width: 62px; } #secTable.tv th.c-cap { width: 76px; }
-  #secTable.tv th.c-spark { width: 70px; } #secTable.tv th.c-dev { width: 104px; } #secTable.tv th.c-delta { width: 62px; } #secTable.tv th.c-open { width: 38px; }
+  /* (ETF et TradingView : largeurs fixes ; Symbole / Nom prend le reste) */
+  #secTable { table-layout: fixed; width: 100%; }
+  #secTable th.c-rank { width: 58px; } #secTable th.c-grp { width: 34%; } #secTable th.c-brd { width: 62px; } #secTable th.c-cap { width: 76px; }
+  #secTable th.c-spark { width: 74px; } #secTable th.c-dev { width: 104px; } #secTable th.c-delta { width: 62px; } #secTable th.c-open { width: 38px; }
+  #secTable td.grp, #secTable td.sym { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #secTable.tv td.sym { white-space: normal; line-height: 1.25; overflow: hidden; }
   #secTable.tv td.sym .tsub { max-width: 100%; }
   .rk .mob { display: none; }
@@ -1820,7 +1822,7 @@
   // colonnes : triables (clic) et déplaçables (glisser-déposer des en-têtes) ; l'ordre est mémorisé (ETF et TradingView à part)
   const DEV_DEF = { label: 'Écart', k: 'dev', dir: -1, title: `Écart = ${TIN} − 1, en %` };
   const DELTA_DEF = { label: 'Δ 5 j', k: 'delta', dir: -1, title: 'Rang il y a 5 séances − rang actuel' };
-  const SPARK_DEF = { label: `${TI.spark} j`, k: '', title: `${TIN} des ${TI.spark} dernières séances (ligne pointillée : 1,00)` };
+  const SPARK_DEF = { label: TI.spark_label, k: '', title: `${TIN} des ${TI.spark} dernières séances, ${TI.spark_label} (ligne pointillée : 1,00)` };
   const SEC_DEFS = {
     rank:  { label: 'Rang', k: 'rank', dir: 1 },
     sym:   { label: 'Symbole', k: 'sym', dir: 1, left: true },
@@ -2020,7 +2022,7 @@
         cnt: ['Titres', `<p>Actions retenues : ${filt}.</p>`],
         brd: ['% > 1', `<p>Part des actions retenues dont le ${TIN} dépasse 1. Mesure la <b>largeur</b> du mouvement ; le ${TIN} de l'indice en mesure l'<b>ampleur</b>. Un indice haut avec peu d'actions au-dessus de 1 = quelques titres tirent le groupe.</p>`],
         cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView, dollars) : T = milliers de milliards, Md = milliards, M = millions.</p>'],
-        spark: [`${TIN} ${TI.spark} j`, `<p>Miniature du ${TIN} sur les ${TI.spark} dernières séances jusqu'à la séance du classement. Pointillé : 1,00. Bleue si la dernière valeur est au-dessus de 1, rouge sinon.</p><p>Les 5 dernières valeurs au survol de la cellule.</p>`],
+        spark: [`${TIN} sur ${TI.spark_label}`, `<p>Miniature du ${TIN} sur les ${TI.spark} dernières séances (${TI.spark_label}) jusqu'à la séance du classement. Pointillé : 1,00. Bleue si la dernière valeur est au-dessus de 1, rouge sinon.</p><p>Les 5 dernières valeurs au survol de la cellule.</p>`],
         dev: ['Écart', `<p>${TIN} − 1, en %. La barre est proportionnelle au plus grand écart de la liste${lvl === 'etf' ? '' : ''} (sur mobile, la miniature la remplace).</p>`],
         delta: ['Δ 5 j', '<p>Rang il y a 5 séances − rang du jour : ▲ l\'élément gagne des places, ▼ il en perd ; « nouveau » : pas de rang il y a 5 séances.</p>'],
       }[key] || null;
@@ -3378,7 +3380,7 @@
     secrank: [`Classement ${CFG.ti65.name}`, `<p><b>${CFG.ti65.name}</b> = moyenne des ${CFG.ti65.short} dernières clôtures ÷ moyenne des ${CFG.ti65.long} dernières (formule TC2000). Au-dessus de 1, les cours récents sont au-dessus de leur moyenne d'environ 3 mois.</p>
       <p><b>Écart</b> = ${CFG.ti65.name} − 1, en %. La barre derrière le chiffre est proportionnelle au plus grand écart de la séance. <b>Δ 5 j</b> = rang d'il y a 5 séances − rang du jour (▲ : l'élément gagne des places).</p>
       <p><b>ETF</b> : 55 ETF sectoriels et thématiques ; les filtres masquent des lignes sans changer les rangs. <b>TradingView</b> : secteurs → industries (rang global, pastilles par secteur) → actions (classification TradingView). Un secteur ou une industrie = indice équipondéré de ses actions retenues (prix ≥ ${nf(CFG.industries.min_price)} $, volume moyen ≥ ${nf(CFG.industries.min_avg_volume)}, capitalisation ≥ ${nf(CFG.industries.min_market_cap / 1e6)} M$) ; <b>% > 1</b> = part de ces actions dont le ${CFG.ti65.name} dépasse 1. Moins de ${CFG.industries.min_members} titres : pas de rang ; moins de ${CFG.industries.few_members} : « peu de titres ».</p>
-      <p><b>${CFG.ti65.name} ${CFG.ti65.spark} j</b> : miniature du ${CFG.ti65.name} des ${CFG.ti65.spark} dernières séances. Le classement suit la séance choisie dans <b>Stats du</b>. Chaque filtre et chaque colonne a sa bulle ⓘ.</p>
+      <p><b>${CFG.ti65.spark_label}</b> : miniature du ${CFG.ti65.name} des ${CFG.ti65.spark} dernières séances. Le classement suit la séance choisie dans <b>Stats du</b>. Chaque filtre et chaque colonne a sa bulle ⓘ.</p>
       <p>Clic sur un en-tête : trier · glisser un en-tête : déplacer la colonne · ↑ ↓ : précédent / suivant · <b>›</b>, double-clic ou → : niveau suivant · ← ou fil d'Ariane : niveau précédent.</p><p class="src">Sources : Yahoo Finance (ETF, clôtures non ajustées des dividendes, comme TC2000) ; TradingView (classification, capitalisation) et Polygon (clôtures des actions, ajustées des splits).</p>`],
     sectrend: ['Graphique', `<p>ETF et actions : bougies journalières (cours réels). Secteur ou industrie : <b>courbe de tendance</b> de l'indice équipondéré (base 100) ; un indice n'a pas de vrai plus haut ni plus bas, donc pas de bougie. Moyennes mobiles : mêmes réglages que l'onglet MM (Réglages). La légende donne les valeurs de la séance survolée, sinon de la séance choisie dans <b>Stats du</b>, sinon de la dernière.</p><p class="src">Sources : Yahoo Finance (ETF) ; Polygon (actions TradingView).</p>`],
     secbrd: [`% des actions avec un ${CFG.ti65.name} > 1`, `<p>Part des actions retenues du secteur ou de l'industrie dont le ${CFG.ti65.name} dépasse 1, à chaque séance : la <b>largeur</b> du mouvement. Le ${CFG.ti65.name} de l'indice (carte du dessus) en donne l'<b>ampleur</b>.</p><p>Au-dessus de 50 % (zone bleue) : la majorité des actions suit ; un indice qui monte avec une part qui baisse = mouvement porté par quelques titres.</p>`],

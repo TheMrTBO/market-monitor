@@ -28,7 +28,8 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 name = "TI65"
 short = 7
 long = 65
-spark = 20                 # séances de la miniature du TI65 dans les tableaux de l'onglet Secteurs
+spark = 63                 # séances de la miniature du TI65 dans les tableaux de l'onglet Secteurs (63 ≈ 3 mois)
+spark_label = "3 mois"     # en-tête de la colonne de la miniature
 
 [postmarket.sector_fr]
 # traduction des secteurs TradingView (anglais) affichés sous chaque ticker
