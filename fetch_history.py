@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Historique des clotures NON ajustees : un fichier gzip par seance dans cache/history/ (hors depot, voir .gitignore).
+"""Historique des cours NON ajustes : un fichier gzip par seance dans cache/history/ (hors depot, voir .gitignore).
+Une ligne par titre : [cloture, volume, ouverture, plus haut, plus bas] (les deux premiers champs gardent leur place :
+les lecteurs qui n'utilisent que cloture et volume lisent row[0], row[1]). Les fichiers d'avant l'ajout de l'OHLC
+([cloture, volume]) restent lisibles ; update() les retelecharge pour completer l'ouverture, le plus haut et le plus bas.
 
 Une seance = 1 appel Polygon / Massive `grouped daily` (tous les titres US). Les splits sont conserves a part
 (cache/splits.json, un seul appel paginé par execution) et appliques au calcul, comme dans fetch_data.py : les prix
@@ -28,8 +31,9 @@ def day_path(d):
     return HISTORY / f"{d.isoformat()}.json.gz"
 
 
-def read_day(d):
-    """{ticker: [close, volume]} (vide = jour ferie), ou None si le jour est inconnu ou d'un ancien format."""
+def read_day(d, need_ohlc=False):
+    """{ticker: [close, volume, open, high, low]} (ou [close, volume] avant l'ajout de l'OHLC ; vide = jour ferie), ou None
+    si le jour est inconnu ou d'un ancien format. need_ohlc : None aussi pour une seance sans OHLC (a retelecharger)."""
     p = day_path(d)
     if not p.exists():
         return None
@@ -40,6 +44,8 @@ def read_day(d):
         return None
     if payload.get("adjusted") is not False:     # ancien format (cloture ajustee) : a retelecharger
         return None
+    if need_ohlc and payload["rows"] and not payload.get("ohlc"):   # seance sans ouverture / plus haut / plus bas
+        return None
     return payload["rows"]
 
 
@@ -47,7 +53,7 @@ def write_day(d, rows):
     HISTORY.mkdir(parents=True, exist_ok=True)
     tmp = day_path(d).with_suffix(".tmp")
     with gzip.open(tmp, "wt") as f:
-        json.dump({"adjusted": False, "rows": rows}, f, separators=(",", ":"))
+        json.dump({"adjusted": False, "ohlc": True, "rows": rows}, f, separators=(",", ":"))
     tmp.replace(day_path(d))
 
 
@@ -78,7 +84,7 @@ def load_splits_file():
 def fetch_day(api, d):
     data = api.get(f"{fd.POLYGON}/v2/aggs/grouped/locale/us/market/stocks/{d.isoformat()}",
                    {"adjusted": "false", "include_otc": "false"})
-    return {r["T"]: [r["c"], r["v"]] for r in data.get("results") or []}
+    return {r["T"]: [r["c"], r["v"], r.get("o"), r.get("h"), r.get("l")] for r in data.get("results") or []}
 
 
 def update(api, sessions, end, keep=400, log=print):
@@ -90,7 +96,7 @@ def update(api, sessions, end, keep=400, log=print):
         if d.weekday() >= 5:
             d -= timedelta(days=1)
             continue
-        rows = read_day(d)
+        rows = read_day(d, need_ohlc=True)      # seance sans OHLC (ancien cache) : retelechargee une fois
         if rows is None:
             try:
                 rows = fetch_day(api, d)

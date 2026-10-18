@@ -61,7 +61,7 @@ def front_config():
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
-        "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"],
+        "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
@@ -137,6 +137,10 @@ def check():
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
+    if set(load("display")["sectors"]["group_tips"]) != {g for g, _ in load("display")["sectors"]["groups"]}:
+        errors.append("display.sectors.group_tips : une bulle par filtre de display.sectors.groups attendue")
+    if not (isinstance(ti.get("spark"), int) and 2 <= ti["spark"] <= ti["long"]):
+        errors.append("display.ti65.spark : entier entre 2 et long attendu")
     if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
         errors.append("display.sectors.views : clés etf et tv attendues")
     u, ix = ind["universe"], ind["index"]

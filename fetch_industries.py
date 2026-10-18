@@ -8,10 +8,12 @@ Indice d'un secteur / d'une industrie (équipondéré par action) : base 100, pu
 titres cotés la veille et le jour, chacune plafonnée à ±daily_return_clip). La composition est celle du jour du calcul.
 
 Sorties :
-  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, b}], industries:[{k, sec, f, n, c, b}]}
-                             k = nom TradingView, n = titres retenus, c = indice (aligné sur dates), b = % des titres dont le
+  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, o, h, l, b}], industries:[{k, sec, f, n, c, o, h, l, b}]}
+                             k = nom TradingView, n = titres retenus, c = indice (aligné sur dates), o / h / l = bougies de
+                             l'indice (absentes si le cache n'a pas l'OHLC), b = % des titres dont le
                              TI65 dépasse 1 (null si moins de min_members titres ont un TI65), f = fichier de l'industrie.
-  industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, rows:[[symbole, nom, cap, [clôtures], [volumes en milliers]]]}
+  industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, rows:[[symbole, nom, cap, [clôtures], [volumes en milliers],
+                             [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
 """
 import json
@@ -41,13 +43,19 @@ def scan_tradingview():
 
 
 def series(dates, history, universe, splits):
-    """({ticker: [clôture ajustée | None]}, {ticker: [volume ajusté | None]}) alignés sur dates (ajustement arrière des splits)."""
-    n, close, vol = len(dates), {}, {}
+    """(close, vol, ohlc) alignés sur dates, ajustés des splits (ajustement arrière) : close = {ticker: [clôture | None]},
+    vol = {ticker: [volume | None]}, ohlc = {ticker: ([ouverture], [plus haut], [plus bas])} (None si la séance en cache
+    n'a pas d'OHLC : cache d'avant l'ajout, voir fetch_history.py)."""
+    n, close, vol, ohlc = len(dates), {}, {}, {}
     for k, d in enumerate(dates):
-        for t, (c, v) in history[d].items():
+        for t, row in history[d].items():
+            c, v = row[0], row[1]
             if t in universe and c and c > 0:
                 close.setdefault(t, [None] * n)[k] = c
                 vol.setdefault(t, [None] * n)[k] = v
+                if len(row) >= 5 and all(x and x > 0 for x in row[2:5]):
+                    o, h, l = ohlc.setdefault(t, ([None] * n, [None] * n, [None] * n))
+                    o[k], h[k], l[k] = row[2], row[3], row[4]
     index = {d: k for k, d in enumerate(dates)}
     for s, by_ticker in splits.items():
         if s not in index:
@@ -58,7 +66,10 @@ def series(dates, history, universe, splits):
                     if close[t][k] is not None:
                         close[t][k] /= r
                         vol[t][k] = vol[t][k] * r if vol[t][k] is not None else None
-    return close, vol
+                    for arr in ohlc.get(t, ()):
+                        if arr[k] is not None:
+                            arr[k] /= r
+    return close, vol, ohlc
 
 
 def select(tv_rows, close, vol, cfg=CFG["universe"]):
@@ -93,6 +104,28 @@ def build_index(members, close, n, clip=CFG["index"]["daily_return_clip"], base=
                 idx *= 1 + sum(rets) / len(rets)
         out[k] = idx
     return out
+
+
+def build_candles(members, close, ohlc, index, clip=CFG["index"]["daily_return_clip"]):
+    """Bougies de l'indice équipondéré : ouverture / plus haut / plus bas = indice de la veille × (1 + moyenne des écarts
+    plafonnés ouverture / plus haut / plus bas ÷ clôture de la veille des titres qui ont un OHLC ce jour-là). Le plus haut
+    (le plus bas) est au moins (au plus) l'ouverture et la clôture. (o, h, l) ; None les jours sans OHLC (et la 1re séance)."""
+    n = len(index)
+    o, h, l = [None] * n, [None] * n, [None] * n
+    for k in range(1, n):
+        acc = [[], [], []]
+        for t in members:
+            a, x = close[t][k - 1], ohlc.get(t)
+            if not a or not x or x[0][k] is None:
+                continue
+            for j in range(3):
+                acc[j].append(max(-clip, min(clip, x[j][k] / a - 1)))
+        if not acc[0]:
+            continue
+        prev, c = index[k - 1], index[k]
+        oo, hh, ll = (prev * (1 + sum(v) / len(v)) for v in acc)
+        o[k], h[k], l[k] = oo, max(hh, oo, c), min(ll, oo, c)
+    return o, h, l
 
 
 def ti65(c, end, short=TI["short"], long=TI["long"]):
@@ -135,8 +168,10 @@ def num(v):
     return None if v is None or (isinstance(v, float) and math.isnan(v)) else float(f"{v:.6g}")
 
 
-def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"]):
-    """(payload de industries_data.js, {fichier: payload de industries/<fichier>.js})."""
+def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], ohlc=None):
+    """(payload de industries_data.js, {fichier: payload de industries/<fichier>.js}). Un indice : c (clôtures) et, si le
+    cache a l'OHLC, o / h / l (bougies) ; une action : [symbole, nom, cap, clôtures, volumes k, ouvertures, plus hauts, plus bas]."""
+    ohlc = ohlc or {}
     n = len(dates)
     by_sec, by_ind, sec_of = defaultdict(list), defaultdict(list), {}
     for m in members:
@@ -145,16 +180,20 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"]):
         sec_of.setdefault(m["ind"], m["sec"])
     scores = {m["s"]: ti65_series(close[m["s"]]) for m in members}
     rnd = lambda xs: [None if v is None else round(v, 3) for v in xs]
-    sectors = [{"k": s, "n": len(ts), "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)}
+    def index_of(ts):                                 # {c, o, h, l} d'un indice (o, h, l absents sans OHLC en cache)
+        c = build_index(ts, close, n)
+        o, h, l = build_candles(ts, close, ohlc, c)
+        return {"c": rnd(c), **({"o": rnd(o), "h": rnd(h), "l": rnd(l)} if any(v is not None for v in o) else {})}
+    sectors = [{"k": s, "n": len(ts), **index_of(ts), "b": breadth(ts, scores, n)}
                for s, ts in sorted(by_sec.items())]
     industries, files, taken = [], {}, set()
     lo = max(0, n - keep)
     for ind, ms in sorted(by_ind.items()):
         ts, f = [m["s"] for m in ms], slug(ind, taken)
-        industries.append({"k": ind, "sec": sec_of[ind], "f": f, "n": len(ts),
-                           "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)})
+        industries.append({"k": ind, "sec": sec_of[ind], "f": f, "n": len(ts), **index_of(ts), "b": breadth(ts, scores, n)})
         rows = [[m["s"], m["n"], int(m["cap"]) if m["cap"] else None, [num(v) for v in close[m["s"]][lo:]],
-                 [None if v is None else round(v / 1000) for v in vol[m["s"]][lo:]]]
+                 [None if v is None else round(v / 1000) for v in vol[m["s"]][lo:]],
+                 *([num(v) for v in arr[lo:]] for arr in ohlc.get(m["s"], ()))]     # OHLC : seulement s'il est en cache
                 for m in sorted(ms, key=lambda m: m["s"])]
         files[f] = {"asof": dates[-1], "dates": dates[lo:], "rows": rows}
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
@@ -185,12 +224,12 @@ def main():
         universe = set(json.loads(fd.UNIVERSE_FILE.read_text())["tickers"])
     except (OSError, ValueError, KeyError):
         sys.exit("Univers introuvable (cache/universe.json) : lance python fetch_history.py.")
-    close, vol = series(dates, history, universe, fh.load_splits_file())
+    close, vol, ohlc = series(dates, history, universe, fh.load_splits_file())
     tv = scan_tradingview()
     if not tv:
         sys.exit("TradingView : aucune action reçue ; fichiers non modifiés.")
     members = select(tv, close, vol)
-    payload, files = compute(dates, close, vol, members)
+    payload, files = compute(dates, close, vol, members, ohlc=ohlc)
     write(payload, files)
     ranked = sum(i["n"] >= CFG["index"]["min_members"] for i in payload["industries"])
     print(f"{len(tv)} actions TradingView, {len(members)} retenues : {len(payload['sectors'])} secteurs, "

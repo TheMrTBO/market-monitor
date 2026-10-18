@@ -19,8 +19,8 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `config_data.js` | **Généré** (`python mmconfig.py --js`) : `window.MM_CONFIG`. Ne pas éditer. |
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
-| `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + clôtures Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, % de titres au TI65 > 1) et `industries/<industrie>.js` (actions retenues, chargé à l'ouverture d'une industrie). |
-| `fetch_history.py` · `fetch_data.py` | Historique des clôtures Polygon (cache Actions, hors dépôt) pour le calcul maison ; client Polygon. |
+| `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, avec bougies ; % de titres au TI65 > 1) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie). |
+| `fetch_history.py` · `fetch_data.py` | Historique Polygon (cache Actions, hors dépôt) : par titre `[clôture, volume, ouverture, plus haut, plus bas]` (OHLC ajouté le 18/10/2026 ; les lecteurs n'utilisent que `row[0]`, `row[1]` s'ils n'ont pas besoin de l'OHLC) ; client Polygon. |
 | `mm/store/` | **Stockage historique** (phase 3) : interface `Store` (upsert idempotent, read, latest), backend `git_csv`, conversion des `*_data.js` (`importers.py`), synchronisation vers la branche `data` (`sync.py`), CLI `python -m mm.store import|sync|check|stats`. |
 | `data-store/` | Branche orpheline **`data`** extraite localement (`git worktree`, ignorée sur `main`) : CSV de l'historique. |
 | `validate_data.py` | Contrôles de cohérence par source (fraîcheur lue dans `config/sources.toml`, bornes de valeurs dans le code). |
@@ -57,7 +57,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `industries.toml` | vue TradingView : filtres des actions retenues (bourses, sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres et bascule ETF / TradingView de l'onglet Secteurs, indicateur `[ti65]` (nom, fenêtres 7 / 65), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | seuils du breadth, T2108, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` en séances), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`) et `[store]` (historique : backend `git_csv`, dossier, branche) | `mm/store/` |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
@@ -128,6 +128,10 @@ l'onglet Secteurs (secteurs → industries → actions, TI65). Détail : proposi
 - TradingView vide les champs post-market pendant la séance régulière ; données différées de 15 min.
 - `?v=` doit être numérique pour que le chargeur casse le cache des fichiers de données (cache Pages 10 min).
 - Ne pas utiliser « Re-run » d'une ancienne exécution (rejoue l'ancien workflow) : « Run workflow ».
+- Vue TradingView : navigation Secteurs → Industries (toutes, rang global ; pastilles de secteur et « TI65 > 1 » = filtres
+  qui masquent des lignes sans changer les rangs) → actions d'une industrie. Bougies d'un indice : ouverture / plus haut /
+  plus bas = indice de la veille × (1 + moyenne des écarts plafonnés à la clôture de la veille). Le passage du cache à
+  l'OHLC retélécharge chaque séance une fois (~27 min au 1er passage de `update.yml`) ; d'ici là, courbe des clôtures.
 - Vue TradingView : historique limité au cache Polygon (`fetch_history.py --sessions 130` dans `update.yml`) ; composition des
   secteurs / industries = celle du jour, appliquée à tout l'historique ; TradingView ne fournit aucun historique d'industrie
   (indices recalculés ici, ils ne reproduisent pas la variation affichée par TradingView, pondérée par capitalisation).
