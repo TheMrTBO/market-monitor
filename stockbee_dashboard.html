@@ -82,7 +82,7 @@
   #tkTable .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
   #tkTable td.sym .tsub { display: block; }
   #tkTable td.l .heat { margin-left: 6px; }
-  .tablewrap.tkscroll { max-height: none; margin-top: 0; }   /* tableau à sa hauteur : la page défile (liste de quelques dizaines de tickers) */
+  .tablewrap.tkscroll { margin-top: 0; }             /* hauteur : fitTkLayout() (liste et fiche côte à côte, comme le post-market) */
   #tkTable td.muted, #tkTable td .muted { color: var(--muted); }
   /* onglet Post-market : mêmes cartes que Secteurs (liste à gauche, graphique + fiche à droite) */
   #dslot-pm { margin-bottom: 10px; }
@@ -159,7 +159,20 @@
   .seccol { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-width: 0; }   /* minmax : les canvas n'élargissent pas la colonne */   /* colonne de droite : graphique + carte du score */
   .seccol .card { margin-bottom: 0; }
   #secScoreNow b { color: var(--text); font-weight: 600; }
-  #secScoreCv, #secBrdCv { width: 100%; height: 150px; display: block; margin-bottom: 6px; }
+  #secScoreCv, #secBrdCv, #tkScoreCv { width: 100%; height: 150px; display: block; margin-bottom: 6px; }
+  #tkScoreCv { height: 120px; }
+  #tkCanvas { height: calc(100vh - 330px); min-height: 300px; }
+  #view-tk .chartbar { min-height: 32px; margin-bottom: 8px; }
+  #view-tk.nosel .seccol { display: none; }                  /* liste vide : pas de fiche vide */
+  #tkTable tbody tr { cursor: pointer; }
+  /* liste et fiche côte à côte : secteur, capitalisation et flottant sont dans la fiche ; tableau à largeur fixe ; thèmes plafonnés */
+  #view-tk:not(.stack) #tkTable .c-sec, #view-tk:not(.stack) #tkTable .c-cap, #view-tk:not(.stack) #tkTable .c-flt { display: none; }
+  #view-tk:not(.stack) #tkTable { table-layout: fixed; width: 100%; }
+  #view-tk:not(.stack) #tkTable th.c-sym { width: 24%; } #view-tk:not(.stack) #tkTable th.c-ti { width: 120px; }
+  #view-tk:not(.stack) #tkTable th.c-pct { width: 78px; } #view-tk:not(.stack) #tkTable th.c-dtc { width: 96px; } #view-tk:not(.stack) #tkTable th.c-open { width: 38px; }
+  #view-tk:not(.stack) #tkTable td { overflow: hidden; } #view-tk:not(.stack) #tkTable td.l { white-space: normal; }
+  #view-tk:not(.stack) #tkTable .tsub { max-width: 100%; }
+  #view-tk:not(.stack) #tkThemes { max-height: 236px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
   #secBrdCv { height: 120px; }
   .secback { display: none; }
   /* liste et graphique empilés (≤ 1000 px : téléphone, tablette en portrait, pliable déplié) : liste seule ; toucher un titre ouvre le détail.
@@ -519,6 +532,8 @@
     #pmTable td.dev { width: 128px; }
     #pmTable td.sym .tsub { max-width: 120px; }
     #pmCanvas { height: 38vh; height: 38svh; min-height: 240px; }
+    #tkCanvas { height: 38vh; height: 38svh; min-height: 240px; } #tkScoreCv { height: 110px; }
+    #view-tk .chartbar #tkTitle { width: 100%; font-size: 15px; }
     #view-sec .chartbar #secTitle { width: 100%; font-size: 15px; }
     .rk .c-grp { display: none; }
     .rk td.sym .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); max-width: 128px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -732,23 +747,49 @@
   </div>
 
   <div id="view-tk" hidden>
-    <div class="card tkcard">
-      <div class="sechead">
-        <b>Tickers · secteur, industrie, short interest</b><button class="tipbtn" data-tip="tkhelp" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
-        <span class="secmeta" id="tkMeta"></span>
+    <div class="secsplit">
+      <div class="card seclist">
+        <div class="sechead">
+          <b>Tickers · secteur, industrie, short</b><button class="tipbtn" data-tip="tkhelp" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <span class="secmeta" id="tkMeta"></span>
+        </div>
+        <div class="tkinput">
+          <textarea id="tkInput" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Tickers à analyser"></textarea>
+          <div class="tkbtns"><button id="tkGo" type="button" class="tkgo">Analyser</button><button id="tkClear" type="button">Effacer</button></div>
+        </div>
+        <div id="tkThemes"></div>
+        <div class="tablewrap secscroll tkscroll" id="tkScroll">
+          <table id="tkTable" class="rk">
+            <thead><tr id="tkHead"></tr></thead>
+            <tbody id="tkRows"></tbody>
+          </table>
+        </div>
+        <div class="secinfo" id="tkNote"></div>
       </div>
-      <div class="tkinput">
-        <textarea id="tkInput" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Tickers à analyser"></textarea>
-        <div class="tkbtns"><button id="tkGo" type="button" class="tkgo">Analyser</button><button id="tkClear" type="button">Effacer</button></div>
+      <div class="seccol">
+      <div class="card secchart">
+        <div class="chartbar">
+          <button class="secback" id="tkBack" aria-label="Retour à la liste">‹ Liste</button>
+          <b id="tkTitle"></b>
+          <span class="rslot" id="rslot-tk"></span>
+          <span class="spacer"></span>
+          <button class="tipbtn" data-tip="tkchart" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+        </div>
+        <div class="secinfo" id="tkInfo"></div>
+        <div class="ovl"><span class="ohlc" id="tkOhlc"></span><span class="mabar" id="tkMa"></span></div>
+        <canvas id="tkCanvas"></canvas>
       </div>
-      <div id="tkThemes"></div>
-      <div class="tablewrap tkscroll">
-        <table id="tkTable" class="rk">
-          <thead><tr id="tkHead"></tr></thead>
-          <tbody id="tkRows"></tbody>
-        </table>
+      <div class="card secscore" id="tkScoreCard">
+        <div class="mini-title"><b id="tkScoreName">Score TI65</b><span class="px" id="tkScoreNow"></span></div>
+        <canvas id="tkScoreCv"></canvas>
       </div>
-      <div class="secinfo" id="tkNote"></div>
+      <div class="card" id="tkCard">
+        <div class="mini-title"><b>Fiche</b><span class="px" id="tkWhen"></span></div>
+        <dl class="pmfacts" id="tkFacts"></dl>
+        <p class="pmnote" id="tkLinks"></p>
+      </div>
+      <nav class="detnav" id="tkNav" aria-label="Navigation entre les tickers"><button id="tkPrev" type="button">‹</button><span class="dpos" id="tkPos"></span><button id="tkNext" type="button">›</button></nav>
+      </div>
     </div>
   </div>
 
@@ -1014,7 +1055,7 @@
   let hover = -1;
   let pinned = null;       // séance épinglée par un clic / toucher sur un graphique de l'onglet Marché (null = dernière séance)
   // séance affichée par tous les chiffres : survol, sinon séance épinglée, sinon la dernière
-  const selIdx = () => hover >= 0 ? hover : pinned && tab !== 'sec' && tab !== 'pm' ? T.indexOf(pinned) : -1;
+  const selIdx = () => hover >= 0 ? hover : pinned && tab !== 'sec' && tab !== 'pm' && tab !== 'tk' ? T.indexOf(pinned) : -1;
   const selDate = () => hover >= 0 && T[hover] ? T[hover] : pinned;
   const MIN_SPAN = 15;     // zoom maximal : ~15 barres affichées
 
@@ -1244,7 +1285,7 @@
       ALLT = sv.ALLT; vp = sv.vp; T = sv.T; offset = sv.offset; bars = sv.bars; hover = sv.hover;
     }
   }
-  const withTabCtx = fn => tab === 'sec' ? inCtx(secCtx, fn) : tab === 'pm' ? inCtx(pmCtx, fn) : fn();   // contexte du graphique de l'onglet actif
+  const withTabCtx = fn => tab === 'sec' ? inCtx(secCtx, fn) : tab === 'pm' ? inCtx(pmCtx, fn) : tab === 'tk' ? inCtx(tkCtx, fn) : fn();   // contexte du graphique de l'onglet actif
 
   let rafId = 0;
   function render() {
@@ -1252,6 +1293,7 @@
     rafId = requestAnimationFrame(() => {
       if (tab === 'sec') { secRedraw(); return; }
       if (tab === 'pm') { pmRedraw(); return; }
+      if (tab === 'tk') { tkRedraw(); return; }
       applyViewport(); drawAll(); renderTable(); highlightRow(); updateSub(); syncSlider();
     });
     if (tab === 'cmp') requestAnimationFrame(renderCmp);
@@ -1293,7 +1335,7 @@
     });
     g.restore();
   }
-  const cvPrice = $('price'), cvSec = $('secCanvas'), cvPm = $('pmCanvas'), cvHist = $('hist'), cvHistM = $('hist25m'), cvHist2 = $('hist2');
+  const cvPrice = $('price'), cvSec = $('secCanvas'), cvPm = $('pmCanvas'), cvTk = $('tkCanvas'), cvHist = $('hist'), cvHistM = $('hist25m'), cvHist2 = $('hist2');
   const cvNet4 = $('net4'), cvNetM = $('net25m'), cvNet25 = $('net25');
   const drawAll = () => {
     drawPrice();
@@ -1304,6 +1346,7 @@
     if (tab === 'cmp') renderCmp();
     if (tab === 'sec') { fitSecLayout(); secRedraw(); }
     if (tab === 'pm') { fitPmLayout(); pmRedraw(); }
+    if (tab === 'tk') { fitTkLayout(); tkRedraw(); }
   };
 
   function niceTicks(lo, hi, count) {
@@ -1355,7 +1398,7 @@
   }
 
   function cursor(c) {
-    const i = secCtx.active || pmCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
+    const i = secCtx.active || pmCtx.active || tkCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
     if (i < 0 || i >= c.n) return;
     const { g, X, ph } = c, x = Math.round(X(i)) + 0.5;
     g.strokeStyle = css(c.th.cross); g.lineWidth = 1; g.setLineDash([3, 3]);
@@ -1611,15 +1654,16 @@
   }
   function setHover(i, kind, e) {
     hover = i;
-    if (kind === 'sec' || kind === 'secscore' || kind === 'secbrd') { drawPrice(cvSec); drawSecScore(); drawSecBreadth(); secOverlay(); } else if (kind === 'pm') { drawPrice(cvPm); pmOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
+    if (kind === 'sec' || kind === 'secscore' || kind === 'secbrd') { drawPrice(cvSec); drawSecScore(); drawSecBreadth(); secOverlay(); }
+    else if (kind === 'tk' || kind === 'tkscore') { drawPrice(cvTk); drawTkScore(); tkOverlay(); } else if (kind === 'pm') { drawPrice(cvPm); pmOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
     const finger = e && e.pointerType === 'touch';
     if (i < 0 || (kind === 'price' && !finger)) { tip.style.display = 'none'; return; }   // prix à la souris : valeurs dans la légende
-    const pb = (kind === 'price' || kind === 'sec' || kind === 'pm') && finger ? bars.get(T[i]) : null;
+    const pb = (kind === 'price' || kind === 'sec' || kind === 'pm' || kind === 'tk') && finger ? bars.get(T[i]) : null;
     // au doigt sur un graphique de prix : infobulle compacte (la légende OHLC / MM est masquée sur mobile)
     tip.innerHTML = pb ? `<b>${fmtDate(pb.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</b><div>C ${nf(pb.c, pxd(pb.c))} <span class="${cls(pb.chg)}">${pct(pb.chg)}</span></div>` +
         `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + `<div>MM ${trendShort(pb.tf)}</div>` +
         (sb(pb.d, 'up4') != null ? `<div>±4 % : +${nf(sb(pb.d, 'up4'))} / −${nf(sb(pb.d, 'down4'))}</div>` : '')
-      : kind === 'secscore' ? secScoreTip(T[i]) : kind === 'secbrd' ? secBrdTip(T[i]) : tipHtml(kind === 'sec' || kind === 'pm' ? 'price' : kind, T[i]);
+      : kind === 'secscore' || kind === 'tkscore' ? secScoreTip(T[i]) : kind === 'secbrd' ? secBrdTip(T[i]) : tipHtml(kind === 'sec' || kind === 'pm' || kind === 'tk' ? 'price' : kind, T[i]);
     tip.style.display = 'block';
     const tw = tip.offsetWidth, th = tip.offsetHeight, W = document.documentElement.scrollWidth;
     if (finger) {                                // au doigt : en haut du graphique, du côté opposé au doigt (jamais sous le pouce)
@@ -1673,9 +1717,9 @@
     vp.to = (N - 1) + rightPad * (span + 1); vp.from = vp.to - span;
     clampViewport(); manual(); render();
   }
-  const withCtx = (kind, fn) => kind === 'sec' || kind === 'secscore' || kind === 'secbrd' ? inCtx(secCtx, fn) : kind === 'pm' ? inCtx(pmCtx, fn) : fn();
-  const isPrice = k => k === 'price' || k === 'sec' || k === 'pm';
-  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvPm, 'pm'], [$('secScoreCv'), 'secscore'], [$('secBrdCv'), 'secbrd'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
+  const withCtx = (kind, fn) => kind === 'sec' || kind === 'secscore' || kind === 'secbrd' ? inCtx(secCtx, fn) : kind === 'tk' || kind === 'tkscore' ? inCtx(tkCtx, fn) : kind === 'pm' ? inCtx(pmCtx, fn) : fn();
+  const isPrice = k => k === 'price' || k === 'sec' || k === 'pm' || k === 'tk';
+  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvPm, 'pm'], [$('secScoreCv'), 'secscore'], [$('secBrdCv'), 'secbrd'], [$('tkCanvas'), 'tk'], [$('tkScoreCv'), 'tkscore'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
     // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
     cv.addEventListener('pointerdown', e => withCtx(kind, () => {
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
@@ -1729,7 +1773,7 @@
       lpClear();
       if (!drag) return;
       if (drag.cross) { drag = null; setHover(-1, kind); tip.style.display = 'none'; return; }   // on lâche : plus de réticule
-      if (kind !== 'sec' && kind !== 'secscore' && kind !== 'secbrd' && kind !== 'pm' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
+      if (kind !== 'sec' && kind !== 'secscore' && kind !== 'secbrd' && kind !== 'pm' && kind !== 'tk' && kind !== 'tkscore' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
         const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
       }
       if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
@@ -1811,7 +1855,10 @@
     return { kind: 'stk', key, dates: F.dates, vu: F.vu || 1, ind, items: tvItems(key, () => F.rows.map(([s, n, cap, c, v, o, h, l]) =>
       ({ s, n, lbl: s, sub: n, cap, c, v, ...(o ? { op: o, h, l } : {}) }))) };
   }
-  function tvLoad(ind) {                             // actions d'une industrie : un fichier, chargé une fois
+  const tvWaiters = new Map();                       // fichier -> fonctions à rappeler au chargement (Secteurs, Tickers)
+  function tvLoad(ind, after = renderSectors) {      // actions d'une industrie : un fichier, chargé une fois
+    if (!tvWaiters.has(ind.f)) tvWaiters.set(ind.f, new Set());
+    tvWaiters.get(ind.f).add(after);
     if (tvLoading.has(ind.f)) return;
     tvLoading.add(ind.f);
     // version = séance des données (le fichier ne change qu'avec elle) : jamais un fichier de la veille en cache à côté
@@ -1819,8 +1866,9 @@
     const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;
     const el = document.createElement('script');
     el.src = `${TIC.folder}/${encodeURIComponent(ind.f)}.js?v=${IND.asof.replace(/-/g, '')}${m ? m[1] : ''}`;
-    el.onload = () => { tvLoading.delete(ind.f); if (!(window.TV_STOCKS && window.TV_STOCKS[ind.f])) tvFailed.add(ind.f); renderSectors(); };
-    el.onerror = () => { tvLoading.delete(ind.f); tvFailed.add(ind.f); renderSectors(); };
+    const wake = () => { const w = tvWaiters.get(ind.f) || new Set(); tvWaiters.delete(ind.f); w.forEach(fn => fn()); };
+    el.onload = () => { tvLoading.delete(ind.f); if (!(window.TV_STOCKS && window.TV_STOCKS[ind.f])) tvFailed.add(ind.f); wake(); };
+    el.onerror = () => { tvLoading.delete(ind.f); tvFailed.add(ind.f); wake(); };
     (document.head || document.body).appendChild(el);
   }
   const tvSave = () => store.set('mm.tvnav', JSON.stringify(tvNav));
@@ -2050,6 +2098,7 @@
       <p><b>Thèmes</b> : les industries de ta liste, de la mieux à la moins bien classée. <span class="heat hot">chaud</span> = top ${CFG.tickers.hot_top_pct} % des industries, ${TIN} &gt; 1 et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <span class="heat emerging">émergent</span> = ${TIN} &gt; 1 et au moins ${CFG.tickers.emerging_min_delta} places gagnées en ${TI.delta} séances. Seuils : config/display.toml [tickers].</p>
       <p>Clic sur une action ou un thème : onglet Secteurs (bougies, ${TIN}). Toutes les actions US sont reconnues ; « hors filtres » = ne compte pas dans l'indice de son industrie (${filt}).</p>
       <p class="src">Sources : TradingView (classification, capitalisation), Polygon (cours), Yahoo Finance (flottant, short interest, rafraîchi par lots ; publié deux fois par mois).</p>`];
+    if (kind === 'tkchart') return ['Graphique de l\'action', `<p>Bougies journalières (cours Polygon ajustés des splits) et moyennes mobiles (réglages de l'onglet MM) ; dessous, le ${TIN} dans le temps et la fiche : capitalisation, flottant, short interest (Yahoo, date du relevé), secteur et industrie avec leur rang.</p><p>Action « hors filtres » : pas de graphique (elle n'est pas dans les fichiers de la vue TradingView).</p>`];
     if (kind === 'tk') return {
       sym: ['Ticker', '<p>Symbole ; dessous, nom de la société (« hors filtres » : pas dans l\'indice de son industrie).</p>'],
       sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
@@ -2361,9 +2410,10 @@
     const b = bars.get(d); if (!b || b.r == null) return `<b>${fmtDate(d)}</b>Score indisponible (moins de ${TI.long} séances)`;
     return `<b>${fmtDate(d)}</b><div>${TIN} : ${nf(b.r, 3)}</div><div>écart <span class="${cls((b.r - 1) * 100)}">${pct((b.r - 1) * 100)}</span></div>`;
   }
-  function drawSecScore() {                              // TI65 dans le temps, même fenêtre de dates que le prix
-    if (!cvScore.clientWidth) return;
-    const c = setup(cvScore); if (!c.n) return;
+  function drawSecScore() { drawScore(cvScore, secD.dates[secBuiltEnd]); }
+  function drawScore(cv, dotDate) {                      // TI65 dans le temps, même fenêtre de dates que le prix (Secteurs, Tickers)
+    if (!cv.clientWidth) return;
+    const c = setup(cv); if (!c.n) return;
     const { g, ph, X, pw } = c, vals = T.map(d => { const b = bars.get(d); return b && b.r != null ? b.r : null; });
     const have = vals.filter(v => v != null); if (!have.length) { xLabels(c); return; }
     let lo = Math.min(1, ...have), hi = Math.max(1, ...have); const m = (hi - lo) * 0.12 || 0.01; lo -= m; hi += m;
@@ -2381,7 +2431,7 @@
     vals.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
     g.stroke(); g.lineWidth = 1;
     cursor(c);
-    const si = T.indexOf(secD.dates[secBuiltEnd]);        // séance du classement : point sur la courbe
+    const si = T.indexOf(dotDate);        // séance du classement : point sur la courbe
     if (si >= 0 && vals[si] != null) { g.fillStyle = css('--text'); g.beginPath(); g.arc(X(si), Y(vals[si]), 3.5, 0, 7); g.fill(); }
   }
   function secBrdTip(d) {                                // infobulle de la carte « % > 1 »
@@ -2430,6 +2480,7 @@
   // TradingView (industries_data.js), à la dernière séance.
   const TKC = CFG.tickers;
   let tkLoaded = { tickers: !!window.TICKERS, short: !!window.SHORT }, tkLoading = false, tkSort = { k: 'ind', dir: 1 }, tkRendered = false;
+  let tkSel = store.get('mm.tksel'), tkShown = [];
   function tkLoad() {                                    // index des tickers + short interest : chargés une fois, à la demande
     if (tkLoading) return;
     const need = [['tickers', TKC.file, 'TICKERS'], ['short', TKC.short_file, 'SHORT']].filter(([k]) => !tkLoaded[k]);
@@ -2550,10 +2601,13 @@
     $('tkHead').innerHTML = Object.entries(TK_DEFS).map(([id, d]) => d.fixed ? `<th class="c-open"></th>` :
       `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" data-k="${d.k}">${d.label}${tipI('tk:' + id, id === 'dtc' ? 'Days to cover' : d.label)}<span class="arr">${tkSort.k === d.k ? (tkSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
     const rk = (x, total) => x && x.rank != null ? `${x.rank}/${total}` : '—';
+    tkShown = rows;
+    if (!tkSel || !rows.some(r => r.s === tkSel)) tkSel = rows.length ? rows[0].s : null;
+    if (tkSel) store.set('mm.tksel', tkSel);
     $('tkRows').innerHTML = rows.map(r => {
       const dv = r.ti == null ? null : (r.ti - 1) * 100, trend = r.ti != null && r.tiPrev != null ? (r.ti > r.tiPrev ? ' ↗' : r.ti < r.tiPrev ? ' ↘' : '') : '';
       const sh = r.sh, oldT = r.old ? ` title="relevé du ${sh.date} : ancien"` : sh && sh.date ? ` title="relevé du ${sh.date}"` : '';
-      return `<tr data-s="${escA(r.s)}">` +
+      return `<tr data-s="${escA(r.s)}"${r.s === tkSel ? ' class="sel"' : ''}>` +
         `<td class="sym l" title="${escA(r.n)}">${escH(r.s)}<span class="tsub">${escH(r.n)}${r.kept ? '' : ' · hors filtres'}</span></td>` +
         `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
         `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
@@ -2566,6 +2620,13 @@
     $('tkNote').innerHTML = (unknown.length ? `<span class="neg">Inconnus</span> (ETF, fonds, OTC ou hors NYSE / Nasdaq / AMEX) : ${unknown.map(escH).join(', ')}. ` : '') +
       (syms.length >= TKC.max_tickers ? `Liste limitée à ${TKC.max_tickers} tickers. ` : '') +
       (T.fallback ? `⚠ composition TradingView du ${fmtDate(T.scan)} (TradingView n'a pas répondu). ` : '');
+    $('view-tk').classList.toggle('nosel', !rows.length);
+    if (!rows.length) $('view-tk').classList.remove('detail');
+    detNavSync('tk', rows.map(r => r.s), tkSel, 'Ticker');
+    fitTkLayout();
+    const sel = $('tkRows').querySelector && $('tkRows').querySelector('tr.sel');
+    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+    tkDetail(rows.find(r => r.s === tkSel) || null);
   }
   function tkRun() { store.set('mm.tklist', $('tkInput').value); renderTickers(); }
   $('tkGo').addEventListener('click', tkRun);
@@ -2586,10 +2647,105 @@
     setTab('sec');
   }
   $('tkRows').addEventListener('click', e => {
-    const o = e.target.closest('[data-open]'), tr = e.target.closest('tr');
-    const sym = (o && o.dataset && o.dataset.open) || (tr && tr.dataset && tr.dataset.s); if (!sym) return;
-    const r = tkRow(sym); if (r) tvGoto(r.indName, r.s);
+    const o = e.target.closest('[data-open]');
+    if (o && o.dataset && o.dataset.open) { const r = tkRow(o.dataset.open); if (r) tvGoto(r.indName, r.s); return; }   // « › » : onglet Secteurs
+    const tr = e.target.closest('tr'); if (!tr || !tr.dataset || !tr.dataset.s) return;
+    tkSel = tr.dataset.s;                                  // ligne : fiche de l'action (empilé : vue détail, comme le post-market)
+    if (isStacked()) { $('view-tk').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
+    renderTickers();
   });
+  $('tkBack').addEventListener('click', () => { $('view-tk').classList.remove('detail'); renderTickers(); });
+  function tkGo(d) {                                     // ticker précédent / suivant dans l'ordre affiché ; false en bout de liste
+    const j = tkShown.findIndex(r => r.s === tkSel) + d;
+    if (j < 0 || j >= tkShown.length) return false;
+    tkSel = tkShown[j].s; renderTickers(); detSlide('view-tk', d); return true;
+  }
+  detNavBind('view-tk', 'tk', tkGo);
+  document.addEventListener('keydown', e => {            // ↑ ↓ : ticker précédent / suivant
+    if (tab !== 'tk' || !tkShown.length || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    const t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
+    e.preventDefault(); tkGo(e.key === 'ArrowDown' ? 1 : -1);
+  });
+  $('tkLinks').addEventListener('click', e => {
+    const b = e.target.closest('[data-goto]'); if (!b) return;
+    const r = tkRow(b.dataset.goto); if (r) tvGoto(r.indName, r.s);
+  });
+  function fitTkLayout() {                               // liste et fiche prennent la hauteur disponible (mêmes règles que le post-market)
+    const wrap = $('tkScroll'), cv = $('tkCanvas');
+    $('view-tk').classList.toggle('stack', isStacked());
+    if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
+    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    wrap.style.height = free(wrap) + 'px';
+    if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }
+    const below = (($('tkScoreCard').offsetHeight) || 150) + (($('tkCard').offsetHeight) || 160) + 16, nav = $('tkNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
+    cv.style.height = Math.max(300, free(cv) - below - 6 - navH) + 'px';
+  }
+
+  // --- fiche et graphique de l'action sélectionnée : bougies (fichier de son industrie), TI65 dans le temps, chiffres clés
+  const tkCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null, n: 0 };
+  function tkStock(r) {                                  // {D, x} pour secBarsFor ; {wait} pendant le chargement ; {none} sans graphique
+    const I = IND && IND.industries.find(i => i.k === r.indName);
+    if (!I || !r.kept) return { none: true };
+    const F = window.TV_STOCKS && window.TV_STOCKS[I.f];
+    if (!F) { if (!tvFailed.has(I.f)) { tvLoad(I, renderTickers); return { wait: true }; } return { none: true }; }
+    const row = F.rows.find(x => x[0] === r.s); if (!row) return { none: true };
+    const [s, n, cap, c, v, o, h, l] = row;
+    return { D: { kind: 'stk', key: 'stk|' + I.k, dates: F.dates, vu: F.vu || 1 }, x: { s, n, c, v, ...(o ? { op: o, h, l } : {}) } };
+  }
+  function tkLoadChart(r) {
+    const S = r ? tkStock(r) : { none: true }, arr = S.D ? secBarsFor(S.D, S.x) : [];
+    const id = r ? r.s : null, changed = tkCtx.sym !== id || tkCtx.n !== arr.length;
+    inCtx(tkCtx, () => {
+      bars = new Map(arr.map(b => [b.d, b])); ALLT = arr.map(b => b.d);
+      if (changed || !ALLT.length) { presetViewport(range && range !== 'Tout' ? range : (isMobile() ? '3M' : '6M')); clampViewport(); }
+      applyViewport();
+    });
+    tkCtx.sym = id; tkCtx.n = arr.length;
+    return S;
+  }
+  function tkDetail(r) {
+    const S = tkLoadChart(r);
+    if (!r) { ['tkTitle', 'tkInfo', 'tkWhen', 'tkScoreNow'].forEach(i => { $(i).textContent = ''; }); $('tkFacts').innerHTML = ''; $('tkLinks').innerHTML = ''; tkRedraw(); return; }
+    const R = tkRanks(), sh = r.sh, last = tkCtx.bars.size ? [...tkCtx.bars.values()].pop() : null;
+    $('tkTitle').textContent = `${r.s} · ${r.n}`;
+    $('tkInfo').textContent = `${r.indName} (${tvSecLabel(r.secName)})` + (S.wait ? ' · chargement du graphique…'
+      : S.none ? ` · graphique indisponible : action hors filtres (prix ≥ ${nf(TIC.min_price)} $, volume moyen ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $)` : '');
+    $('tkWhen').textContent = `séance du ${fmtDate(window.TICKERS.asof, { day: 'numeric', month: 'short' })}`;
+    $('tkScoreName').textContent = 'Score ' + TIN;
+    const dv = r.ti == null ? null : (r.ti - 1) * 100;
+    $('tkScoreNow').innerHTML = r.ti == null ? 'indisponible (moins de ' + TI.long + ' séances)' : `<b>${nf(r.ti, 3)}</b> · écart <span class="${cls(dv)}">${pct(dv)}</span>` +
+      (r.rankInd ? ` · rang <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : '');
+    const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`, rk = (x, t) => x && x.rank != null ? `rang <b>${x.rank}</b>/${t}` : 'sans rang';
+    const sdate = sh && sh.date ? ` <span class="${r.old ? 'neg' : 'muted'}" title="date du relevé">(${fmtDate(sh.date, { day: 'numeric', month: 'short' })}${r.old ? ', ancien' : ''})</span>` : '';
+    $('tkFacts').innerHTML =
+      fact('Clôture', last ? `${nf(last.c, pxd(last.c))} <span class="${cls(last.chg)}">${pct(last.chg)}</span>` : '—') +
+      fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
+      fact('Flottant', shares(r.flt) + ' actions') +
+      fact('Vendues à découvert', sh && sh.sh != null ? shares(sh.sh) + ' actions' + sdate : '—') +
+      fact('% du flottant shorté', sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—') +
+      fact('Days to cover', sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' + sdate : '—') +
+      fact('Secteur', `${escH(tvSecLabel(r.secName))} · ${rk(r.sec, R.sec.total)}`) +
+      fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)} · ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`);
+    const link = u => u.replace(/\{symd\}/g, encodeURIComponent(r.s.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(r.s));
+    $('tkLinks').innerHTML = (CFG.postmarket.links || []).filter(l => !/\{tv\}/.test(l.url))
+      .map(l => `<a href="${escA(link(l.url))}" target="_blank" rel="noopener">${escH(l.label)} ↗</a>`).join('') +
+      `<a href="#" data-goto="${escA(r.s)}" onclick="return false">Voir dans Secteurs ›</a>`;
+    tkRedraw();
+  }
+  function tkOverlay() {                                 // légende posée sur le graphique : OHLC + MM (séance survolée, sinon dernière)
+    const d = hover >= 0 ? T[hover] : null, b = (d && bars.get(d)) || [...bars.values()].pop();
+    if (!b) { $('tkOhlc').innerHTML = ''; $('tkMa').innerHTML = ''; return; }
+    const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
+    $('tkOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
+    $('tkMa').innerHTML = maChipsHtml(b);
+  }
+  function drawTkScore() { drawScore($('tkScoreCv'), window.TICKERS ? window.TICKERS.asof : null); }
+  function tkRedraw() {
+    if (tab !== 'tk') return;
+    inCtx(tkCtx, () => { applyViewport(); drawPrice(cvTk); drawTkScore(); tkOverlay(); syncSlider(); });
+  }
   $('tkThemes').addEventListener('click', e => { const b = e.target.closest('[data-ind]'); if (b && b.dataset.ind) tvGoto(b.dataset.ind, null); });
 
   // ------------------------------------------------------------------ onglet « Post-market » : scan TradingView par volume
@@ -3410,7 +3566,7 @@
     const box = $(id);
     items.forEach(x => {
       const b = document.createElement('button'); b.textContent = x; b.className = get() === x ? 'on' : '';
-      b.onclick = () => { set(x); [...box.children].forEach(c => c.className = c === b ? 'on' : ''); if (tab === 'sec' || tab === 'pm') selectRange(x); else refresh(); };
+      b.onclick = () => { set(x); [...box.children].forEach(c => c.className = c === b ? 'on' : ''); if (tab === 'sec' || tab === 'pm' || tab === 'tk') selectRange(x); else refresh(); };
       box.appendChild(b);
     });
   }

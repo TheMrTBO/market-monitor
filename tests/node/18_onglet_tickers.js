@@ -88,4 +88,35 @@ ok('clic sur un thème : industries filtrées sur son secteur, industrie sélect
 // sans index : message, pas d'erreur
 const E=boot({'mm.tab':'tk'},{files:['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','industries_data.js']}); tab(E,'tk');
 ok('index pas encore chargé : message de chargement, fichier demandé',/Chargement/.test(E.$('tkRows')._h)&&E.document.body.children.some(c=>c.src&&c.src.startsWith(TK.file)));
+// fiche : clic sur une ligne = fiche + graphique en bougies (fichier de l'industrie chargé à la demande)
+{
+  const ls2={}; const F=boot(ls2); tab(F,'tk');
+  F.$('tkInput').value='MU, NVDA, AMD'; F.L.tkGo.click();
+  F.R.tkCanvas=[];
+  F.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?null:sel==='tr'?{dataset:{s:'NVDA'}}:null}});
+  ok('clic sur une ligne : fiche de l\'action (reste dans l\'onglet Tickers)',ls2['mm.tab']==='tk'&&ls2['mm.tksel']==='NVDA'&&/NVDA/.test(F.$('tkTitle')._t||''),F.$('tkTitle')._t);
+  const I=F.sb.INDUSTRIES.industries.find(i=>i.k===muInd), sc=F.document.body.children.find(c=>c.src&&c.src.includes(I.f+'.js'));
+  ok('graphique : fichier de l\'industrie demandé',!!sc&&/Chargement|chargement/.test(F.$('tkInfo')._t||''),sc&&sc.src);
+  vm.runInContext(fs.readFileSync(sc.src.split('?')[0],'utf8'),F.sb); F.R.tkCanvas=[]; sc.onload();
+  const bodies=(F.R.tkCanvas||[]).filter(r=>r[3]>0&&r[3]<20&&r[4]>0&&(r[0]==='#f6e24b'||r[0]==='#cf5148')).length;
+  const hasOhlc=F.sb.TV_STOCKS[I.f].rows[0].length>=8;
+  ok('graphique : bougies japonaises (si le fichier a l\'OHLC)',!hasOhlc||bodies>20,bodies+' corps de bougie');
+  ok('courbe du TI65 tracée',(F.M.tkScoreCv||[]).length>0);
+  ok('fiche : capitalisation, flottant, short, secteur, industrie, lien Finviz',/Capitalisation/.test(F.$('tkFacts')._h)&&/Days to cover/.test(F.$('tkFacts')._h)&&/Industrie/.test(F.$('tkFacts')._h)&&/finviz/.test(F.$('tkLinks')._h));
+  // navigation ‹ › dans l'ordre affiché
+  const order=rows(F).map(x=>x.s);
+  F.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?null:sel==='tr'?{dataset:{s:order[0]}}:null}});
+  F.L.tkNext.click(); ok('› : ticker suivant de la liste',ls2['mm.tksel']===order[1],order.join(',')+' → '+ls2['mm.tksel']);
+  F.L.tkPrev.click(); ok('‹ : ticker précédent',ls2['mm.tksel']===order[0]);
+  // mobile : toucher une ligne ouvre la vue détail, « ‹ Liste » revient
+  F.sb.innerWidth=375;
+  F.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?null:sel==='tr'?{dataset:{s:'AMD'}}:null}});
+  ok('mobile : toucher une ligne ouvre la fiche (vue détail)',F.$('view-tk').classList._s.has('detail')&&ls2['mm.tksel']==='AMD');
+  F.L.tkBack.click({});
+  ok('mobile : « ‹ Liste » revient à la liste',!F.$('view-tk').classList._s.has('detail'));
+  // action hors filtres : pas de graphique, message
+  const hors=T.rows.find(x=>!x[col.kept]&&x[col.ti]!=null)[0];
+  F.sb.innerWidth=1200; F.$('tkInput').value=hors; F.L.tkGo.click();
+  ok('action hors filtres : graphique indisponible, expliqué',/hors filtres/.test(F.$('tkInfo')._t||''),hors+' : '+F.$('tkInfo')._t);
+}
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');
