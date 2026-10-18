@@ -34,7 +34,8 @@ HERE = Path(__file__).resolve().parent
 STATUS = HERE / "status_data.js"
 
 # Etapes : config/sources.toml (nom, script, fichier principal, fichiers a restaurer, essais, attentes entre essais)
-STEPS = [(t["name"], t["script"], t["output"], tuple(t["restore"]), t["attempts"], tuple(t["waits"])) for t in mmconfig.steps()]
+STEPS = [(t["name"], t["script"], t["output"], tuple(t["restore"]), t["attempts"], tuple(t["waits"])) for t in mmconfig.steps()
+         if not t.get("separate")]          # étape « separate » : lancée par son propre workflow (ex. short interest)
 
 
 def last_date(name, path):

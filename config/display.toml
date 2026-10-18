@@ -33,6 +33,17 @@ spark_label = "3 mois"     # en-tête de la colonne de la miniature
 delta = 5                  # colonne Δ : variation du rang sur `delta` séances
 breadth_ref = 50           # carte « % des actions avec un TI65 > 1 » : ligne de repère (en %)
 
+[tickers]
+# onglet Tickers : un ticker ou une liste → secteur, industrie, TI65, capitalisation, flottant, short interest, thèmes chauds.
+# Industrie « chaude » : rang TI65 dans le top hot_top_pct % des industries classées, TI65 > 1 et au moins hot_min_breadth %
+# de ses actions au TI65 > 1 (mouvement fort et large). « Émergente » : TI65 > 1 et gain d'au moins emerging_min_delta places
+# sur ti65.delta séances, sans être encore chaude.
+hot_top_pct = 20
+hot_min_breadth = 50
+emerging_min_delta = 5
+max_tickers = 300          # tickers analysés au plus par liste
+example = "NVDA, MU, AMD, PENG, MXL, SMCI, RKLB, OKLO, IONQ, PLTR"   # texte d'exemple du champ de saisie
+
 [postmarket.sector_fr]
 # traduction des secteurs TradingView (anglais) affichés sous chaque ticker
 "Commercial Services" = "Services aux entreprises"

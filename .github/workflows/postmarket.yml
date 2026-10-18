@@ -71,11 +71,7 @@ jobs:
 
       - name: Préparer le site
         if: steps.commit.outputs.changed == 'true'
-        run: |
-          mkdir -p _site
-          cp index.html stockbee_dashboard.html config_data.js stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js _site/
-          if [ -f industries_data.js ]; then cp industries_data.js _site/ && cp -r industries _site/; fi   # vue TradingView (onglet Secteurs)
-          touch _site/.nojekyll
+        run: python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
         if: steps.commit.outputs.changed == 'true'

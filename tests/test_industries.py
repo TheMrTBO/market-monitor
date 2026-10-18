@@ -106,7 +106,7 @@ _, f2 = fi.compute(dates, close, vol, members, keep=70)
 check("sans OHLC en cache : pas de colonnes OHLC pour les actions", len(f2[inds["Soft"]["f"]]["rows"][0]) == 5)
 
 with tempfile.TemporaryDirectory() as tmp:
-    fi.OUT, fi.FOLDER = Path(tmp) / "industries_data.js", Path(tmp) / "industries"
+    fi.OUT, fi.FOLDER, fi.TICKERS_OUT = Path(tmp) / "industries_data.js", Path(tmp) / "industries", Path(tmp) / "tickers_data.js"
     fi.FOLDER.mkdir()
     (fi.FOLDER / "ancienne-industrie.js").write_text("x")
     fi.write(payload, files)
@@ -117,10 +117,32 @@ with tempfile.TemporaryDirectory() as tmp:
     t0 = p.stat().st_mtime_ns
     fi.write(payload, files)
     check("fichier inchangé : pas réécrit", p.stat().st_mtime_ns == t0)
-    pm = fi.published_members(dates[-1])
-    check("composition publiée relue pour la même séance (TradingView non réinterrogé)", pm is not None
-          and sorted(m["s"] for m in pm) == kept and {m["ind"] for m in pm} == set(inds))
-    check("autre séance : composition à refaire", fi.published_members("2099-01-01") is None)
+    tk = fi.tickers(dates, close, vol, tv, members, dates[-1], False)
+    fi.write(payload, files, tk)
+    col = {k: i for i, k in enumerate(tk["cols"])}
+    row = {r[0]: r for r in tk["rows"]}
+    check("index des tickers : toutes les actions ordinaires, retenues ou non", sorted(row) == sorted(
+          r["name"] for r in tv if r["subtype"] == "common") and row["PNY"][col["kept"]] == 0 and row["AAA"][col["kept"]] == 1)
+    check("index des tickers : TI65, rang dans l'industrie, industrie → secteur",
+          abs(row["AAA"][col["ti"]] - round(fi.ti65(close["AAA"], n - 1), 4)) < 1e-9 and row["AAA"][col["rank_ind"]] == 1
+          and tk["secs"][tk["inds"][row["DDD"][col["ind"]]][1]] == "Finance" and row["PNY"][col["rank_ind"]] is None)
+    scan_d, rows_back = fi.published_universe()
+    check("composition publiée relue (date du scan, mêmes actions)", scan_d == dates[-1]
+          and sorted(r["name"] for r in rows_back) == sorted(row) and sorted(m["s"] for m in fi.select(rows_back, close, vol)) == kept)
+    check("index illisible : pas de composition", fi.published_universe(Path(tmp) / "absent.js") == (None, None))
+    def boom():
+        raise RuntimeError("TradingView injoignable")
+    called = []
+    check("même séance : composition reprise, TradingView non interrogé",
+          fi.composition(dates[-1], dates[-1], rows_back, scanner=lambda: called.append(1) or tv) == (rows_back, dates[-1], False) and not called)
+    check("nouvelle séance : nouveau scan", fi.composition("2099-01-02", dates[-1], rows_back, scanner=lambda: tv) == (tv, "2099-01-02", False))
+    check("TradingView muet : secours = dernière composition, signalé", fi.composition("2099-01-02", dates[-1], rows_back, scanner=boom)
+          == (rows_back, dates[-1], True))
+    try:
+        fi.composition("2099-01-02", None, None, scanner=boom); stopped = False
+    except SystemExit:
+        stopped = True
+    check("TradingView muet sans composition publiée : arrêt, fichiers non modifiés", stopped)
     text = p.read_text()
     check("format : window.TV_STOCKS[<fichier>]", text.startswith('(window.TV_STOCKS = window.TV_STOCKS || {})["soft"] = '))
     data = json.loads(fi.OUT.read_text().split("=", 1)[1].strip().rstrip(";"))

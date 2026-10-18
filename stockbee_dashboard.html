@@ -60,7 +60,30 @@
   .grip:hover, .grip:focus-visible { color: var(--text); background: var(--grid); outline: none; }
   .hcard.dragging { opacity: .45; }
   /* onglet « Secteurs » : liste triable à gauche, graphique de l'ETF sélectionné à droite */
-  #view-sec[hidden], #view-pm[hidden] { display: none; }
+  #view-sec[hidden], #view-pm[hidden], #view-tk[hidden] { display: none; }
+  /* onglet Tickers : saisie, thèmes chauds, tableau */
+  .tkinput { display: flex; gap: 8px; align-items: stretch; margin: 4px 0 10px; }
+  .tkinput textarea { flex: 1; min-height: 44px; resize: vertical; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 9px;
+                      border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; }
+  .tkbtns { display: flex; flex-direction: column; gap: 6px; }
+  .tkbtns button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 9px; padding: 6px 14px; cursor: pointer; font-size: 13px; }
+  .tkbtns .tkgo { background: color-mix(in srgb, var(--up) 22%, transparent); border-color: color-mix(in srgb, var(--up) 55%, transparent); color: var(--text); }
+  #tkThemes { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin: 0 0 12px; }
+  .tktheme { border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; background: var(--panel2); cursor: pointer; text-align: left; color: var(--text); font: inherit; }
+  .tktheme:hover { border-color: color-mix(in srgb, var(--up) 55%, transparent); }
+  .tktheme .tn { font-weight: 600; font-size: 13px; } .tktheme .ts { color: var(--muted); font-size: 11px; margin-top: 2px; }
+  .tktheme .tt { font-size: 12px; margin-top: 4px; font-variant-numeric: tabular-nums; } .tktheme .tk { color: var(--muted); font-size: 11px; margin-top: 4px; }
+  .tktheme.hot { border-color: color-mix(in srgb, var(--warn, #e0a33a) 70%, transparent); }
+  .heat { display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 8px; margin-left: 6px; vertical-align: 1px; }
+  .heat.hot { background: color-mix(in srgb, #e0a33a 25%, transparent); color: #e0a33a; }
+  .heat.emerging { background: color-mix(in srgb, var(--up) 20%, transparent); color: var(--up); }
+  .tkh { color: var(--muted); font-size: 12px; margin: 2px 0 6px; }
+  #tkTable td.old { color: var(--faint); }
+  #tkTable .tsub { display: block; font-size: 11px; font-weight: 400; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+  #tkTable td.sym .tsub { display: block; }
+  #tkTable td.l .heat { margin-left: 6px; }
+  .tablewrap.tkscroll { max-height: none; margin-top: 0; }   /* tableau à sa hauteur : la page défile (liste de quelques dizaines de tickers) */
+  #tkTable td.muted, #tkTable td .muted { color: var(--muted); }
   /* onglet Post-market : mêmes cartes que Secteurs (liste à gauche, graphique + fiche à droite) */
   #dslot-pm { margin-bottom: 10px; }
   #view-pm .chartbar { min-height: 32px; margin-bottom: 8px; }
@@ -117,7 +140,7 @@
   .pmfacts div { min-width: 0; } .pmfacts dt { color: var(--muted); font-size: 11px; margin-bottom: 1px; }
   .pmfacts dd { margin: 0; font-variant-numeric: tabular-nums; }
   .pmnote { display: flex; flex-wrap: wrap; gap: 4px 16px; color: var(--muted); font-size: 12px; margin: 10px 0 2px; } .pmnote a { color: var(--up); padding: 4px 0; }
-  body[data-tab="sec"] #sub { display: none; }
+  body[data-tab="sec"] #sub, body[data-tab="tk"] #sub { display: none; }
   .secsplit { display: grid; grid-template-columns: minmax(560px, 46%) minmax(0, 1fr); gap: 8px; align-items: start; }
   @media (max-width: 1000px) { .secsplit { grid-template-columns: minmax(0, 1fr); } .secchart { position: static; } }
   .secsplit .card { margin-bottom: 0; }
@@ -508,6 +531,16 @@
     #secTable td.dev .trk { display: none; }          /* mobile : la miniature du TI65 remplace la barre de l'écart */
     .rk .mob { display: inline; }
     #secTable th.c-brd { width: 50px; } #secTable th.c-open { width: 34px; }
+    /* onglet Tickers sur mobile : thèmes en bande qui défile, tableau réduit à Ticker · Industrie · TI65 · Days to cover */
+    #tkThemes { display: flex; overflow-x: auto; gap: 8px; scrollbar-width: none; padding-bottom: 2px; }
+    #tkThemes .tktheme { flex: none; width: 250px; }
+    #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct { display: none; }
+    #tkTable { table-layout: fixed; width: 100%; }
+    #tkTable th.c-ti { width: 80px; } #tkTable th.c-dtc { width: 54px; } #tkTable th.c-open { width: 32px; } #tkTable th.c-sym { width: 74px; }
+    .rk .dsk { display: none; }
+    #tkTable td { overflow: hidden; } #tkTable td.l { white-space: normal; }
+    #tkTable .tsub { max-width: 100%; }
+    .tkinput { flex-direction: column; } .tkbtns { flex-direction: row; } .tkbtns button { flex: 1; }
     #secTable .c-cnt, #secTable .c-cap { display: none; }   /* onglet Secteurs seulement : le post-market garde sa colonne Cap. */
     /* vue TradingView : noms longs (industries) ; colonnes resserrées, « % > 1 » et barre d'écart passent sous le nom / disparaissent */
     #secTable th.c-rank { width: 58px; }
@@ -576,6 +609,7 @@
     <symbol id="i-candle" viewBox="0 0 24 24"><path d="M6 5v3M6 16v3M18 4v4M18 15v5"/><rect x="4" y="8" width="4" height="8" rx="1"/><rect x="16" y="8" width="4" height="7" rx="1"/><path d="M12 3v18"/></symbol>
     <symbol id="i-cols" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16M15 4v16"/></symbol>
     <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
     <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
     <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.6M12 17h.01"/></symbol>
@@ -589,6 +623,7 @@
       <button data-tab="cmp" role="tab" title="QQQ · IWM · BTC côte à côte, T2108 et VIX">SA</button>
       <button data-tab="sec" role="tab">Secteurs</button>
       <button data-tab="pm" role="tab" title="Actions US qui bougent après la clôture (scan TradingView par volume)">Post-market</button>
+      <button data-tab="tk" role="tab" title="Un ticker ou une liste : secteur, industrie, tendance TI65, short interest, thèmes chauds">Tickers</button>
     </div>
     <span class="hspacer"></span>
     <button class="fresh" id="refreshBtn" aria-label="Vérifier si de nouvelles données sont publiées"></button>
@@ -693,6 +728,27 @@
       </div>
       <nav class="detnav" id="pmNav" aria-label="Navigation entre les titres"><button id="pmPrev" type="button">‹</button><span class="dpos" id="pmPos"></span><button id="pmNext" type="button">›</button></nav>
       </div>
+    </div>
+  </div>
+
+  <div id="view-tk" hidden>
+    <div class="card tkcard">
+      <div class="sechead">
+        <b>Tickers · secteur, industrie, short interest</b><button class="tipbtn" data-tip="tkhelp" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+        <span class="secmeta" id="tkMeta"></span>
+      </div>
+      <div class="tkinput">
+        <textarea id="tkInput" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Tickers à analyser"></textarea>
+        <div class="tkbtns"><button id="tkGo" type="button" class="tkgo">Analyser</button><button id="tkClear" type="button">Effacer</button></div>
+      </div>
+      <div id="tkThemes"></div>
+      <div class="tablewrap tkscroll">
+        <table id="tkTable" class="rk">
+          <thead><tr id="tkHead"></tr></thead>
+          <tbody id="tkRows"></tbody>
+        </table>
+      </div>
+      <div class="secinfo" id="tkNote"></div>
     </div>
   </div>
 
@@ -835,6 +891,7 @@
   <button data-tab="cmp"><svg class="i"><use href="#i-cols"/></svg>SA</button>
   <button data-tab="sec"><svg class="i"><use href="#i-list"/></svg>Secteurs</button>
   <button data-tab="pm"><svg class="i"><use href="#i-moon"/></svg>Post-mkt</button>
+  <button data-tab="tk"><svg class="i"><use href="#i-search"/></svg>Tickers</button>
   <button id="moreBtn" aria-haspopup="dialog"><svg class="i"><use href="#i-dots"/></svg>Plus</button>
 </nav>
 <aside class="more" id="more" hidden aria-label="Plus">
@@ -1989,6 +2046,20 @@
     const i = id.indexOf(':'), kind = i < 0 ? id : id.slice(0, i), key = i < 0 ? '' : id.slice(i + 1);
     const filt = `prix ≥ ${nf(TIC.min_price)} $, volume moyen sur ${TIC.avg_volume_sessions} séances ≥ ${nf(TIC.min_avg_volume)} actions, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $`;
     const lvl = secView === 'etf' ? 'etf' : secD ? secD.kind : 'sec';
+    if (kind === 'tkhelp') return ['Onglet Tickers', `<p>Colle un ticker ou une liste (virgules, espaces ou lignes ; <code>$TSLA</code> et <code>NASDAQ:NVDA</code> acceptés). Pour chaque action : son secteur et son industrie TradingView avec leur rang ${TIN} du jour, son propre ${TIN}, sa capitalisation, son flottant et son short interest.</p>
+      <p><b>Thèmes</b> : les industries de ta liste, de la mieux à la moins bien classée. <span class="heat hot">chaud</span> = top ${CFG.tickers.hot_top_pct} % des industries, ${TIN} &gt; 1 et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <span class="heat emerging">émergent</span> = ${TIN} &gt; 1 et au moins ${CFG.tickers.emerging_min_delta} places gagnées en ${TI.delta} séances. Seuils : config/display.toml [tickers].</p>
+      <p>Clic sur une action ou un thème : onglet Secteurs (bougies, ${TIN}). Toutes les actions US sont reconnues ; « hors filtres » = ne compte pas dans l'indice de son industrie (${filt}).</p>
+      <p class="src">Sources : TradingView (classification, capitalisation), Polygon (cours), Yahoo Finance (flottant, short interest, rafraîchi par lots ; publié deux fois par mois).</p>`];
+    if (kind === 'tk') return {
+      sym: ['Ticker', '<p>Symbole ; dessous, nom de la société (« hors filtres » : pas dans l\'indice de son industrie).</p>'],
+      sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
+      ind: ['Industrie', `<p>Industrie TradingView ; rang du ${TIN} de son indice parmi les industries classées, part de ses actions au ${TIN} &gt; 1, étiquette chaud / émergent (voir la bulle de l'onglet).</p>`],
+      ti: [TIN, `<p>${TIN} de l'action − 1, en % (flèche : sens depuis ${TI.delta} séances) ; dessous, son rang dans son industrie.</p>`],
+      cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView).</p>'],
+      flt: ['Flottant', '<p>Actions librement échangeables (Yahoo, sinon TradingView).</p>'],
+      pct: ['% shorté', '<p>Actions vendues à découvert ÷ flottant (Yahoo). Grisé : relevé ancien.</p>'],
+      dtc: ['Days to cover', '<p>Jours de volume moyen nécessaires pour racheter toutes les positions à découvert (Yahoo, « short ratio »). Relevé publié deux fois par mois ; date au survol.</p>'],
+    }[key] || null;
     if (kind === 'secview') return ['ETF ou TradingView', `<p><b>ETF</b> : ${SEC ? SEC.symbols.length : ''} ETF sectoriels et thématiques (liste de config/sectors.toml), bougies Yahoo Finance.</p>
       <p><b>TradingView</b> : la classification de TradingView en trois niveaux. <b>Secteurs</b> (${IND ? IND.sectors.length : ''}) → <b>Industries</b> (${IND ? IND.industries.length : ''}, rang global, filtrables par secteur) → <b>actions</b> d'une industrie. Un secteur ou une industrie = indice équipondéré de ses actions retenues (${filt}).</p><p>Les deux listes sont classées par le même ${TIN}.</p>`];
     if (kind === 'grp') {
@@ -2351,6 +2422,175 @@
     secRedraw();
   });
   $('rightPadS').addEventListener('input', e => inCtx(secCtx, () => setRightPadPct(+e.target.value)));
+
+  // ------------------------------------------------------------------ onglet « Tickers » : un ticker ou une liste → secteur,
+  // industrie, tendance TI65, capitalisation, flottant, short interest ; thèmes chauds de la liste (config/display.toml [tickers]).
+  // Données : tickers_data.js (fetch_industries.py : toutes les actions US, retenues ou non) et short_data.js (fetch_short.py,
+  // Yahoo, par lots), chargés à la première ouverture de l'onglet. Classements de secteurs / industries : ceux de la vue
+  // TradingView (industries_data.js), à la dernière séance.
+  const TKC = CFG.tickers;
+  let tkLoaded = { tickers: !!window.TICKERS, short: !!window.SHORT }, tkLoading = false, tkSort = { k: 'ind', dir: 1 }, tkRendered = false;
+  function tkLoad() {                                    // index des tickers + short interest : chargés une fois, à la demande
+    if (tkLoading) return;
+    const need = [['tickers', TKC.file, 'TICKERS'], ['short', TKC.short_file, 'SHORT']].filter(([k]) => !tkLoaded[k]);
+    if (!need.length) return;
+    tkLoading = true;
+    const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;
+    const v = (IND ? IND.asof.replace(/-/g, '') : '') + (m ? m[1] : '') + new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    let left = need.length;
+    const done = () => { if (--left === 0) { tkLoading = false; renderTickers(); } };
+    need.forEach(([k, f, g]) => {
+      const el = document.createElement('script');
+      el.src = `${f}?v=${v}`;
+      el.onload = () => { tkLoaded[k] = !!window[g]; done(); };
+      el.onerror = () => { tkLoaded[k] = 'absent'; done(); };
+      (document.head || document.body).appendChild(el);
+    });
+  }
+  // classements du jour des secteurs et industries (même calcul que la vue TradingView) : {rank, score, prev, delta, brd, n, sp, heat}
+  let tkRanksMemo = null;
+  function tkRanks() {
+    if (tkRanksMemo || !IND) return tkRanksMemo;
+    const end = IND.dates.length - 1, d = TI.delta;
+    const rank = (items, at) => {
+      const r = items.filter(x => x.n >= TIC.min_members).map(x => [x.k, secScore(x.c, at)]).filter(x => x[1] != null)
+        .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1));
+      return new Map(r.map(([k, sc], i) => [k, { rank: i + 1, score: sc }]));
+    };
+    const build = items => {
+      const now = rank(items, end), before = end >= d ? rank(items, end - d) : new Map();
+      return { total: now.size, map: new Map(items.map(x => {
+        const a = now.get(x.k), b = before.get(x.k);
+        return [x.k, { k: x.k, sec: x.sec, n: x.n, rank: a ? a.rank : null, score: a ? a.score : null,
+          delta: a && b ? b.rank - a.rank : null, brd: x.b ? x.b[end] : null,
+          sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null) }];
+      })) };
+    };
+    const sec = build(IND.sectors), ind = build(IND.industries);
+    const hotMax = Math.ceil(ind.total * TKC.hot_top_pct / 100);
+    for (const r of ind.map.values()) {                  // chaud : top % + TI65 > 1 + largeur ; émergent : TI65 > 1 + gain de places
+      r.heat = r.rank != null && r.rank <= hotMax && r.score > 1 && r.brd != null && r.brd >= TKC.hot_min_breadth ? 'hot'
+        : r.score > 1 && r.delta != null && r.delta >= TKC.emerging_min_delta ? 'emerging' : '';
+    }
+    tkRanksMemo = { sec, ind, hotMax };
+    return tkRanksMemo;
+  }
+  const HEAT = { hot: 'chaud', emerging: 'émergent' };
+  const heatTag = h => h ? `<span class="heat ${h}">${HEAT[h]}</span>` : '';
+  function tkParse(text) {                               // « AAPL, $nvda NASDAQ:MU\nBRK-B » → ['AAPL', 'NVDA', 'MU', 'BRK-B'] (sans doublon)
+    const out = [];
+    for (let w of String(text || '').toUpperCase().split(/[\s,;|]+/)) {
+      w = w.replace(/^\$/, '').replace(/^[A-Z]+:/, '').replace(/[^A-Z0-9.\-]/g, '');
+      if (w && !out.includes(w)) out.push(w);
+    }
+    return out.slice(0, TKC.max_tickers);
+  }
+  let tkIndex = null;
+  function tkLookup(sym) {                               // ligne de l'index (BRK-B accepté pour BRK.B)
+    const T = window.TICKERS; if (!T) return null;
+    if (!tkIndex) { const i = T.cols.indexOf('s'); tkIndex = new Map(T.rows.map(r => [r[i], r])); }
+    return tkIndex.get(sym) || tkIndex.get(sym.replace(/-/g, '.')) || null;
+  }
+  function tkRow(sym) {                                  // ligne affichée : action + son secteur / son industrie + short interest
+    const T = window.TICKERS, r = tkLookup(sym); if (!r) return null;
+    const c = Object.fromEntries(T.cols.map((k, i) => [k, r[i]]));
+    const [indName, secIx] = T.inds[c.ind], secName = T.secs[secIx], R = tkRanks();
+    const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
+    const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
+    return { s: c.s, n: c.n, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind,
+             secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
+  }
+  const TK_DEFS = {
+    sym:  { label: 'Ticker', k: 'sym', dir: 1, left: true },
+    sec:  { label: 'Secteur', k: 'sec', dir: 1, left: true },
+    ind:  { label: 'Industrie', k: 'ind', dir: 1, left: true },
+    ti:   { label: TIN, k: 'ti', dir: -1 },
+    cap:  { label: 'Cap.', k: 'cap', dir: -1 },
+    flt:  { label: 'Flottant', k: 'flt', dir: -1 },
+    pct:  { label: '% shorté', k: 'pct', dir: -1 },
+    dtc:  { label: '<span class="dsk">Days to cover</span><span class="mob">DTC</span>', k: 'dtc', dir: -1 },
+    open: { label: '', k: '', fixed: true },
+  };
+  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, cap: r => r.cap,
+                   flt: r => r.flt, pct: r => r.sh && r.sh.pct, dtc: r => r.sh && r.sh.dtc };
+  const shares = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 2) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : nf(v / 1e3, 0) + ' k';
+  function renderTickers() {
+    const ta = $('tkInput');
+    if (ta.value === '' && !tkRendered) { ta.value = store.get('mm.tklist') || ''; ta.placeholder = `Ex. ${TKC.example} (virgules, espaces ou lignes)`; }
+    tkRendered = true;
+    if (!IND) { $('tkRows').innerHTML = '<tr><td class="empty">Données introuvables : lance <code>python fetch_industries.py</code>.</td></tr>'; return; }
+    if (!tkLoaded.tickers || !tkLoaded.short) {
+      tkLoad();
+      if (!tkLoaded.tickers) { $('tkRows').innerHTML = '<tr class="loading"><td>Chargement de l\'index des tickers…</td></tr>'; $('tkThemes').innerHTML = ''; return; }
+    }
+    if (tkLoaded.tickers === 'absent') { $('tkRows').innerHTML = `<tr><td class="empty">Index introuvable (<code>${escH(TKC.file)}</code>).</td></tr>`; return; }
+    const syms = tkParse(ta.value), rows = [], unknown = [];
+    for (const s of syms) { const r = tkRow(s); r ? rows.push(r) : unknown.push(s); }
+    const T = window.TICKERS, S = window.SHORT, R = tkRanks();
+    $('tkMeta').textContent = `${fmtDate(T.asof)} · ${rows.length} ticker${rows.length > 1 ? 's' : ''}` +
+      (S ? ` · short interest : ${Object.keys(S.rows).length} / ${T.rows.length} actions` : ' · short interest pas encore publié');
+    // thèmes : industries présentes dans la liste, de la mieux classée à la moins bien classée
+    const groups = new Map();
+    rows.forEach(r => { const g = groups.get(r.indName) || { r: r.ind, sec: r.secName, name: r.indName, syms: [] }; g.syms.push(r.s); groups.set(r.indName, g); });
+    const gl = [...groups.values()].sort((a, b) => ((a.r && a.r.rank) || 1e9) - ((b.r && b.r.rank) || 1e9) || b.syms.length - a.syms.length);
+    $('tkThemes').innerHTML = !gl.length ? '' : gl.map(g => {
+      const x = g.r, dv = x && x.score != null ? (x.score - 1) * 100 : null;
+      const dl = x && x.delta != null ? (x.delta > 0 ? `<span class="pos">▲ ${x.delta}</span>` : x.delta < 0 ? `<span class="neg">▼ ${-x.delta}</span>` : '=') : '—';
+      return `<button type="button" class="tktheme${x && x.heat === 'hot' ? ' hot' : ''}" data-ind="${escA(g.name)}" title="Ouvrir l'industrie dans l'onglet Secteurs">` +
+        `<div class="tn">${escH(g.name)}${heatTag(x && x.heat)}</div><div class="ts">${escH(tvSecLabel(g.sec))}</div>` +
+        (x && x.rank != null ? `<div class="tt">rang <b>${x.rank}</b>/${R.ind.total} · ${TIN} <span class="${cls(dv)}">${pct(dv)}</span> · ${x.brd == null ? '—' : nf(x.brd, 0) + ' %'} &gt; 1 · Δ ${TI.delta} j ${dl}</div>`
+          : `<div class="tt muted">industrie sans rang (trop peu d'actions retenues)</div>`) +
+        `<div class="tk">${g.syms.length} ticker${g.syms.length > 1 ? 's' : ''} : ${g.syms.map(escH).join(', ')}</div></button>`;
+    }).join('');
+    // tableau
+    const val = TK_VAL[tkSort.k], dir = tkSort.dir;
+    rows.sort((a, b) => { const va = val(a), vb = val(b);
+      if (va == null || vb == null) return va == null && vb == null ? a.s.localeCompare(b.s) : va == null ? 1 : -1;
+      return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * dir || a.s.localeCompare(b.s); });
+    $('tkHead').innerHTML = Object.entries(TK_DEFS).map(([id, d]) => d.fixed ? `<th class="c-open"></th>` :
+      `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" data-k="${d.k}">${d.label}${tipI('tk:' + id, id === 'dtc' ? 'Days to cover' : d.label)}<span class="arr">${tkSort.k === d.k ? (tkSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
+    const rk = (x, total) => x && x.rank != null ? `${x.rank}/${total}` : '—';
+    $('tkRows').innerHTML = rows.map(r => {
+      const dv = r.ti == null ? null : (r.ti - 1) * 100, trend = r.ti != null && r.tiPrev != null ? (r.ti > r.tiPrev ? ' ↗' : r.ti < r.tiPrev ? ' ↘' : '') : '';
+      const sh = r.sh, oldT = r.old ? ` title="relevé du ${sh.date} : ancien"` : sh && sh.date ? ` title="relevé du ${sh.date}"` : '';
+      return `<tr data-s="${escA(r.s)}">` +
+        `<td class="sym l" title="${escA(r.n)}">${escH(r.s)}<span class="tsub">${escH(r.n)}${r.kept ? '' : ' · hors filtres'}</span></td>` +
+        `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
+        `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
+        `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}</span></td>` +
+        `<td class="c-cap">${capFmt(r.cap)}</td><td class="c-flt">${shares(r.flt)}</td>` +
+        `<td class="c-pct${r.old ? ' old' : ''}"${oldT}>${sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—'}</td>` +
+        `<td class="c-dtc${r.old ? ' old' : ''}"${oldT}>${sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' : '—'}</td>` +
+        `<td class="open c-open"><button class="drill" type="button" data-open="${escA(r.s)}" aria-label="Ouvrir ${escA(r.s)} dans l'onglet Secteurs" title="Ouvrir dans l'onglet Secteurs (bougies, ${TIN})">›</button></td></tr>`;
+    }).join('') || `<tr><td class="empty">Colle un ticker ou une liste ci-dessus, puis « Analyser ».</td></tr>`;
+    $('tkNote').innerHTML = (unknown.length ? `<span class="neg">Inconnus</span> (ETF, fonds, OTC ou hors NYSE / Nasdaq / AMEX) : ${unknown.map(escH).join(', ')}. ` : '') +
+      (syms.length >= TKC.max_tickers ? `Liste limitée à ${TKC.max_tickers} tickers. ` : '') +
+      (T.fallback ? `⚠ composition TradingView du ${fmtDate(T.scan)} (TradingView n'a pas répondu). ` : '');
+  }
+  function tkRun() { store.set('mm.tklist', $('tkInput').value); renderTickers(); }
+  $('tkGo').addEventListener('click', tkRun);
+  $('tkClear').addEventListener('click', () => { $('tkInput').value = ''; tkRun(); });
+  $('tkInput').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || !e.shiftKey)) { e.preventDefault(); tkRun(); } });
+  $('tkHead').addEventListener('click', e => {
+    const th = e.target.closest('th'); if (!th || !th.dataset.k) return;
+    const k = th.dataset.k, d = Object.values(TK_DEFS).find(x => x.k === k);
+    tkSort = tkSort.k === k ? { k, dir: -tkSort.dir } : { k, dir: d.dir }; renderTickers();
+  });
+  function tvGoto(indName, sym) {                        // ouvre l'onglet Secteurs (vue TradingView) sur une industrie, ou sur une action retenue
+    const I = IND && IND.industries.find(i => i.k === indName); if (!I) return;
+    const r = sym ? tkRow(sym) : null;
+    secView = 'tv'; store.set('mm.secview', 'tv'); secBuiltKey = ''; secSort = { k: 'rank', dir: 1 };
+    tvNav = r && r.kept ? { lvl: 'stk', sec: I.sec, ind: I.k } : { lvl: 'ind', sec: I.sec, ind: null };
+    secSel = r && r.kept ? r.s : I.k; tvSave(); store.set(selKey(), secSel);
+    $('view-sec').classList.remove('detail');
+    setTab('sec');
+  }
+  $('tkRows').addEventListener('click', e => {
+    const o = e.target.closest('[data-open]'), tr = e.target.closest('tr');
+    const sym = (o && o.dataset && o.dataset.open) || (tr && tr.dataset && tr.dataset.s); if (!sym) return;
+    const r = tkRow(sym); if (r) tvGoto(r.indName, r.s);
+  });
+  $('tkThemes').addEventListener('click', e => { const b = e.target.closest('[data-ind]'); if (b && b.dataset.ind) tvGoto(b.dataset.ind, null); });
 
   // ------------------------------------------------------------------ onglet « Post-market » : scan TradingView par volume
   // Instantané relevé par le robot (fetch_postmarket.py) : prix > 3 $, volume post-market > 100 000, |variation post-market| > 4 %,
@@ -2960,6 +3200,7 @@
   function setTab(t) {
     tab = t; store.set('mm.tab', t);
     $('view-main').hidden = t !== 'main'; $('view-cmp').hidden = t !== 'cmp'; $('view-sec').hidden = t !== 'sec'; $('view-pm').hidden = t !== 'pm';
+    $('view-tk').hidden = t !== 'tk';
     document.body.dataset.tab = t;
     [...$('tabs').children].forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     placeRanges(); renderMtop(); renderDatebar(); renderFresh();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
@@ -2967,6 +3208,7 @@
     closeMenu(); tip.style.display = 'none';
     if (t === 'sec') renderSectors();
     else if (t === 'pm') renderPM();
+    else if (t === 'tk') renderTickers();
     else if (t === 'cmp') { renderCmpLegend(); renderCmp(); } else { drawAll(); syncSlider(); }
   }
   $('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b && b.dataset.tab) setTab(b.dataset.tab); });
@@ -3050,7 +3292,7 @@
   function renderMtop() {
     const lb = [...bars.values()].pop();
     $('minst').innerHTML = tab === 'main' ? `${current} ${lb ? `<span>${nf(lb.c, pxd(lb.c))} <span class="${cls(lb.chg)}">${pct(lb.chg)}</span></span>` : ''}`
-      : tab === 'cmp' ? 'SA · QQQ · IWM · BTC' : tab === 'pm' ? 'Post-market' : 'Secteurs';
+      : tab === 'cmp' ? 'SA · QQQ · IWM · BTC' : tab === 'pm' ? 'Post-market' : tab === 'tk' ? 'Tickers' : 'Secteurs';
   }
   function renderBar() {
     const lb = [...bars.values()].pop();
@@ -3597,7 +3839,7 @@
   window.addEventListener('resize', drawAll);          // la hauteur dépend de la fenêtre (vh) : le ResizeObserver ne la voit pas
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => setTimeout(() => { drawAll(); renderKpis(); }, 50));
   refresh();
-  { const st = store.get('mm.tab'); if (st === 'cmp' || st === 'sec' || st === 'pm') setTab(st); }
+  { const st = store.get('mm.tab'); if (st === 'cmp' || st === 'sec' || st === 'pm' || st === 'tk') setTab(st); }
   try {                                                // après « Actualiser » : dire si de nouvelles données ont été chargées
     const r = JSON.parse(sessionStorage.getItem('mm.reload') || 'null');
     if (r) { sessionStorage.removeItem('mm.reload'); const st = window.STATUS || {}; showToast(r.u !== st.updated || r.pm !== (st.pm || null) ? 'reloaded' : 'ok'); }

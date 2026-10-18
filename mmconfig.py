@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "datasets", "storage")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "short", "datasets", "storage")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -64,6 +64,8 @@ def front_config():
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
+        "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
+                    "short_stale_days": load("short")["stale_days"]},
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
                        **{k: ind["universe"][k] for k in ("min_price", "min_avg_volume", "avg_volume_sessions", "min_market_cap")}},
         "sector_fr": d["postmarket"]["sector_fr"],
@@ -151,6 +153,10 @@ def check():
         errors.append("sources.history : max_downloads / rate dépasse 40 min (un passage du robot doit rester court)")
     elif ind["output"]["stock_sessions"] > hist["sessions"]:
         errors.append("industries.output.stock_sessions dépasse sources.history.sessions (historique Polygon téléchargé)")
+    tk = load("display").get("tickers", {})
+    if not (0 < tk.get("hot_top_pct", 0) <= 100 and 0 <= tk.get("hot_min_breadth", -1) <= 100
+            and tk.get("emerging_min_delta", 0) >= 1 and tk.get("max_tickers", 0) >= 1):
+        errors.append("display.tickers : 0 < hot_top_pct ≤ 100, 0 ≤ hot_min_breadth ≤ 100, emerging_min_delta ≥ 1, max_tickers ≥ 1 attendus")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
@@ -182,6 +188,20 @@ def check():
             errors.append(f"datasets.{key} : partition « {ds.get('partition')} » (attendus : month, day)")
         if ds["columns"].get(ds.get("partition_by", ""), "").rstrip("?") not in {"date", "timestamp"} or ds["columns"][ds["partition_by"]].endswith("?"):
             errors.append(f"datasets.{key} : partition_by doit nommer une colonne date ou timestamp obligatoire")
+    for s_ in steps():                           # étape à passage séparé : son workflow existe et la lance
+        wf = s_.get("separate")
+        if wf and (not (WORKFLOWS / wf).exists() or s_["script"] not in (WORKFLOWS / wf).read_text()):
+            errors.append(f"sources.{s_['name']} : workflow {wf} introuvable ou ne lance pas {s_['script']}")
+    site = load("storage").get("site", {})
+    listed = set(site.get("required", [])) | set(site.get("optional", [])) | {d + "/" for d in site.get("dirs", [])}
+    for s_ in steps():                           # tout fichier produit par une étape est publié
+        for f in s_["restore"]:
+            if f not in listed and not f.endswith(".csv"):
+                errors.append(f"storage.site : {f} (étape {s_['name']}) absent de la liste des fichiers publiés")
+    for wf in sorted(WORKFLOWS.glob("*.yml")):   # les workflows qui publient passent tous par build_site.py
+        text = wf.read_text()
+        if "upload-pages-artifact" in text and ("build_site.py" not in text or re.search(r"\bcp\s+index\.html", text)):
+            errors.append(f"{wf.name} : le site doit être préparé par build_site.py (liste unique config/storage.toml [site])")
     if not JS.exists() or JS.read_text() != js_text():
         errors.append("config_data.js n'est pas à jour : lance python mmconfig.py --js")
     return errors

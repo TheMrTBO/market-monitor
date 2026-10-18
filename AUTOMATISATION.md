@@ -32,6 +32,7 @@ attend la fin du premier (groupe `concurrency: market-monitor`) ou apparaît « 
 |---|---|---|
 | Scan post-market | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/postmarket.yml/dispatches` | `7,22,37,52 0,1,20,21,22,23 * * 1-6` |
 | Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | `17 1,3,5-8,22 * * *` : 00:17, 03:17, 05:17, 08:17, 09:17, 10:17 (heure d'été de Paris ; Polygon et Stockbee publient la séance précédente pendant la nuit, à une heure variable), tous les jours |
+| Short interest (onglet Tickers) | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/short.yml/dispatches` | `17 12 * * 1-6` : 12:17 UTC du lundi au samedi (**à créer** ; sans elle, le créneau `schedule` GitHub sert de secours) |
 
 Réglages communs : en-têtes `Authorization: Bearer <jeton>`, `Accept: application/vnd.github+json`,
 `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.

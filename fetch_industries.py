@@ -15,6 +15,11 @@ Sorties :
   industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, vu (unité des volumes), rows:[[symbole, nom, cap, [clôtures], [volumes / vu],
                              [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
+  tickers_data.js            window.TICKERS = {asof, scan, fallback, secs, inds, cols, rows} : toutes les actions ordinaires
+                             US du scanner (retenues ou non) avec secteur, industrie, capitalisation, flottant, TI65 (onglet
+                             Tickers, chargé à l'ouverture). Sert aussi de composition publiée : une séance déjà publiée la
+                             reprend (TradingView non réinterrogé) et, si TradingView ne répond pas, la dernière composition
+                             connue est reprise avec les clôtures du jour (fallback = true, scan = date de cette composition).
 """
 import json
 import math
@@ -30,7 +35,9 @@ OUT = HERE / "industries_data.js"
 CFG = mmconfig.load("industries")
 TI = mmconfig.load("display")["ti65"]
 FOLDER = HERE / CFG["output"]["folder"]
-TV_COLS = ["name", "description", "exchange", "subtype", "sector", "industry", "market_cap_basic"]
+TICKERS_OUT = HERE / CFG["output"]["tickers_file"]
+TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av"]
+TV_COLS = ["name", "description", "exchange", "subtype", "sector", "industry", "market_cap_basic", "float_shares_outstanding"]
 
 
 def scan_tradingview():
@@ -178,29 +185,81 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
 
 
-def published_members(asof):
-    """Composition déjà publiée pour la séance `asof` ([{s, n, sec, ind, cap}]), ou None (autre séance, fichiers illisibles).
-    Une séance garde ainsi la même composition d'un passage à l'autre : les nombreux passages de la nuit et du matin ne
-    réinterrogent pas TradingView et ne réécrivent pas les fichiers (capitalisation ou titre à la limite d'un seuil)."""
+def universe_rows(tv_rows, cfg=CFG["universe"]):
+    """Actions ordinaires du scanner avec secteur et industrie (l'univers de l'onglet Tickers, retenues ou non)."""
+    return [r for r in tv_rows if r.get("subtype") == cfg["subtype"] and r.get("name") and r.get("sector") and r.get("industry")]
+
+
+def published_universe(path=None):
+    """(date de séance du scan, [lignes au format du scanner]) relues dans tickers_data.js, ou (None, None)."""
     try:
-        text = OUT.read_text()
-        data = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
-        if data.get("asof") != asof:
-            return None
-        out = []
-        for i in data["industries"]:
-            t = (FOLDER / f"{i['f']}.js").read_text()
-            rows = json.loads(t[t.index("] = ") + 4:].strip().rstrip(";"))["rows"]
-            if len(rows) != i["n"]:
-                return None
-            out += [{"s": r[0], "n": r[1], "sec": i["sec"], "ind": i["k"], "cap": r[2]} for r in rows]
-        return out or None
-    except (OSError, ValueError, KeyError, IndexError):
-        return None
+        text = Path(path or TICKERS_OUT).read_text()
+        d = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
+        col = {k: i for i, k in enumerate(d["cols"])}
+        rows = [{"name": r[col["s"]], "description": r[col["n"]], "subtype": CFG["universe"]["subtype"],
+                 "industry": d["inds"][r[col["ind"]]][0], "sector": d["secs"][d["inds"][r[col["ind"]]][1]],
+                 "market_cap_basic": r[col["cap"]], "float_shares_outstanding": r[col["flt"]]} for r in d["rows"]]
+        return (d["scan"], rows) if rows else (None, None)
+    except (OSError, ValueError, KeyError, IndexError, TypeError):
+        return None, None
 
 
-def write(payload, files):
-    """Écrit industries_data.js et un fichier par industrie ; retire les fichiers d'industries disparues."""
+def tickers(dates, close, vol, tv_rows, members, scan, fallback):
+    """Payload de tickers_data.js : une ligne par action de l'univers (cols = TK_COLS)."""
+    rows = universe_rows(tv_rows)
+    by_ind = defaultdict(list)
+    for r in rows:
+        by_ind[r["industry"]].append(r["sector"])
+    inds = sorted(by_ind)
+    secs = sorted({max(set(v), key=v.count) for v in by_ind.values()})
+    ind_ix = {k: i for i, k in enumerate(inds)}
+    n, delta = len(dates), TI["delta"]
+    kept = {m["s"]: m for m in members}
+    score = {t: ti65(close[t], n - 1) for t in {r["name"] for r in rows} if t in close}
+    rank = {}
+    members_by_ind = defaultdict(list)
+    for m in members:
+        members_by_ind[m["ind"]].append(m["s"])
+    for ind, ts in members_by_ind.items():               # rang du TI65 de l'action parmi les actions retenues de son industrie
+        ordered = sorted((t for t in ts if score.get(t) is not None), key=lambda t: (-score[t], t))
+        rank.update({t: i + 1 for i, t in enumerate(ordered)})
+    m_avg = CFG["universe"]["avg_volume_sessions"]
+    out = []
+    for r in sorted(rows, key=lambda r: r["name"]):
+        t, c = r["name"], close.get(r["name"])
+        vs = [v for v in (vol.get(t) or [])[-m_avg:] if v is not None]
+        out.append([t, r.get("description") or t, ind_ix[r["industry"]],
+                    int(r["market_cap_basic"]) if r.get("market_cap_basic") else None,
+                    int(r["float_shares_outstanding"]) if r.get("float_shares_outstanding") else None,
+                    1 if t in kept else 0,
+                    None if score.get(t) is None else round(score[t], 4),
+                    None if not c or ti65(c, n - 1 - delta) is None else round(ti65(c, n - 1 - delta), 4),
+                    rank.get(t), num(c[-1]) if c and c[-1] else None, round(sum(vs) / len(vs)) if vs else None])
+    return {"asof": dates[-1], "scan": scan, "fallback": fallback, "secs": secs,
+            "inds": [[k, secs.index(max(set(by_ind[k]), key=by_ind[k].count))] for k in inds], "cols": TK_COLS, "rows": out}
+
+
+def composition(asof, scan, prev, scanner=None):
+    """(lignes du scanner, date du scan, secours ?) pour la séance asof. Séance déjà publiée (scan == asof) : composition
+    reprise sans interroger TradingView. Sinon nouveau scan ; s'il échoue (muet, vide, liste tronquée), la dernière
+    composition publiée est reprise (secours) ; sans composition publiée, arrêt (fichiers non modifiés)."""
+    if prev and scan == asof:
+        print(f"Séance {asof} déjà publiée : composition reprise ({len(prev)} actions), TradingView non interrogé")
+        return prev, scan, False
+    try:
+        tv = (scanner or scan_tradingview)()
+        if not tv:
+            raise RuntimeError("aucune action reçue")
+        return tv, asof, False
+    except (RuntimeError, SystemExit) as e:          # TradingView muet ou liste tronquée : secours
+        if not prev:
+            sys.exit(f"TradingView : {e} ; aucune composition publiée à reprendre, fichiers non modifiés.")
+        print(f"⚠ TradingView : {e} ; secours : composition du {scan} reprise avec les clôtures du {asof}")
+        return prev, scan, True
+
+
+def write(payload, files, tk=None):
+    """Écrit industries_data.js, un fichier par industrie (retire ceux d'industries disparues) et tickers_data.js."""
     FOLDER.mkdir(exist_ok=True)
     for f, p in files.items():
         text = f"(window.TV_STOCKS = window.TV_STOCKS || {{}})[{json.dumps(f)}] = " + json.dumps(p, separators=(",", ":"), ensure_ascii=False) + ";\n"
@@ -211,6 +270,8 @@ def write(payload, files):
         if old.stem not in files:
             old.unlink()
     OUT.write_text("window.INDUSTRIES = " + json.dumps(payload, separators=(",", ":"), ensure_ascii=False) + ";\n")
+    if tk is not None:
+        TICKERS_OUT.write_text("window.TICKERS = " + json.dumps(tk, separators=(",", ":"), ensure_ascii=False) + ";\n")
 
 
 def main():
@@ -229,22 +290,16 @@ def main():
     except (OSError, ValueError, KeyError):
         sys.exit("Univers introuvable (cache/universe.json) : lance python fetch_history.py.")
     close, vol, ohlc = series(dates, history, universe, fh.load_splits_file())
-    members = None if args.rescan else published_members(dates[-1])
-    if members is not None:                       # séance déjà publiée : même composition (titres encore en cache seulement)
-        members = [m for m in members if m["s"] in close]
-        tv = []
-        print(f"Séance {dates[-1]} déjà publiée : composition reprise ({len(members)} actions), TradingView non interrogé")
-    else:
-        tv = scan_tradingview()
-        if not tv:
-            sys.exit("TradingView : aucune action reçue ; fichiers non modifiés.")
-        members = select(tv, close, vol)
+    tv, scan, fallback = composition(dates[-1], *((None, None) if args.rescan else published_universe()))
+    members = select(tv, close, vol)
     payload, files = compute(dates, close, vol, members, ohlc=ohlc)
-    write(payload, files)
+    payload["comp"] = {"asof": scan, "fallback": fallback}     # date de la composition (secours si TradingView a échoué)
+    tk = tickers(dates, close, vol, tv, members, scan, fallback)
+    write(payload, files, tk)
     ranked = sum(i["n"] >= CFG["index"]["min_members"] for i in payload["industries"])
-    print(f"{f'{len(tv)} actions TradingView' if tv else 'Composition reprise'}, {len(members)} retenues : {len(payload['sectors'])} secteurs, "
+    print(f"{len(tk['rows'])} actions dans l'index, {len(members)} retenues : {len(payload['sectors'])} secteurs, "
           f"{len(payload['industries'])} industries ({ranked} classables), {len(dates)} séances ({dates[0]} -> {dates[-1]})")
-    print(f"Écrit : {OUT.name} et {len(files)} fichiers dans {FOLDER.name}/")
+    print(f"Écrit : {OUT.name}, {TICKERS_OUT.name} et {len(files)} fichiers dans {FOLDER.name}/")
 
 
 if __name__ == "__main__":

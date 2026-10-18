@@ -81,8 +81,9 @@ jobs:
           # de fichier suivi en cas d'erreur de checkout.
           if git ls-files --error-unmatch industries_data.js >/dev/null 2>&1; then
             git checkout -- industries_data.js industries && git clean -fdq -- industries
+            git checkout -- tickers_data.js 2>/dev/null || rm -f tickers_data.js   # index de l'onglet Tickers (ajouté après)
           else
-            rm -rf industries_data.js industries
+            rm -rf industries_data.js industries tickers_data.js
           fi
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
@@ -91,6 +92,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js
           if [ -f industries_data.js ]; then git add -A industries_data.js industries; fi   # -A : industries disparues retirées
+          if [ -f tickers_data.js ]; then git add tickers_data.js; fi                       # index de l'onglet Tickers
           if git diff --cached --quiet; then
             echo "Aucun changement de données."
           else
@@ -130,11 +132,7 @@ jobs:
         run: python -m mm.store sync --run-id "${{ github.run_id }}-${{ github.run_attempt }}" --message "Données du $(date -u '+%Y-%m-%d %H:%M UTC') (mise à jour)"
 
       - name: Préparer le site
-        run: |
-          mkdir -p _site
-          cp index.html stockbee_dashboard.html config_data.js stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js _site/
-          if [ -f industries_data.js ]; then cp industries_data.js _site/ && cp -r industries _site/; fi   # vue TradingView (onglet Secteurs)
-          touch _site/.nojekyll
+        run: python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
