@@ -1,0 +1,23 @@
+# Vue « TradingView » de l'onglet Secteurs : secteurs → industries → actions, chaque niveau classé par TI65.
+# Classification : scanner public TradingView (champs sector, industry ; sans compte, sans clé).
+# Clôtures : historique Polygon de fetch_history.py (clôtures brutes + splits, cache hors dépôt).
+# Secteur et industrie = indice équipondéré de leurs actions retenues (variations journalières moyennes, chaînées) ;
+# la composition est celle du jour du calcul, appliquée à tout l'historique. Réglages calibrés le 18/10/2026.
+
+[universe]
+exchanges = ["NYSE", "NASDAQ", "AMEX"]
+subtype = "common"            # actions ordinaires (TradingView) ; il faut aussi qu'elles soient dans l'univers Polygon (type CS)
+min_price = 3.0               # dernière clôture, dollars
+min_avg_volume = 100_000      # volume moyen (actions) sur avg_volume_sessions séances
+avg_volume_sessions = 50
+min_market_cap = 300_000_000  # dollars (capitalisation TradingView)
+
+[index]
+base = 100                    # valeur de départ des indices
+daily_return_clip = 0.5       # variation journalière d'un titre plafonnée à ±50 % dans le calcul de l'indice
+min_members = 3               # en dessous : secteur ou industrie affiché sans rang
+few_members = 5               # en dessous : étiquette « peu de titres »
+
+[output]
+stock_sessions = 130          # séances par action dans industries/<industrie>.js (fiche action : graphique et TI65)
+folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie

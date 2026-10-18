@@ -70,3 +70,14 @@ restore = ["postmarket_data.js"]
 attempts = 2
 waits = [30]
 freshness = { max_age = 7, max_gap = 20, max_snapshots = 30 }
+
+[[step]]
+name = "industries"
+label = "Industries TradingView"
+label_inline = "industries TradingView"   # dans une phrase (« … en échec »)
+script = "fetch_industries.py"            # après fetch_history.py (clôtures Polygon en cache) ; scanner TradingView
+output = "industries_data.js"
+restore = ["industries_data.js", "industries/"]   # « / » final : tout le dossier (un fichier par industrie)
+attempts = 2
+waits = [30]
+freshness = { min_rows = 70, max_age = 6, max_gap = 12, min_sectors = 15, min_industries = 80, min_stocks = 1500 }

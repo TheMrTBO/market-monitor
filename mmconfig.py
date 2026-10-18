@@ -2,7 +2,7 @@
 """Configuration centralisée du Market Monitor (dossier config/, format TOML, lu par la bibliothèque standard).
 
 Source unique des paramètres métier : horaires, heures de marché, étapes du robot et contrôles de fraîcheur, filtres du scan
-post-market, univers des ETF, seuils et libellés d'affichage, modèle logique des données, stockage.
+post-market, univers des ETF, vue TradingView (secteurs → industries → actions), seuils et libellés d'affichage, modèle logique des données, stockage.
   - le robot Python lit la config avec load("<fichier>") ;
   - le dashboard lit config_data.js (window.MM_CONFIG), GÉNÉRÉ par ce module : ne jamais l'éditer à la main ;
   - les créneaux `schedule` des workflows GitHub ne peuvent pas lire la config : check() vérifie qu'ils lui correspondent.
@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "datasets", "storage")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "datasets", "storage")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -52,7 +52,7 @@ def sectors():
 
 def front_config():
     """Sous-ensemble de la config utile au dashboard (sérialisé dans config_data.js)."""
-    m, pm, d = load("market"), load("postmarket"), load("display")
+    m, pm, d, ind = load("market"), load("postmarket"), load("display"), load("industries")
     return {
         "market": {k: m[k] for k in ("timezone", "close_hour", "postmarket_end_hour", "premarket_start_hour")},
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
@@ -61,7 +61,11 @@ def front_config():
         "breadth": d["breadth"],
         "vix": d["vix"],
         "colors": d["colors"],
-        "sectors": {"groups": d["sectors"]["groups"], "labels": {e["symbol"]: e["label"] for e in sectors()}},
+        "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"],
+                    "labels": {e["symbol"]: e["label"] for e in sectors()}},
+        "ti65": d["ti65"],
+        "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
+                       **{k: ind["universe"][k] for k in ("min_price", "min_avg_volume", "avg_volume_sessions", "min_market_cap")}},
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
     }
@@ -130,6 +134,19 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : champs vides {missing}")
         if e.get("group") not in groups:
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
+    ti, ind = load("display")["ti65"], load("industries")
+    if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
+        errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
+    if {k for k, _ in load("display")["sectors"]["views"]} != {"etf", "tv"}:
+        errors.append("display.sectors.views : clés etf et tv attendues")
+    u, ix = ind["universe"], ind["index"]
+    if not (u["min_price"] > 0 and u["min_avg_volume"] >= 0 and u["avg_volume_sessions"] > 0 and u["min_market_cap"] >= 0
+            and u["exchanges"] and u["subtype"]):
+        errors.append("industries.universe : seuils positifs, bourses et sous-type attendus")
+    if not (ix["base"] > 0 and 0 < ix["daily_return_clip"] and 1 <= ix["min_members"] <= ix["few_members"]):
+        errors.append("industries.index : base > 0, plafond > 0 et 1 ≤ min_members ≤ few_members attendus")
+    if not (ind["output"]["stock_sessions"] > ti["long"] and re.fullmatch(r"[a-z0-9_-]+", ind["output"]["folder"])):
+        errors.append("industries.output : stock_sessions > ti65.long et dossier en minuscules sans / attendus")
     for key, ds in load("datasets")["datasets"].items():
         bad = [c for c, t in ds["columns"].items() if t.rstrip("?") not in TYPES]
         if bad:

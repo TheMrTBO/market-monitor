@@ -61,7 +61,7 @@ jobs:
           path: cache
           key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
 
-      - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels, scan post-market)
+      - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels, scan post-market, industries TradingView)
         id: fetch
         continue-on-error: true            # on publie quand même ce qui a été mis à jour ; l'échec reste signalé plus bas
         run: python update_all.py
@@ -73,13 +73,18 @@ jobs:
 
       - name: Annuler les fichiers invalides (retour aux dernières données valides du dépôt)
         if: steps.validate.outcome == 'failure'
-        run: git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
+        run: |
+          git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
+          # industries : fichier principal + un fichier par industrie (premier passage : absents du dépôt, donc retirés)
+          git checkout -- industries_data.js industries 2>/dev/null || rm -rf industries_data.js industries
+          git clean -fdq -- industries
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js
+          if [ -f industries_data.js ]; then git add -A industries_data.js industries; fi   # -A : industries disparues retirées
           if git diff --cached --quiet; then
             echo "Aucun changement de données."
           else
@@ -122,6 +127,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html stockbee_dashboard.html config_data.js stockbee_data.js breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js _site/
+          if [ -f industries_data.js ]; then cp industries_data.js _site/ && cp -r industries _site/; fi   # vue TradingView (onglet Secteurs)
           touch _site/.nojekyll
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5

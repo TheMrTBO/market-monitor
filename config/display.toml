@@ -17,6 +17,15 @@ base100 = { QQQ = "#199e70", IWM = "#d95926", BTC = "#9085e9" }
 [sectors]
 # filtres de l'onglet Secteurs : [clé (groupe de config/sectors.toml ou all), libellé]
 groups = [["all", "Tous"], ["Secteur", "Secteurs"], ["Industrie", "Industries"], ["Thème", "Thèmes"], ["Matières", "Matières"], ["Pays / région", "Pays"]]
+# bascule en tête de l'onglet : [clé, libellé] ; etf = config/sectors.toml, tv = secteurs → industries → actions TradingView
+views = [["etf", "ETF"], ["tv", "TradingView"]]
+
+[ti65]
+# indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :
+# moyenne des `short` dernières clôtures ÷ moyenne des `long` dernières ; lu aussi par fetch_industries.py (% de titres > 1)
+name = "TI65"
+short = 7
+long = 65
 
 [postmarket.sector_fr]
 # traduction des secteurs TradingView (anglais) affichés sous chaque ticker

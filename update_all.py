@@ -10,6 +10,8 @@ Etapes (chacune est un script independant ; si une etape echoue, les anciennes d
   sectors   -> sectors_data.js    (ETF sectoriels : Yahoo Finance)
   postmarket-> postmarket_data.js (scan post-market du screener public TradingView ; ne fait rien hors du post-market ;
                                    aussi lance seul toutes les 15 min le soir par .github/workflows/postmarket.yml)
+  industries-> industries_data.js + industries/ (vue TradingView de l'onglet Secteurs : classification du scanner
+                                   TradingView, indices calcules depuis l'historique cache/history/)
 
 Chaque fichier produit est controle (validate_data.py) avant d'etre conserve : s'il est invalide, ou plus ancien que
 la version precedente, il est annule et les anciennes donnees sont restaurees.
@@ -52,22 +54,44 @@ def last_date(name, path):
             return data["asof"]
         if name == "postmarket":
             return data["snaps"][-1]["d"] if data["snaps"] else None
+        if name == "industries":
+            return data["asof"]
     except (OSError, ValueError, KeyError, IndexError):
         pass
     return None
 
 
+def snapshot(restore):
+    """{chemin relatif: contenu} des fichiers a restaurer ; une entree finissant par « / » designe tout un dossier."""
+    out = {}
+    for f in restore:
+        p = HERE / f
+        if f.endswith("/"):
+            for q in sorted(p.glob("*")) if p.is_dir() else []:
+                if q.is_file():
+                    out[q.relative_to(HERE).as_posix()] = q.read_bytes()
+        elif p.exists():
+            out[f] = p.read_bytes()
+    return out
+
+
 def run_step(name, script, out_file, restore, attempts, waits):
     out_path = HERE / out_file
-    backup = {f: (HERE / f).read_bytes() for f in restore if (HERE / f).exists()}
+    backup = snapshot(restore)
     old_last = last_date(name, out_path)
 
     def rollback():
         for f in restore:
-            if f in backup:
-                (HERE / f).write_bytes(backup[f])
-            else:                                           # le fichier n'existait pas avant : on retire le produit invalide
+            if f.endswith("/"):                             # dossier : on retire les fichiers produits, on remet les anciens
+                d = HERE / f
+                for q in d.glob("*") if d.is_dir() else []:
+                    if q.is_file() and q.relative_to(HERE).as_posix() not in backup:
+                        q.unlink()
+            elif f not in backup:                           # le fichier n'existait pas avant : on retire le produit invalide
                 (HERE / f).unlink(missing_ok=True)
+        for f, data in backup.items():
+            (HERE / f).parent.mkdir(parents=True, exist_ok=True)
+            (HERE / f).write_bytes(data)
 
     last_err = ""
     for i in range(attempts):

@@ -22,6 +22,8 @@ echo "--- test Python : calcul maison du breadth, historique et controle croise"
 python3 tests/test_breadth_own.py || fail=1
 echo "--- test Python : scan post-market (seance, resultats, lendemain, controle)"
 python3 tests/test_postmarket.py || fail=1
+echo "--- test Python : vue TradingView de l'onglet Secteurs (indices, filtres, fichiers, controle)"
+python3 tests/test_industries.py || fail=1
 echo "--- test Python : stockage historique (mm/store)"
 python3 tests/test_store.py || fail=1
 echo "--- test Python : synchronisation vers la branche data (dépôts Git temporaires)"
