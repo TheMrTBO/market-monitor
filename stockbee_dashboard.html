@@ -701,6 +701,11 @@
         <div class="mini-title"><b id="secBrdName">% des actions avec un TI65 &gt; 1</b><button class="tipbtn" data-tip="secbrd" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px" id="secBrdNow"></span></div>
         <canvas id="secBrdCv"></canvas>
       </div>
+      <div class="card" id="secCard" hidden>
+        <div class="mini-title"><b>Fiche</b><span class="px" id="secWhen"></span></div>
+        <dl class="pmfacts" id="secFacts"></dl>
+        <p class="pmnote" id="secLinks"></p>
+      </div>
       <nav class="detnav" id="secNav" aria-label="Navigation dans la liste"><button id="secPrev" type="button">‹</button><span class="dpos" id="secPos"></span><button id="secNext" type="button">›</button></nav>
       </div>
     </div>
@@ -713,6 +718,7 @@
         <div class="sechead">
           <b>Scan post-market · volume</b><button class="tipbtn" data-tip="pmscan" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
           <button class="copybtn" id="pmCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
+          <button class="copybtn" id="pmToTk" type="button" title="Analyser les tickers affichés dans l'onglet Tickers (secteur, industrie, tendance, short interest, thèmes)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>
           <span class="secmeta" id="pmMeta"></span>
         </div>
         <div class="secfilt" id="pmFilt" role="group" aria-label="Filtrer le scan"></div>
@@ -2045,7 +2051,9 @@
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }   // mobile : barre d'onglets en bas ; graphique en vh (CSS)
     const sc = $('secScoreCard'), bc = $('secBrdCard'), nav = $('secNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
-    const scoreH = ((sc && sc.offsetHeight) || 200) + (bc && !bc.hidden ? (bc.offsetHeight || 160) + 8 : 0);   // + carte « % > 1 » (groupes)
+    const fc = $('secCard');
+    const scoreH = ((sc && sc.offsetHeight) || 200) + (bc && !bc.hidden ? (bc.offsetHeight || 160) + 8 : 0)   // + carte « % > 1 » (groupes)
+      + (fc && !fc.hidden ? (fc.offsetHeight || 200) + 8 : 0);                                                    // + fiche (actions)
     cv.style.height = Math.max(300, free(cv) - scoreH - 8 - 6 - navH) + 'px';   // la carte du score (et l'écart de 8 px) tient dans la fenêtre, au-dessus de la barre ‹ ›
   }
 
@@ -2373,14 +2381,19 @@
       $('secTitle').textContent = x.s;
       $('secInfo').textContent = `Industrie TradingView (${tvSecLabel(x.sec)}) · indice équipondéré de ${x.cnt} action${x.cnt > 1 ? 's' : ''}${row.few ? ' (peu de titres)' : ''}${brd}`;
     } else {
-      const link = u => u.replace(/\{symd\}/g, encodeURIComponent(x.s.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(x.s));   // liens : config/postmarket.toml
-      const links = (CFG.postmarket.links || []).filter(l => !/\{tv\}/.test(l.url))     // {tv} : bourse inconnue ici
-        .map(l => ` · <a href="${escA(link(l.url))}" target="_blank" rel="noopener">${escH(l.label)} ↗</a>`).join('');
       $('secTitle').textContent = `${x.s} · ${x.n}`;
-      $('secInfo').innerHTML = `${escH(D.ind.k)} (${escH(tvSecLabel(D.ind.sec))}) · capitalisation ${capFmt(x.cap)} $${links}`;
+      $('secInfo').innerHTML = `${escH(D.ind.k)} (${escH(tvSecLabel(D.ind.sec))}) · capitalisation ${capFmt(x.cap)} $`;
     }
     $('secBrdNow').innerHTML = row.brd == null ? '' : `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.brd, 0)} %</b> de ${x.cnt} actions`;
     $('secBrdName').innerHTML = `% des actions avec un ${TIN} &gt; 1`;
+    const card = $('secCard'), isStk = D.kind === 'stk';  // action : fiche standard (même contenu que Tickers et Post-market)
+    if (card.hidden === isStk) { card.hidden = !isStk; fitSecLayout(); }
+    if (isStk) {
+      const last = secCtx.bars.size ? [...secCtx.bars.values()].pop() : null;
+      const F = stdFiche(x.s, { close: last ? last.c : null, chg: last ? last.chg : null, from: 'sec', after: () => { if (tab === 'sec') secHeader(); } });
+      $('secFacts').innerHTML = F.facts; $('secLinks').innerHTML = F.links;
+      $('secWhen').textContent = `séance du ${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })}`;
+    }
     const open = $('secOpen'), canOpen = D.kind === 'sec' || D.kind === 'ind';
     open.hidden = !canOpen;
     if (canOpen) open.textContent = D.kind === 'sec' ? `Industries (${IND.industries.filter(i => i.sec === x.s).length}) ›` : `Actions (${x.cnt}) ›`;
@@ -2481,15 +2494,17 @@
   const TKC = CFG.tickers;
   let tkLoaded = { tickers: !!window.TICKERS, short: !!window.SHORT }, tkLoading = false, tkSort = { k: 'ind', dir: 1 }, tkRendered = false;
   let tkSel = store.get('mm.tksel'), tkShown = [];
-  function tkLoad() {                                    // index des tickers + short interest : chargés une fois, à la demande
-    if (tkLoading) return;
+  const tkWaiters = new Set();
+  function tkLoad(after = renderTickers) {               // index des tickers + short interest : chargés une fois, à la demande
     const need = [['tickers', TKC.file, 'TICKERS'], ['short', TKC.short_file, 'SHORT']].filter(([k]) => !tkLoaded[k]);
     if (!need.length) return;
+    tkWaiters.add(after);
+    if (tkLoading) return;
     tkLoading = true;
     const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;
     const v = (IND ? IND.asof.replace(/-/g, '') : '') + (m ? m[1] : '') + new Date().toISOString().slice(0, 10).replace(/-/g, '');
     let left = need.length;
-    const done = () => { if (--left === 0) { tkLoading = false; renderTickers(); } };
+    const done = () => { if (--left === 0) { tkLoading = false; const w = [...tkWaiters]; tkWaiters.clear(); w.forEach(fn => fn()); } };
     need.forEach(([k, f, g]) => {
       const el = document.createElement('script');
       el.src = `${f}?v=${v}`;
@@ -2666,10 +2681,6 @@
     const t = e.target && e.target.tagName; if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
     e.preventDefault(); tkGo(e.key === 'ArrowDown' ? 1 : -1);
   });
-  $('tkLinks').addEventListener('click', e => {
-    const b = e.target.closest('[data-goto]'); if (!b) return;
-    const r = tkRow(b.dataset.goto); if (r) tvGoto(r.indName, r.s);
-  });
   function fitTkLayout() {                               // liste et fiche prennent la hauteur disponible (mêmes règles que le post-market)
     const wrap = $('tkScroll'), cv = $('tkCanvas');
     $('view-tk').classList.toggle('stack', isStacked());
@@ -2703,10 +2714,53 @@
     tkCtx.sym = id; tkCtx.n = arr.length;
     return S;
   }
+  // --- fiche standard d'un ticker : mêmes informations, dans le même ordre, dans les onglets Tickers, Post-market et Secteurs
+  //     (prix, tendance TI65 de l'action, de son industrie et de son secteur, taille, short interest, liens) ; chaque onglet
+  //     ajoute ensuite ses informations propres (ex. post-market). Index et short interest chargés à la demande.
+  function stdFiche(sym, o = {}) {                       // {facts, links, ready} ; o : close, chg (sinon index), after (rappel au chargement), from (onglet)
+    const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
+    const link = u => u.replace(/\{symd\}/g, encodeURIComponent(sym.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(sym)).replace(/\{tv\}/g, encodeURIComponent(o.tv || sym));
+    const ext = (CFG.postmarket.links || []).filter(l => o.tv || !/\{tv\}/.test(l.url))     // liens externes : config/postmarket.toml (toujours là)
+      .map(l => `<a href="${escA(link(l.url))}" target="_blank" rel="noopener">${escH(l.label)} ↗</a>`).join('');
+    if (!IND) return { facts: '', links: ext, ready: true };
+    if (!tkLoaded.tickers || !tkLoaded.short) { tkLoad(o.after); if (!tkLoaded.tickers) return { facts: fact('Analyse', 'chargement…'), links: ext, ready: false }; }
+    const r = tkLookup(sym) ? tkRow(sym) : null;
+    const links = ext +
+      (r && o.from !== 'sec' ? `<a href="#" data-goto="${escA(r.s)}" onclick="return false">Voir dans Secteurs ›</a>` : '') +
+      (r && o.from !== 'tk' ? `<a href="#" data-addtk="${escA(r.s)}" onclick="return false">Ajouter à Tickers ›</a>` : '');
+    if (!r) return { facts: fact('Analyse', 'action absente de l\'index (ETF, fonds, OTC ou hors NYSE / Nasdaq / AMEX)'), links, ready: true };
+    const R = tkRanks(), sh = r.sh, close = o.close != null ? o.close : r.c, dv = r.ti == null ? null : (r.ti - 1) * 100;
+    const rk = (x, t) => x && x.rank != null ? `rang <b>${x.rank}</b>/${t}` : 'sans rang';
+    const trend = r.ti != null && r.tiPrev != null ? (r.ti > r.tiPrev ? ' ↗' : r.ti < r.tiPrev ? ' ↘' : '') : '';
+    const sdate = sh && sh.date ? ` <span class="${r.old ? 'neg' : 'muted'}" title="date du relevé">(${fmtDate(sh.date, { day: 'numeric', month: 'short' })}${r.old ? ', ancien' : ''})</span>` : '';
+    const idv = r.ind && r.ind.score != null ? (r.ind.score - 1) * 100 : null;
+    const facts =
+      fact('Clôture', close == null ? '—' : `${nf(close, pxd(close))}${o.chg != null ? ` <span class="${cls(o.chg)}">${pct(o.chg)}</span>` : ''}`) +
+      fact(`${TIN} de l'action`, dv == null ? '—' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}${r.rankInd ? ` · <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : r.kept ? '' : ' · hors filtres'}`) +
+      fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<br>${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`) +
+      fact('Secteur', `${escH(tvSecLabel(r.secName))}<br>${rk(r.sec, R.sec.total)}`) +
+      fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
+      fact('Flottant', r.flt == null ? '—' : shares(r.flt) + ' actions') +
+      fact('% du flottant shorté', sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' + sdate : '—') +
+      fact('Days to cover', sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' : '—') +
+      fact('Vendues à découvert', sh && sh.sh != null ? shares(sh.sh) + ' actions' : '—');
+    return { facts, links, ready: true, row: r };
+  }
+  document.addEventListener('click', e => {             // liens des fiches : « Voir dans Secteurs », « Ajouter à Tickers »
+    const g = e.target && e.target.closest && e.target.closest('[data-goto], [data-addtk]'); if (!g) return;
+    if (g.dataset.goto) { const r = tkRow(g.dataset.goto); if (r) tvGoto(r.indName, r.s); return; }
+    tkAdd([g.dataset.addtk], g.dataset.addtk);
+  });
+  function tkAdd(syms, sel) {                            // ajoute des tickers à la liste de l'onglet Tickers et l'ouvre
+    const cur = tkParse($('tkInput').value || store.get('mm.tklist') || ''), add = syms.filter(s => !cur.includes(s));
+    $('tkInput').value = cur.concat(add).join(', '); store.set('mm.tklist', $('tkInput').value);
+    if (sel) { tkSel = sel; store.set('mm.tksel', sel); }
+    $('view-tk').classList.remove('detail'); setTab('tk');
+  }
   function tkDetail(r) {
     const S = tkLoadChart(r);
     if (!r) { ['tkTitle', 'tkInfo', 'tkWhen', 'tkScoreNow'].forEach(i => { $(i).textContent = ''; }); $('tkFacts').innerHTML = ''; $('tkLinks').innerHTML = ''; tkRedraw(); return; }
-    const R = tkRanks(), sh = r.sh, last = tkCtx.bars.size ? [...tkCtx.bars.values()].pop() : null;
+    const last = tkCtx.bars.size ? [...tkCtx.bars.values()].pop() : null;
     $('tkTitle').textContent = `${r.s} · ${r.n}`;
     $('tkInfo').textContent = `${r.indName} (${tvSecLabel(r.secName)})` + (S.wait ? ' · chargement du graphique…'
       : S.none ? ` · graphique indisponible : action hors filtres (prix ≥ ${nf(TIC.min_price)} $, volume moyen ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $)` : '');
@@ -2715,21 +2769,9 @@
     const dv = r.ti == null ? null : (r.ti - 1) * 100;
     $('tkScoreNow').innerHTML = r.ti == null ? 'indisponible (moins de ' + TI.long + ' séances)' : `<b>${nf(r.ti, 3)}</b> · écart <span class="${cls(dv)}">${pct(dv)}</span>` +
       (r.rankInd ? ` · rang <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : '');
-    const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`, rk = (x, t) => x && x.rank != null ? `rang <b>${x.rank}</b>/${t}` : 'sans rang';
-    const sdate = sh && sh.date ? ` <span class="${r.old ? 'neg' : 'muted'}" title="date du relevé">(${fmtDate(sh.date, { day: 'numeric', month: 'short' })}${r.old ? ', ancien' : ''})</span>` : '';
-    $('tkFacts').innerHTML =
-      fact('Clôture', last ? `${nf(last.c, pxd(last.c))} <span class="${cls(last.chg)}">${pct(last.chg)}</span>` : '—') +
-      fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
-      fact('Flottant', shares(r.flt) + ' actions') +
-      fact('Vendues à découvert', sh && sh.sh != null ? shares(sh.sh) + ' actions' + sdate : '—') +
-      fact('% du flottant shorté', sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—') +
-      fact('Days to cover', sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' + sdate : '—') +
-      fact('Secteur', `${escH(tvSecLabel(r.secName))} · ${rk(r.sec, R.sec.total)}`) +
-      fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)} · ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`);
-    const link = u => u.replace(/\{symd\}/g, encodeURIComponent(r.s.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(r.s));
-    $('tkLinks').innerHTML = (CFG.postmarket.links || []).filter(l => !/\{tv\}/.test(l.url))
-      .map(l => `<a href="${escA(link(l.url))}" target="_blank" rel="noopener">${escH(l.label)} ↗</a>`).join('') +
-      `<a href="#" data-goto="${escA(r.s)}" onclick="return false">Voir dans Secteurs ›</a>`;
+    const F = stdFiche(r.s, { close: last ? last.c : null, chg: last ? last.chg : null, from: 'tk' });
+    $('tkFacts').innerHTML = F.facts;
+    $('tkLinks').innerHTML = F.links;
     tkRedraw();
   }
   function tkOverlay() {                                 // légende posée sur le graphique : OHLC + MM (séance survolée, sinon dernière)
@@ -2785,7 +2827,7 @@
   function pmEmpty(msg) {
     $('pmFilt').innerHTML = ''; $('pmHead').innerHTML = ''; $('pmMeta').textContent = '';
     $('pmRows').innerHTML = `<tr><td class="empty">${msg}</td></tr>`;
-    pmCur = null; pmShown = []; $('pmCopy').disabled = true; pmDetail(null); $('view-pm').classList.add('nodata'); $('view-pm').classList.remove('detail');
+    pmCur = null; pmShown = []; $('pmCopy').disabled = true; $('pmToTk').disabled = true; pmDetail(null); $('view-pm').classList.add('nodata'); $('view-pm').classList.remove('detail');
   }
   function renderPM() {
     if (!PM) { pmEmpty('Données introuvables : lance <code>python fetch_postmarket.py</code> (fichier <code>postmarket_data.js</code> à côté de ce HTML).'); return; }
@@ -2808,7 +2850,7 @@
       const c = typeof va === 'string' ? va.localeCompare(vb, 'fr') : va - vb;
       return c * pmSort.dir || b.pv - a.pv;
     });
-    pmShown = rows; $('pmCopy').disabled = !rows.length;
+    pmShown = rows; $('pmCopy').disabled = !rows.length; $('pmToTk').disabled = !rows.length;
     $('pmHead').innerHTML = cols.map(d => `<th class="sortable c-${d.id}${d.l ? ' l' : ''}" data-k="${d.id}" title="${d.title || 'Trier par ' + d.label}">` +
       `${d.label}<span class="arr">${pmSort.k === d.id ? (pmSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
     // échelle des barres : 90e centile des |variations| (un extrême à +400 % n'écrase pas les autres barres)
@@ -2855,17 +2897,14 @@
     $('pmInfo').textContent = `${pmSector(r)}${r.ind ? ' · ' + r.ind : ''}${pmHist[r.s] ? '' : ' · graphique indisponible pour ce titre'}`;
     $('pmWhen').textContent = `séance du ${fmtDate(snap.d, { day: 'numeric', month: 'short' })}`;
     const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
-    $('pmFacts').innerHTML =
-      fact('Clôture', `${nf(r.c, pxd(r.c))} <span class="${cls(r.ch)}">${pct(r.ch)}</span>`) +
+    // fiche standard (même contenu que l'onglet Tickers), puis les informations propres au scan post-market
+    const F = stdFiche(r.s, { close: r.c, chg: r.ch, tv: r.t, from: 'pm', after: () => { if (tab === 'pm' && pmRowSel === r) pmDetail(r); } });
+    $('pmFacts').innerHTML = F.facts +
       fact('Post-market', `${nf(r.pc, pxd(r.pc))} <span class="${cls(r.pch)}">${pct(r.pch)}</span>`) +
       fact('Volume post-market', `${big(r.dv)} $ · ${big(r.pv)} actions${r.rv != null ? ' · RVol ' + nf(r.rv, r.rv < 10 ? 1 : 0) + '×' : ''}`) +
-      fact('Capitalisation', r.cap == null ? '—' : big(r.cap) + ' $') +
-      fact('Flottant', r.flt == null ? '—' : big(r.flt) + ' actions') +
       fact('Résultats', r.er === 'amc' ? 'publiés ce soir (AMC)' : r.er === 'bmo' ? 'publiés ce matin (BMO)' : '—') +
       fact(nx ? `Lendemain (${nx})` : 'Lendemain', nx ? `<span class="${cls(r.nx)}">${pct(r.nx)}</span> · gap <span class="${cls(r.ng)}">${pct(r.ng)}</span>` : 'séance pas encore jouée');
-    const link = u => u.replace(/\{symd\}/g, encodeURIComponent(r.s.replace(/\./g, '-'))).replace(/\{sym\}/g, encodeURIComponent(r.s))
-      .replace(/\{tv\}/g, encodeURIComponent(r.t || r.s));   // liens : config/postmarket.toml
-    $('pmNote').innerHTML = (CFG.postmarket.links || []).map(l => `<a href="${link(l.url)}" target="_blank" rel="noopener">${l.label} ↗</a>`).join('');
+    $('pmNote').innerHTML = F.links;
     pmRedraw();
   }
   $('pmHead').addEventListener('click', e => {
@@ -2880,6 +2919,11 @@
     renderPM();
   });
   // copie des tickers du tableau (ordre et filtres affichés) : « LQDA, TCRT, … » — se colle dans une liste TradingView, une note, un tableur
+  $('pmToTk').addEventListener('click', () => {         // liste du scan affichée → onglet Tickers (remplace la liste)
+    if (!pmShown.length) return;
+    $('tkInput').value = pmShown.map(r => r.s).join(', '); store.set('mm.tklist', $('tkInput').value);
+    tkSel = pmSel; $('view-tk').classList.remove('detail'); setTab('tk');
+  });
   $('pmCopy').addEventListener('click', async () => {
     const b = $('pmCopy'), txt = pmShown.map(r => r.s).join(', '); if (!txt) return;
     let ok = false;

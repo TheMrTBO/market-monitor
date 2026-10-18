@@ -2,8 +2,8 @@
 """Short interest de l'onglet Tickers (flottant, actions à découvert, % du flottant, days to cover) -> short_data.js.
 
 Source : Yahoo Finance via yfinance (gratuit, sans clé ; déjà utilisé pour les ETF). Univers : les actions de tickers_data.js
-(fetch_industries.py). Rafraîchi par lots (config/short.toml) : à chaque passage, au plus `batch` actions, les jamais vues
-puis les plus anciennes ; trop d'erreurs consécutives (Yahoo limite les appels) = arrêt du lot, la suite au passage suivant.
+(fetch_industries.py). Rafraîchi par lots (config/short.toml) : à chaque passage, au plus `batch` actions, les tickers du dernier scan post-market
+d'abord, puis les jamais vues, puis les plus anciennes ; trop d'erreurs consécutives (Yahoo limite les appels) = arrêt du lot, la suite au passage suivant.
 Les valeurs déjà connues ne sont jamais effacées par un échec.
 
 Sortie : window.SHORT = {updated, cols:["flt","sh","pct","dtc","date","at"], rows:{symbole:[...]}}
@@ -61,6 +61,16 @@ def to_row(info, today):
     return row if any(row[k] is not None for k in ("flt", "sh", "dtc")) else None
 
 
+def postmarket_symbols(path=None):
+    """Tickers du dernier relevé post-market (postmarket_data.js), à rafraîchir en premier ; [] si absent."""
+    try:
+        d = load_js(path or HERE / mmconfig.step("postmarket")["output"])
+        snap, i = d["snaps"][-1], d["cols"].index("s")
+        return [r[i] for r in snap.get("rows", [])]
+    except (OSError, ValueError, KeyError, IndexError):
+        return []
+
+
 def pick(symbols, known, n, first=()):
     """Les `n` symboles à rafraîchir : `first` (demandés) d'abord, puis jamais vus, puis du plus ancien au plus récent."""
     first = [s for s in dict.fromkeys(first) if s in set(symbols)]
@@ -115,6 +125,8 @@ def main():
         sys.exit(f"{TICKERS.name} introuvable : lance python fetch_industries.py.")
     known = previous()
     first = [x.strip().upper() for x in args.symbols.split(",") if x.strip()]
+    if CFG.get("postmarket_first"):
+        first += postmarket_symbols()            # scan post-market de la veille : fiche complète dans l'onglet Post-market
     rows, ok, errs, stopped = run(symbols, known, args.batch, first=first)
     if ok == 0 and errs:
         sys.exit(f"Yahoo : aucune action rafraîchie ({errs} erreurs) ; {OUT.name} non modifié.")

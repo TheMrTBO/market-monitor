@@ -25,6 +25,12 @@ check("ordre : demandés, jamais vus, puis du plus ancien au plus récent",
       fs.pick(["AAA", "BBB", "CCC", "DDD"], known, 4, first=["BBB"]) == ["BBB", "CCC", "DDD", "AAA"])
 check("taille du lot respectée", fs.pick(["AAA", "BBB", "CCC", "DDD"], known, 2) == ["CCC", "DDD"])
 check("symbole Yahoo : BRK.B -> BRK-B", fs.yahoo_symbol("BRK.B") == "BRK-B")
+import json, tempfile
+with tempfile.TemporaryDirectory() as tmp:
+    pmf = Path(tmp) / "pm.js"
+    pmf.write_text("window.POSTMARKET = " + json.dumps({"cols": ["t", "s"], "snaps": [{"rows": [["X", "OLD"]]}, {"rows": [["A", "NCNO"], ["B", "RPGL"]]}]}) + ";")
+    check("tickers du dernier scan post-market (rafraîchis en premier)", fs.postmarket_symbols(pmf) == ["NCNO", "RPGL"])
+    check("pas de scan post-market : aucune priorité", fs.postmarket_symbols(Path(tmp) / "absent.js") == [])
 
 info = {"floatShares": 1.5e8, "sharesShort": 3e6, "shortPercentOfFloat": 0.02, "shortRatio": 1.234567, "dateShortInterest": 1790726400}
 r = fs.to_row(info, "2026-10-18")

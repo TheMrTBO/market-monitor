@@ -151,6 +151,11 @@ l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers 
 - Vue TradingView : **secours** si TradingView ne répond pas (muet, vide, liste tronquée) : la dernière composition publiée
   (`tickers_data.js`) est reprise avec les clôtures du jour (`comp.fallback`, signalé dans l'onglet Tickers) ; le passage suivant
   réessaie. Sans composition publiée : arrêt, fichiers non modifiés.
+- **Fiche standard** d'un ticker (`stdFiche`, même contenu partout : Tickers, Post-market, niveau actions de Secteurs) :
+  clôture, TI65 de l'action et rang dans l'industrie, industrie (rang, écart, % > 1, chaud / émergent), secteur (rang),
+  capitalisation, flottant, short interest, liens (Finviz, Secteurs, Tickers) ; chaque onglet ajoute ses infos (post-market : cours
+  et volume AH, résultats, lendemain). Le scan post-market s'envoie dans Tickers (bouton « Tickers ») ; ses tickers passent
+  en tête du lot Yahoo du lendemain (`config/short.toml postmarket_first`).
 - Onglet Tickers : liste + fiche côte à côte (bureau) ou liste / fiche (mobile, ‹ › et balayage, comme le post-market) ;
   fiche = bougies (fichier `industries/<industrie>.js`, chargé à la demande), TI65 dans le temps, cap, flottant, short ;
   action « hors filtres » : pas de graphique (absente des fichiers d'industrie).

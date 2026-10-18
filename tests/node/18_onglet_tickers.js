@@ -119,4 +119,19 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
   F.sb.innerWidth=1200; F.$('tkInput').value=hors; F.L.tkGo.click();
   ok('action hors filtres : graphique indisponible, expliqué',/hors filtres/.test(F.$('tkInfo')._t||''),hors+' : '+F.$('tkInfo')._t);
 }
+// post-market : même fiche standard + informations du scan ; liste du scan → onglet Tickers ; « Ajouter à Tickers »
+{
+  const ls3={'mm.pmdir':'all'};
+  const P=boot(ls3,{files:["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js","postmarket_data.js","status_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])});
+  tab(P,'pm');
+  const f=strip(P.$('pmFacts')._h);
+  ok('post-market : fiche standard (TI65, industrie, secteur, short) + infos du scan',/TI65 de l'action/.test(f)&&/Industrie/.test(f)&&/Days to cover/.test(f)&&/Post-market/.test(f)&&/Lendemain/.test(f),f.slice(0,120));
+  ok('post-market : liens Finviz, Secteurs, Tickers',/finviz/.test(P.$('pmNote')._h)&&/data-goto=/.test(P.$('pmNote')._h)&&/data-addtk=/.test(P.$('pmNote')._h));
+  const pmSyms=[...P.$('pmRows')._h.matchAll(/<tr data-s="([^"]+)"/g)].map(m=>m[1]);
+  P.L.pmToTk.click();
+  ok('bouton Tickers : liste du scan analysée dans l\'onglet Tickers',ls3['mm.tab']==='tk'&&pmSyms.length>0&&pmSyms.every(x=>ls3['mm.tklist'].includes(x)),ls3['mm.tklist']);
+  P.$('tkInput').value='MU'; P.L.tkGo.click(); tab(P,'pm');
+  P.DL.click.forEach(fn=>fn({target:{closest:sel=>sel==='[data-goto], [data-addtk]'?{dataset:{addtk:pmSyms[0]}}:null}}));
+  ok('« Ajouter à Tickers » : ajouté à la liste existante, onglet ouvert',ls3['mm.tab']==='tk'&&/MU/.test(ls3['mm.tklist'])&&ls3['mm.tklist'].includes(pmSyms[0])&&ls3['mm.tksel']===pmSyms[0],ls3['mm.tklist']);
+}
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');

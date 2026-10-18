@@ -62,7 +62,7 @@ ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les
 ok('fiche : titre', A.$('pmTitle')._t==='BBB · BBB Inc.', A.$('pmTitle')._t);
 ok('fiche : post-market et lendemain pas encore joué', /Post-market.*\+5,00 %/.test(strip(A.$('pmFacts')._h)) && /21,0 M \$ · 2,0 M actions/.test(strip(A.$('pmFacts')._h)) && /séance pas encore jouée/.test(A.$('pmFacts')._h));
 ok('graphique : bougies dessinées', (A.R.pmCanvas||[]).length>20, (A.R.pmCanvas||[]).length);
-ok('lien Finviz seul (config/postmarket.toml)', /finviz\.com\/quote\.ashx\?t=BBB/.test(A.$('pmNote')._h) && !/tradingview|benzinga|sec\.gov|Récap/.test(A.$('pmNote')._h), A.$('pmNote')._h);
+ok('liens externes : Finviz seul (config/postmarket.toml)', /finviz\.com\/quote\.ashx\?t=BBB/.test(A.$('pmNote')._h) && !/tradingview\.com|benzinga|sec\.gov|Récap/.test(A.$('pmNote')._h), A.$('pmNote')._h);
 // 3) filtres : Baisses, Résultats, Les deux ; tri par variation
 A.L.pmFilt.click({target:{closest:()=>({dataset:{dir:'down'}})}});
 ok('baisses par volume', syms(A).join()==='CCC,DDD', syms(A).join());

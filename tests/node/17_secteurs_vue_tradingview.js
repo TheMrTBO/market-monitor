@@ -24,7 +24,7 @@ function boot(ls,opts={}){
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
     getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
   sb.window=sb;vm.createContext(sb);
-  for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js"]))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+  for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(opts.after)vm.runInContext(opts.after,sb);
   vm.runInContext(main,sb);
   return {L,els,DL,R,Sx,M,sb,$,document};
@@ -120,7 +120,7 @@ ok('actions de l\'industrie, classées par TI65',r3.length===I.n&&r3.slice(0,exp
 ok('colonnes du niveau actions',heads(A).join(',')==='rank,sym,cap,spark,dev,delta'&&!/data-open=/.test(A.$('secRows')._h),heads(A).join(','));
 ok('fiche action : bougies japonaises',bodies(A)>20,bodies(A)+' corps de bougie');
 ok('fiche action : pas de carte « % > 1 »',A.$('secBrdCard').hidden===true);
-ok('fiche action : lien Finviz',/finviz\.com\/quote\.ashx\?t=/.test(A.$('secInfo')._h));
+ok('fiche action : fiche standard (TI65, industrie, short) et lien Finviz',/finviz\.com\/quote\.ashx\?t=/.test(A.$('secLinks')._h)&&/Days to cover/.test(A.$('secFacts')._h)&&A.$('secCard').hidden===false);
 up(A,1);
 ok('remonter aux industries : filtre de secteur conservé, industrie sélectionnée',rows(A).length===inds.length&&(A.$('secRows')._h.match(/<tr data-s="([^"]+)" class="sel/)||[])[1].replace(/&amp;/g,'&')===I.k);
 up(A,0);
