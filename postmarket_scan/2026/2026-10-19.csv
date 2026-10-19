@@ -1,3 +1,6 @@
 session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
 2026-10-19,2026-10-19T20:22:43+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,108.0,-6.0,306913,0.3,12495494664,107754199,amc
 2026-10-19,2026-10-19T20:37:36+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,108.8,-5.3,332128,0.33,12495494664,107754199,amc
+2026-10-19,2026-10-19T20:52:43+00:00,false,NASDAQ:BTDR,BTDR,Bitdeer Technologies Group Class A,Technology Services,Data Processing Services,7.69,-0.39,8.16,6.11,776260,0.07,2090005416,155731430,
+2026-10-19,2026-10-19T20:52:43+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,230.94,-5.8,231851,0.2,35139747943,133593305,amc
+2026-10-19,2026-10-19T20:52:43+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,109.38,-4.8,337240,0.33,12495494664,107754199,amc
