@@ -14,3 +14,9 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-19,2026-10-19T21:22:39+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,232.39,-5.21,246534,0.21,35139747943,133593305,amc
 2026-10-19,2026-10-19T21:22:39+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,109.0,-5.13,350726,0.35,12495494664,107754199,amc
 2026-10-19,2026-10-19T21:22:39+00:00,false,NYSE:DGX,DGX,Quest Diagnostics Incorporated,Health Services,Services to the Health Industry,234.91,-0.04,204.9,-12.78,165396,0.16,25927805922,109846079,
+2026-10-19,2026-10-19T21:37:37+00:00,false,NASDAQ:ARHS,ARHS,"Arhaus, Inc. Class A",Consumer Durables,Home Furnishings,10.23,3.02,9.6593,-5.58,189564,0.14,1450120255,51532196,
+2026-10-19,2026-10-19T21:37:37+00:00,false,NASDAQ:BTDR,BTDR,Bitdeer Technologies Group Class A,Technology Services,Data Processing Services,7.69,-0.39,8.09,5.2,866662,0.08,2090005416,155731430,
+2026-10-19,2026-10-19T21:37:37+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,232.2,-5.29,253139,0.22,35139747943,133593305,amc
+2026-10-19,2026-10-19T21:37:37+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,109.0,-5.13,351226,0.35,12495494664,107754199,amc
+2026-10-19,2026-10-19T21:37:37+00:00,false,NYSE:DGX,DGX,Quest Diagnostics Incorporated,Health Services,Services to the Health Industry,234.91,-0.04,204.9,-12.78,165396,0.16,25927805922,109846079,
+2026-10-19,2026-10-19T21:37:37+00:00,false,NYSE:MMM,MMM,3M Company,Producer Manufacturing,Industrial Conglomerates,162.01,-1.66,169.1,4.38,614259,0.19,83552187985,515297045,
