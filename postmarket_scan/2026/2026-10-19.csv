@@ -1,0 +1,2 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-19,2026-10-19T20:22:43+00:00,false,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,108.0,-6.0,306913,0.3,12495494664,107754199,amc
