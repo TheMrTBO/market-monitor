@@ -178,5 +178,17 @@ ok('bulle de la carte « % > 1 »',/largeur/.test(tip(D,'secbrd')));
 view(A,'etf');
 ok('retour ETF : 55 lignes, pas de pastilles TradingView',rows(A).length===A.sb.SECTORS.symbols.length&&A.$('secChips').hidden===true);
 const E=boot({'mm.secview':'tv'},{files:['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js']}); tab(E);
+// industries_data.js chargé à la demande (plus au démarrage) : le fichier est demandé à l'ouverture de l'onglet ; il manque → échec
+const scrE=E.document.body.children.find(c=>c.src&&/^industries_data\.js/.test(c.src));
+ok('industries_data.js demandé à l\'ouverture de l\'onglet Secteurs (pas au démarrage)',!!scrE,scrE&&scrE.src);
+if(scrE)scrE.onerror();
 ok('sans fichier TradingView : bascule désactivée, vue ETF',/data-v="tv"[^>]*disabled/.test(E.$('secView')._h)&&rows(E).length===E.sb.SECTORS.symbols.length);
+// chargement à la demande : au démarrage (MM), pas d'industries_data.js ; ouverture de Secteurs → demandé, chargé, vue TradingView
+const Fb=boot({'mm.secview':'tv'},{files:['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','tickers_data.js']});
+const reqI=X=>X.document.body.children.find(c=>c.src&&/^industries_data\.js/.test(c.src));
+ok('démarrage sur le MM : industries_data.js non chargé',!reqI(Fb)&&!Fb.sb.INDUSTRIES);
+tab(Fb);
+ok('ouverture de Secteurs : « Chargement… » puis fichier demandé',!!reqI(Fb)&&/Chargement des secteurs et industries/.test(Fb.$('secRows')._h),strip(Fb.$('secRows')._h).slice(0,60));
+vm.runInContext(fs.readFileSync('industries_data.js','utf8'),Fb.sb); reqI(Fb).onload();
+ok('fichier chargé : vue TradingView affichée (secteurs classés)',rows(Fb).length===Fb.sb.INDUSTRIES.sectors.length&&!/disabled/.test(Fb.$('secView')._h),rows(Fb).length);
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');

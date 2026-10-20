@@ -46,7 +46,7 @@ console.log('apres modif :',strip(A.$('secMa')._h));
 console.log('legende fond :',strip(A.$('secTrend')._h).slice(0,40),'| memorise',JSON.parse(ls['mm.mas'])[2]);
 // --- infobulle : valeurs verifiees de facon independante (EMA 15, SMA 50, avgC7/avgC65)
 A.R[cv]=[];A.L[cv].pointermove({clientX:400,clientY:100,pageX:400,pageY:100});
-const tip=A.document.body.children[A.document.body.children.length-1];
+const tip=A.document.body.children.find(c=>c.className==='tip');   // l'infobulle (la page ajoute aussi des scripts chargés à la demande)
 const t0=strip(tip.innerHTML);console.log('infobulle :',t0.slice(0,400));
 const MO={'janv.':1,'févr.':2,'mars':3,'avr.':4,'mai':5,'juin':6,'juil.':7,'août':8,'sept.':9,'oct.':10,'nov.':11,'déc.':12};
 const m=t0.match(/(\d+) (\S+) (\d{4})/);const iso=`${m[3]}-${String(MO[m[2]]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;

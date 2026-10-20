@@ -1073,7 +1073,7 @@
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'industries_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
+    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
@@ -1973,7 +1973,28 @@
   // niveaux : secteurs → industries d'un secteur → actions d'une industrie (indices équipondérés : industries_data.js ;
   // actions : industries/<fichier>.js, chargé à l'ouverture de l'industrie). Voir fetch_industries.py.
   const SEC = window.SECTORS || null;
-  const IND = window.INDUSTRIES && Array.isArray(window.INDUSTRIES.sectors) ? window.INDUSTRIES : null;
+  // industries_data.js (~500 Ko, ~140 Ko compressés) n'est plus chargé au démarrage (décision du 20/10/2026 : poids sur mobile) :
+  // seulement à la première ouverture d'un onglet qui s'en sert (Secteurs, Tickers, Post-market pour la fiche), puis l'onglet
+  // est redessiné. Déjà présent (tests, ancien chargeur) : utilisé tel quel.
+  const indOk = () => window.INDUSTRIES && Array.isArray(window.INDUSTRIES.sectors) ? window.INDUSTRIES : null;
+  let IND = indOk(), indState = IND ? 'ok' : 'idle';   // idle | loading | ok | absent
+  const indWaiters = new Set();
+  function indLoad(after) {
+    if (indState === 'ok' || indState === 'absent') return;
+    if (after) indWaiters.add(after);
+    if (indState === 'loading') return;
+    indState = 'loading';
+    const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;   // même ?v= que les autres fichiers
+    const el = document.createElement('script');
+    el.src = 'industries_data.js' + (m ? '?v=' + m[1] : '');
+    const done = () => {
+      IND = indOk(); indState = IND ? 'ok' : 'absent';
+      if (!IND && secView === 'tv') secView = 'etf';    // fichier absent : retour à la vue ETF (bascule désactivée), comme avant
+      const w = [...indWaiters]; indWaiters.clear(); w.forEach(fn => fn());
+    };
+    el.onload = done; el.onerror = done;
+    (document.head || document.body).appendChild(el);
+  }
   const TI = CFG.ti65, TIN = TI.name, TIC = CFG.industries;
   function secScore(c, end) {                       // TI65 à l'index end ; null si l'une des clôtures de la fenêtre manque
     const S = TI.short, L = TI.long;
@@ -1988,7 +2009,7 @@
 
   // --- liste affichée : ETF, ou niveau courant de la vue TradingView : secteurs → industries (toutes, rang global, filtre
   //     par secteur) → actions d'une industrie. Navigation mémorisée : {lvl: sec | ind | stk, sec: secteur filtré | 'all', ind}
-  let secView = store.get('mm.secview') === 'tv' && IND ? 'tv' : 'etf';
+  let secView = store.get('mm.secview') === 'tv' ? 'tv' : 'etf';   // vue TradingView : données chargées à l'ouverture de l'onglet
   let tvNav = (() => {
     try {
       const a = JSON.parse(store.get('mm.tvnav') || 'null');
@@ -2237,7 +2258,7 @@
 
   function renderSecView() {                             // bascule ETF / TradingView et nom de l'indicateur (config/display.toml)
     $('secView').innerHTML = CFG.sectors.views.map(([k, l]) => {
-      const off = k === 'tv' && !IND;
+      const off = k === 'tv' && indState === 'absent';
       return `<button type="button" data-v="${k}" class="${secView === k ? 'on' : ''}" aria-pressed="${secView === k}"` +
         `${off ? ' disabled title="Données introuvables : lance python fetch_industries.py"' : ''}>${l}</button>`;
     }).join('');
@@ -2831,6 +2852,7 @@
       $('secHead').innerHTML = ''; $('secFilt').innerHTML = ''; $('secMeta').textContent = '';
       body.innerHTML = secView === 'etf'
         ? '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_sectors.py</code> (fichier <code>sectors_data.js</code> à côté de ce HTML).</td></tr>'
+        : indState === 'loading' || indState === 'idle' ? '<tr><td style="text-align:left;padding:16px">Chargement des secteurs et industries…</td></tr>'
         : '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_industries.py</code> (fichier <code>industries_data.js</code> à côté de ce HTML).</td></tr>';
       return;
     }
@@ -2964,7 +2986,7 @@
   $('secBack').addEventListener('click', () => { $('view-sec').classList.remove('detail'); renderSectors(); });
   $('secView').addEventListener('click', e => {        // bascule ETF / TradingView ; chaque vue garde sa sélection et son ordre de colonnes
     const b = e.target.closest('button'); if (!b || !b.dataset.v || b.disabled || b.dataset.v === secView) return;
-    if (b.dataset.v === 'tv' && !IND) return;
+    if (b.dataset.v === 'tv' && indState === 'absent') return;
     store.set(selKey(), secSel || '');
     secView = b.dataset.v; store.set('mm.secview', secView); secSel = store.get(selKey());
     secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail');
@@ -3267,6 +3289,7 @@
     const ta = $('tkInput');
     if (ta.value === '' && !tkRendered) { ta.value = store.get('mm.tklist') || ''; ta.placeholder = `Ex. ${TKC.example} (virgules, espaces ou lignes)`; }
     tkRendered = true;
+    if (!IND && indState !== 'absent') { $('tkRows').innerHTML = '<tr><td class="empty">Chargement des secteurs et industries…</td></tr>'; return; }
     if (!IND) { $('tkRows').innerHTML = '<tr><td class="empty">Données introuvables : lance <code>python fetch_industries.py</code>.</td></tr>'; return; }
     if (!tkLoaded.tickers || !tkLoaded.short) {
       tkLoad();
@@ -4107,6 +4130,8 @@
     placeRanges(); renderMtop(); renderDatebar(); renderFresh();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
     document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
+    if ((t === 'sec' || t === 'tk' || t === 'pm') && indState === 'idle')     // première ouverture : industries_data.js, puis l'onglet redessiné
+      indLoad(() => { if (tab === 'sec') renderSectors(); else if (tab === 'tk') renderTickers(); else if (tab === 'pm') renderPM(); });
     if (t === 'sec') renderSectors();
     else if (t === 'pm') renderPM();
     else if (t === 'tk') renderTickers();

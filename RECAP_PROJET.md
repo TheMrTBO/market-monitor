@@ -449,6 +449,9 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > **Plus gros mouvements (choix A + B, 3 + 3)** : mesure = déplacement net en 5 séances (le chemin parcouru compte les allers-retours ;
 > le changement de zone est trop fréquent : 12 secteurs sur 20 en 5 séances). 19/10 : ↗ Conso. courante 5,8, Commerce de détail 3,8,
 > Énergie fossile 3,3 · ↘ Électronique 8,3, Télécoms 4,9, Biens d'équipement 2,9.
+> **UX (choix 1, 2, 3 de l'utilisateur)** : sous-vues Résumé | Carte | Classement (l'onglet faisait plusieurs écrans sur mobile) ;
+> carte plus lisible (sens des axes sur les bords, zone « S'améliore » teintée, légende de taille, « Ouvrir › ») ; industries_data.js
+> chargé à la demande (Secteurs, Tickers, Post-market) au lieu du démarrage : le MM et SA ne le téléchargent plus.
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
