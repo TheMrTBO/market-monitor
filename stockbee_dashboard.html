@@ -154,6 +154,49 @@
   .secfilt { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
   .secfilt button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
   .secfilt button span { color: var(--faint); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  /* cases en tête de la vue TradingView (Secteurs) : mêmes cases que le MM ; un toucher = raccourci, case active encadrée */
+  .kpis.secstrip { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 12px 0 4px; }   /* une colonne par case */
+  @media (max-width: 1100px) { .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } }   /* comme le MM ; 2 colonnes sous 640 px */
+  .secstrip .kpi { cursor: pointer; } .secstrip .kpi:hover { border-color: var(--faint); }
+  .secstrip .kpi.on { box-shadow: inset 0 0 0 1.5px var(--up); border-color: var(--up); }
+  .secstrip .kden { color: var(--muted); font-weight: 500; font-size: .7em; }
+  .secstrip .gflow { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
+  .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
+  .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
+  /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
+  .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 56px; display: block; cursor: ew-resize; touch-action: pan-y; }
+  /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
+  .secflow { padding: 10px 12px; margin-bottom: 10px; }
+  .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
+  .secflow button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%; text-align: left; border: 0; background: none;
+                    color: var(--text); padding: 6px 4px; border-top: 1px solid var(--border); font-size: 12.5px; cursor: pointer; }
+  .secflow button:hover { background: var(--hover); }
+  .secflow .fn { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
+  .secflow .fc { font-variant-numeric: tabular-nums; }
+  /* carte de rotation : relative au marché ; repliable (repliée par défaut sur mobile) */
+  .secrrg { padding: 8px 12px 10px; margin-bottom: 10px; position: relative; }
+  .rrghead { display: flex; align-items: baseline; gap: 6px; width: calc(100% - 28px); border: 0; background: none; color: var(--text); padding: 2px 0; font-size: 13px; cursor: pointer; text-align: left; }
+  .rrghead span { color: var(--muted); font-size: 11.5px; } .rrghead .car { margin-left: auto; }
+  .secrrg > .tipbtn { position: absolute; right: 10px; top: 8px; }
+  /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
+  #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
+  .rrginfo { font-size: 11.5px; color: var(--muted); min-height: 16px; margin-top: 4px; }
+  /* arbre de la carte (secteurs › industries › actions) et tickers mis en avant */
+  .rrgbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+  .rrgnav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12.5px; min-width: 0; }
+  .rrgnav button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: 12px; cursor: pointer; }
+  .rrgnav button.on { color: var(--text); border-color: color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 18%, transparent); }
+  .rrgnav .back { font-weight: 600; color: var(--text); } .rrgnav .sep { color: var(--faint); }
+  #rrgTk { margin-left: auto; width: 220px; max-width: 100%; padding: 4px 9px; font-size: 12.5px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); }
+  .rrgchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; } .rrgchips:empty { display: none; }
+  .rrgchips button, .rrgchips span { border: 1px solid var(--border); background: none; color: var(--text); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; cursor: pointer; }
+  .rrgchips .unk { color: var(--faint); cursor: default; } .rrgchips b { font-weight: 600; }
+  .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
+  .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
+  .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
+  .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
+  .secsort button .arr { color: inherit; margin-left: 3px; }
+  .rk td.dev .dsub.on { font-weight: 600; }
   .secfilt button.on { background: color-mix(in srgb, var(--up) 18%, transparent); border-color: color-mix(in srgb, var(--up) 55%, transparent); color: var(--text); }
   #view-sec .chartbar { min-height: 32px; margin-bottom: 8px; }
   .seccol { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-width: 0; }   /* minmax : les canvas n'élargissent pas la colonne */   /* colonne de droite : graphique + carte du score */
@@ -566,6 +609,16 @@
     #secTable.tv th.c-dev { width: 72px; } #secTable.tv th.c-open { width: 32px; }
     #secTable.tv .c-delta { display: none; }          /* vue TradingView (noms longs) : Δ 5 j passe sous l'écart */
     #secTable.tv td.dev .dsub { display: block; font-size: 11px; text-align: right; }
+    #view-sec .secsort:not([hidden]) { display: flex; }
+    #rrgCv { aspect-ratio: 1 / 1; }
+    #rrgTk { width: 100%; margin-left: 0; }
+    .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
+    .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
+       nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
+    .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .secstrip .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
     #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
@@ -664,6 +717,19 @@
 
   <div id="view-sec" hidden>
     <div id="dslot-sec"></div>
+    <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
+    <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas></div>
+    <div class="seckpinote" id="secKpiNote" hidden></div>
+    <div class="card secflow" id="secFlow" hidden></div>
+    <div class="card secrrg" id="secRrg" hidden>
+      <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><b>Carte de rotation</b> <span id="rrgWhat"></span><span class="car">▾</span></button>
+      <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
+      <div id="rrgBody">
+        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
+          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
+        <div class="rrgchips" id="rrgChips"></div>
+        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div></div>
+    </div>
     <div class="secsplit">
       <div class="card seclist">
         <div class="sechead">
@@ -673,6 +739,7 @@
         </div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
+        <div class="secfilt secsort" id="secSortBar" role="group" aria-label="Classer par" hidden></div>
         <div class="tablewrap secscroll" id="secScroll">
           <table id="secTable" class="rk">
             <thead><tr id="secHead"></tr></thead>
@@ -1726,7 +1793,7 @@
   }
   function setHover(i, kind, e) {
     hover = i;
-    if (kind === 'sec' || kind === 'secscore' || kind === 'secbrd') { drawPrice(cvSec); drawSecScore(); drawSecBreadth(); secOverlay(); }
+    if (kind === 'sec' || kind === 'secscore' || kind === 'secbrd') { drawPrice(cvSec); drawSecScore(); drawSecBreadth(); secOverlay(); renderSecKpis(i >= 0 && T[i] ? T[i] : null); }
     else if (kind === 'tk' || kind === 'tkscore') { drawPrice(cvTk); drawTkScore(); tkOverlay(); } else if (kind === 'pm') { drawPrice(cvPm); pmOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
     const finger = e && e.pointerType === 'touch';
     if (i < 0 || (kind === 'price' && !finger)) { tip.style.display = 'none'; return; }   // prix à la souris : valeurs dans la légende
@@ -2057,15 +2124,32 @@
     if (secView === 'etf') { secCols = order; store.set('mm.seccols', JSON.stringify(order)); }
     else { tvCols = order; store.set('mm.tvcols', JSON.stringify(order)); }
   }
-  let secSort = { k: 'rank', dir: 1 };
+  let secSort = { k: 'rank', dir: 1 }, secSortLvl = null;
+  // Tri mémorisé par niveau de la vue TradingView (secteurs, industries, actions : décision du 20/10/2026) ; vue ETF : rang par défaut
+  const sortStoreKey = kind => 'mm.tvsort.' + kind;
+  function syncSort(D) {                             // nouveau niveau (ou nouvelle vue) : on reprend son tri mémorisé
+    const lvl = secView === 'tv' ? D.kind : 'etf'; if (lvl === secSortLvl) return;
+    secSortLvl = lvl; secSort = { k: 'rank', dir: 1 };
+    if (secView !== 'tv') return;
+    try { const s = JSON.parse(store.get(sortStoreKey(lvl)) || 'null'); if (s && SEC_VAL[s.k] && (s.dir === 1 || s.dir === -1)) secSort = s; } catch (e) { /* tri illisible : rang */ }
+  }
+  function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
+  // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
+  let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
+  let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
     if (secD && secD.kind === 'ind' && tvNav.sec !== 'all' && r.x.sec !== tvNav.sec) return false;
+    if (skEntries && secD && secD.kind === 'ind') {
+      const K = secKpiData(), ro = K && (skEntries === 'rr' ? K.rr : K.rot)[secBuiltEnd], keep = ro && (skEntries === 'rr' ? ro.still : ro.ent);
+      if (!keep || !keep.includes(r.x.s)) return false;
+    }
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
-    if (!shownCols().some(c => curDefs()[c].k === secSort.k)) secSort = { k: 'rank', dir: 1 };   // colonne absente de ce niveau
+    if (!shownCols().some(c => curDefs()[c].k === secSort.k)) setSort({ k: 'rank', dir: 1 });   // colonne absente de ce niveau
     const val = SEC_VAL[secSort.k], dir = secSort.dir;
     return secRows.filter(secShown).sort((a, b) => {
       if ((a.rank == null) !== (b.rank == null)) return a.rank == null ? 1 : -1;   // sans rang : toujours en bas
@@ -2131,6 +2215,17 @@
     }).join('');
     $('secTiName').textContent = TIN; $('secScoreName').textContent = 'Score ' + TIN;
   }
+  // fait défiler un conteneur (et lui seul) pour que el soit visible : scrollIntoView faisait aussi défiler la page, et l'écran
+  // descendait à chaque changement de date dans « Stats du » (signalé le 20/10/2026)
+  function scrollWithin(box, el, axis) {
+    if (!box || !el || !el.getBoundingClientRect || !box.getBoundingClientRect) return;
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    if (axis === 'x') { if (box.scrollWidth <= box.clientWidth) return;
+      if (r.left < b.left) box.scrollLeft -= b.left - r.left; else if (r.right > b.right) box.scrollLeft += r.right - b.right; return; }
+    if (box.scrollHeight <= box.clientHeight) return;            // liste non défilante (mobile : la page défile) : rien à faire
+    const head = (box.querySelector && box.querySelector('thead')) ? box.querySelector('thead').getBoundingClientRect().height : 0;
+    if (r.top < b.top + head) box.scrollTop -= b.top + head - r.top; else if (r.bottom > b.bottom) box.scrollTop += r.bottom - b.bottom;
+  }
   const tipI = (id, label) => `<span class="tipbtn mini" role="button" tabindex="0" data-tip="${escA(id)}" aria-label="Explication : ${escA(label)}" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>`;
   function renderSecFilt() {                             // ETF : filtres par groupe · TradingView : fil d'Ariane, puis pastilles (secteur, TI65 > 1)
     const f = $('secFilt'), chips = $('secChips');
@@ -2161,13 +2256,42 @@
     chips.hidden = false; chips.innerHTML = above + (secChips ? '<span class="fsep" aria-hidden="true"></span>' + secChips.replace(/<span class="fsep" aria-hidden="true"><\/span>$/, '') : '');
     chips.setAttribute('aria-label', 'Filtres');
     const on = chips.querySelector && chips.querySelector('button.on[data-sec]');
-    if (on && on.scrollIntoView && tvNav.sec !== 'all') on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (on && tvNav.sec !== 'all') scrollWithin(chips, on, 'x');   // la pastille active reste visible, sans faire défiler la page
   }
   // --- bulles d'information de l'onglet (filtres, niveaux, colonnes) : contenu calculé à l'ouverture (voir openTip)
   function secTip(id) {
     const i = id.indexOf(':'), kind = i < 0 ? id : id.slice(0, i), key = i < 0 ? '' : id.slice(i + 1);
     const filt = `prix ≥ ${nf(TIC.min_price)} $, volume moyen sur ${TIC.avg_volume_sessions} séances ≥ ${nf(TIC.min_avg_volume)} actions, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $`;
     const lvl = secView === 'etf' ? 'etf' : secD ? secD.kind : 'sec';
+    const g3 = `<p>Mini-courbe : ${TI.spark} dernières séances (pointillé : 50 %). Jauge 3M : position dans la plage des ${SKP.record_sessions} séances précédentes ; « plus haut / plus bas 3 mois » = information sur un indicateur retardé, pas un signal.</p>`;
+    // repère mesuré du ratio de rotation : variation moyenne d'IWM sur les rotation_ratio_sessions séances suivantes, par zone
+    // (recalculé à chaque chargement ; fenêtres qui se chevauchent : un repère, pas une statistique indépendante)
+    const thr = v => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 »
+    const rrBack = (key, W) => {
+      const K = secKpiData(), iw = new Map(barsFor('IWM').map(b => [b.d, b.c])), Ds = IND.dates, z = [[], [], []];
+      K[key].forEach((r, e) => { if (!r || r.ratio == null || e + W >= Ds.length) return; const a = iw.get(Ds[e]), b = iw.get(Ds[e + W]); if (a == null || b == null) return;
+        z[r.ratio < SKP.rotation_ratio[0] ? 0 : r.ratio >= SKP.rotation_ratio[1] ? 2 : 1].push(100 * (b / a - 1)); });
+      const m = a => a.length ? `${pct(a.reduce((s, x) => s + x, 0) / a.length)} (${a.length} séances)` : '—';
+      return `<li>ratio ${W} j → IWM ${W} séances plus tard, en moyenne : sous ${thr(SKP.rotation_ratio[0])} <b>${m(z[0])}</b> · entre les deux ${m(z[1])} · à partir de ${thr(SKP.rotation_ratio[1])} <b>${m(z[2])}</b></li>`;
+    };
+    if (kind === 'skpi') return {
+      rrg: ['Carte de rotation', `<p>Chaque point est un secteur (ou, quand un secteur est filtré, une de ses industries), placé par rapport au <b>marché</b> (toutes les actions retenues, équipondérées) :</p>
+        <ul><li><b>à droite</b> : il fait mieux que le marché (${TIN} de sa force relative au-dessus de 100) ; <b>à gauche</b> : moins bien ;</li>
+        <li><b>en haut</b> : cet écart s'améliore depuis ${CFG.sectors.rrg.momentum} séances ; <b>en bas</b> : il se dégrade.</li></ul>
+        <p>Les secteurs tournent en général dans le sens des aiguilles d'une montre : <b>${CFG.sectors.rrg.labels.impr}</b> (l'argent commence à arriver) → <b>${CFG.sectors.rrg.labels.lead}</b> → <b>${CFG.sectors.rrg.labels.weak}</b> (l'argent commence à repartir) → <b>${CFG.sectors.rrg.labels.lag}</b>. La <b>traînée</b> (${CFG.sectors.rrg.trail} séances) montre la direction ; la <b>taille</b> du point, le volume en dollars des ${TIC.volume.short} dernières séances par rapport à sa moyenne sur ${TIC.volume.long}, comparé au marché (gros point = plus d'argent échangé que d'habitude).</p>
+        <p><b>Lecture</b> : un secteur qui passe de « ${CFG.sectors.rrg.labels.impr} » à « ${CFG.sectors.rrg.labels.lead} » avec un gros point = arrivée d'argent confirmée ; un meneur qui glisse vers « ${CFG.sectors.rrg.labels.weak} » = l'argent commence à partir. Toucher un point : détail ; à nouveau : ouvre le secteur.</p>
+        <p class="src">Principe du Relative Rotation Graph (Julius de Kempenaer), avec le ${TIN} comme mesure ; pas les formules propriétaires du RRG. Information, pas un conseil.</p>`],
+      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions[0]} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions[0]} séances (grand chiffre) et sur ${SKP.rotation_ratio_sessions[1]} séances (dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Le ${SKP.rotation_ratio_sessions[0]} j réagit vite mais saute beaucoup ; le ${SKP.rotation_ratio_sessions[1]} j confirme.</p>
+        <p><b>Lecture</b> : rouge (sous ${thr(SKP.rotation_ratio[0])}) longtemps = marché qui se rétrécit (sélectivité) ; retour au-dessus de 1 après une phase rouge = premières industries qui repartent ; bleu (à partir de ${thr(SKP.rotation_ratio[1])}) = plus d'industries entrent qu'il n'en sort.</p>
+        <p><b>À lire avec le niveau du marché</b> : si la plupart des industries sont sous 1 (case « Industries ${TIN} > 1 » basse), un ratio bleu signale souvent une <b>rotation défensive</b> (l'argent se réfugie dans quelques secteurs) plutôt qu'une hausse qui s'élargit. Le <b>flux par secteur</b> (case Rotation) dit lesquels.</p>
+        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
+        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions[0])}${rrBack('rrL', SKP.rotation_ratio_sessions[1])}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
+      ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
+      sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
+      rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
+        <p>Le solde est la variation du nombre d'industries au-dessus de 1 ; les deux chiffres dessous disent comment il se forme (+8 = 14 entrées et 6 sorties, ou 8 entrées et aucune sortie).</p>${g3.replace('pointillé : 50 %', 'barres : solde à chaque séance')}<p>Dernière ligne : le secteur où arrivent le plus d'industries (↑) et celui qu'elles quittent le plus (↓). <b>Toucher</b> : le <b>flux par secteur</b> détaillé (quelles industries entrent, lesquelles sortent) ; toucher un secteur ouvre ses industries.</p><p class="src">Pourquoi pas les rangs : un classement est à somme nulle, les places gagnées par les unes sont perdues par les autres.</p>`],
+      stk: [`Actions ${TIN} > 1`, `<p>Part des actions retenues (${filt}) dont le ${TIN} dépasse 1. Même esprit que le T2108 du MM (actions au-dessus de leur moyenne 40 jours), sur un autre indicateur : les deux devraient évoluer ensemble.</p>${g3}<p>Toucher : classe le niveau affiché par « % > 1 » ; à nouveau : retour au classement.</p><p class="src">Série calculée par le robot (fetch_industries.py), clôtures Polygon / Massive.</p>`],
+    }[key] || null;
     if (kind === 'tkhelp') return ['Onglet Tickers', `<p>Colle un ticker ou une liste (virgules, espaces ou lignes ; <code>$TSLA</code> et <code>NASDAQ:NVDA</code> acceptés). Pour chaque action : son secteur et son industrie TradingView avec leur rang ${TIN} du jour, son propre ${TIN}, sa capitalisation, son flottant et son short interest.</p>
       <p><b>Thèmes</b> : les industries de ta liste, de la mieux à la moins bien classée. <span class="heat hot">chaud</span> = top ${CFG.tickers.hot_top_pct} % des industries, ${TIN} &gt; 1 et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <span class="heat emerging">émergent</span> = ${TIN} &gt; 1 et au moins ${CFG.tickers.emerging_min_delta} places gagnées en ${TI.delta} séances. Seuils : config/display.toml [tickers].</p>
       <p>Clic sur une action ou un thème : onglet Secteurs (bougies, ${TIN}). Toutes les actions US sont reconnues ; « hors filtres » = ne compte pas dans l'indice de son industrie (${filt}).</p>
@@ -2225,9 +2349,393 @@
     }
     return null;
   }
+  // ------------------------------------------------------------------ cases en tête de la vue TradingView (Secteurs)
+  // Décision du 20/10/2026 : largeur (industries, secteurs, actions au TI65 > 1) et rotation, à la séance survolée sur un
+  // graphique de l'onglet, sinon à celle de « Stats du » ; un toucher = raccourci (filtre ou tri de la liste), un second l'annule.
+  // Paramètres : config/display.toml [sectors.kpis]. Séries précalculées une fois par fichier (le survol reste fluide).
+  const SKP = CFG.sectors.kpis;
+  let SKD = null;
+  function secKpiData() {
+    if (!IND) return null; if (SKD && SKD.src === IND) return SKD;
+    const N = IND.dates.length, min = TIC.min_members;
+    const scored = L => L.filter(x => x.n >= min).map(x => ({ k: x.k, s: Array.from({ length: N }, (_, e) => secScore(x.c, e)) }));
+    const I = scored(IND.industries), S = scored(IND.sectors);
+    const above = L => Array.from({ length: N }, (_, e) => {
+      const v = L.map(x => x.s[e]).filter(v => v != null), up = v.filter(x => x > 1).length;
+      return v.length ? { up, n: v.length, pct: 100 * up / v.length } : null;
+    });
+    // rotation : industries dont le TI65 franchit 1 en rotation_window séances. Entrées = sous 1 (ou à 1) avant, au-dessus
+    // maintenant ; sorties = l'inverse. Pas à somme nulle, contrairement aux rangs (un rang gagné est perdu par une autre).
+    const W = SKP.rotation_window;
+    const rot = Array.from({ length: N }, (_, e) => {
+      if (e < W) return null;
+      const ent = [], out = []; let n = 0;
+      for (const x of I) {
+        const a = x.s[e - W], b = x.s[e]; if (a == null || b == null) continue;
+        n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k);
+      }
+      return n ? { ent, out, net: ent.length - out.length } : null;
+    });
+    // ratio de rotation : entrées et sorties de chaque séance (franchissement de 1 d'une séance à l'autre), cumulées sur RN
+    // séances ; « still » = industries entrées dans la fenêtre et toujours au-dessus de 1 (la liste du raccourci)
+    const [RN, RL] = SKP.rotation_ratio_sessions;
+    const day = Array.from({ length: N }, (_, e) => {
+      if (e < 1) return null; const ent = [], out = []; let n = 0;
+      for (const x of I) { const a = x.s[e - 1], b = x.s[e]; if (a == null || b == null) continue; n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k); }
+      return n ? { ent, out } : null;
+    });
+    const win = n => Array.from({ length: N }, (_, e) => {
+      if (e < n) return null; let en = 0, ou = 0; const keys = new Set();
+      for (let j = e - n + 1; j <= e; j++) { const x = day[j]; if (!x) return null; en += x.ent.length; ou += x.out.length; x.ent.forEach(k => keys.add(k)); }
+      return { en, ou, ratio: ou ? en / ou : null, still: I.filter(x => keys.has(x.k) && x.s[e] != null && x.s[e] > 1).map(x => x.k) };
+    });
+    const rr = win(RN), rrL = win(RL);
+    const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
+    // flux par secteur : entrées / sorties de la rotation regroupées par secteur (d'où part et où arrive le mouvement)
+    const secOf = new Map(IND.industries.map(x => [x.k, x.sec]));
+    const flow = e => { const r = rot[e]; if (!r) return null; const m = new Map();
+      const at = k => { const s = secOf.get(k); if (!m.has(s)) m.set(s, { sec: s, ent: [], out: [] }); return m.get(s); };
+      r.ent.forEach(k => at(k).ent.push(k)); r.out.forEach(k => at(k).out.push(k));
+      return [...m.values()].map(f => Object.assign(f, { net: f.ent.length - f.out.length }))
+        .sort((a, b) => b.net - a.net || b.ent.length - a.ent.length || (a.sec < b.sec ? -1 : 1)); };
+    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
+  }
+  const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
+  const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
+  function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
+    const W = SKP.record_sessions, v = skVal(K, id, e); if (v == null || e < W) return { html: '', rec: 0 };
+    const prev = []; for (let j = e - W; j < e; j++) { const x = skVal(K, id, j); if (x != null) prev.push(x); }
+    if (prev.length < W) return { html: '', rec: 0 };
+    const lo = Math.min(...prev, v), hi = Math.max(...prev, v), rec = v > Math.max(...prev) ? 1 : v < Math.min(...prev) ? -1 : 0;
+    const p = (v - lo) / ((hi - lo) || 1) * 100;
+    return { rec, html: `<div class="g3" title="Plage des ${W} séances précédentes : plus bas ${fmt(Math.min(...prev))}, plus haut ${fmt(Math.max(...prev))}"><span class="gt">3M</span><span>${fmt(lo)}</span>` +
+      `<span class="gb"><i class="${rec ? 'rw' : ''}" style="left:${Math.max(0, Math.min(100, p))}%"></i></span><span>${fmt(hi)}</span></div>` };
+  }
+  // raccourcis : état actif (la liste montre déjà ce que la case résume) et action ; un second toucher revient au classement
+  const RANK = { k: 'rank', dir: 1 };
+  const sortLevel = (kind, s) => { store.set(sortStoreKey(kind), JSON.stringify(s)); secSortLvl = null; };   // relu par syncSort au rendu
+  const goLevel = lvl => { if (tvNav.lvl !== lvl || (lvl === 'ind' && tvNav.sec !== 'all')) { tvNav = { lvl, sec: lvl === 'ind' ? 'all' : tvNav.sec, ind: null }; tvSave(); secSel = null; } };
+  const setAbove = v => { tvAbove = v; store.set('mm.tvabove', v ? '1' : '0'); };
+  // Une seule case active à la fois (demande du 20/10/2026) : toucher une case annule l'effet de la case précédente avant
+  // d'appliquer le sien ; toucher la case active l'annule. skMode = case active ; state() = son effet est-il toujours en place
+  // (une pastille ou un tri changé à la main désactive la case, sans rien annuler d'autre).
+  let skMode = null, skStkLvl = 'sec';
+  const SK_ACT = {
+    ind: { state: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, set: () => { goLevel('ind'); setAbove(true); }, unset: () => setAbove(false) },
+    sec: { state: () => tvNav.lvl === 'sec' && tvAbove, set: () => { goLevel('sec'); setAbove(true); }, unset: () => setAbove(false) },
+    rot: { state: () => skFlow, set: () => { skFlow = true; }, unset: () => { skFlow = false; } },   // panneau « flux par secteur »
+    rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
+    stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
+           set: () => { skStkLvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
+           unset: () => sortLevel(skStkLvl, RANK) },
+  };
+  Object.values(SK_ACT).forEach(a => { a.on = () => skMode != null && SK_ACT[skMode] === a && a.state(); });
+  function skToggle(id) {
+    const was = skMode && SK_ACT[skMode].state() ? skMode : null;
+    if (was) SK_ACT[was].unset();                          // l'effet de la case précédente est retiré dans tous les cas
+    if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
+    SK_ACT[id].set(); skMode = id;
+  }
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  function renderSecKpis(dHover) {
+    const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
+    const K = secView === 'tv' ? secKpiData() : null;
+    box.hidden = note.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = true; return; }
+    const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
+    let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
+    const f0 = x => nf(x, 0) + ' %', f1 = x => (x > 0 ? '+' : '') + nf(x, 0), past = e - TI.delta;
+    const cnt = id => {                              // industries / secteurs au TI65 > 1
+      const a = K[id][e], b = past >= 0 ? K[id][past] : null;
+      // industries : la variation sur 5 j est le solde de la case Rotation (pas répétée ici) ; secteurs : part d'il y a Δ séances
+      return a ? [`${a.up}<span class="kden"> / ${a.n}</span>`, `${nf(a.pct, 0)} %<span class="kw"> des ${id === 'ind' ? 'industries' : 'secteurs'}</span>` +
+        (id === 'sec' && b ? `<span class="kw"> · il y a ${TI.delta} j : ${nf(b.pct, 0)} %</span>` : '')] : ['—', 'historique trop court'];   // « il y a 5 j » masqué sur mobile : la mini-courbe suffit
+    };
+    const series = id => Array.from({ length: TI.spark }, (_, j) => { const k = e - TI.spark + 1 + j; return k >= 0 ? skVal(K, id, k) : null; });
+    const col = v => css(v == null ? '--muted' : v >= 50 ? '--up' : '--down');
+    const T_ = {
+      ind: () => { const [v, s] = cnt('ind'), g = skGauge(K, 'ind', e, f0); return [`Industries ${TIN} > 1`, v, s, spark(series('ind'), { ref: 50 }, col(skVal(K, 'ind', e))), g]; },
+      sec: () => { const [v, s] = cnt('sec'), g = skGauge(K, 'sec', e, f0); return [`Secteurs ${TIN} > 1`, v, s, spark(series('sec'), { ref: 50 }, col(skVal(K, 'sec', e))), g]; },
+      rot: () => {                                   // même lecture que « ±4 % du jour » : solde en grand, entrées / sorties dessous
+        const lbl = `Rotation ${SKP.rotation_window} j`, r = K.rot[e]; if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
+        return [lbl, `<span class="${cls(r.net)}">${signed(r.net)}</span>`,
+          `<span title="Industries passées au-dessus de 1 en ${SKP.rotation_window} séances">+${r.ent.length}<span class="kw"> entrées</span></span> / <span title="Industries repassées à 1 ou en dessous">−${r.out.length}<span class="kw"> sorties</span></span>`,
+          spark(series('rot'), 'bars'), (() => {      // à la place de la jauge : le secteur où l'argent arrive le plus, celui qu'il quitte le plus
+            const fl = K.flow(e) || [], top = fl.find(f => f.net > 0), bot = fl.slice().reverse().find(f => f.net < 0), g = skGauge(K, 'rot', e, signed);
+            const one = (f, up) => `<span class="${up ? 'pos' : 'neg'}">${up ? '↑' : '↓'} ${escH(tvSecLabel(f.sec))} ${signed(f.net)}</span>`;
+            return { rec: g.rec, html: `<div class="g3 gflow" title="Secteur qui gagne le plus d'industries au-dessus de 1 (↑) et celui qui en perd le plus (↓), en ${SKP.rotation_window} séances">` +
+              (top || bot ? [top && one(top, true), bot && one(bot, false)].filter(Boolean).join(' · ') : '<span>aucun mouvement</span>') + '</div>' };
+          })()];
+      },
+      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : court en grand, « 10 jours : … » dessous
+        const [n, nl] = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e], rl = K.rrL[e];
+        if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
+        const v = r.ratio, f2 = x => nf(x, 2), c = css(v == null ? '--muted' : v < RRT[0] ? '--down' : v >= RRT[1] ? '--up' : '--muted');
+        const show = x => x == null ? '—' : `<span class="${rrCls(x.ratio)}">${x.ratio == null ? (x.en ? '∞' : '—') : f2(x.ratio)}</span>`;
+        return [lbl, show(r), `<span title="Entrées / sorties : ${r.en} / ${r.ou} en ${n} séances${rl ? `, ${rl.en} / ${rl.ou} en ${nl}` : ''}">${nl} jours : ${show(rl)}</span>`,
+          spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
+      },
+      stk: () => {
+        const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;
+        if (v == null) return [`Actions ${TIN} > 1`, '—', K.stk ? 'historique trop court' : 'disponible au prochain passage du robot', '', { html: '', rec: 0 }];
+        return [`Actions ${TIN} > 1`, nf(v, 0) + ' %', `de ${nf(K.stkN)} actions` + (b != null ? ` · ${TI.delta} j : ${nf(b, 0)} %` : ''),
+          spark(series('stk'), { ref: 50 }, col(v)), skGauge(K, 'stk', e, f0)];
+      },
+    };
+    // « Actions TI65 > 1 » : série publiée par le robot ; tant qu'elle manque (ancien fichier), la case n'est pas affichée
+    box.innerHTML = SKP.tiles.filter(id => id !== 'stk' || K.stk).map(id => {
+      const [lbl, val, sub, sp, g] = T_[id](), on = SK_ACT[id].on();
+      const ban = g.rec ? `<div class="kban" title="Indicateur retardé : information, pas un signal">${g.rec > 0 ? '▲ Plus haut' : '▼ Plus bas'} 3 mois</div>` : '';
+      return `<div class="kpi ${g.rec ? 'hot-warn' : ''}${on ? ' on' : ''}" data-sk="${id}" role="button" tabindex="0" aria-pressed="${on}" title="${escA(on ? 'Revenir au classement' : SK_GO[id])}">${ban}` +
+        `<div class="top"><span class="lbl">${lbl}</span>${tipI('skpi:' + id, lbl)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>${g.html}</div>`;
+    }).join('');
+    note.textContent = (dHover ? 'Survol : ' : pinned ? 'Séance choisie : ' : 'Séance du ') + fmtDate(Ds[e], { weekday: 'short', day: 'numeric', month: 'short' }) +
+      ' · glisser sur la frise = remonter le temps · toucher une case = raccourci';
+    drawFrise(K, e, !!dHover);
+    const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
+    if (fp) {
+      fp.hidden = !skFlow;
+      if (skFlow) {
+        const nm = (ks, c) => ks.length ? `<span class="${c}">${ks.map(escH).join(', ')}</span>` : '';
+        // deux blocs : où l'argent arrive (solde > 0, du plus fort au plus faible), d'où il repart (solde < 0, du plus fort) ; mixte = 0
+        const cnt = f => [f.ent.length && `<span class="pos">+${f.ent.length}</span>`, f.out.length && `<span class="neg">−${f.out.length}</span>`].filter(Boolean).join(' / ');
+        const RD = rrgData(), vrel = s => { const x = RD && RD.sec.find(v => v.k === s), v = x && x.rv ? x.rv[e] : null; return v == null ? '' : ` · <span title="Volume en dollars des ${TIC.volume.short} dernières séances ÷ moyenne des ${TIC.volume.long}, rapporté à celui du marché">vol. ×${nf(v, 2)}</span>`; };
+        const row = f => `<button type="button" data-flsec="${escA(f.sec)}" title="Ouvrir les industries de ce secteur"><b>${escH(tvSecLabel(f.sec))}</b>` +
+          `<span class="fc">${cnt(f)}${vrel(f.sec)}</span><span class="fn">${[nm(f.ent, 'pos'), nm(f.out, 'neg')].filter(Boolean).join(' · ')}</span></button>`;
+        const L = fl || [], blk = (t, a) => a.length ? `<div class="fgrp">${t}</div>` + a.map(row).join('') : '';
+        fp.innerHTML = `<h4>Flux ${SKP.rotation_window} j par secteur <span>· ${fmtDate(Ds[e], { day: 'numeric', month: 'short' })} · industries passées au-dessus de 1 (+) ou repassées dessous (−)</span></h4>` +
+          (L.length ? (() => {                       // résumé en tête : les 3 plus forts de chaque sens (le détail suit)
+            const up = L.filter(f => f.net > 0).slice(0, 3), dn = L.filter(f => f.net < 0).sort((a, b) => a.net - b.net).slice(0, 3);
+            const s = (a, c) => a.map(f => `${escH(tvSecLabel(f.sec))} <span class="${c}">${signed(f.net)}</span>`).join(', ');
+            return `<p class="fsum">${up.length ? `<span class="pos">↑</span> ${s(up, 'pos')}` : ''}${up.length && dn.length ? '<br>' : ''}${dn.length ? `<span class="neg">↓</span> ${s(dn, 'neg')}` : ''}</p>`;
+          })() + blk('<span class="pos">↑ L\'argent arrive</span>', L.filter(f => f.net > 0)) +
+            blk('<span class="neg">↓ L\'argent repart</span>', L.filter(f => f.net < 0).sort((a, b) => a.net - b.net || b.out.length - a.out.length)) +
+            blk('Mouvements qui se compensent', L.filter(f => f.net === 0))
+            : '<p class="fn">Aucune industrie n\'a franchi 1 sur la période.</p>');
+      }
+    }
+    drawRrg(e);
+  }
+  // ------------------------------------------------------------------ frise temporelle (demande du 20/10/2026 : « comme le MM »)
+  // Industries TI65 > 1 (%) sur tout l'historique ; glisser la souris ou le doigt = cases, flux et carte de rotation à la séance
+  // survolée (aperçu) ; clic ou doigt levé = cette séance devient celle de « Stats du » (le classement suit).
+  let friseG = null;
+  function drawFrise(K, e, hovering) {
+    const cv = $('friseCv'); if (!cv) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const Ds = IND.dates, i0 = K.ind.findIndex(v => v != null); if (i0 < 0 || Ds.length - i0 < 2) { friseG = null; return; }
+    const P = 4, B = 13, n = Ds.length - i0, X = i => P + (i - i0) / (n - 1) * (W - 2 * P), Y = v => P + (1 - v / 100) * (H - P - B);
+    friseG = { i0, n, P, W };
+    g.fillStyle = css('--panel2'); g.fillRect(0, 0, W, H - B + 2);
+    g.strokeStyle = css('--faint'); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(P, Y(50)); g.lineTo(W - P, Y(50)); g.stroke(); g.setLineDash([]);
+    // repères de mois (fins traits verticaux) pour se situer dans le temps
+    g.strokeStyle = css('--border'); g.lineWidth = 1;
+    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, P); g.lineTo(Math.round(X(i)) + .5, H - B + 2); g.stroke(); }
+    const pts = []; for (let i = i0; i < Ds.length; i++) { const v = K.ind[i] && K.ind[i].pct; if (v != null) pts.push([X(i), Y(v)]); }
+    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b));
+    g.lineTo(pts[pts.length - 1][0], H - B + 2); g.lineTo(pts[0][0], H - B + 2); g.closePath(); g.fillStyle = css('--upbg'); g.fill();
+    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b)); g.strokeStyle = css('--text'); g.globalAlpha = .8; g.lineWidth = 1.4; g.stroke(); g.globalAlpha = 1;
+    // repère de la séance affichée (survol : couleur du réticule ; sinon : séance de « Stats du »)
+    const v = K.ind[e] && K.ind[e].pct, x = X(Math.max(e, i0));
+    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, P); g.lineTo(x, H - B + 2); g.stroke();
+    if (v != null) { g.fillStyle = css(hovering ? '--ccross' : '--up'); g.beginPath(); g.arc(x, Y(v), 3, 0, 2 * Math.PI); g.fill(); }
+    g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.fillStyle = css('--faint'); g.textBaseline = 'bottom';
+    const lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${v != null ? ' · ' + nf(v, 0) + ' % des industries > 1' : ''}`;
+    const lw = g.measureText(lbl).width, lx = Math.max(P + lw / 2, Math.min(W - P - lw / 2, x));   // libellé de la séance, dans la frise
+    const d0 = fmtDate(Ds[i0], { day: 'numeric', month: 'short' }), d1 = fmtDate(Ds[Ds.length - 1], { day: 'numeric', month: 'short' });
+    if (lx - lw / 2 > P + g.measureText(d0).width + 8) { g.textAlign = 'left'; g.fillText(d0, P, H); }          // dates des bouts : seulement
+    if (lx + lw / 2 < W - P - g.measureText(d1).width - 8) { g.textAlign = 'right'; g.fillText(d1, W - P, H); }  // si le libellé ne les couvre pas
+    g.textAlign = 'center'; g.fillStyle = css('--text'); g.fillText(lbl, lx, H);
+  }
+  const friseDate = ev => { if (!friseG || !IND) return null; const r = $('friseCv').getBoundingClientRect(), f = (ev.clientX - r.left - friseG.P) / (friseG.W - 2 * friseG.P);
+    return IND.dates[Math.max(friseG.i0, Math.min(IND.dates.length - 1, Math.round(friseG.i0 + f * (friseG.n - 1))))]; };
+  let friseDrag = false;
+  $('friseCv').addEventListener('pointermove', ev => { if (ev.pointerType !== 'mouse' && !friseDrag) return; const d = friseDate(ev); if (d) renderSecKpis(d); });
+  $('friseCv').addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') renderSecKpis(); });
+  $('friseCv').addEventListener('pointerdown', ev => {
+    if (ev.pointerType === 'mouse') return; friseDrag = true;
+    try { $('friseCv').setPointerCapture(ev.pointerId); } catch (x) { /* déjà relâché */ }
+    const d = friseDate(ev); if (d) renderSecKpis(d);
+  });
+  $('friseCv').addEventListener('pointerup', ev => { if (ev.pointerType === 'mouse' || !friseDrag) return; friseDrag = false; const d = friseDate(ev); if (d) showDate(d); });
+  $('friseCv').addEventListener('pointercancel', () => { friseDrag = false; renderSecKpis(); });
+  $('friseCv').addEventListener('click', ev => { if (ev.pointerType && ev.pointerType !== 'mouse') return; const d = friseDate(ev); if (d) showDate(d); });
+
+  // ------------------------------------------------------------------ carte de rotation (type RRG), relative au marché
+  // Décision du 20/10/2026 (« où va l'argent ») : chaque secteur (ou industrie d'un secteur filtré) est placé selon sa force
+  // relative au marché (x = TI65 de indice ÷ marché, × 100) et l'accélération de celle-ci (y = 100 × x / x d'il y a `momentum`
+  // séances) ; traînée sur `trail` séances ; taille = volume en dollars relatif au marché. Paramètres : config/display.toml [sectors.rrg].
+  const RRG = CFG.sectors.rrg;
+  let RRD = null, rrgHits = [], rrgHot = null, rrgE = -1;
+  let rrgOpen = (() => { const v = store.get('mm.rrg'); return v == null ? !isMobile() : v === '1'; })();   // repliée par défaut sur mobile
+  const rrgQ = (x, y) => x >= 100 ? (y >= 100 ? 'lead' : 'weak') : (y >= 100 ? 'impr' : 'lag');
+  function rrgData() {
+    if (!IND) return null; if (RRD && RRD.src === IND) return RRD;
+    const N = IND.dates.length;
+    // marché : indice équipondéré de toutes les actions retenues (série du robot) ; ancien fichier : indices des secteurs pondérés
+    // par leur nombre de titres (même moyenne des variations, à quelques titres non cotés près) — signalé « marché approché »
+    let m = IND.stocks && Array.isArray(IND.stocks.c) && IND.stocks.c.length === N ? IND.stocks.c : null; const approx = !m;
+    if (!m) { m = [100]; for (let k = 1; k < N; k++) { let w = 0, s = 0;
+      for (const x of IND.sectors) { const a = x.c[k - 1], b = x.c[k]; if (a && b) { s += x.n * (b / a - 1); w += x.n; } }
+      m.push(m[k - 1] * (1 + (w ? s / w : 0))); } }
+    const mrv = IND.stocks && Array.isArray(IND.stocks.rv) ? IND.stocks.rv : null;
+    const one = x => {
+      const rs = x.c.map((v, k) => v && m[k] ? v / m[k] : null);
+      const px = rs.map((_, e) => { const s = secScore(rs, e); return s == null ? null : 100 * s; });
+      const py = px.map((v, e) => v == null || e < RRG.momentum || px[e - RRG.momentum] == null ? null : 100 * v / px[e - RRG.momentum]);
+      const rv = Array.isArray(x.rv) && x.rv.length === N && mrv ? x.rv.map((v, k) => v != null && mrv[k] ? v / mrv[k] : null) : null;
+      return { k: x.k, n: x.n, sec: x.sec, px, py, rv };
+    };
+    const ok = x => x.n >= TIC.min_members;
+    return (RRD = { src: IND, approx, hasRv: !!mrv, one, stk: new Map(), sec: IND.sectors.filter(ok).map(one), ind: IND.industries.filter(ok).map(one) });
+  }
+  // actions d'une industrie sur la carte : clôtures du fichier de l'industrie (chargé à son ouverture), alignées sur les séances
+  // de la vue ; volume en dollars relatif recalculé ici (mêmes fenêtres que le robot, config/industries.toml [volume])
+  function rrgStocks(D, indKey) {
+    const ind = IND.industries.find(x => x.k === indKey), F = ind && window.TV_STOCKS && window.TV_STOCKS[ind.f]; if (!F) return null;
+    if (D.stk.has(F)) return D.stk.get(F);
+    const N = IND.dates.length, at = new Map(IND.dates.map((d, k) => [d, k])), vs = TIC.volume.short, vl = TIC.volume.long;
+    const items = F.rows.map(([s, , , c, v]) => {
+      const cl = Array(N).fill(null), dv = Array(N).fill(null);
+      F.dates.forEach((d, j) => { const k = at.get(d); if (k == null) return; cl[k] = c[j]; dv[k] = c[j] != null && v && v[j] != null ? c[j] * v[j] * (F.vu || 1) : null; });
+      const rv = dv.map((_, k) => { if (k < vl - 1) return null; let a = 0, b = 0; for (let j = k - vl + 1; j <= k; j++) { if (dv[j] == null) return null; b += dv[j]; if (j > k - vs) a += dv[j]; } return b ? (a / vs) / (b / vl) : null; });
+      return D.one({ k: s, n: 1, sec: ind.sec, c: cl, rv });
+    });
+    D.stk.set(F, items); return items;
+  }
+  // tickers saisis au-dessus de la carte : leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant, les autres atténués
+  let rrgTkText = store.get('mm.rrgtk') || '';
+  function rrgTickers() {
+    const syms = tkParse(rrgTkText); if (!syms.length) return { list: [] };
+    if (!window.TICKERS) { if (tkLoaded.tickers !== 'absent') tkLoad(() => drawRrg(rrgE)); return { list: [], wait: true }; }
+    return { list: syms.map(s => { const r = tkRow(s); return { s, r }; }) };
+  }
+  function drawRrg(e) {
+    const card = $('secRrg'), D = secView === 'tv' ? rrgData() : null; if (!card) return;
+    card.hidden = !D; if (!D) return;
+    rrgE = e; $('rrgBody').hidden = !rrgOpen; $('rrgHead').setAttribute('aria-expanded', String(rrgOpen)); $('rrgHead').querySelector('.car').textContent = rrgOpen ? '▾' : '▸';
+    // arbre de la carte (demande du 20/10/2026) : suit le niveau de la liste — secteurs, industries d'un secteur, actions d'une industrie
+    const lvl = tvNav.lvl === 'stk' && tvNav.ind ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec', showInd = lvl === 'ind';
+    const indRec = lvl === 'stk' ? IND.industries.find(x => x.k === tvNav.ind) : null, secK = lvl === 'stk' ? (indRec ? indRec.sec : tvNav.sec) : tvNav.sec;
+    const stkItems = lvl === 'stk' ? rrgStocks(D, tvNav.ind) : null;
+    const items = lvl === 'stk' ? stkItems || [] : showInd ? D.ind.filter(x => x.sec === tvNav.sec) : D.sec;
+    $('rrgWhat').textContent = `· ${lvl === 'stk' ? 'actions · ' + tvNav.ind : showInd ? 'industries · ' + tvSecLabel(tvNav.sec) : 'secteurs'} · relatif au marché · ${fmtDate(IND.dates[e], { day: 'numeric', month: 'short' })}` + (D.approx ? ' · marché approché' : '');
+    if (!rrgOpen) return;
+    const crumbs = [['sec', 'Secteurs']].concat(lvl !== 'sec' ? [['ind', tvSecLabel(secK)]] : [], lvl === 'stk' ? [['stk', tvNav.ind]] : []);
+    $('rrgNav').innerHTML = (lvl !== 'sec' ? `<button class="back" data-up="${lvl === 'stk' ? 'ind' : 'sec'}" aria-label="Niveau précédent" title="Niveau précédent">‹</button>` : '') +
+      crumbs.map(([k, l], i) => (i ? '<span class="sep">›</span>' : '') + `<button data-up="${k}" class="${k === lvl ? 'on' : ''}"${k === lvl ? ' aria-current="page"' : ''} data-sec="${escA(secK || '')}">${escH(l)}</button>`).join('');
+    // tickers : clés mises en avant au niveau affiché, pastilles « NVDA → Électronique › Semiconductors »
+    const TKs = rrgTickers(), tkKey = t => !t.r ? null : lvl === 'sec' ? t.r.secName : lvl === 'ind' ? (t.r.secName === tvNav.sec ? t.r.indName : null) : (t.r.indName === tvNav.ind ? t.s : null);
+    const tkFocus = new Set(TKs.list.map(tkKey).filter(Boolean));
+    $('rrgChips').innerHTML = TKs.wait ? '<span class="unk">chargement de l\'index des tickers…</span>' : TKs.list.map(t => t.r
+      ? `<button data-tkgo="${escA(t.s)}" title="Ouvrir son industrie sur la carte${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
+      : `<span class="unk" title="Ticker absent de l'index (actions ordinaires NYSE / Nasdaq / AMEX)">${escH(t.s)} ?</span>`).join('') + (TKs.list.length ? '<button data-tkclear="1" title="Effacer les tickers">✕</button>' : '');
+    if (lvl === 'stk' && !stkItems) { $('rrgInfo').textContent = 'Chargement des actions de l\'industrie…'; }
+    const cv = $('rrgCv'), W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = css('--cbg'); g.fillRect(0, 0, W, H);
+    const t0 = Math.max(0, e - RRG.trail + 1);
+    const pts = items.map(x => ({ x, tr: Array.from({ length: e - t0 + 1 }, (_, j) => [x.px[t0 + j], x.py[t0 + j]]).filter(p => p[0] != null && p[1] != null) })).filter(o => o.tr.length);
+    rrgHits = [];
+    g.font = '11px -apple-system, "Segoe UI", sans-serif';
+    if (!pts.length) { g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.fillText('Historique trop court', W / 2, H / 2); $('rrgInfo').textContent = ''; return; }
+    let hx = 0, hy = 0; pts.forEach(o => o.tr.forEach(([a, b]) => { hx = Math.max(hx, Math.abs(a - 100)); hy = Math.max(hy, Math.abs(b - 100)); }));
+    hx = (hx || 1) * 1.18; hy = (hy || 1) * 1.18;
+    const P = 6, X = v => P + (v - 100 + hx) / (2 * hx) * (W - 2 * P), Y = v => H - P - (v - 100 + hy) / (2 * hy) * (H - 2 * P);
+    const cx = X(100), cy = Y(100);
+    [[cx, P, W - P - cx, cy - P, '--upbg'], [cx, cy, W - P - cx, H - P - cy, '--warnbg'], [P, cy, cx - P, H - P - cy, '--downbg'], [P, P, cx - P, cy - P, '--neutralbg']]
+      .forEach(([x0, y0, w, h, c]) => { g.fillStyle = css(c); g.fillRect(x0, y0, w, h); });
+    g.strokeStyle = css('--cref'); g.setLineDash([4, 4]); g.beginPath(); g.moveTo(cx, P); g.lineTo(cx, H - P); g.moveTo(P, cy); g.lineTo(W - P, cy); g.stroke(); g.setLineDash([]);
+    g.fillStyle = css('--ctext'); g.globalAlpha = .8;
+    g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText(RRG.labels.lead + ' ↗', W - P - 4, P + 4);
+    g.textBaseline = 'bottom'; g.fillText(RRG.labels.weak + ' ↘', W - P - 4, H - P - 4);
+    g.textAlign = 'left'; g.fillText('↙ ' + RRG.labels.lag, P + 4, H - P - 4); g.textBaseline = 'top'; g.fillText('↖ ' + RRG.labels.impr, P + 4, P + 4);
+    g.globalAlpha = 1;
+    const col = q => css(q === 'lead' ? '--up' : q === 'weak' ? '--warn' : q === 'lag' ? '--down' : '--ccross');
+    const lab = k => { const s = lvl === 'sec' ? tvSecLabel(k) : k; return s.length > 18 ? s.slice(0, 17) + '…' : s; };
+    // mise en avant (demande du 20/10/2026) : le point survolé ou touché, en pleine couleur avec sa traînée épaissie et datée ;
+    // les autres atténués et dessinés dessous
+    const focus = rrgHot ? new Set([rrgHot]) : tkFocus, dim = k => focus.size > 0 && !focus.has(k);   // survol > tickers saisis
+    pts.slice().sort((u, v) => dim(v.x.k) - dim(u.x.k)).forEach(o => {
+      const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null, f = focus.has(o.x.k), d = dim(o.x.k);
+      g.strokeStyle = c; g.globalAlpha = d ? .12 : f ? .95 : .5; g.lineWidth = f ? 2.2 : 1.2;
+      g.beginPath(); o.tr.forEach(([u, v], i) => i ? g.lineTo(X(u), Y(v)) : g.moveTo(X(u), Y(v))); g.stroke();
+      o.tr.slice(0, -1).forEach(([u, v]) => { g.fillStyle = c; g.beginPath(); g.arc(X(u), Y(v), f ? 2.4 : 1.4, 0, 2 * Math.PI); g.fill(); });
+      const r = rv == null ? 5 : Math.max(3, Math.min(10, 2 + 4 * rv));   // taille : volume en dollars relatif au marché (1 = comme le marché)
+      g.globalAlpha = d ? .25 : 1; g.fillStyle = c; g.beginPath(); g.arc(X(a), Y(b), r, 0, 2 * Math.PI); g.fill(); g.globalAlpha = 1;
+      if (f) {
+        g.strokeStyle = css('--ccross'); g.lineWidth = 2; g.beginPath(); g.arc(X(a), Y(b), r + 3, 0, 2 * Math.PI); g.stroke();
+        const [u0, v0] = o.tr[0];                     // début de la traînée daté : d'où vient le point
+        g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(fmtDate(IND.dates[t0 + (e - t0 + 1 - o.tr.length)], { day: 'numeric', month: 'short' }), X(u0), Y(v0) + 4);
+      }
+      rrgHits.push({ k: o.x.k, lvl, x: X(a), y: Y(b), q, a, b, rv, r, dim: d });
+    });
+    // étiquettes : d'abord les points les plus éloignés du centre (les plus nets) ; une étiquette qui en recouvrirait une autre
+    // est omise (le point reste touchable, son nom s'affiche dessous) ; celle du point touché est toujours écrite
+    const placed = [];
+    rrgHits.slice().sort((p, q) => (p.k === rrgHot) - (q.k === rrgHot) || ((q.x - cx) ** 2 + (q.y - cy) ** 2) - ((p.x - cx) ** 2 + (p.y - cy) ** 2))
+      .sort((p, q) => (q.k === rrgHot) - (p.k === rrgHot)).forEach(p => {
+        const s = lab(p.k), w = g.measureText(s).width, right = p.x > W * 0.72, x0 = right ? p.x - p.r - 3 - w : p.x + p.r + 3, box = [x0 - 1, p.y - 7, x0 + w + 1, p.y + 7];
+        if (!focus.has(p.k) && (p.dim || placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3])))) return;   // atténués : sans nom
+        placed.push(box); g.fillStyle = css(focus.has(p.k) ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle';
+        if (focus.has(p.k)) { g.font = '600 12px -apple-system, "Segoe UI", sans-serif'; g.fillText(s, x0, p.y); g.font = '11px -apple-system, "Segoe UI", sans-serif'; } else g.fillText(s, x0, p.y);
+      });
+    const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length, nm = k => escH(lvl === 'sec' ? tvSecLabel(k) : k);
+    const tkLine = tkFocus.size ? 'En avant : ' + rrgHits.filter(p => tkFocus.has(p.k)).map(p => `<b>${nm(p.k)}</b> (${escH(RRG.labels[p.q])})`).join(' · ') + ' · ' : '';
+    $('rrgInfo').innerHTML = h ? `<b>${nm(h.k)}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
+        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` · toucher à nouveau : ${lvl === 'stk' ? 'sa fiche' : 'ouvrir'}`
+      : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
+  }
+  $('rrgHead').addEventListener('click', () => { rrgOpen = !rrgOpen; store.set('mm.rrg', rrgOpen ? '1' : '0'); drawRrg(rrgE); });
+  const rrgPick = ev => { const r = $('rrgCv').getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
+    let best = null, bd = 22 * 22; for (const p of rrgHits) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } } return best; };
+  $('rrgCv').addEventListener('click', ev => {         // premier toucher : détail ; second sur le même point : ouvre le secteur (ses industries) ou l'industrie (ses actions)
+    const p = rrgPick(ev); if (!p) { rrgHot = null; drawRrg(rrgE); return; }
+    if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
+    rrgHot = null; skEntries = false; skMode = null;
+    if (p.lvl === 'stk') {                            // action : sa fiche (comme toucher sa ligne dans la liste)
+      secSel = p.k; if (isStacked()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
+      renderSectors(); return;
+    }
+    tvNav = p.lvl === 'ind' ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null;
+    renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
+  });
+  $('rrgNav').addEventListener('click', ev => {       // fil de la carte : Secteurs › secteur › industrie ; ‹ = niveau précédent (l'élément quitté reste choisi)
+    const b = ev.target.closest('[data-up]'); if (!b) return;
+    const to = b.dataset.up, from = tvNav.lvl === 'stk' ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec'; if (to === from) return;
+    const indK = tvNav.ind, secK = b.dataset.sec || tvNav.sec;
+    if (to === 'sec') { tvNav = { lvl: 'sec', sec: secK, ind: null }; secSel = secK; }
+    else { tvNav = { lvl: 'ind', sec: secK, ind: null }; secSel = indK; }
+    tvSave(); rrgHot = null; skMode = null; renderSectors();
+  });
+  let rrgTkTimer = 0;
+  $('rrgTk').value = rrgTkText;
+  $('rrgTk').addEventListener('input', ev => { clearTimeout(rrgTkTimer); rrgTkTimer = setTimeout(() => { rrgTkText = ev.target.value; store.set('mm.rrgtk', rrgTkText); drawRrg(rrgE); }, 250); });
+  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : la carte (et la liste) descendent jusqu'à son industrie
+    const c = ev.target.closest('[data-tkclear]'); if (c) { rrgTkText = ''; $('rrgTk').value = ''; store.set('mm.rrgtk', ''); drawRrg(rrgE); return; }
+    const b = ev.target.closest('[data-tkgo]'); if (!b) return; const r = tkRow(b.dataset.tkgo); if (!r) return;
+    tvNav = { lvl: 'stk', sec: r.secName, ind: r.indName }; tvSave(); secSel = r.kept ? r.s : null; rrgHot = null; skMode = null; renderSectors();
+  });
+  $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; drawRrg(rrgE); } });
+  $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé
+    const b = e.target.closest('[data-flsec]'); if (!b) return;
+    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false; skMode = null;
+    renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
+  });
+  $('secKpis').addEventListener('click', e => {
+    const t = e.target.closest('[data-sk]'); if (!t || !SK_ACT[t.dataset.sk]) return;
+    skToggle(t.dataset.sk);
+    renderSectors();
+    const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
+  });
+  $('secKpis').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.sk) { e.preventDefault(); e.target.click(); } });
+
   function renderSectors() {
     const body = $('secRows');
+    if (secView !== 'tv' || tvNav.lvl !== 'ind') skEntries = false;   // filtre « entrées » propre au niveau industries
     renderSecView();
+    renderSecKpis();
     const D = secData();
     if (!D) {
       $('secHead').innerHTML = ''; $('secFilt').innerHTML = ''; $('secMeta').textContent = '';
@@ -2238,13 +2746,14 @@
     }
     if (!D.items.length) {                               // actions d'une industrie : fichier en cours de chargement ou introuvable
       secRows = []; secD = D; secBuiltKey = '';
-      renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = '';
+      renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = ''; $('secSortBar').hidden = true;
       body.innerHTML = `<tr class="loading"><td>${D.wait ? `Chargement des actions de ${escH(D.ind.k)}…`
         : `Actions de ${escH(D.ind.k)} introuvables (fichier <code>${escH(TIC.folder)}/${escH(D.ind.f)}.js</code>).`}</td></tr>`;
       return;
     }
     if (secBuiltKey !== D.key + '|' + secEnd(D)) secBuild(D);
     if (!GRP.some(([k]) => k === secGroup)) secGroup = 'all';
+    syncSort(D);
     renderSecFilt();
     $('secTable').classList.toggle('tv', secView === 'tv');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
@@ -2257,13 +2766,23 @@
       return `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" draggable="true" data-c="${id}" data-k="${d.k}" ` +
         `title="${escA((d.title || (d.k ? 'Trier par ' + label : label)) + ' · glisser pour déplacer')}">${label}${tipI('col:' + id, label)}<span class="arr">${arrow}</span></th>`;
     }).join('');
+    const bar = $('secSortBar'), opts = secView === 'tv' ? SORT_OPTS[D.kind] || [] : [];
+    bar.hidden = !opts.length;
+    bar.innerHTML = opts.length ? '<span class="slbl">Classer par</span>' + opts.map(k => {
+      const on = secSort.k === k, lbl = k === 'rank' ? TIN : defs[k].label;
+      return `<button data-sort="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}" title="${escA(defs[k].title || 'Trier par ' + lbl)}${on ? ' · toucher à nouveau : sens inverse' : ''}">` +
+        `${escH(lbl)}${on ? `<span class="arr">${secSort.dir > 0 ? '▲' : '▼'}</span>` : ''}</button>`;
+    }).join('') : '';
     const delta = r => {
       if (r.rank == null) return '<span class="tag">—</span>';
       if (r.isNew) return '<span class="tag">nouveau</span>';
       return r.delta > 0 ? `<span class="pos">▲ ${r.delta}</span>` : r.delta < 0 ? `<span class="neg">▼ ${-r.delta}</span>` : '<span style="color:var(--muted)">=</span>';
     };
-    const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom ; « % > 1 » seulement sur mobile (colonne masquée)
-      : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : '')) + (r.brd != null ? `<span class="mob"> · ${nf(r.brd, 0)} % &gt; 1</span>` : '');
+    const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom (mobile : « % > 1 » passe sous l'écart quand on trie dessus)
+      : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : ''));
+    // sous l'écart (mobile, vue TradingView) : la valeur du tri actif, Δ du rang par défaut
+    const dsub = r => secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
+      : secSort.k === 'cap' ? `<span class="dsub on">${capFmt(r.x.cap)}</span>` : `<span class="dsub${secSort.k === 'delta' ? ' on' : ''}">${delta(r)}</span>`;
     const cell = {
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
       sym: r => `<td class="sym l" title="${escA(r.x.n)}">${escH(r.x.lbl || r.x.s)}<span class="tsub">${sub(r)}</span></td>`,
@@ -2272,7 +2791,7 @@
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
       brd: r => `<td class="brd c-brd">${r.brd == null ? '—' : nf(r.brd, 0) + ' %'}</td>`,
       cap: r => `<td class="cap c-cap">${capFmt(r.x.cap)}</td>`,
-      dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? `<span class="dsub">${delta(r)}</span>` : ''}</td>`
+      dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? dsub(r) : ''}</td>`
         : r.tooFew ? `<td><span class="tag" title="Moins de ${TIC.min_members} titres retenus : pas de rang">&lt; ${TIC.min_members} titres</span></td>`
         : `<td><span class="tag">${r.count}/${TI.long} séances</span></td>`,
       delta: r => `<td class="c-delta">${delta(r)}</td>`,
@@ -2296,8 +2815,9 @@
     const sel = body.querySelector && body.querySelector('tr.sel');
     const lblOf = new Map(sorted.map(r => [r.x.s, r.x.lbl || r.x.s]));
     detNavSync('sec', sorted.map(r => r.x.s), secSel, { etf: 'ETF', sec: 'Secteur', ind: 'Industrie', stk: 'Titre' }[D.kind], s => lblOf.get(s) || s);
+    renderSecKpis();                                 // après syncSort : état actif des raccourcis (tri, filtre) à jour
     fitSecLayout();
-    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+    if (sel) scrollWithin($('secScroll'), sel, 'y');   // ligne choisie visible dans la liste, sans faire défiler la page (changement de date)
     secRedraw();
   }
 
@@ -2308,8 +2828,15 @@
     const th = e.target.closest('th'), defs = curDefs();
     if (!th || !th.dataset.k || !defs[th.dataset.c || th.dataset.k]) return;   // colonne inconnue (retirée) ou « › » : ignorée
     const k = th.dataset.k;
-    secSort = secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[th.dataset.c || k].dir };
+    setSort(secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[th.dataset.c || k].dir });
     renderSectors();
+  });
+  $('secSortBar').addEventListener('click', e => {     // « Classer par » (mobile) : même état que les en-têtes ; bouton actif = sens inverse
+    const b = e.target.closest('button'), defs = curDefs(); if (!b || !b.dataset.sort || !defs[b.dataset.sort]) return;
+    const k = b.dataset.sort;
+    setSort(secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[k].dir });
+    renderSectors();
+    const sc = $('secScroll'); if (sc) sc.scrollTop = 0;   // nouveau classement : on repart du haut de la liste
   });
   $('secHead').addEventListener('dragstart', e => {
     const th = e.target.closest('th'); if (!th || !th.dataset.c) return;
@@ -2350,7 +2877,7 @@
     if (b.dataset.v === 'tv' && !IND) return;
     store.set(selKey(), secSel || '');
     secView = b.dataset.v; store.set('mm.secview', secView); secSel = store.get(selKey());
-    secBuiltKey = ''; secSort = { k: 'rank', dir: 1 }; $('view-sec').classList.remove('detail');
+    secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail');
     renderSectors();
   });
   $('secChips').addEventListener('wheel', e => {        // molette verticale : fait défiler la ligne de pastilles
@@ -2721,7 +3248,7 @@
   function tvGoto(indName, sym) {                        // ouvre l'onglet Secteurs (vue TradingView) sur une industrie, ou sur une action retenue
     const I = IND && IND.industries.find(i => i.k === indName); if (!I) return;
     const r = sym ? tkRow(sym) : null;
-    secView = 'tv'; store.set('mm.secview', 'tv'); secBuiltKey = ''; secSort = { k: 'rank', dir: 1 };
+    secView = 'tv'; store.set('mm.secview', 'tv'); secBuiltKey = ''; secSortLvl = null;
     tvNav = r && r.kept ? { lvl: 'stk', sec: I.sec, ind: I.k } : { lvl: 'ind', sec: I.sec, ind: null };
     secSel = r && r.kept ? r.s : I.k; tvSave(); store.set(selKey(), secSel);
     $('view-sec').classList.remove('detail');

@@ -8,7 +8,9 @@ Indice d'un secteur / d'une industrie (équipondéré par action) : base 100, pu
 titres cotés la veille et le jour, chacune plafonnée à ±daily_return_clip). La composition est celle du jour du calcul.
 
 Sorties :
-  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, b}], industries:[{k, sec, f, n, c, b}]}
+  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, b, rv}], industries:[{k, sec, f, n, c, b, rv}],
+                             stocks:{n, b, c, rv}} (stocks : toutes les actions retenues : % au TI65 > 1, indice équipondéré
+                             = le marché de la carte de rotation ; rv = volume en dollars relatif, config/industries.toml [volume])
                              k = nom TradingView, n = titres retenus, c = indice (aligné sur dates ; affiché en courbe de
                              tendance, pas en bougies), b = % des titres dont le
                              TI65 dépasse 1 (null si moins de min_members titres ont un TI65), f = fichier de l'industrie.
@@ -118,6 +120,17 @@ def build_index(members, close, n, clip=CFG["index"]["daily_return_clip"], base=
     return out
 
 
+def dollar_volume_rel(members, close, vol, n, short=CFG["volume"]["short"], long=CFG["volume"]["long"]):
+    """Volume en dollars relatif, séance par séance : moyenne des `short` dernières séances ÷ moyenne des `long` dernières
+    (cours × volume ajustés des splits : le produit ne dépend pas des splits). None tant que la fenêtre longue n'est pas pleine."""
+    dv = [sum(close[t][k] * vol[t][k] for t in members if close[t][k] and vol[t][k]) for k in range(n)]
+    out = []
+    for k in range(n):
+        lw = dv[k - long + 1:k + 1] if k >= long - 1 else None
+        out.append(round((sum(dv[k - short + 1:k + 1]) / short) / (sum(lw) / long), 2) if lw and sum(lw) > 0 else None)
+    return out
+
+
 def ti65(c, end, short=TI["short"], long=TI["long"]):
     """Moyenne des `short` dernières clôtures ÷ moyenne des `long` dernières, à l'index end ; None s'il en manque une."""
     if end < long - 1:
@@ -198,17 +211,23 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
         sec_of.setdefault(m["ind"], m["sec"])
     scores = {m["s"]: ti65_series(close[m["s"]]) for m in members}
     rnd = lambda xs: [None if v is None else round(v, 3) for v in xs]
-    sectors = [{"k": s, "n": len(ts), "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)}
-               for s, ts in sorted(by_sec.items())]
+    sectors = [{"k": s, "n": len(ts), "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n),
+                "rv": dollar_volume_rel(ts, close, vol, n)} for s, ts in sorted(by_sec.items())]
     industries, files, taken = [], {}, set()
     lo = max(0, n - keep)
     for ind, ms in sorted(by_ind.items()):
         ts, f = [m["s"] for m in ms], slug(ind, taken)
         industries.append({"k": ind, "sec": sec_of[ind], "f": f, "n": len(ts),
-                           "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)})
+                           "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n), "rv": dollar_volume_rel(ts, close, vol, n)})
         rows = [stock_row(m["s"], m["n"], m["cap"], close, vol, ohlc, lo, unit) for m in sorted(ms, key=lambda m: m["s"])]
         files[f] = {"asof": dates[-1], "dates": dates[lo:], "vu": unit, "rows": rows}
-    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
+    # toutes les actions retenues : % au TI65 > 1 à chaque séance (case « Actions TI65 > 1 » de l'onglet Secteurs ; agrégat
+    # calculé ici pour que le navigateur n'ait pas à charger les fichiers de toutes les industries)
+    # c : indice équipondéré de toutes les actions retenues = le « marché » de la carte de rotation (force relative des secteurs)
+    every = [m["s"] for m in members]
+    stocks = {"n": len(members), "b": breadth(every, scores, n), "c": rnd(build_index(every, close, n)),
+              "rv": dollar_volume_rel(every, close, vol, n)}
+    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries, "stocks": stocks}, files
 
 
 def universe_rows(tv_rows, cfg=CFG["universe"]):

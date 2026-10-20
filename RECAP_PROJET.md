@@ -419,6 +419,38 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > **Fait (13/10/2026)** : gabarit ≤ 640 px, barre du haut, barre d'onglets en bas + « Plus », feuilles (Réglages, Plus), cibles
 > ≥ 44 px, zones sûres, cartes repliées par défaut, tableau défilant (1re colonne fixe). **Reste** : gestes (pincement,
 > appui long = réticule, double-tap), Secteurs en maître/détail, onglet Comparer en mobile, PWA, essai sur un vrai téléphone.
+> **20/10/2026 (choix de l'utilisateur)** : vue TradingView de Secteurs, rangée « Classer par » mobile (TI65 · Δ 5 j · % > 1 ;
+> Cap. pour les actions) plutôt que défilement horizontal ou en-tête à bascule ; Δ : plus fortes hausses d'abord ; tri mémorisé par
+> niveau ; « % > 1 » affiché sous l'écart seulement quand on trie dessus (retiré du sous-titre, souvent tronqué). Constat : trier par
+> Écart ou 3 mois redonne l'ordre du rang. Limite connue : « % > 1 » d'une industrie de 3 à 5 titres est très volatil.
+> **20/10/2026, cases de Secteurs (exception au gel accordée)** : Industries / Secteurs / Actions TI65 > 1 et Rotation 5 j, en bande
+> qui défile sur mobile, cliquables (raccourcis), à la séance survolée comme sur le MM.
+> **Rotation revue le même jour (critique de l'utilisateur : illisible)** : la 1re version comptait les rangs gagnés / perdus ;
+> mesuré, la somme des Δ de rang vaut 0 à chaque séance (un classement est à somme nulle) et 69 industries sur 118 bougent d'au
+> moins 10 rangs en 5 séances : du bruit. Remplacée par les **entrées / sorties au-dessus de 1** sur 5 séances, lue comme le ±4 % :
+> solde en grand (19/10 : +8), « +14 / −6 » dessous ; toucher = les industries qui viennent d'entrer. Le solde est la variation du
+> nombre d'industries > 1 : retiré du sous-titre de la case Industries pour ne pas l'afficher deux fois.
+> Mobile : la bande qui défile est remplacée par la grille du MM (2 colonnes ; 3 sous 1 100 px), demande de l'utilisateur.
+> **Critique demandée par l'utilisateur (« où va l'argent ? »)** : les cases comptaient sans localiser, et « bleu = la hausse
+> s'élargit » trompait — le 19/10, le TI65 moyen des industries est à 0,96 et le flux va de l'Électronique (−4, semi-conducteurs
+> compris) vers la consommation courante, le commerce de détail et la santé (rotation défensive). Ajouts : flux par secteur
+> (fait), puis graphique de rotation relatif au marché (RRG) et volume en dollars (PR suivante). Limites : TI65 sans volume,
+> équipondéré, absolu, retardé ; effet de seuil à 1.
+> **Carte de rotation (RRG) + volume en dollars (PR suivante, référence = toutes les actions retenues, choix de l'utilisateur)** :
+> force relative au marché et son accélération, 4 zones, traînée 10 séances, taille = volume en dollars relatif (5 / 50 séances).
+> 19/10 : Électronique glisse vers « En retard », Conso. courante en tête des « Meneurs » : cohérent avec le flux par secteur.
+> Principe du RRG de Julius de Kempenaer, avec le TI65 comme mesure (pas ses formules propriétaires).
+> **UX du 20/10/2026** : l'écran ne descend plus au changement de date (scrollIntoView remplacé) ; une seule case active ; carte
+> pleine largeur ; **frise temporelle** (choix A parmi frise / ▶ rejouer / flèches) sur Industries TI65 > 1 : glisser = remonter
+> le temps comme sur le MM. Exemple : le 7 août, Électronique était dans « S'améliore », avant de plonger « En retard » en octobre.
+> **Carte, suite (choix de l'utilisateur)** : arbre dans la carte (secteurs → industries → actions, fil et ‹), survol qui met un
+> point en avant et atténue les autres, tickers saisis au-dessus de la carte (leurs secteurs / industries en avant ; pastille =
+> descente jusqu'à l'industrie). 19/10 : NVDA dans « S'affaiblit » parmi 57 semi-conducteurs, XOM « Meneur » des pétrolières.
+> **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
+> cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
+> aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
+> qui se chevauchent) : IWM 10 séances plus tard, en moyenne −0,5 % sous 1 et +0,8 % à partir de 1,5. Toucher = les industries
+> entrées ces 10 séances et toujours au-dessus de 1 (où regarder les nouveaux meneurs).
 
 Constat initial : mise en page pensée pour le bureau ; seuls quelques `@media` (grilles) ; événements pointeur sans **pincement** ;
 zoom à la molette ; menus déroulants ; en-tête qui se replie sur plusieurs lignes ; tableaux larges.

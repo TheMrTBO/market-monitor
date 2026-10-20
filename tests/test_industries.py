@@ -101,6 +101,17 @@ check("fichier d'industrie : 70 dernières séances, une ligne par action", len(
       and [r[0] for r in soft["rows"]] == ["AAA", "BBB", "CCC"] and len(soft["rows"][0][3]) == 70 and soft["rows"][0][4][0] == 500)
 check("fichier d'industrie : OHLC des actions (null avant le cache OHLC)", len(soft["rows"][0]) == 8
       and soft["rows"][0][5][0] is None and soft["rows"][0][6][-1] == fi.num(close["AAA"][-1] * 1.03))
+check("actions TI65 > 1 : toutes les actions retenues, une valeur par séance",
+      payload["stocks"]["n"] == len(members) and len(payload["stocks"]["b"]) == len(dates)
+      and payload["stocks"]["b"] == fi.breadth([m["s"] for m in members], {m["s"]: fi.ti65_series(close[m["s"]]) for m in members}, len(dates)))
+rvs = payload["stocks"]["rv"]
+dvs = [sum(close[m["s"]][k] * vol[m["s"]][k] for m in members if close[m["s"]][k] and vol[m["s"]][k]) for k in range(len(dates))]
+k = len(dates) - 1
+exp_rv = round((sum(dvs[k - 4:k + 1]) / 5) / (sum(dvs[k - 49:k + 1]) / 50), 2)
+check("volume en dollars relatif : 5 dernières séances ÷ 50 dernières (None avant 50 séances), secteurs et industries aussi",
+      rvs[-1] == exp_rv and rvs[48] is None and rvs[49] is not None and all(len(x["rv"]) == len(dates) for x in payload["sectors"] + payload["industries"]))
+check("marché de la carte de rotation : indice équipondéré de toutes les actions retenues",
+      payload["stocks"]["c"] == [None if v is None else round(v, 3) for v in fi.build_index([m["s"] for m in members], close, len(dates))])
 check("indices : courbe seulement (pas de bougie d'indice)", all("o" not in x for x in payload["sectors"] + payload["industries"]))
 _, f2 = fi.compute(dates, close, vol, members, keep=70)
 check("sans OHLC en cache : pas de colonnes OHLC pour les actions", len(f2[inds["Soft"]["f"]]["rows"][0]) == 5)

@@ -67,7 +67,7 @@ const r1=rows(A), exp1=order(IND.sectors,IND.dates,CFG.industries.min_members);
 ok('ordre des secteurs = TI65 recalculé',r1.slice(0,exp1.length).map(r=>r.s).join('|')===exp1.join('|'),r1.slice(0,3).map(r=>r.s).join(', '));
 ok('colonnes du niveau secteurs',heads(A).join(',')==='rank,sym,brd,spark,dev,delta'&&/<th class="c-open"/.test(A.$('secHead')._h),heads(A).join(','));
 const s0=IND.sectors.find(s=>s.k===r1[0].s), pc=(Math.round(s0.b[s0.b.length-1])+' %');
-ok('nom : secteur traduit ; dessous nom TradingView, titres (et % > 1 sur mobile)',r1[0].cells[1].startsWith((CFG.sector_fr[r1[0].s]||r1[0].s)+' '+r1[0].s+' · '+s0.n+' titres')&&/class="mob"/.test(r1[0].h),r1[0].cells[1]);
+ok('nom : secteur traduit ; dessous nom TradingView, titres (% > 1 : sous l\'écart quand on trie dessus)',r1[0].cells[1].startsWith((CFG.sector_fr[r1[0].s]||r1[0].s)+' '+r1[0].s+' · '+s0.n+' titres')&&!/class="mob"/.test(r1[0].h),r1[0].cells[1]);
 ok('% > 1 = valeur du fichier à la dernière séance',r1[0].cells[2]===pc,r1[0].cells[2]);
 const sp=r1[0].h.match(/<polyline points="([^"]+)" class="(u|d)"/);
 const nSp=Array.from({length:CFG.ti65.spark},(_,j)=>sc(s0.c,IND.dates.length-CFG.ti65.spark+j)).filter(v=>v!=null).length;
@@ -85,6 +85,31 @@ ok('TI65 > 1 : seulement les secteurs au-dessus de 1, rangs conservés',ra.lengt
 ok('TI65 > 1 : mémorisé',ls['mm.tvabove']==='1');
 chip(A,{above:'1'});
 ok('TI65 > 1 : retiré',rows(A).length===r1.length);
+
+// 2 bis) « Classer par » (mobile) : TI65 · Δ 5 j · % > 1, même état que les en-têtes, mémorisé par niveau
+const sortBy=(A,k)=>A.L.secSortBar.click({target:{closest:()=>({dataset:{sort:k}})}});
+const sortBtns=A=>[...A.$('secSortBar')._h.matchAll(/<button data-sort="([^"]+)"([^>]*)>(.*?)<\/button>/g)].map(m=>({k:m[1],on:/class="on"/.test(m[2]),t:strip(m[3])}));
+const dnum=s=>/^▲ \d+$/.test(s)?+s.slice(2):/^▼ \d+$/.test(s)?-s.slice(2):s==='='?0:null;
+const colOf=(A,c)=>{const i=heads(A).indexOf(c);return rows(A).map(r=>r.cells[i]);};
+ok('Classer par : visible en vue TradingView, TI65 · Δ 5 j · % > 1, TI65 actif',A.$('secSortBar').hidden===false&&sortBtns(A).map(b=>b.k).join(',')==='rank,delta,brd'&&sortBtns(A)[0].on,sortBtns(A).map(b=>b.t).join(' | '));
+sortBy(A,'delta');
+const dl=colOf(A,'delta').map(dnum).filter(v=>v!=null);
+ok('Δ 5 j : plus fortes hausses d\'abord',dl.length>3&&dl.every((v,i)=>!i||v<=dl[i-1]),dl.slice(0,6).join(' '));
+ok('Δ 5 j : bouton actif ▼, en-tête synchronisé, mémorisé pour les secteurs',sortBtns(A)[1].on&&/▼/.test(sortBtns(A)[1].t)&&/data-k="delta"[^>]*>.*?▼/.test(A.$('secHead')._h)&&ls['mm.tvsort.sec']==='{"k":"delta","dir":-1}',ls['mm.tvsort.sec']);
+ok('Δ 5 j : valeur sous l\'écart mise en avant',/class="dsub on"/.test(rows(A)[0].h));
+sortBy(A,'delta');
+const dl2=colOf(A,'delta').map(dnum).filter(v=>v!=null);
+ok('Δ 5 j touché à nouveau : sens inverse',dl2.every((v,i)=>!i||v>=dl2[i-1])&&/▲/.test(sortBtns(A)[1].t),dl2.slice(0,6).join(' '));
+sortBy(A,'brd');
+const bl=colOf(A,'brd').filter(v=>v!=='—').map(v=>parseFloat(v));
+ok('% > 1 : du plus large au plus étroit, valeur sous l\'écart',bl.every((v,i)=>!i||v<=bl[i-1])&&/class="dsub on">\d+ % &gt; 1/.test(rows(A)[0].h),bl.slice(0,5).join(' '));
+open(A,IND.sectors[0].k);
+ok('niveau industries : tri propre au niveau (TI65 par défaut)',sortBtns(A)[0].on&&sortBtns(A).map(b=>b.k).join(',')==='rank,delta,brd');
+up(A,0);
+ok('retour aux secteurs : tri % > 1 retrouvé',sortBtns(A)[2].on&&ls['mm.tvsort.sec']==='{"k":"brd","dir":-1}');
+ok('mémorisé après rechargement',(()=>{const B=boot(Object.assign({},ls));tab(B);return sortBtns(B).find(b=>b.on).k==='brd';})());
+sortBy(A,'rank');
+ok('TI65 : retour au classement',rows(A).slice(0,exp1.length).map(r=>r.s).join('|')===exp1.join('|'));
 
 // 3) ouvrir un secteur : toutes les industries, filtre posé sur le secteur, rangs globaux
 const S=IND.sectors.find(s=>IND.industries.some(i=>i.sec===s.k&&i.n<CFG.industries.few_members&&i.n>=CFG.industries.min_members)).k;
