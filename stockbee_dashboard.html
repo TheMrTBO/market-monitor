@@ -155,10 +155,12 @@
   .secfilt button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
   .secfilt button span { color: var(--faint); margin-left: 4px; font-variant-numeric: tabular-nums; }
   /* cases en tête de la vue TradingView (Secteurs) : mêmes cases que le MM ; un toucher = raccourci, case active encadrée */
-  .secstrip { grid-template-columns: repeat(4, minmax(0, 1fr)); margin: 12px 0 4px; }
+  .kpis.secstrip { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 12px 0 4px; }   /* une colonne par case */
+  @media (max-width: 1100px) { .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } }   /* comme le MM ; 2 colonnes sous 640 px */
   .secstrip .kpi { cursor: pointer; } .secstrip .kpi:hover { border-color: var(--faint); }
   .secstrip .kpi.on { box-shadow: inset 0 0 0 1.5px var(--up); border-color: var(--up); }
   .secstrip .kden { color: var(--muted); font-weight: 500; font-size: .7em; }
+  .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
   .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
   .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
   .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
@@ -573,12 +575,12 @@
     #secTable.tv .c-delta { display: none; }          /* vue TradingView (noms longs) : Δ 5 j passe sous l'écart */
     #secTable.tv td.dev .dsub { display: block; font-size: 11px; text-align: right; }
     #view-sec .secsort:not([hidden]) { display: flex; }
-    /* cases de Secteurs : bande qui défile (la case suivante dépasse, signe qu'il y en a d'autres), la liste reste à l'écran */
-    .kpis.secstrip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 12px; scrollbar-width: none; gap: 10px; padding: 12px 12px 6px; margin: 0; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .kpis.secstrip::-webkit-scrollbar { display: none; }
-    .secstrip .kpi { flex: 0 0 64%; scroll-snap-align: start; }
-    .secstrip .kw { display: none; }                  /* mobile : « +14 / −6 », comme « +161 / −172 » du ±4 % (les mots restent dans la bulle ⓘ) */   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
+    /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
+       nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
+    .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .secstrip .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
     #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
@@ -2296,8 +2298,8 @@
     const cnt = id => {                              // industries / secteurs au TI65 > 1
       const a = K[id][e], b = past >= 0 ? K[id][past] : null;
       // industries : la variation sur 5 j est le solde de la case Rotation (pas répétée ici) ; secteurs : part d'il y a Δ séances
-      return a ? [`${a.up}<span class="kden"> / ${a.n}</span>`, `${nf(a.pct, 0)} % des ${id === 'ind' ? 'industries' : 'secteurs'}` +
-        (id === 'sec' && b ? ` · il y a ${TI.delta} j : ${nf(b.pct, 0)} %` : '')] : ['—', 'historique trop court'];
+      return a ? [`${a.up}<span class="kden"> / ${a.n}</span>`, `${nf(a.pct, 0)} %<span class="kw"> des ${id === 'ind' ? 'industries' : 'secteurs'}</span>` +
+        (id === 'sec' && b ? `<span class="kw"> · il y a ${TI.delta} j : ${nf(b.pct, 0)} %</span>` : '')] : ['—', 'historique trop court'];   // « il y a 5 j » masqué sur mobile : la mini-courbe suffit
     };
     const series = id => Array.from({ length: TI.spark }, (_, j) => { const k = e - TI.spark + 1 + j; return k >= 0 ? skVal(K, id, k) : null; });
     const col = v => css(v == null ? '--muted' : v >= 50 ? '--up' : '--down');
