@@ -72,6 +72,11 @@ ok('rotation : solde, entrées et sorties = recalcul',val(rot)===(net>0?'+':'')+
 ok('rotation : le solde = variation du nombre d\'industries au-dessus de 1 (même ensemble d\'industries)',
   net===I0.filter(x=>sc(x.c,N-1-W)!=null&&sc(x.c,N-1)>1).length-I0.filter(x=>sc(x.c,N-1)!=null&&sc(x.c,N-1-W)>1).length);
 ok('industries : plus de « il y a 5 j » (c\'est le solde de la rotation)',!/il y a/.test(c.find(x=>x.k==='ind').t));
+// ratio de rotation : entrées / sorties de chaque séance (franchissement de 1), cumulées sur rotation_ratio_sessions séances
+const RN=K.rotation_ratio_sessions; let en=0,ou=0; const keys=new Set();
+for(let j=N-RN;j<=N-1;j++)for(const x of I0){const a=sc(x.c,j-1),b=sc(x.c,j);if(a==null||b==null)continue;if(a<=1&&b>1){en++;keys.add(x.k);}else if(a>1&&b<=1)ou++;}
+const still=I0.filter(x=>keys.has(x.k)&&sc(x.c,N-1)>1).map(x=>x.k), rr=c.find(x=>x.k==='rr');
+ok('ratio rotation '+RN+' j : entrées ÷ sorties = recalcul, « entrées / sorties » dessous',!!rr&&val(rr)===(ou?(en/ou).toFixed(2).replace('.',','):'∞')&&rr.t.includes(en+' entrées / '+ou+' sorties'),rr&&rr.t.slice(0,90));
 // actions TI65 > 1 : série du robot ; ancien fichier sans la série → message, pas d'erreur
 const stk=c.find(x=>x.k==='stk');
 if(IND.stocks)ok('actions TI65 > 1 = dernière valeur de la série du robot',val(stk)===Math.round(IND.stocks.b[N-1])+' %',val(stk));
@@ -92,6 +97,10 @@ sk(A,'rot');
 ok('Rotation touchée à nouveau : toutes les industries',rows(A).length===IND.industries.length&&!kp(A).find(x=>x.k==='rot').on,rows(A).length);
 sk(A,'rot'); up(A,0);
 ok('remonter aux secteurs : filtre « entrées » levé',!kp(A).find(x=>x.k==='rot').on&&rows(A).length===IND.sectors.length);
+sk(A,'rr');
+ok('Ratio rotation : industries entrées ces '+RN+' séances et toujours au-dessus de 1',rows(A).map(r=>r.s).sort().join('|')===still.slice().sort().join('|')&&kp(A).find(x=>x.k==='rr').on&&!kp(A).find(x=>x.k==='rot').on,rows(A).length+' / '+still.length);
+sk(A,'rr');
+ok('Ratio rotation touchée à nouveau : toutes les industries',rows(A).length===IND.industries.length);
 sk(A,'sec');
 ok('Secteurs > 1 : niveau secteurs, filtre TI65 > 1',crumbs(A).length===1&&ls['mm.tvabove']==='1'&&kp(A).find(x=>x.k==='sec').on);
 sk(A,'sec'); sk(B,'stk');
