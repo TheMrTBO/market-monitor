@@ -2,6 +2,7 @@
 // Valeurs recalculées indépendamment (force relative = TI65 de indice ÷ marché, accélération), zones, toucher (détail puis
 // ouverture), marché du robot ou approché, taille des points (volume en dollars relatif), flux avec le volume.
 const fs=require('fs'),vm=require('vm');
+require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){

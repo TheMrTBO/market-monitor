@@ -14,7 +14,7 @@ on:
     paths: ['.github/workflows/update.yml', 'stockbee_dashboard.html', 'index.html', 'config_data.js', 'config/**', '*.py', 'mm/**']   # code ou config modifiés : republication
 
 permissions:
-  contents: write              # commit des fichiers de données
+  contents: write              # commit des fichiers de données (sauf fichiers générés : cache Actions)
   pages: write
   id-token: write
 
@@ -62,6 +62,26 @@ jobs:
           path: cache
           key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
 
+      # Fichiers générés (config/storage.toml [generated] : vue TradingView, index Tickers) : jamais commités (~2,7 Mo
+      # d'historique Git par séance), gardés d'un passage à l'autre par ce cache. fetch_industries.py y relit la composition
+      # publiée (séance déjà publiée, secours si TradingView ne répond pas). Mêmes chemins dans les trois workflows.
+      - name: Restaurer les fichiers générés (cache hors dépôt)
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: |
+            industries_data.js
+            tickers_data.js
+            industries
+          key: generes-${{ github.run_id }}   # jamais trouvée : on prend le plus récent (restore-keys)
+          restore-keys: generes-
+
+      - name: Secours si le cache manque (version du site publié)
+        continue-on-error: true            # site injoignable : fetch_industries.py refait un scan TradingView complet
+        run: python generated.py fetch     # ne télécharge que s'il manque un fichier
+
+      - name: Copier les fichiers générés (annulation possible si le contrôle échoue)
+        run: python generated.py snapshot "$RUNNER_TEMP/generes"
+
       - name: Récupérer les données (Stockbee, calcul maison, VIX, prix, ETF sectoriels, scan post-market, industries TradingView)
         id: fetch
         continue-on-error: true            # on publie quand même ce qui a été mis à jour ; l'échec reste signalé plus bas
@@ -76,24 +96,28 @@ jobs:
         if: steps.validate.outcome == 'failure'
         run: |
           git checkout -- stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js
-          # industries : fichier principal + un fichier par industrie. Déjà publiés : on revient à la version du dépôt (et on
-          # retire les fichiers nouveaux) ; jamais publiés (premier passage) : on retire le produit invalide. Aucune suppression
-          # de fichier suivi en cas d'erreur de checkout.
           git checkout -- tv_breadth_data.js 2>/dev/null || rm -f tv_breadth_data.js   # T2108 TradingView (ajouté le 20/10/2026)
-          if git ls-files --error-unmatch industries_data.js >/dev/null 2>&1; then
-            git checkout -- industries_data.js industries && git clean -fdq -- industries
-            git checkout -- tickers_data.js 2>/dev/null || rm -f tickers_data.js   # index de l'onglet Tickers (ajouté après)
-          else
-            rm -rf industries_data.js industries tickers_data.js
-          fi
+          # fichiers générés (non versionnés) : retour à la copie d'avant update_all.py (cache ou site publié), fichiers
+          # nouveaux retirés ; aucune copie (premier passage sans cache ni site) : le produit invalide est retiré
+          python generated.py restore "$RUNNER_TEMP/generes"
+
+      # Clé = contenu : un passage qui ne change rien (même séance) ne crée pas de nouvelle entrée de cache.
+      - name: Sauvegarder les fichiers générés (cache hors dépôt)
+        if: ${{ !cancelled() && hashFiles('industries_data.js') != '' }}
+        continue-on-error: true            # cache déjà existant (même contenu) ou indisponible : secours = site publié
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: |
+            industries_data.js
+            tickers_data.js
+            industries
+          key: generes-${{ hashFiles('industries_data.js', 'tickers_data.js', 'industries/*.js') }}
 
       - name: Enregistrer les données (dernières bonnes valeurs conservées en cas d'échec d'une source)
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add stockbee_data.js stockbee_market_monitor.csv breadth_data.js prices_data.js vix_data.js sectors_data.js postmarket_data.js status_data.js
-          if [ -f industries_data.js ]; then git add -A industries_data.js industries; fi   # -A : industries disparues retirées
-          if [ -f tickers_data.js ]; then git add tickers_data.js; fi                       # index de l'onglet Tickers
           if [ -f tv_breadth_data.js ]; then git add tv_breadth_data.js; fi                 # T2108 TradingView
           if git diff --cached --quiet; then
             echo "Aucun changement de données."
@@ -133,6 +157,11 @@ jobs:
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
         run: python -m mm.store sync --run-id "${{ github.run_id }}-${{ github.run_attempt }}" --message "Données du $(date -u '+%Y-%m-%d %H:%M UTC') (mise à jour)"
 
+      - name: Vérifier les fichiers générés (sinon Secteurs / TradingView et Tickers publiés sans données)
+        id: generated
+        continue-on-error: true
+        run: python generated.py check
+
       - name: Préparer le site
         run: python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
 
@@ -142,9 +171,9 @@ jobs:
           path: _site
 
       - name: Signaler un échec de source (le site est publié avec les dernières données valides)
-        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.history.outcome == 'failure' || steps.store_checkout.outcome == 'failure' || steps.store.outcome == 'failure'
+        if: steps.fetch.outcome == 'failure' || steps.validate.outcome == 'failure' || steps.history.outcome == 'failure' || steps.store_checkout.outcome == 'failure' || steps.store.outcome == 'failure' || steps.generated.outcome == 'failure'
         run: |
-          echo "::error::Au moins une source ou le stockage historique n'a pas pu être mis à jour (voir les étapes « Compléter l'historique », « Récupérer les données » et « Synchroniser le stockage »)."
+          echo "::error::Au moins une source ou le stockage historique n'a pas pu être mis à jour (voir les étapes « Compléter l'historique », « Récupérer les données », « Vérifier les fichiers générés » et « Synchroniser le stockage »)."
           exit 1
 
   deploy:

@@ -1,5 +1,6 @@
 # Stockage des données. Deux niveaux :
-#  - serving : ce que lit le site aujourd'hui. "js_files" = fichiers *_data.js commités sur main (jusqu'à la phase 3c).
+#  - serving : ce que lit le site aujourd'hui. "js_files" = fichiers *_data.js commités sur main (jusqu'à la phase 3c),
+#    sauf les fichiers générés de [generated], publiés sur le site sans être commités.
 #  - [store] : l'historique durable, en ajout seul (phase 3). backend "git_csv" = fichiers CSV sur la branche orpheline
 #    `data` de ce dépôt, extraite dans le dossier `root` (non versionné sur main). Plus tard : "postgres", "sqlite"… ;
 #    seul le module mm/store/ change, le modèle logique (datasets.toml) et les scripts restent identiques.
@@ -18,3 +19,14 @@ required = ["index.html", "stockbee_dashboard.html", "config_data.js", "stockbee
             "vix_data.js", "sectors_data.js", "postmarket_data.js", "status_data.js"]
 optional = ["industries_data.js", "tickers_data.js", "short_data.js", "tv_breadth_data.js"]
 dirs = ["industries"]
+
+[generated]
+# Fichiers produits par le robot et publiés sur le site, mais jamais commités sur main (ignorés par .gitignore) : la vue
+# TradingView est réécrite à chaque séance (fenêtre glissante de 190 séances), ~2,7 Mo d'historique Git par commit (mesuré le
+# 20/10/2026). Gardés entre deux passages par le cache Actions (clé « generes- », mêmes chemins dans les trois workflows,
+# vérifié par mmconfig.py --check) ; secours : téléchargés depuis le site publié (python generated.py fetch).
+# Doivent figurer dans [site] (optional / dirs). Les tests lisent une copie figée : tests/fixtures/.
+files = ["industries_data.js", "tickers_data.js"]
+dirs = ["industries"]
+site_url = "https://themrtbo.github.io/market-monitor/"
+cache_prefix = "generes-"

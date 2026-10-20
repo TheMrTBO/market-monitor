@@ -15,3 +15,9 @@ _site/
 
 # --- stockage historique : branche `data` extraite localement (git worktree), jamais sur main ---
 data-store/
+
+# --- fichiers générés par le robot (config/storage.toml [generated]) : publiés sur le site, jamais commités ---
+# (gardés par le cache Actions ; en local : python generated.py fetch). « / » initial : pas tests/fixtures/.
+/industries_data.js
+/tickers_data.js
+/industries/

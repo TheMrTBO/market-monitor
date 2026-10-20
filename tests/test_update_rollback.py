@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ["stockbee_data.js", "stockbee_market_monitor.csv", "breadth_data.js", "vix_data.js", "prices_data.js", "sectors_data.js",
         "industries_data.js"]
 FOLDER = "industries"                     # un fichier par industrie (config/industries.toml), restaure en bloc
+FIXTURES = ROOT / "tests" / "fixtures"    # fichiers generes non versionnes (config/storage.toml [generated]) : copie figee
 
 STUBS = {
     "fetch_stockbee.py": 'print("stub stockbee : donnees deja a jour")\n',
@@ -65,10 +66,10 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         for name in ["update_all.py", "validate_data.py", "mmconfig.py", *DATA]:
-            shutil.copy(ROOT / name, work / name)
+            shutil.copy(FIXTURES / name if (FIXTURES / name).exists() else ROOT / name, work / name)
         shutil.copytree(ROOT / "config", work / "config")             # configuration centralisee (etapes, fraicheur)
         shutil.copytree(ROOT / ".github", work / ".github")
-        shutil.copytree(ROOT / FOLDER, work / FOLDER)
+        shutil.copytree(FIXTURES / FOLDER, work / FOLDER)
         folder = lambda: {q.name: q.read_bytes() for q in sorted((work / FOLDER).glob("*"))}
         before_folder = folder()
         for name, code in STUBS.items():
