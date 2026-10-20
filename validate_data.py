@@ -125,7 +125,7 @@ def check_breadth(data, today, stockbee_path=None):
 
 
 def check_tv_breadth(data, today):
-    """T2108 TradingView (fetch_tv_breadth.py) : structure, bornes, fraicheur (la serie demarre le 20/10/2026)."""
+    """Breadth TradingView (fetch_tv_breadth.py) : T2108 et ±4 %, structure, bornes, fraicheur (serie depuis le 19/10/2026)."""
     errors, f = [], fresh("tv_breadth")
     rows = data["rows"]
     if len(rows) < f["min_rows"]:
@@ -133,8 +133,11 @@ def check_tv_breadth(data, today):
     if not rows:
         return errors
     _check_dates([r[0] for r in rows], "tv_breadth", today, f["max_age"], f["max_gap"], errors)
+    cols = {c: i for i, c in enumerate(data.get("columns", ["date", "t2108", "n"]))}
+    cnt = lambda r, k: r[cols[k]] if k in cols and cols[k] < len(r) else None   # ±4 % : absent des relevés d'avant le 20/10/2026
     bad = [r[0] for r in rows if not isinstance(r[1], (int, float)) or not 0 <= r[1] <= 100 or not isinstance(r[2], int)
-           or r[2] < mmconfig.load("sources")["tv_breadth"]["min_stocks"]]
+           or r[2] < mmconfig.load("sources")["tv_breadth"]["min_stocks"]
+           or any(cnt(r, k) is not None and (not isinstance(cnt(r, k), int) or not 0 <= cnt(r, k) <= 5000) for k in ("up4", "down4"))]
     if bad:
         errors.append(f"tv_breadth : {len(bad)} seance(s) incoherente(s) ({', '.join(bad[:3])})")
     return errors

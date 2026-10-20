@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""T2108 relevé sur le screener public TradingView (sans compte ni clé) -> tv_breadth_data.js.
+"""Breadth relevé sur le screener public TradingView (sans compte ni clé) -> tv_breadth_data.js : T2108 et ±4 % du jour.
 
 T2108 = part (en %) des actions dont la clôture dépasse leur moyenne mobile simple 40 jours (champ SMA40 du screener,
-clôture du jour incluse). Univers : config/sources.toml [tv_breadth] (actions ordinaires NYSE / Nasdaq / AMEX).
+clôture du jour incluse). ±4 % = formule TC2000 de breadth_own.count_breadth, appliquée telle quelle (même fonction) aux
+champs close / close[1] / volume / volume[1] du screener (déjà ajustés des splits) : disponible le soir même, alors que
+Polygon ne publie la séance que le lendemain matin (décision du 20/10/2026 ; 19/10 : TradingView +161 / −173, Polygon
++161 / −172). Univers : config/sources.toml [tv_breadth] (actions ordinaires NYSE / Nasdaq / AMEX).
 TradingView ne fournit aucun historique de cet agrégat : la série se construit un relevé par séance, et sert de seconde
 source maison, comparée à Stockbee (et au calcul Polygon de breadth_own.py) dans le dashboard.
 
@@ -23,14 +26,15 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import mmconfig
+from breadth_own import count_breadth       # formule TC2000 (une seule définition, voir breadth_own.py)
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "tv_breadth_data.js"
 MARKET = mmconfig.load("market")
 CFG = mmconfig.load("sources")["tv_breadth"]
 NY = ZoneInfo(MARKET["timezone"])
-COLUMNS = ["date", "t2108", "n"]          # n = actions retenues (clôture et SMA40 renseignées)
-SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session"]
+COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture et SMA40 ; up4 / down4 : ±4 % du jour (TC2000)
+SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]"]
 
 
 def load_existing(path):
@@ -42,13 +46,14 @@ def load_existing(path):
 
 
 def write_js(rows, scanned, path):
+    rows = [list(r) + [None] * (len(COLUMNS) - len(r)) for r in rows]   # lignes d'avant le ±4 % (3 colonnes) : complétées
     payload = {"columns": COLUMNS, "rows": rows, "asof": rows[-1][0] if rows else None, "scanned": scanned}
     Path(path).write_text("window.TV_BREADTH = " + json.dumps(payload, separators=(",", ":")) + ";\n")
 
 
 def measure(items, now_utc):
     """(séance, t2108, n) du relevé, ou (None, raison) s'il ne doit pas être retenu. items = lignes `d` du screener."""
-    rows = [dict(zip(SCAN_COLS, d)) for d in items]
+    rows = [dict(zip(SCAN_COLS, d)) for d in items]                         # champs absents d'une réponse : None
     rows = [r for r in rows if r["subtype"] == CFG["subtype"]]
     if len(rows) < CFG["min_stocks"]:
         return None, f"{len(rows)} actions seulement (minimum {CFG['min_stocks']})"
@@ -61,9 +66,13 @@ def measure(items, now_utc):
     if now_utc < close_at + timedelta(minutes=CFG["delay_minutes"]):
         return None, f"séance du {day} pas encore close (+{CFG['delay_minutes']} min de différé)"
     sma = f"SMA{CFG['sma']}"
-    valid = [r for r in rows if r["close"] is not None and r[sma] is not None]
+    valid = [r for r in rows if r["close"] is not None and r.get(sma) is not None]
     above = sum(r["close"] > r[sma] for r in valid)
-    return day.isoformat(), (round(100 * above / len(valid), 2), len(valid))
+    # ±4 % : clé = rang de la ligne (le screener ne répète pas un symbole) ; titres sans clôture ou volume de la veille ignorés
+    full = {i: r for i, r in enumerate(rows) if None not in (r["close"], r.get("close[1]"), r.get("volume"), r.get("volume[1]"))}
+    up4, down4 = count_breadth({i: [r["close"], r["volume"]] for i, r in full.items()},
+                               {i: [r["close[1]"], r["volume[1]"]] for i, r in full.items()}, set(full), {}) if full else (None, None)
+    return day.isoformat(), (round(100 * above / len(valid), 2), len(valid), up4, down4)
 
 
 def main():
@@ -87,7 +96,7 @@ def main():
         return
     existing[day] = row
     write_js([existing[d] for d in sorted(existing)], now.isoformat(timespec="seconds"), OUT)
-    print(f"Ecrit : {OUT.name} | séance {day} : T2108 {res[0]} % sur {res[1]} actions ({len(existing)} séances)")
+    print(f"Ecrit : {OUT.name} | séance {day} : T2108 {res[0]} % sur {res[1]} actions, ±4 % +{res[2]} / -{res[3]} ({len(existing)} séances)")
 
 
 if __name__ == "__main__":

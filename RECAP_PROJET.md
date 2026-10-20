@@ -373,6 +373,9 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 > (valeur lue par l'utilisateur), TradingView 27,41 % (5 129 actions), calcul Polygon 25,15 % — la source n'est pas en cause,
 > l'univers l'est (≈ 5 150 titres contre ≈ 6 550 chez Worden). Piste : exporter depuis TC2000 la liste derrière le T2108.
 > À juger après ~20 séances de relevé TradingView (corrélation et écart dans le pied de page).
+> **20/10/2026, ±4 % TradingView le soir (accord de l'utilisateur)** : même fonction TC2000 que Polygon, sur close / close[1] /
+> volume / volume[1] du screener ; 19/10 : TradingView +161 / −173, Polygon +161 / −172. Le MM a ainsi ±4 %, ratios 5 / 10 j et
+> T2108 dès 16 h 20 à New York ; les ±25 % attendent Polygon (le screener ne donne pas les clôtures à 20 et 63 séances).
 > **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j). **Lots 2 et 3 branchés le 2026-10-13 en pointillé** (cases et seuils restent
 > Stockbee) : ±25 % mois (C/C[20], prix de départ ≥ 5 $, **sans filtre de volume** ; corrélation 1,000 / 0,992, écart 1,7 % / 8,2 % ;
 > ratio mois corrélé à 0,999), T2108 (SMA 40 ; corrélation 0,98, biais +0 à +6 pts, cause probable : univers ~5 170 titres cotés/jour vs
