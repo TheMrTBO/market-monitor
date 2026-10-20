@@ -29,3 +29,26 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-20,2026-10-20T21:07:38+00:00,false,NYSE:DELL,DELL,"Dell Technologies, Inc. Class C",Electronic Technology,Computer Processing Hardware,461.56,1.34,484.0,4.86,419454,0.05,293465738627,292324693,
 2026-10-20,2026-10-20T21:07:38+00:00,false,NYSE:MBGL,MBGL,Mobility Global Inc,Technology Services,Internet Software/Services,18.52,0.49,19.2673,4.04,342991,,5460090929,293110766,
 2026-10-20,2026-10-20T21:07:38+00:00,false,NYSE:PLNT,PLNT,"Planet Fitness, Inc. Class A",Consumer Services,Other Consumer Services,52.96,0.13,50.83,-4.02,296850,0.14,4000226170,74775701,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:AAOI,AAOI,"Applied Optoelectronics, Inc.",Electronic Technology,Semiconductors,76.74,-1.87,79.9799,4.22,1031913,0.1,6515708298,80529634,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:CIFR,CIFR,Cipher Digital Inc.,Technology Services,Data Processing Services,8.88,-0.67,9.2802,4.51,3537402,0.1,3685472720,344556246,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:CRDO,CRDO,Credo Technology Group Holding Ltd.,Technology Services,Information Technology Services,171.51,-0.75,180.2491,5.1,370105,0.05,32235633268,169379451,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:CRWV,CRWV,"CoreWeave, Inc. Class A",Technology Services,Packaged Software,62.13,1.65,64.65,4.06,2342494,0.07,34266967463,349311034,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:ECHO,ECHO,EchoStar Corporation Class A,Communications,Specialty Telecommunications,86.39,0.22,90.01,4.19,235468,0.04,25123580021,132515801,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:IREN,IREN,IREN Limited,Technology Services,Data Processing Services,26.62,-4.0,27.7,4.06,7394812,0.17,10756938130,354999818,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:ISRG,ISRG,"Intuitive Surgical, Inc.",Health Technology,Medical Specialties,438.0,1.11,407.0,-7.08,822081,0.29,154735781380,350804700,amc
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:NBIS,NBIS,Nebius Group N.V. Class A,Technology Services,Packaged Software,171.45,0.71,179.51,4.7,1258649,0.06,46609580687,222545208,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:NFLX,NFLX,"Netflix, Inc.",Technology Services,Internet Software/Services,68.69,-1.66,64.77,-5.71,13262386,0.33,286021028327,4134097042,amc
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:OUST,OUST,"Ouster, Inc.",Electronic Technology,Semiconductors,29.65,2.74,30.9,4.22,199883,0.06,2138130784,69145167,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,6.84,100.59,6.37,-6.87,3550170,2.0,101673147,4494439,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:SMCI,SMCI,"Super Micro Computer, Inc.",Electronic Technology,Computer Processing Hardware,32.47,1.15,36.6,12.72,7733352,0.17,21331665298,573856299,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:SPCX,SPCX,Space Exploration Technologies Corp,Communications,Specialty Telecommunications,147.79,-0.11,154.177,4.32,16089035,0.15,2005668420464,2904292900,amc
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:TKNO,TKNO,"Alpha Teknova, Inc.",Health Technology,Pharmaceuticals: Major,7.39,8.68,5.78,-21.79,238358,0.99,396756160,10925602,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:WFRD,WFRD,Weatherford International plc,Industrial Services,Oilfield Services/Equipment,79.34,2.92,83.65,5.43,377853,0.33,5767096797,71210935,amc
+2026-10-20,2026-10-20T21:22:41+00:00,false,NASDAQ:WULF,WULF,TeraWulf Inc.,Technology Services,Data Processing Services,12.01,-0.41,12.61,5.0,2996820,0.09,5992614162,348786316,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:COF,COF,Capital One Financial Corp,Finance,Major Banks,201.56,0.87,210.61,4.49,604665,0.15,123653997873,606582066,amc
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:DELL,DELL,"Dell Technologies, Inc. Class C",Electronic Technology,Computer Processing Hardware,461.56,1.34,488.0,5.73,482506,0.06,293465738627,292324693,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,56.09,0.39,59.5018,6.08,2356870,0.11,74457494815,1322394412,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:MBGL,MBGL,Mobility Global Inc,Technology Services,Internet Software/Services,18.52,0.49,19.2673,4.04,342991,,5460090929,293110766,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:PLNT,PLNT,"Planet Fitness, Inc. Class A",Consumer Services,Other Consumer Services,52.96,0.13,50.83,-4.02,296850,0.14,4000226170,74775701,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:SEI,SEI,"Solaris Energy Infrastructure, Inc. Class A",Industrial Services,Oilfield Services/Equipment,63.34,-3.68,66.0,4.2,212537,0.07,5077698159,56718633,
+2026-10-20,2026-10-20T21:22:41+00:00,false,NYSE:VRT,VRT,Vertiv Holdings Co. Class A,Electronic Technology,Electronic Production Equipment,203.56,-1.22,211.78,4.04,660566,0.12,78368196591,383735249,
