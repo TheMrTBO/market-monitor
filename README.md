@@ -13,7 +13,7 @@ Lecture rapide : `duckdb -c "select * from read_csv_auto('prices_daily/*/*.csv')
 |---|---|---|---|
 | `stockbee_daily` | session_date | month | Breadth Stockbee (Market Monitor), une ligne par séance |
 | `breadth_own_daily` | session_date | month | Calcul maison du breadth (clôtures Polygon / Massive) |
-| `tv_breadth_daily` | session_date | month | T2108 relevé sur le screener TradingView (aucun historique chez TradingView : un relevé par séance depuis le 20/10/2026) |
+| `tv_breadth_daily` | session_date | month | Breadth relevé sur le screener TradingView : T2108 et ±4 % TC2000 (aucun historique chez TradingView : un relevé par séance depuis le 19/10/2026 ; ±4 % depuis le 20/10/2026) |
 | `prices_daily` | symbol, session_date | month | Bougies journalières QQQ, IWM (Yahoo) et BTC (Coinbase) |
 | `sectors_daily` | symbol, session_date | month | Bougies journalières des ETF de config/sectors.toml (Yahoo) |
 | `vix_daily` | session_date | month | VIX (CBOE) |
