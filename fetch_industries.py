@@ -8,7 +8,8 @@ Indice d'un secteur / d'une industrie (équipondéré par action) : base 100, pu
 titres cotés la veille et le jour, chacune plafonnée à ±daily_return_clip). La composition est celle du jour du calcul.
 
 Sorties :
-  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, b}], industries:[{k, sec, f, n, c, b}]}
+  industries_data.js         window.INDUSTRIES = {asof, dates, sectors:[{k, n, c, b}], industries:[{k, sec, f, n, c, b}],
+                             stocks:{n, b}} (stocks : toutes les actions retenues, % au TI65 > 1 par séance)
                              k = nom TradingView, n = titres retenus, c = indice (aligné sur dates ; affiché en courbe de
                              tendance, pas en bougies), b = % des titres dont le
                              TI65 dépasse 1 (null si moins de min_members titres ont un TI65), f = fichier de l'industrie.
@@ -208,7 +209,10 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
                            "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n)})
         rows = [stock_row(m["s"], m["n"], m["cap"], close, vol, ohlc, lo, unit) for m in sorted(ms, key=lambda m: m["s"])]
         files[f] = {"asof": dates[-1], "dates": dates[lo:], "vu": unit, "rows": rows}
-    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries}, files
+    # toutes les actions retenues : % au TI65 > 1 à chaque séance (case « Actions TI65 > 1 » de l'onglet Secteurs ; agrégat
+    # calculé ici pour que le navigateur n'ait pas à charger les fichiers de toutes les industries)
+    stocks = {"n": len(members), "b": breadth([m["s"] for m in members], scores, n)}
+    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries, "stocks": stocks}, files
 
 
 def universe_rows(tv_rows, cfg=CFG["universe"]):

@@ -22,6 +22,14 @@ group_tips = { all = "Les 55 ETF suivis, tous groupes confondus.", "Secteur" = "
 # bascule en tête de l'onglet : [clé, libellé] ; etf = config/sectors.toml, tv = secteurs → industries → actions TradingView
 views = [["etf", "ETF"], ["tv", "TradingView"]]
 
+[sectors.kpis]
+# cases en tête de la vue TradingView de l'onglet Secteurs (décision du 20/10/2026) ; un toucher = raccourci (filtre ou tri)
+# ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (rangs gagnés en `ti65.delta` séances) ·
+# stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
+tiles = ["ind", "sec", "rot", "stk"]
+rotation_ranks = 10           # « Rotation » : industries qui gagnent / perdent au moins ce nombre de rangs
+record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
+
 [ti65]
 # indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :
 # moyenne des `short` dernières clôtures ÷ moyenne des `long` dernières ; lu aussi par fetch_industries.py (% de titres > 1)

@@ -411,6 +411,9 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > Cap. pour les actions) plutôt que défilement horizontal ou en-tête à bascule ; Δ : plus fortes hausses d'abord ; tri mémorisé par
 > niveau ; « % > 1 » affiché sous l'écart seulement quand on trie dessus (retiré du sous-titre, souvent tronqué). Constat : trier par
 > Écart ou 3 mois redonne l'ordre du rang. Limite connue : « % > 1 » d'une industrie de 3 à 5 titres est très volatil.
+> **20/10/2026, cases de Secteurs (exception au gel accordée)** : Industries / Secteurs / Actions TI65 > 1 et Rotation 5 j, en bande
+> qui défile sur mobile, cliquables (raccourcis), à la séance survolée comme sur le MM. Constat au 19/10 : 69 industries sur 118
+> bougent d'au moins 10 rangs en 5 séances — le seuil `rotation_ranks` = 10 est peut-être trop bas pour distinguer une vraie rotation.
 
 Constat initial : mise en page pensée pour le bureau ; seuls quelques `@media` (grilles) ; événements pointeur sans **pincement** ;
 zoom à la molette ; menus déroulants ; en-tête qui se replie sur plusieurs lignes ; tableaux larges.
