@@ -2538,15 +2538,22 @@
     g.globalAlpha = 1;
     const col = q => css(q === 'lead' ? '--up' : q === 'weak' ? '--warn' : q === 'lag' ? '--down' : '--ccross');
     const lab = k => { const s = showInd ? k : tvSecLabel(k); return s.length > 18 ? s.slice(0, 17) + '…' : s; };
-    pts.forEach(o => {
-      const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null;
-      g.strokeStyle = c; g.globalAlpha = .5; g.lineWidth = 1.2; g.beginPath(); o.tr.forEach(([u, v], i) => i ? g.lineTo(X(u), Y(v)) : g.moveTo(X(u), Y(v))); g.stroke();
-      o.tr.slice(0, -1).forEach(([u, v]) => { g.fillStyle = c; g.beginPath(); g.arc(X(u), Y(v), 1.4, 0, 2 * Math.PI); g.fill(); });
-      g.globalAlpha = 1;
+    // mise en avant (demande du 20/10/2026) : le point survolé ou touché, en pleine couleur avec sa traînée épaissie et datée ;
+    // les autres atténués et dessinés dessous
+    const focus = rrgHot ? new Set([rrgHot]) : new Set(), dim = k => focus.size > 0 && !focus.has(k);
+    pts.slice().sort((u, v) => dim(v.x.k) - dim(u.x.k)).forEach(o => {
+      const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null, f = focus.has(o.x.k), d = dim(o.x.k);
+      g.strokeStyle = c; g.globalAlpha = d ? .12 : f ? .95 : .5; g.lineWidth = f ? 2.2 : 1.2;
+      g.beginPath(); o.tr.forEach(([u, v], i) => i ? g.lineTo(X(u), Y(v)) : g.moveTo(X(u), Y(v))); g.stroke();
+      o.tr.slice(0, -1).forEach(([u, v]) => { g.fillStyle = c; g.beginPath(); g.arc(X(u), Y(v), f ? 2.4 : 1.4, 0, 2 * Math.PI); g.fill(); });
       const r = rv == null ? 5 : Math.max(3, Math.min(10, 2 + 4 * rv));   // taille : volume en dollars relatif au marché (1 = comme le marché)
-      g.fillStyle = c; g.beginPath(); g.arc(X(a), Y(b), r, 0, 2 * Math.PI); g.fill();
-      if (rrgHot === o.x.k) { g.strokeStyle = css('--ccross'); g.lineWidth = 2; g.beginPath(); g.arc(X(a), Y(b), r + 3, 0, 2 * Math.PI); g.stroke(); }
-      rrgHits.push({ k: o.x.k, ind: showInd, x: X(a), y: Y(b), q, a, b, rv, r });
+      g.globalAlpha = d ? .25 : 1; g.fillStyle = c; g.beginPath(); g.arc(X(a), Y(b), r, 0, 2 * Math.PI); g.fill(); g.globalAlpha = 1;
+      if (f) {
+        g.strokeStyle = css('--ccross'); g.lineWidth = 2; g.beginPath(); g.arc(X(a), Y(b), r + 3, 0, 2 * Math.PI); g.stroke();
+        const [u0, v0] = o.tr[0];                     // début de la traînée daté : d'où vient le point
+        g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(fmtDate(IND.dates[t0 + (e - t0 + 1 - o.tr.length)], { day: 'numeric', month: 'short' }), X(u0), Y(v0) + 4);
+      }
+      rrgHits.push({ k: o.x.k, ind: showInd, x: X(a), y: Y(b), q, a, b, rv, r, dim: d });
     });
     // étiquettes : d'abord les points les plus éloignés du centre (les plus nets) ; une étiquette qui en recouvrirait une autre
     // est omise (le point reste touchable, son nom s'affiche dessous) ; celle du point touché est toujours écrite
@@ -2554,8 +2561,9 @@
     rrgHits.slice().sort((p, q) => (p.k === rrgHot) - (q.k === rrgHot) || ((q.x - cx) ** 2 + (q.y - cy) ** 2) - ((p.x - cx) ** 2 + (p.y - cy) ** 2))
       .sort((p, q) => (q.k === rrgHot) - (p.k === rrgHot)).forEach(p => {
         const s = lab(p.k), w = g.measureText(s).width, right = p.x > W * 0.72, x0 = right ? p.x - p.r - 3 - w : p.x + p.r + 3, box = [x0 - 1, p.y - 7, x0 + w + 1, p.y + 7];
-        if (p.k !== rrgHot && placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3]))) return;
-        placed.push(box); g.fillStyle = css(p.k === rrgHot ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(s, x0, p.y);
+        if (!focus.has(p.k) && (p.dim || placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3])))) return;   // atténués : sans nom
+        placed.push(box); g.fillStyle = css(focus.has(p.k) ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle';
+        if (focus.has(p.k)) { g.font = '600 12px -apple-system, "Segoe UI", sans-serif'; g.fillText(s, x0, p.y); g.font = '11px -apple-system, "Segoe UI", sans-serif'; } else g.fillText(s, x0, p.y);
       });
     const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length;
     $('rrgInfo').innerHTML = h ? `<b>${escH(showInd ? h.k : tvSecLabel(h.k))}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
