@@ -73,7 +73,8 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | Fichier | Variable | Contenu |
 |---|---|---|
 | `stockbee_data.js` | `window.STOCKBEE` | `{columns, rows}` ; colonnes : `date, up4, down4, ratio5, ratio10, up25q, down25q, up25m, down25m, up50m, down50m, up13_34d, down13_34d, universe, t2108, sp500` ; 1 964 séances depuis 2018-12-18 |
-| `breadth_data.js` | `window.BREADTH_OWN` | `{columns:[date, up4, down4, ratio5, ratio10], rows, asof, universe}` ; calcul maison, depuis 2026-07 (séries cumulées au fil des jours) |
+| `breadth_data.js` | `window.BREADTH_OWN` | `{columns:[date, up4, down4, ratio5, ratio10, up25m, down25m, up25q, down25q, t2108], rows, asof, universe}` ; calcul maison, depuis 2026-07 (séries cumulées au fil des jours) |
+| `tv_breadth_data.js` | `window.TV_BREADTH` | `{columns:[date, t2108, n], rows, asof, scanned}` ; T2108 du screener TradingView, un relevé par séance depuis le 2026-10-19 |
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
 | `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
@@ -364,6 +365,14 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
 > Reste : (a) corriger le calcul maison en production, (b) suite mobile ci-dessous, (c) lots 2 et 3 du calcul maison.
 
 ### Point 1 — Calculer les indicateurs nous-mêmes, sans dépendre de Stockbee
+> **Décision du 20/10/2026 (utilisateur)** : « afficher les résultats dès que possible, puis vérifier avec Stockbee, en précisant
+> toujours la source ; être le plus autonome possible ». Remplace la règle du 13/10 (cases ±25 % et T2108 = Stockbee seulement) :
+> les cinq cases prennent le calcul maison tant que Stockbee n'a pas publié, puis Stockbee ; étiquette de source sur chaque case ;
+> **l'alerte d'extrême du T2108 attend Stockbee** (biais de niveau). Ajout d'une seconde source maison pour le T2108 : le screener
+> TradingView (`fetch_tv_breadth.py`, champ SMA40), relevé chaque soir dès 16 h 20 à New York. Mesure du 19/10 : TC2000 29,46 %
+> (valeur lue par l'utilisateur), TradingView 27,41 % (5 129 actions), calcul Polygon 25,15 % — la source n'est pas en cause,
+> l'univers l'est (≈ 5 150 titres contre ≈ 6 550 chez Worden). Piste : exporter depuis TC2000 la liste derrière le T2108.
+> À juger après ~20 séances de relevé TradingView (corrélation et écart dans le pied de page).
 > **Statut : lot 1 fait** (+4 %/−4 %, ratios 5/10 j). **Lots 2 et 3 branchés le 2026-10-13 en pointillé** (cases et seuils restent
 > Stockbee) : ±25 % mois (C/C[20], prix de départ ≥ 5 $, **sans filtre de volume** ; corrélation 1,000 / 0,992, écart 1,7 % / 8,2 % ;
 > ratio mois corrélé à 0,999), T2108 (SMA 40 ; corrélation 0,98, biais +0 à +6 pts, cause probable : univers ~5 170 titres cotés/jour vs

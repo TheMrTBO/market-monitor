@@ -45,10 +45,11 @@ assert(strokesOwn-strokesBase>=2,`surimpression pointillée absente (${strokesBa
 // 3. pied de page : statut du calcul maison et contrôle croisé
 const foot=strip(A.$('dataStatus')._h);
 assert(/Calcul maison \d+ \S+ ✓/.test(foot),'statut « Calcul maison » absent du pied de page : '+foot);
-assert(/écart calcul maison \/ Stockbee/.test(foot),'contrôle croisé absent du pied de page : '+foot);
+assert(/Contrôle avec Stockbee .*±4 % : corrélation/.test(foot),'contrôle croisé absent du pied de page : '+foot);
 // 4. séance absente chez Stockbee : complétée par le calcul maison (ligne du tableau, avec les valeurs)
 const lastSb=vm.runInContext('STOCKBEE.rows[STOCKBEE.rows.length-1][0]',A.sb);
-const next=new Date(lastSb+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);
+// séance fictive après Stockbee ET après le calcul maison (chaque matin, le calcul maison a déjà une séance d'avance sur Stockbee)
+const next=new Date((own.asof>lastSb?own.asof:lastSb)+'T00:00:00Z');next.setUTCDate(next.getUTCDate()+1);
 const nd=next.toISOString().slice(0,10);
 const extra=`window.BREADTH_OWN={columns:${JSON.stringify(own.columns)},rows:${JSON.stringify(own.rows.concat([[nd,321,123,1.5,1.2]]))},asof:'${nd}',universe:${own.universe}};`;
 const B=boot(extra+STATUS_BREADTH);

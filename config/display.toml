@@ -6,6 +6,7 @@ ratio5 = [1, 1.5]
 rq = [1, 1.5]
 rm = [1, 2]
 t2108_extremes = [20, 70]   # T2108 : zones extrêmes (orange)
+compare_sessions = 60       # contrôle croisé calcul maison / TradingView ↔ Stockbee : dernières séances communes (corrélation, écart)
 
 [vix]
 refs = [20, 30]            # lignes de repère du graphique VIX
