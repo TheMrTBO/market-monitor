@@ -418,8 +418,9 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > moins 10 rangs en 5 séances : du bruit. Remplacée par les **entrées / sorties au-dessus de 1** sur 5 séances, lue comme le ±4 % :
 > solde en grand (19/10 : +8), « +14 / −6 » dessous ; toucher = les industries qui viennent d'entrer. Le solde est la variation du
 > nombre d'industries > 1 : retiré du sous-titre de la case Industries pour ne pas l'afficher deux fois.
-> **Ajout « Ratio rotation 10 j » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
-> cumulées sur 10 séances (5 : trop nerveux, 0,1 ↔ 3,7). 19/10 : 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
+> **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
+> cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
+> aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
 > qui se chevauchent) : IWM 10 séances plus tard, en moyenne −0,5 % sous 1 et +0,8 % à partir de 1,5. Toucher = les industries
 > entrées ces 10 séances et toujours au-dessus de 1 (où regarder les nouveaux meneurs).
 

@@ -72,11 +72,12 @@ ok('rotation : solde, entrées et sorties = recalcul',val(rot)===(net>0?'+':'')+
 ok('rotation : le solde = variation du nombre d\'industries au-dessus de 1 (même ensemble d\'industries)',
   net===I0.filter(x=>sc(x.c,N-1-W)!=null&&sc(x.c,N-1)>1).length-I0.filter(x=>sc(x.c,N-1)!=null&&sc(x.c,N-1-W)>1).length);
 ok('industries : plus de « il y a 5 j » (c\'est le solde de la rotation)',!/il y a/.test(c.find(x=>x.k==='ind').t));
-// ratio de rotation : entrées / sorties de chaque séance (franchissement de 1), cumulées sur rotation_ratio_sessions séances
-const RN=K.rotation_ratio_sessions; let en=0,ou=0; const keys=new Set();
-for(let j=N-RN;j<=N-1;j++)for(const x of I0){const a=sc(x.c,j-1),b=sc(x.c,j);if(a==null||b==null)continue;if(a<=1&&b>1){en++;keys.add(x.k);}else if(a>1&&b<=1)ou++;}
-const still=I0.filter(x=>keys.has(x.k)&&sc(x.c,N-1)>1).map(x=>x.k), rr=c.find(x=>x.k==='rr');
-ok('ratio rotation '+RN+' j : entrées ÷ sorties = recalcul, « entrées / sorties » dessous',!!rr&&val(rr)===(ou?(en/ou).toFixed(2).replace('.',','):'∞')&&rr.t.includes(en+' entrées / '+ou+' sorties'),rr&&rr.t.slice(0,90));
+// ratio de rotation : entrées / sorties de chaque séance (franchissement de 1), cumulées sur 5 (en grand) et 10 séances (dessous)
+const [RN,RL]=K.rotation_ratio_sessions;
+const rwin=n=>{let en=0,ou=0;const keys=new Set();for(let j=N-n;j<=N-1;j++)for(const x of I0){const a=sc(x.c,j-1),b=sc(x.c,j);if(a==null||b==null)continue;if(a<=1&&b>1){en++;keys.add(x.k);}else if(a>1&&b<=1)ou++;}
+  return {en,ou,txt:ou?(en/ou).toFixed(2).replace('.',','):(en?'∞':'—'),still:I0.filter(x=>keys.has(x.k)&&sc(x.c,N-1)>1).map(x=>x.k)};};
+const w5=rwin(RN), w10=rwin(RL), still=w5.still, rr=c.find(x=>x.k==='rr');
+ok('ratio rotation : '+RN+' j en grand, « '+RL+' jours : … » dessous (comme Ratio 5 j du MM) = recalcul',!!rr&&RN===5&&RL===10&&val(rr)===w5.txt&&rr.t.includes(RL+' jours : '+w10.txt)&&/Ratio rotation 5 j/.test(rr.t),rr&&rr.t.slice(0,90));
 // actions TI65 > 1 : série du robot ; ancien fichier sans la série → message, pas d'erreur
 const stk=c.find(x=>x.k==='stk');
 if(IND.stocks)ok('actions TI65 > 1 = dernière valeur de la série du robot',val(stk)===Math.round(IND.stocks.b[N-1])+' %',val(stk));

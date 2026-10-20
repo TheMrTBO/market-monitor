@@ -29,9 +29,9 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
 tiles = ["sec", "ind", "rot", "rr", "stk"]   # secteurs d'abord, puis industries (demande du 20/10/2026)
 rotation_window = 5           # « Rotation » : entrées / sorties au-dessus de 1 comptées sur ce nombre de séances
-# rr : ratio de rotation = entrées ÷ sorties de chaque séance, cumulées sur rotation_ratio_sessions séances (comme le ratio
-# 5 / 10 j des ±4 %) ; 10 plutôt que 5 : sur 5 séances la courbe saute de 0,1 à 3,7 d'une semaine à l'autre (mesuré le 20/10/2026)
-rotation_ratio_sessions = 10
+# rr : ratio de rotation = entrées ÷ sorties de chaque séance, cumulées sur [court, long] séances, lu comme « Ratio 5 j » du MM :
+# le court en grand (nerveux : 0,1 ↔ 3,7 d'une semaine à l'autre, mesuré le 20/10/2026), le long dessous (« 10 jours : … »)
+rotation_ratio_sessions = [5, 10]
 rotation_ratio = [1, 1.5]     # couleur : rouge sous 1 (plus de sorties que d'entrées), bleue à partir de 1,5, grise entre
 record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
 

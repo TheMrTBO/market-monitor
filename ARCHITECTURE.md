@@ -150,8 +150,8 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
 - **Cases de la vue TradingView** (Secteurs, décision du 20/10/2026) : industries, secteurs et actions au TI65 > 1, rotation
   = industries qui **franchissent 1** en `rotation_window` séances (solde en grand, « +entrées / −sorties » dessous, comme le ±4 % ;
   pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) (`config/display.toml [sectors.kpis]` :
-  ordre, fenêtre de la rotation, fenêtre des records). **Ratio rotation 10 j** (`rr`) : entrées ÷ sorties de chaque séance,
-  cumulées sur `rotation_ratio_sessions` séances, couleurs `rotation_ratio` (rouge < 1, bleu ≥ 1,5) comme le ratio 5 / 10 j des
+  ordre, fenêtre de la rotation, fenêtre des records). **Ratio rotation 5 j** (`rr`) : entrées ÷ sorties de chaque séance,
+  cumulées sur `rotation_ratio_sessions` = [5, 10] séances (5 j en grand, « 10 jours : … » dessous, comme « Ratio 5 j » du MM), couleurs `rotation_ratio` (rouge < 1, bleu ≥ 1,5) comme le ratio 5 / 10 j des
   ±4 % ; toucher = industries entrées dans la fenêtre et toujours au-dessus de 1 ; bulle : repère IWM recalculé à chaque chargement. Séance = celle survolée sur un graphique de
   l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1,
   industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par

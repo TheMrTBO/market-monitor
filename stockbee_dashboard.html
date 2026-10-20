@@ -2142,17 +2142,18 @@
     // repère mesuré du ratio de rotation : variation moyenne d'IWM sur les rotation_ratio_sessions séances suivantes, par zone
     // (recalculé à chaque chargement ; fenêtres qui se chevauchent : un repère, pas une statistique indépendante)
     const thr = v => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 »
-    const rrBack = () => {
-      const K = secKpiData(), W = SKP.rotation_ratio_sessions, iw = new Map(barsFor('IWM').map(b => [b.d, b.c])), Ds = IND.dates, z = [[], [], []];
-      K.rr.forEach((r, e) => { if (!r || r.ratio == null || e + W >= Ds.length) return; const a = iw.get(Ds[e]), b = iw.get(Ds[e + W]); if (a == null || b == null) return;
+    const rrBack = (key, W) => {
+      const K = secKpiData(), iw = new Map(barsFor('IWM').map(b => [b.d, b.c])), Ds = IND.dates, z = [[], [], []];
+      K[key].forEach((r, e) => { if (!r || r.ratio == null || e + W >= Ds.length) return; const a = iw.get(Ds[e]), b = iw.get(Ds[e + W]); if (a == null || b == null) return;
         z[r.ratio < SKP.rotation_ratio[0] ? 0 : r.ratio >= SKP.rotation_ratio[1] ? 2 : 1].push(100 * (b / a - 1)); });
       const m = a => a.length ? `${pct(a.reduce((s, x) => s + x, 0) / a.length)} (${a.length} séances)` : '—';
-      return `<p>Repère mesuré sur l'historique disponible (${Ds.length} séances) : IWM ${W} séances plus tard, en moyenne, quand le ratio est sous ${thr(SKP.rotation_ratio[0])} : <b>${m(z[0])}</b> ; entre les deux : ${m(z[1])} ; à partir de ${thr(SKP.rotation_ratio[1])} : <b>${m(z[2])}</b>. Fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision.</p>`;
+      return `<li>ratio ${W} j → IWM ${W} séances plus tard, en moyenne : sous ${thr(SKP.rotation_ratio[0])} <b>${m(z[0])}</b> · entre les deux ${m(z[1])} · à partir de ${thr(SKP.rotation_ratio[1])} <b>${m(z[2])}</b></li>`;
     };
     if (kind === 'skpi') return {
-      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions} séances, lu comme le ratio 5 / 10 j des ±4 % : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd.</p>
+      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions[0]} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions[0]} séances (grand chiffre) et sur ${SKP.rotation_ratio_sessions[1]} séances (dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Le ${SKP.rotation_ratio_sessions[0]} j réagit vite mais saute beaucoup ; le ${SKP.rotation_ratio_sessions[1]} j confirme.</p>
         <p><b>Lecture</b> : rouge (sous ${thr(SKP.rotation_ratio[0])}) longtemps = marché qui se rétrécit (sélectivité) ; retour au-dessus de 1 après une phase rouge = premières industries qui repartent ; bleu (à partir de ${thr(SKP.rotation_ratio[1])}) = la hausse s'élargit.</p>
-        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>${rrBack()}${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
+        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
+        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions[0])}${rrBack('rrL', SKP.rotation_ratio_sessions[1])}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
       rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
@@ -2245,19 +2246,20 @@
     });
     // ratio de rotation : entrées et sorties de chaque séance (franchissement de 1 d'une séance à l'autre), cumulées sur RN
     // séances ; « still » = industries entrées dans la fenêtre et toujours au-dessus de 1 (la liste du raccourci)
-    const RN = SKP.rotation_ratio_sessions;
+    const [RN, RL] = SKP.rotation_ratio_sessions;
     const day = Array.from({ length: N }, (_, e) => {
       if (e < 1) return null; const ent = [], out = []; let n = 0;
       for (const x of I) { const a = x.s[e - 1], b = x.s[e]; if (a == null || b == null) continue; n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k); }
       return n ? { ent, out } : null;
     });
-    const rr = Array.from({ length: N }, (_, e) => {
-      if (e < RN) return null; let en = 0, ou = 0; const keys = new Set();
-      for (let j = e - RN + 1; j <= e; j++) { const x = day[j]; if (!x) return null; en += x.ent.length; ou += x.out.length; x.ent.forEach(k => keys.add(k)); }
+    const win = n => Array.from({ length: N }, (_, e) => {
+      if (e < n) return null; let en = 0, ou = 0; const keys = new Set();
+      for (let j = e - n + 1; j <= e; j++) { const x = day[j]; if (!x) return null; en += x.ent.length; ou += x.out.length; x.ent.forEach(k => keys.add(k)); }
       return { en, ou, ratio: ou ? en / ou : null, still: I.filter(x => keys.has(x.k) && x.s[e] != null && x.s[e] > 1).map(x => x.k) };
     });
+    const rr = win(RN), rrL = win(RL);
     const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
-    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, rr, stk: st ? st.b : null, stkN: st ? st.n : null });
+    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
   }
   const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
@@ -2283,7 +2285,7 @@
     stk: { on: () => tvNav.lvl !== 'stk' && secSort.k === 'brd' && secSort.dir < 0,
            go: on => { const lvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; if (on) sortLevel(lvl, RANK); else { goLevel(lvl); sortLevel(lvl, { k: 'brd', dir: -1 }); } } },
   };
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Afficher les industries qui viennent de passer au-dessus de 1', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Afficher les industries qui viennent de passer au-dessus de 1', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
@@ -2308,12 +2310,13 @@
           `<span title="Industries passées au-dessus de 1 en ${SKP.rotation_window} séances">+${r.ent.length}<span class="kw"> entrées</span></span> / <span title="Industries repassées à 1 ou en dessous">−${r.out.length}<span class="kw"> sorties</span></span>`,
           spark(series('rot'), 'bars'), skGauge(K, 'rot', e, signed)];
       },
-      rr: () => {                                    // même lecture que le ratio 5 / 10 j des ±4 % : au-dessus de 1, plus d'entrées que de sorties
-        const lbl = `Ratio rotation ${SKP.rotation_ratio_sessions} j`, r = K.rr[e];
+      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : court en grand, « 10 jours : … » dessous
+        const [n, nl] = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e], rl = K.rrL[e];
         if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
         const v = r.ratio, f2 = x => nf(x, 2), c = css(v == null ? '--muted' : v < RRT[0] ? '--down' : v >= RRT[1] ? '--up' : '--muted');
-        return [lbl, v == null ? (r.en ? '∞' : '—') : `<span class="${rrCls(v)}">${f2(v)}</span>`,
-          `${r.en}<span class="kw"> entrées</span> / ${r.ou}<span class="kw"> sorties</span>`, spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
+        const show = x => x == null ? '—' : `<span class="${rrCls(x.ratio)}">${x.ratio == null ? (x.en ? '∞' : '—') : f2(x.ratio)}</span>`;
+        return [lbl, show(r), `<span title="Entrées / sorties : ${r.en} / ${r.ou} en ${n} séances${rl ? `, ${rl.en} / ${rl.ou} en ${nl}` : ''}">${nl} jours : ${show(rl)}</span>`,
+          spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
       },
       stk: () => {
         const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;

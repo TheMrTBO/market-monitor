@@ -141,10 +141,11 @@ def check():
     rr = kp.get("rotation_ratio", [])
     if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
             or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
-            or not (isinstance(kp.get("rotation_ratio_sessions"), int) and kp["rotation_ratio_sessions"] > 0) \
+            or not (len(kp.get("rotation_ratio_sessions", [])) == 2 and all(isinstance(n, int) and n > 0 for n in kp["rotation_ratio_sessions"])
+                    and kp["rotation_ratio_sessions"][0] < kp["rotation_ratio_sessions"][1]) \
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]):
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
-                      "rotation_ratio_sessions > 0 et rotation_ratio = [bas, haut] croissant attendus")
+                      "rotation_ratio_sessions = [court, long] croissant et rotation_ratio = [bas, haut] croissant attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
