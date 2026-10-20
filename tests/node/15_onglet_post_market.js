@@ -51,7 +51,10 @@ const go=A=>A.L.tabs.click({target:{closest:()=>({dataset:{tab:'pm'}})}});
 let A=boot({},PM); go(A);
 ok('hausses par volume AH en dollars', syms(A).join()==='BBB,AAA', syms(A).join());
 ok('Vol AH $ = actions × cours post-market (BBB : 2 M × 10,50)', /data-s="BBB".*?<td>21,0 M<\/td><td>2,0 M<\/td>/.test(A.$('pmRows')._h));
-ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,dv,pv,rv,cap', heads(A).join());
+ok('colonnes (sans Lendemain tant que la séance suivante n\'est pas jouée)', heads(A).join()==='sym,pch,adr,dv,pv,rv,cap', heads(A).join());
+{ const n=A.sb.MM_CONFIG.adr.sessions, w=D.slice(-n).map((d,i)=>{const k=D.length-n+i,c=10+Math.sin(k/5)*1;return (c+0.4)/(c-0.5);});
+  const exp=100*(w.reduce((s,x)=>s+x,0)/n-1), cell=(A.$('pmRows')._h.match(/data-s="AAA"[\s\S]*?<td class="c-adr">([^<]*)</)||[])[1];
+  ok('ADR '+n+' j du scan = recalcul sur les bougies Yahoo du titre (AAA)', cell===exp.toFixed(1).replace('.',',')+' %', cell+' / '+exp.toFixed(2)); }
 ok('plus de colonne Rés. ni de badge dans la liste', !/erb|AMC|BMO/.test(A.$('pmRows')._h));
 ok('méta : séance, en cours, heure du relevé', /27 août 2026 · post-market en cours · relevé à/.test(strip(A.$('pmMeta')._h)), strip(A.$('pmMeta')._h));
 ok('compteurs des filtres', /Hausses<span>2<\/span>.*Baisses<span>2<\/span>.*Les deux<span>4<\/span>.*Résultats<span>1<\/span>/.test(A.$('pmFilt')._h));

@@ -449,6 +449,14 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > **Plus gros mouvements (choix A + B, 3 + 3)** : mesure = déplacement net en 5 séances (le chemin parcouru compte les allers-retours ;
 > le changement de zone est trop fréquent : 12 secteurs sur 20 en 5 séances). 19/10 : ↗ Conso. courante 5,8, Commerce de détail 3,8,
 > Énergie fossile 3,3 · ↘ Électronique 8,3, Télécoms 4,9, Biens d'équipement 2,9.
+> **UX (choix 1, 2, 3 de l'utilisateur)** : sous-vues Résumé | Carte | Classement essayées puis retirées à sa demande (« tout dans
+> la même page, dans le même ordre qu'avant ») : cases, frise, note, flux, carte (toujours ouverte), classement ;
+> carte plus lisible (sens des axes sur les bords, zone « S'améliore » teintée, légende de taille, « Ouvrir › ») ; industries_data.js
+> chargé à la demande (Secteurs, Tickers, Post-market) au lieu du démarrage : le MM et SA ne le téléchargent plus.
+> **20/10/2026, suite (choix de l'utilisateur)** : ratio 10 j retiré de l'affichage (totaux 5 j à la place) ; classement sur toute la
+> hauteur (le calcul tombait à 260 px) ; ADR 20 j (définition 100 × (moyenne haut ÷ bas − 1)) + filtre « ADR > x % » au niveau actions
+> de Secteurs ; Copier sur les actions de Secteurs et l'onglet Tickers. 19/10 : 26 semi-conducteurs sur 57 ont un ADR > 5 %.
+> ADR ensuite étendu à toutes les listes (Tickers via tickers_data.js, Post-market via les bougies Yahoo du scan, fiche standard).
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres

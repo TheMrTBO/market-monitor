@@ -65,6 +65,7 @@ def front_config():
                     "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
+        "adr": d["adr"],
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
                     "short_stale_days": load("short")["stale_days"]},
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
@@ -142,11 +143,15 @@ def check():
     rr = kp.get("rotation_ratio", [])
     if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
             or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
-            or not (len(kp.get("rotation_ratio_sessions", [])) == 2 and all(isinstance(n, int) and n > 0 for n in kp["rotation_ratio_sessions"])
-                    and kp["rotation_ratio_sessions"][0] < kp["rotation_ratio_sessions"][1]) \
+            or not (isinstance(kp.get("rotation_ratio_sessions"), int) and kp["rotation_ratio_sessions"] > 0) \
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]) or not 0 < kp.get("breadth_mid", -1) < 100 or not kp.get("benchmark"):
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
-                      "rotation_ratio_sessions = [court, long] croissant, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
+                      "rotation_ratio_sessions entier > 0, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
+    ad = load("display")["adr"]
+    if not (isinstance(ad.get("sessions"), int) and ad["sessions"] > 1 and ad.get("step", 0) > 0):
+        errors.append("display.adr : sessions entier > 1 et step > 0 attendus")
+    elif ad["sessions"] > load("industries")["output"]["stock_sessions"]:
+        errors.append("display.adr.sessions : plus de séances que les fichiers d'actions n'en contiennent (industries.output.stock_sessions)")
     rg = load("display")["sectors"]["rrg"]
     if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
             and isinstance(rg.get("movers"), int) and rg["movers"] >= 0 and isinstance(rg.get("movers_window"), int) and rg["movers_window"] > 0) \

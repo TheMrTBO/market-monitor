@@ -22,7 +22,7 @@ function boot(ls,opts={}){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(opts.after)vm.runInContext(opts.after,sb);
@@ -142,7 +142,22 @@ F.rows.forEach(r=>{const c=r[3];r[5]=c.map(v=>v==null?null:v*0.99);r[6]=c.map(v=
 A.R.secCanvas=[];script.onload();
 const r3=rows(A), exp3=order(F.rows,F.dates);
 ok('actions de l\'industrie, classées par TI65',r3.length===I.n&&r3.slice(0,exp3.length).map(r=>r.s).join('|')===exp3.join('|'),r3.slice(0,3).map(r=>r.s).join(', '));
-ok('colonnes du niveau actions',heads(A).join(',')==='rank,sym,cap,spark,dev,delta'&&!/data-open=/.test(A.$('secRows')._h),heads(A).join(','));
+ok('colonnes du niveau actions',heads(A).join(',')==='rank,sym,cap,adr,spark,dev,delta'&&!/data-open=/.test(A.$('secRows')._h),heads(A).join(','));
+// ADR 20 j (OHLC simulé ci-dessus : haut = C × 1,02, bas = C × 0,98 → haut ÷ bas = 1,0408… → ADR ≈ 4,1 %), filtre et copie
+{ const AD=CFG.adr.sessions, ia=heads(A).indexOf('adr'), rA=rows(A), exp=100*(1.02/0.98-1);
+  ok('ADR '+AD+' j : 100 × (moyenne(haut ÷ bas) − 1) = recalcul',rA.length&&rA.every(r=>r.cells[ia]===exp.toFixed(1).replace('.',',')+' %'),rA[0]&&rA[0].cells[ia]);
+  ok('niveau actions : filtre ADR et bouton Copier visibles',A.$('secAdr').hidden===false);
+  A.L.adrMin.change({target:{value:'4,5'}});
+  ok('filtre « ADR > 4,5 % » : aucune action (toutes à ~4,1 %), mémorisé',rows(A).length===0&&ls['mm.adrmin']==='4.5'&&/0 \/ \d+ actions/.test(A.$('adrInfo')._t||''),A.$('adrInfo')._t);
+  A.L.adrMin.change({target:{value:'4'}});
+  ok('filtre « ADR > 4 % » : toutes les actions',rows(A).length===rA.length,rows(A).length+' / '+rA.length);
+  A.L.adrMin.change({target:{value:''}});
+  // copie : tickers affichés, dans l'ordre du tableau, séparés par des virgules
+  let copied=null; A.sb.navigator={clipboard:{writeText:s=>{copied=s;return Promise.resolve();}}}; A.sb.isSecureContext=true;
+  A.L.secCopy.click({});
+  ok('Copier : tickers du tableau dans l\'ordre, séparés par des virgules',copied===rows(A).map(r=>r.s).join(', '),String(copied).slice(0,60));
+}
+
 ok('fiche action : bougies japonaises',bodies(A)>20,bodies(A)+' corps de bougie');
 ok('fiche action : pas de carte « % > 1 »',A.$('secBrdCard').hidden===true);
 ok('fiche action : fiche standard (TI65, industrie, short) et lien Finviz',/finviz\.com\/quote\.ashx\?t=/.test(A.$('secLinks')._h)&&/Days to cover/.test(A.$('secFacts')._h)&&A.$('secCard').hidden===false);
@@ -178,5 +193,17 @@ ok('bulle de la carte « % > 1 »',/largeur/.test(tip(D,'secbrd')));
 view(A,'etf');
 ok('retour ETF : 55 lignes, pas de pastilles TradingView',rows(A).length===A.sb.SECTORS.symbols.length&&A.$('secChips').hidden===true);
 const E=boot({'mm.secview':'tv'},{files:['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js']}); tab(E);
+// industries_data.js chargé à la demande (plus au démarrage) : le fichier est demandé à l'ouverture de l'onglet ; il manque → échec
+const scrE=E.document.body.children.find(c=>c.src&&/^industries_data\.js/.test(c.src));
+ok('industries_data.js demandé à l\'ouverture de l\'onglet Secteurs (pas au démarrage)',!!scrE,scrE&&scrE.src);
+if(scrE)scrE.onerror();
 ok('sans fichier TradingView : bascule désactivée, vue ETF',/data-v="tv"[^>]*disabled/.test(E.$('secView')._h)&&rows(E).length===E.sb.SECTORS.symbols.length);
+// chargement à la demande : au démarrage (MM), pas d'industries_data.js ; ouverture de Secteurs → demandé, chargé, vue TradingView
+const Fb=boot({'mm.secview':'tv'},{files:['config_data.js','stockbee_data.js','prices_data.js','vix_data.js','sectors_data.js','tickers_data.js']});
+const reqI=X=>X.document.body.children.find(c=>c.src&&/^industries_data\.js/.test(c.src));
+ok('démarrage sur le MM : industries_data.js non chargé',!reqI(Fb)&&!Fb.sb.INDUSTRIES);
+tab(Fb);
+ok('ouverture de Secteurs : « Chargement… » puis fichier demandé',!!reqI(Fb)&&/Chargement des secteurs et industries/.test(Fb.$('secRows')._h),strip(Fb.$('secRows')._h).slice(0,60));
+vm.runInContext(fs.readFileSync('industries_data.js','utf8'),Fb.sb); reqI(Fb).onload();
+ok('fichier chargé : vue TradingView affichée (secteurs classés)',rows(Fb).length===Fb.sb.INDUSTRIES.sectors.length&&!/disabled/.test(Fb.$('secView')._h),rows(Fb).length);
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');

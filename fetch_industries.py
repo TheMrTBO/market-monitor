@@ -40,7 +40,8 @@ CFG = mmconfig.load("industries")
 TI = mmconfig.load("display")["ti65"]
 FOLDER = HERE / CFG["output"]["folder"]
 TICKERS_OUT = HERE / CFG["output"]["tickers_file"]
-TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av"]
+TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av", "adr"]
+ADR = mmconfig.load("display")["adr"]           # ADR des actions (toutes les listes de tickers du dashboard)
 TV_COLS = ["name", "description", "exchange", "subtype", "sector", "industry", "market_cap_basic", "float_shares_outstanding"]
 
 
@@ -129,6 +130,18 @@ def dollar_volume_rel(members, close, vol, n, short=CFG["volume"]["short"], long
         lw = dv[k - long + 1:k + 1] if k >= long - 1 else None
         out.append(round((sum(dv[k - short + 1:k + 1]) / short) / (sum(lw) / long), 2) if lw and sum(lw) > 0 else None)
     return out
+
+
+def adr(hl, end, n=ADR["sessions"]):
+    """ADR (average daily range) à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1), arrondi
+    à 0,01 ; None sans OHLC ou si l'une des n séances manque. hl = (plus hauts, plus bas) alignés sur les séances."""
+    if not hl or end < n - 1:
+        return None
+    h, l = hl
+    w = [(h[k], l[k]) for k in range(end - n + 1, end + 1)]
+    if any(a is None or b is None or not b > 0 for a, b in w):
+        return None
+    return round(100 * (sum(a / b for a, b in w) / n - 1), 2)
 
 
 def ti65(c, end, short=TI["short"], long=TI["long"]):
@@ -249,7 +262,7 @@ def published_universe(path=None):
         return None, None
 
 
-def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=None):
+def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=None, ohlc=None):
     """Payload de tickers_data.js : une ligne par action de l'univers (cols = TK_COLS)."""
     rows = universe_rows(tv_rows)
     by_ind = defaultdict(list)
@@ -279,7 +292,8 @@ def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=Non
                     1 if t in kept else 0,
                     None if score.get(t) is None else round(score[t], 4),
                     None if not c or ti65(c, n - 1 - delta) is None else round(ti65(c, n - 1 - delta), 4),
-                    rank.get(t), num(c[-1]) if c and c[-1] else None, round(sum(vs) / len(vs)) if vs else None])
+                    rank.get(t), num(c[-1]) if c and c[-1] else None, round(sum(vs) / len(vs)) if vs else None,
+                    adr((ohlc or {}).get(t, (None, None, None))[1:] if (ohlc or {}).get(t) else None, n - 1)])
     return {"asof": dates[-1], "scan": scan, "fallback": fallback, "secs": secs,
             "inds": [[k, secs.index(max(set(by_ind[k]), key=by_ind[k].count)), (extra_names or {}).get(k)] for k in inds],
             "cols": TK_COLS, "rows": out}
@@ -342,7 +356,7 @@ def main():
     payload["comp"] = {"asof": scan, "fallback": fallback}     # date de la composition (secours si TradingView a échoué)
     extra_files, extra_names = extras(dates, close, vol, ohlc, tv, members)
     files.update(extra_files)
-    tk = tickers(dates, close, vol, tv, members, scan, fallback, extra_names)
+    tk = tickers(dates, close, vol, tv, members, scan, fallback, extra_names, ohlc)
     write(payload, files, tk)
     ranked = sum(i["n"] >= CFG["index"]["min_members"] for i in payload["industries"])
     print(f"{len(tk['rows'])} actions dans l'index, {len(members)} retenues : {len(payload['sectors'])} secteurs, "

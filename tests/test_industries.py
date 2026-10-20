@@ -128,7 +128,7 @@ with tempfile.TemporaryDirectory() as tmp:
     t0 = p.stat().st_mtime_ns
     fi.write(payload, files)
     check("fichier inchangé : pas réécrit", p.stat().st_mtime_ns == t0)
-    tk = fi.tickers(dates, close, vol, tv, members, dates[-1], False)
+    tk = fi.tickers(dates, close, vol, tv, members, dates[-1], False, ohlc=ohlc)
     fi.write(payload, files, tk)
     col = {k: i for i, k in enumerate(tk["cols"])}
     row = {r[0]: r for r in tk["rows"]}
@@ -137,6 +137,11 @@ with tempfile.TemporaryDirectory() as tmp:
     check("index des tickers : TI65, rang dans l'industrie, industrie → secteur",
           abs(row["AAA"][col["ti"]] - round(fi.ti65(close["AAA"], n - 1), 4)) < 1e-9 and row["AAA"][col["rank_ind"]] == 1
           and tk["secs"][tk["inds"][row["DDD"][col["ind"]]][1]] == "Finance" and row["PNY"][col["rank_ind"]] is None)
+    nA = fi.ADR["sessions"]
+    hA, lA = ohlc["AAA"][1], ohlc["AAA"][2]
+    expA = round(100 * (sum(hA[k] / lA[k] for k in range(n - nA, n)) / nA - 1), 2)
+    check("index des tickers : ADR " + str(nA) + " j = 100 × (moyenne(haut ÷ bas) − 1) ; sans OHLC : None",
+          row["AAA"][col["adr"]] == expA and fi.adr(None, n - 1) is None and fi.adr(ohlc["AAA"][1:], 10) is None)
     scan_d, rows_back = fi.published_universe()
     check("composition publiée relue (date du scan, mêmes actions)", scan_d == dates[-1]
           and sorted(r["name"] for r in rows_back) == sorted(row) and sorted(m["s"] for m in fi.select(rows_back, close, vol)) == kept)

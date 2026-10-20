@@ -13,6 +13,7 @@
     --s10: #eda100; --s20: #eb6834; --s50: #6250d6; --s200: #1baf7a;  /* moyennes mobiles (anciennes valeurs, inutilisées) */
     /* thème des graphiques de prix : fond noir, bougies jaunes (hausse) et rouges (baisse) */
     --cbg: #000000; --cgrid: #1c1c1c; --cref: #444444; --ctext: #9aa0a6; --ccross: #d6d6d6;
+    --rrgimpr: rgba(214, 219, 228, .10);                               /* carte de rotation : zone « S'améliore » (fond noir des graphiques) */
     --cup: #f6e24b; --cdown: #cf5148;
     --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
   }
@@ -166,6 +167,8 @@
   /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
   .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 56px; display: block; cursor: ew-resize; touch-action: pan-y; }
   /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
+  /* carte de rotation toujours ouverte (une seule page, demande du 20/10/2026) : plus de repli */
+  #secRrg .rrghead { cursor: default; } #secRrg .rrghead .car { display: none; }   /* la carte est la vue : plus de repli */
   .secflow { padding: 10px 12px; margin-bottom: 10px; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
   .secflow button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%; text-align: left; border: 0; background: none;
@@ -181,6 +184,10 @@
   /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
   #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
   .rrginfo { font-size: 11.5px; color: var(--muted); min-height: 16px; margin-top: 4px; }
+  .rrginfo .rrgopen { margin-left: 6px; border: 1px solid color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 18%, transparent);
+                      color: var(--text); border-radius: 999px; padding: 1px 10px; font-size: 12px; cursor: pointer; }
+  .rrgleg { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 11px; color: var(--faint); margin-top: 2px; } .rrgleg:empty { display: none; }
+  .rrgleg i { display: inline-block; border-radius: 50%; background: var(--muted); vertical-align: middle; }
   /* arbre de la carte (secteurs › industries › actions) et tickers mis en avant */
   .rrgbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
   .rrgnav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12.5px; min-width: 0; }
@@ -203,6 +210,11 @@
   .rrgchips .unk { color: var(--faint); cursor: default; } .rrgchips b { font-weight: 600; }
   .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
   .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
+  /* filtre ADR et copie (niveau actions de la vue TradingView) */
+  .secadr { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; margin: 0 0 10px; font-size: 12.5px; color: var(--muted); }
+  .secadr input { width: 64px; padding: 3px 6px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font-size: 12.5px; }
+  .secadr .copybtn { margin-left: auto; }
+  #secTable th.c-adr { width: 70px; }
   .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
   .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
   .secsort button .arr { color: inherit; margin-left: 3px; }
@@ -606,7 +618,7 @@
     /* onglet Tickers sur mobile : thèmes en bande qui défile, tableau réduit à Ticker · Industrie · TI65 · Days to cover */
     #tkThemes { display: flex; overflow-x: auto; gap: 8px; scrollbar-width: none; padding-bottom: 2px; }
     #tkThemes .tktheme { flex: none; width: 250px; }
-    #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct { display: none; }
+    #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct, #tkTable .c-adr { display: none; }   /* ADR : sous le TI65 */
     #tkTable { table-layout: fixed; width: 100%; }
     #tkTable th.c-ti { width: 80px; } #tkTable th.c-dtc { width: 54px; } #tkTable th.c-open { width: 32px; } #tkTable th.c-sym { width: 74px; }
     .rk .dsk { display: none; }
@@ -631,7 +643,7 @@
     .secstrip .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
    /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
-    #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
+    #secTable.tv .c-brd, #secTable.tv .c-adr, #secTable.tv td.dev .trk { display: none; }   /* ADR : sous l'écart quand on trie dessus */
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
     #secTable.tv td.sym .tsub { white-space: nowrap; }
     .sechead .viewbox { order: 3; }
@@ -740,7 +752,7 @@
           <button class="rrgmv" id="rrgMv" type="button" aria-pressed="true" title="Mettre en avant les plus gros mouvements">Mouvements</button>
           <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
         <div class="rrgchips" id="rrgChips"></div>
-        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgmoves" id="rrgMoves"></div></div>
+        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgleg" id="rrgLeg"></div><div class="rrgmoves" id="rrgMoves"></div></div>
     </div>
     <div class="secsplit">
       <div class="card seclist">
@@ -751,6 +763,9 @@
         </div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
+        <div class="secadr" id="secAdr" hidden><label>ADR <span id="adrN"></span> &gt; <input id="adrMin" type="number" min="0" inputmode="decimal" placeholder="0"> %</label>
+          <span class="adrinfo" id="adrInfo"></span>
+          <button class="copybtn" id="secCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button></div>
         <div class="secfilt secsort" id="secSortBar" role="group" aria-label="Classer par" hidden></div>
         <div class="tablewrap secscroll" id="secScroll">
           <table id="secTable" class="rk">
@@ -840,6 +855,7 @@
       <div class="card seclist">
         <div class="sechead">
           <b>Tickers · secteur, industrie, short</b><button class="tipbtn" data-tip="tkhelp" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <button class="copybtn" id="tkCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
           <span class="secmeta" id="tkMeta"></span>
         </div>
         <div class="tkinput">
@@ -1011,7 +1027,7 @@
   <footer>
     <div id="dataStatus"></div>
     Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
-    +4 % : hausse d'au moins 4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Yahoo Finance (QQQ, IWM), Coinbase (BTC) · Secteurs : Yahoo Finance · Post-market : screener public TradingView (différé de 15 min), graphiques Yahoo Finance · VIX : CBOE.
+    +4 % : hausse d'au moins 4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratio 5 j = somme des +4 % / somme des −4 % sur 5 séances · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Yahoo Finance (QQQ, IWM), Coinbase (BTC) · Secteurs : Yahoo Finance · Post-market : screener public TradingView (différé de 15 min), graphiques Yahoo Finance · VIX : CBOE.
   </footer>
   </details>
 </div>
@@ -1057,7 +1073,7 @@
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'industries_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
+    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
@@ -1957,8 +1973,32 @@
   // niveaux : secteurs → industries d'un secteur → actions d'une industrie (indices équipondérés : industries_data.js ;
   // actions : industries/<fichier>.js, chargé à l'ouverture de l'industrie). Voir fetch_industries.py.
   const SEC = window.SECTORS || null;
-  const IND = window.INDUSTRIES && Array.isArray(window.INDUSTRIES.sectors) ? window.INDUSTRIES : null;
+  // industries_data.js (~500 Ko, ~140 Ko compressés) n'est plus chargé au démarrage (décision du 20/10/2026 : poids sur mobile) :
+  // seulement à la première ouverture d'un onglet qui s'en sert (Secteurs, Tickers, Post-market pour la fiche), puis l'onglet
+  // est redessiné. Déjà présent (tests, ancien chargeur) : utilisé tel quel.
+  const indOk = () => window.INDUSTRIES && Array.isArray(window.INDUSTRIES.sectors) ? window.INDUSTRIES : null;
+  let IND = indOk(), indState = IND ? 'ok' : 'idle';   // idle | loading | ok | absent
+  const indWaiters = new Set();
+  function indLoad(after) {
+    if (indState === 'ok' || indState === 'absent') return;
+    if (after) indWaiters.add(after);
+    if (indState === 'loading') return;
+    indState = 'loading';
+    const m = typeof location !== 'undefined' && location.search ? location.search.match(/[?&]v=(\d+)/) : null;   // même ?v= que les autres fichiers
+    const el = document.createElement('script');
+    el.src = 'industries_data.js' + (m ? '?v=' + m[1] : '');
+    const done = () => {
+      IND = indOk(); indState = IND ? 'ok' : 'absent';
+      if (!IND && secView === 'tv') secView = 'etf';    // fichier absent : retour à la vue ETF (bascule désactivée), comme avant
+      const w = [...indWaiters]; indWaiters.clear(); w.forEach(fn => fn());
+    };
+    el.onload = done; el.onerror = done;
+    (document.head || document.body).appendChild(el);
+  }
   const TI = CFG.ti65, TIN = TI.name, TIC = CFG.industries;
+  // ADR (average daily range, config/display.toml [adr]) : affiché sur toutes les listes de tickers et dans la fiche
+  const adrTxt = v => v == null ? '<span class="tag" title="Pas de plus haut / plus bas sur toute la fenêtre">—</span>' : nf(v, 1) + ' %';
+  const ADR_TIP = `<p><b>ADR ${CFG.adr.sessions} j</b> (average daily range) = 100 × (moyenne des ${CFG.adr.sessions} dernières séances de plus haut ÷ plus bas − 1) : l'amplitude moyenne d'une séance, en %. Exemple : 5 % = l'action bouge en moyenne de 5 % entre son plus bas et son plus haut du jour.</p><p class="src">Plus hauts / plus bas Polygon / Massive (Post-market : Yahoo pour les titres du dernier scan).</p>`;
   function secScore(c, end) {                       // TI65 à l'index end ; null si l'une des clôtures de la fenêtre manque
     const S = TI.short, L = TI.long;
     if (end < L - 1) return null;
@@ -1972,7 +2012,7 @@
 
   // --- liste affichée : ETF, ou niveau courant de la vue TradingView : secteurs → industries (toutes, rang global, filtre
   //     par secteur) → actions d'une industrie. Navigation mémorisée : {lvl: sec | ind | stk, sec: secteur filtré | 'all', ind}
-  let secView = store.get('mm.secview') === 'tv' && IND ? 'tv' : 'etf';
+  let secView = store.get('mm.secview') === 'tv' ? 'tv' : 'etf';   // vue TradingView : données chargées à l'ouverture de l'onglet
   let tvNav = (() => {
     try {
       const a = JSON.parse(store.get('mm.tvnav') || 'null');
@@ -2065,8 +2105,16 @@
       return { x, rank: n ? n.rank : null, score: n ? n.score : null, dev: n ? (n.score - 1) * 100 : null,
                delta: n && b ? b.rank - n.rank : null, isNew: !!n && !b, count: x.c.filter(v => v != null).length,
                brd: x.b && end >= 0 ? x.b[end] : null, few: idx && x.cnt < TIC.few_members, tooFew: !rankable(D, x),
-               sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null) };
+               sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null),
+               adr: D.kind === 'stk' ? adrAt(x, end) : null };
     });
+  }
+  // ADR d'une action à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1) ; null sans OHLC ou si
+  // l'une des n séances manque (config/display.toml [sectors.adr])
+  function adrAt(x, end, n = CFG.adr.sessions) {
+    if (!x.h || !x.l || end < n - 1) return null;
+    let s = 0; for (let k = end - n + 1; k <= end; k++) { const h = x.h[k], l = x.l[k]; if (h == null || l == null || !(l > 0)) return null; s += h / l; }
+    return 100 * (s / n - 1);
   }
   function sparkSvg(vals) {                          // TI65 des dernières séances (miniature) : ligne pointillée à 1,00, couleur selon la dernière valeur
     const have = vals.filter(v => v != null); if (have.length < 2) return '<span class="tag">—</span>';
@@ -2096,6 +2144,7 @@
     cnt:   { label: 'Titres', k: 'cnt', dir: -1, title: `Actions retenues : prix ≥ ${nf(TIC.min_price)} $, volume moyen ${TIC.avg_volume_sessions} j ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $` },
     brd:   { label: '% > 1', k: 'brd', dir: -1, title: `Part des actions retenues dont le ${TIN} dépasse 1` },
     cap:   { label: 'Cap.', k: 'cap', dir: -1, title: 'Capitalisation boursière (dollars, TradingView)' },
+    adr:   { label: 'ADR', k: 'adr', dir: -1, title: `Average daily range : 100 × (moyenne des ${CFG.adr.sessions} dernières séances de plus haut ÷ plus bas − 1), en %` },
     spark: SPARK_DEF,
     dev:   DEV_DEF,
     delta: DELTA_DEF,
@@ -2104,10 +2153,10 @@
   // vue TradingView : nom TradingView / secteur / nom de la société et nombre de titres sous le nom (sous-titre) ; au survol : nom complet
   const TV_LEVEL = { sec: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
                      ind: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
-                     stk: ['rank', 'sym', 'cap', 'spark', 'dev', 'delta'] };
+                     stk: ['rank', 'sym', 'cap', 'adr', 'spark', 'dev', 'delta'] };
   const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' } };
   const SEC_VAL = { rank: r => r.rank, sym: r => r.x.lbl || r.x.s, nm: r => r.x.n, grp: r => secView === 'etf' ? theme(r.x) : r.x.sub,
-                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap };
+                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr };
   function loadCols(key, order0) {
     try {
       const a = JSON.parse(store.get(key) || 'null');
@@ -2147,10 +2196,11 @@
   }
   function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
-  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
   let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
   let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
+  let adrMin = Math.max(0, parseFloat(store.get('mm.adrmin')) || 0);   // filtre « ADR > x % » du niveau actions (0 = aucun)
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
     if (secD && secD.kind === 'ind' && tvNav.sec !== 'all' && r.x.sec !== tvNav.sec) return false;
@@ -2158,6 +2208,7 @@
       const K = secKpiData(), ro = K && (skEntries === 'rr' ? K.rr : K.rot)[secBuiltEnd], keep = ro && (skEntries === 'rr' ? ro.still : ro.ent);
       if (!keep || !keep.includes(r.x.s)) return false;
     }
+    if (secD && secD.kind === 'stk' && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
@@ -2205,11 +2256,20 @@
     }, { passive: true });
     v.addEventListener('touchcancel', () => { t0 = null; }, { passive: true });
   }
+  // hauteur disponible d'une liste / d'un graphique : jusqu'au bas de la fenêtre s'il est dans le 1er écran ; sinon (Secteurs :
+  // cases, frise et carte au-dessus, classement plus bas dans la page) un écran entier, moins la barre du haut collée (mobile) —
+  // avant, le calcul tombait au minimum (260 px) dès que l'élément était sous le 1er écran (signalé le 20/10/2026)
+  function freeHeight(el) {
+    const mtop = document.querySelector && document.querySelector('.mtop');
+    const stuck = mtop && mtop.offsetHeight && getComputedStyle(mtop).position === 'sticky' ? mtop.offsetHeight : 0;
+    const first = window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14;
+    return Math.max(260, Math.floor(first >= 360 ? first : window.innerHeight - stuck - 14));
+  }
   function fitSecLayout() {                              // la liste et le graphique prennent toute la hauteur disponible de la fenêtre
     const wrap = $('secScroll'), cv = $('secCanvas');
     $('view-sec').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }   // mobile : barre d'onglets en bas ; graphique en vh (CSS)
     const sc = $('secScoreCard'), bc = $('secBrdCard'), nav = $('secNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
@@ -2221,7 +2281,7 @@
 
   function renderSecView() {                             // bascule ETF / TradingView et nom de l'indicateur (config/display.toml)
     $('secView').innerHTML = CFG.sectors.views.map(([k, l]) => {
-      const off = k === 'tv' && !IND;
+      const off = k === 'tv' && indState === 'absent';
       return `<button type="button" data-v="${k}" class="${secView === k ? 'on' : ''}" aria-pressed="${secView === k}"` +
         `${off ? ' disabled title="Données introuvables : lance python fetch_industries.py"' : ''}>${l}</button>`;
     }).join('');
@@ -2293,11 +2353,11 @@
         <p>Les secteurs tournent en général dans le sens des aiguilles d'une montre : <b>${CFG.sectors.rrg.labels.impr}</b> (l'argent commence à arriver) → <b>${CFG.sectors.rrg.labels.lead}</b> → <b>${CFG.sectors.rrg.labels.weak}</b> (l'argent commence à repartir) → <b>${CFG.sectors.rrg.labels.lag}</b>. La <b>traînée</b> (${CFG.sectors.rrg.trail} séances) montre la direction ; la <b>taille</b> du point, le volume en dollars des ${TIC.volume.short} dernières séances par rapport à sa moyenne sur ${TIC.volume.long}, comparé au marché (gros point = plus d'argent échangé que d'habitude).</p>
         <p><b>Lecture</b> : un secteur qui passe de « ${CFG.sectors.rrg.labels.impr} » à « ${CFG.sectors.rrg.labels.lead} » avec un gros point = arrivée d'argent confirmée ; un meneur qui glisse vers « ${CFG.sectors.rrg.labels.weak} » = l'argent commence à partir. Toucher un point : détail ; à nouveau : ouvre le secteur.</p>
         <p class="src">Principe du Relative Rotation Graph (Julius de Kempenaer), avec le ${TIN} comme mesure ; pas les formules propriétaires du RRG. Information, pas un conseil.</p>`],
-      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions[0]} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions[0]} séances (grand chiffre) et sur ${SKP.rotation_ratio_sessions[1]} séances (dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Le ${SKP.rotation_ratio_sessions[0]} j réagit vite mais saute beaucoup ; le ${SKP.rotation_ratio_sessions[1]} j confirme.</p>
+      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions} séances (grand chiffre ; les deux totaux dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Nerveux : il saute d'une semaine à l'autre, à lire sur la mini-courbe.</p>
         <p><b>Lecture</b> : rouge (sous ${thr(SKP.rotation_ratio[0])}) longtemps = marché qui se rétrécit (sélectivité) ; retour au-dessus de 1 après une phase rouge = premières industries qui repartent ; bleu (à partir de ${thr(SKP.rotation_ratio[1])}) = plus d'industries entrent qu'il n'en sort.</p>
         <p><b>À lire avec le niveau du marché</b> : si la plupart des industries sont sous 1 (case « Industries ${TIN} > 1 » basse), un ratio bleu signale souvent une <b>rotation défensive</b> (l'argent se réfugie dans quelques secteurs) plutôt qu'une hausse qui s'élargit. Le <b>flux par secteur</b> (case Rotation) dit lesquels.</p>
-        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
-        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions[0])}${rrBack('rrL', SKP.rotation_ratio_sessions[1])}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
+        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
+        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions)}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
       rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
@@ -2314,6 +2374,7 @@
       sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
       ind: ['Industrie', `<p>Industrie TradingView ; rang du ${TIN} de son indice parmi les industries classées, part de ses actions au ${TIN} &gt; 1, étiquette chaud / émergent (voir la bulle de l'onglet).</p>`],
       ti: [TIN, `<p>${TIN} de l'action − 1, en % (flèche : sens depuis ${TI.delta} séances) ; dessous, son rang dans son industrie.</p>`],
+      adr: ['ADR', ADR_TIP],
       cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView).</p>'],
       flt: ['Flottant', '<p>Actions librement échangeables (Yahoo, sinon TradingView).</p>'],
       pct: ['% shorté', '<p>Actions vendues à découvert ÷ flottant (Yahoo). Grisé : relevé ancien.</p>'],
@@ -2390,7 +2451,7 @@
     });
     // ratio de rotation : entrées et sorties de chaque séance (franchissement de 1 d'une séance à l'autre), cumulées sur RN
     // séances ; « still » = industries entrées dans la fenêtre et toujours au-dessus de 1 (la liste du raccourci)
-    const [RN, RL] = SKP.rotation_ratio_sessions;
+    const RN = SKP.rotation_ratio_sessions;
     const day = Array.from({ length: N }, (_, e) => {
       if (e < 1) return null; const ent = [], out = []; let n = 0;
       for (const x of I) { const a = x.s[e - 1], b = x.s[e]; if (a == null || b == null) continue; n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k); }
@@ -2401,7 +2462,7 @@
       for (let j = e - n + 1; j <= e; j++) { const x = day[j]; if (!x) return null; en += x.ent.length; ou += x.out.length; x.ent.forEach(k => keys.add(k)); }
       return { en, ou, ratio: ou ? en / ou : null, still: I.filter(x => keys.has(x.k) && x.s[e] != null && x.s[e] > 1).map(x => x.k) };
     });
-    const rr = win(RN), rrL = win(RL);
+    const rr = win(RN);
     const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
     // flux par secteur : entrées / sorties de la rotation regroupées par secteur (d'où part et où arrive le mouvement)
     const secOf = new Map(IND.industries.map(x => [x.k, x.sec]));
@@ -2410,7 +2471,7 @@
       r.ent.forEach(k => at(k).ent.push(k)); r.out.forEach(k => at(k).out.push(k));
       return [...m.values()].map(f => Object.assign(f, { net: f.ent.length - f.out.length }))
         .sort((a, b) => b.net - a.net || b.ent.length - a.ent.length || (a.sec < b.sec ? -1 : 1)); };
-    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
+    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, stk: st ? st.b : null, stkN: st ? st.n : null });
   }
   const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
@@ -2448,7 +2509,7 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
@@ -2478,12 +2539,12 @@
               (top || bot ? [top && one(top, true), bot && one(bot, false)].filter(Boolean).join(' · ') : '<span>aucun mouvement</span>') + '</div>' };
           })()];
       },
-      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : court en grand, « 10 jours : … » dessous
-        const [n, nl] = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e], rl = K.rrL[e];
+      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : ratio en grand, les deux totaux dessous
+        const n = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e];
         if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
         const v = r.ratio, f2 = x => nf(x, 2), c = css(v == null ? '--muted' : v < RRT[0] ? '--down' : v >= RRT[1] ? '--up' : '--muted');
         const show = x => x == null ? '—' : `<span class="${rrCls(x.ratio)}">${x.ratio == null ? (x.en ? '∞' : '—') : f2(x.ratio)}</span>`;
-        return [lbl, show(r), `<span title="Entrées / sorties : ${r.en} / ${r.ou} en ${n} séances${rl ? `, ${rl.en} / ${rl.ou} en ${nl}` : ''}">${nl} jours : ${show(rl)}</span>`,
+        return [lbl, show(r), `<span title="Industries entrées / sorties au-dessus de 1, cumulées sur ${n} séances">${r.en}<span class="kw"> entrées</span> / ${r.ou}<span class="kw"> sorties</span></span>`,
           spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
       },
       stk: () => {
@@ -2579,7 +2640,7 @@
   // séances) ; traînée sur `trail` séances ; taille = volume en dollars relatif au marché. Paramètres : config/display.toml [sectors.rrg].
   const RRG = CFG.sectors.rrg;
   let RRD = null, rrgHits = [], rrgHot = null, rrgE = -1;
-  let rrgOpen = (() => { const v = store.get('mm.rrg'); return v == null ? !isMobile() : v === '1'; })();   // repliée par défaut sur mobile
+  const rrgOpen = true;                              // la carte a sa propre sous-vue : plus de repli (ancienne préférence mm.rrg ignorée)
   const rrgQ = (x, y) => x >= 100 ? (y >= 100 ? 'lead' : 'weak') : (y >= 100 ? 'impr' : 'lag');
   function rrgData() {
     if (!IND) return null; if (RRD && RRD.src === IND) return RRD;
@@ -2656,13 +2717,22 @@
     hx = (hx || 1) * 1.18; hy = (hy || 1) * 1.18;
     const P = 6, X = v => P + (v - 100 + hx) / (2 * hx) * (W - 2 * P), Y = v => H - P - (v - 100 + hy) / (2 * hy) * (H - 2 * P);
     const cx = X(100), cy = Y(100);
-    [[cx, P, W - P - cx, cy - P, '--upbg'], [cx, cy, W - P - cx, H - P - cy, '--warnbg'], [P, cy, cx - P, H - P - cy, '--downbg'], [P, P, cx - P, cy - P, '--neutralbg']]
+    [[cx, P, W - P - cx, cy - P, '--upbg'], [cx, cy, W - P - cx, H - P - cy, '--warnbg'], [P, cy, cx - P, H - P - cy, '--downbg'], [P, P, cx - P, cy - P, '--rrgimpr']]
       .forEach(([x0, y0, w, h, c]) => { g.fillStyle = css(c); g.fillRect(x0, y0, w, h); });
     g.strokeStyle = css('--cref'); g.setLineDash([4, 4]); g.beginPath(); g.moveTo(cx, P); g.lineTo(cx, H - P); g.moveTo(P, cy); g.lineTo(W - P, cy); g.stroke(); g.setLineDash([]);
     g.fillStyle = css('--ctext'); g.globalAlpha = .8;
     g.textAlign = 'right'; g.textBaseline = 'top'; g.fillText(RRG.labels.lead + ' ↗', W - P - 4, P + 4);
     g.textBaseline = 'bottom'; g.fillText(RRG.labels.weak + ' ↘', W - P - 4, H - P - 4);
     g.textAlign = 'left'; g.fillText('↙ ' + RRG.labels.lag, P + 4, H - P - 4); g.textBaseline = 'top'; g.fillText('↖ ' + RRG.labels.impr, P + 4, P + 4);
+    // ce que disent les axes (demande du 20/10/2026), sur les bords pour ne pas couvrir les points : horizontal en bas au centre,
+    // vertical le long du bord gauche (lu de bas en haut)
+    g.globalAlpha = .7; g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.textBaseline = 'bottom';
+    const room = cx - 5 - (P + 4 + g.measureText('↙ ' + RRG.labels.lag).width + 10);          // place entre « En retard » et le centre
+    const lt = g.measureText('← moins bien que le marché').width <= room ? '← moins bien que le marché' : '← moins bien';
+    g.textAlign = 'right'; if (g.measureText(lt).width <= room) g.fillText(lt, cx - 5, H - P - 4); g.textAlign = 'left'; g.fillText('mieux →', cx + 5, H - P - 4);
+    g.save(); g.translate(P + 3, cy); g.rotate(-Math.PI / 2); g.textBaseline = 'top';
+    g.textAlign = 'right'; g.fillText('↓ ralentit', -5, 0); g.textAlign = 'left'; g.fillText('accélère ↑', 5, 0); g.restore();
+    g.font = '11px -apple-system, "Segoe UI", sans-serif'; g.globalAlpha = 1;
     g.globalAlpha = 1;
     const col = q => css(q === 'lead' ? '--up' : q === 'weak' ? '--warn' : q === 'lag' ? '--down' : '--ccross');
     const lab = k => { const s = lvl === 'sec' ? tvSecLabel(k) : k; return s.length > 18 ? s.slice(0, 17) + '…' : s; };
@@ -2712,8 +2782,11 @@
     const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length, nm = k => escH(lvl === 'sec' ? tvSecLabel(k) : k);
     const tkLine = tkFocus.size ? 'En avant : ' + rrgHits.filter(p => tkFocus.has(p.k)).map(p => `<b>${nm(p.k)}</b> (${escH(RRG.labels[p.q])})`).join(' · ') + ' · ' : '';
     $('rrgInfo').innerHTML = h ? `<b>${nm(h.k)}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
-        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` · toucher à nouveau : ${lvl === 'stk' ? 'sa fiche' : 'ouvrir'}`
+        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` <button type="button" class="rrgopen" data-openhot="1">${lvl === 'stk' ? 'Fiche' : 'Ouvrir'} ›</button>`
       : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
+    // légende de la taille des points (volume en dollars relatif au marché ; rayon = 2 + 4 × volume relatif, borné 3 à 10 px)
+    const dot = v => `<i style="width:${2 * Math.max(3, Math.min(10, 2 + 4 * v))}px;height:${2 * Math.max(3, Math.min(10, 2 + 4 * v))}px"></i>`;
+    $('rrgLeg').innerHTML = rrgHits.some(p => p.rv != null) ? `Taille : argent échangé par rapport à son habitude, comparé au marché · ${dot(.8)} ×0,8 ${dot(1)} ×1 ${dot(1.3)} ×1,3` : '';
     // liste « plus gros mouvements » : toucher = mettre en avant (comme toucher le point), à nouveau = ouvrir
     const row = (m, up) => `<button type="button" data-mv="${escA(m.k)}" class="${rrgHot === m.k ? 'on' : ''}"><span class="${up ? 'pos' : 'neg'}">${up ? '↗' : '↘'}</span><span>${nm(m.k)}</span>` +
       `<span class="ma">${nf(m.d, 1)}</span><span class="mz">${escH(RRG.labels[m.from])}${m.from !== m.to ? ' → ' + escH(RRG.labels[m.to]) : ''}${m.rv != null ? ` · vol. ×${nf(m.rv, 2)}` : ''}</span></button>`;
@@ -2728,7 +2801,6 @@
     if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
     rrgOpenPoint(p);
   });
-  $('rrgHead').addEventListener('click', () => { rrgOpen = !rrgOpen; store.set('mm.rrg', rrgOpen ? '1' : '0'); drawRrg(rrgE); });
   const rrgPick = ev => { const r = $('rrgCv').getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
     let best = null, bd = 22 * 22; for (const p of rrgHits) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } } return best; };
   $('rrgCv').addEventListener('click', ev => {         // premier toucher : détail ; second sur le même point : ouvre le secteur (ses industries) ou l'industrie (ses actions)
@@ -2745,6 +2817,9 @@
     tvNav = p.lvl === 'ind' ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   }
+  $('rrgInfo').addEventListener('click', ev => {     // « Ouvrir › » / « Fiche › » du point mis en avant (le double toucher reste possible)
+    if (!ev.target.closest('[data-openhot]')) return; const p = rrgHits.find(h => h.k === rrgHot); if (p) rrgOpenPoint(p);
+  });
   $('rrgNav').addEventListener('click', ev => {       // fil de la carte : Secteurs › secteur › industrie ; ‹ = niveau précédent (l'élément quitté reste choisi)
     const b = ev.target.closest('[data-up]'); if (!b) return;
     const to = b.dataset.up, from = tvNav.lvl === 'stk' ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec'; if (to === from) return;
@@ -2785,6 +2860,7 @@
       $('secHead').innerHTML = ''; $('secFilt').innerHTML = ''; $('secMeta').textContent = '';
       body.innerHTML = secView === 'etf'
         ? '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_sectors.py</code> (fichier <code>sectors_data.js</code> à côté de ce HTML).</td></tr>'
+        : indState === 'loading' || indState === 'idle' ? '<tr><td style="text-align:left;padding:16px">Chargement des secteurs et industries…</td></tr>'
         : '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_industries.py</code> (fichier <code>industries_data.js</code> à côté de ce HTML).</td></tr>';
       return;
     }
@@ -2801,6 +2877,14 @@
     renderSecFilt();
     $('secTable').classList.toggle('tv', secView === 'tv');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
+    // niveau actions : filtre « ADR > x % » et copie des tickers affichés
+    const stk = secView === 'tv' && D.kind === 'stk', ab = $('secAdr'); ab.hidden = !stk;
+    if (stk) {
+      $('adrN').textContent = CFG.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.adr.step;
+      if (document.activeElement !== inp) inp.value = adrMin > 0 ? String(adrMin) : '';
+      const withAdr = secRows.filter(r => r.adr != null).length;
+      $('adrInfo').textContent = adrMin > 0 ? `${sorted.length} / ${secRows.length} actions` : withAdr < secRows.length ? `ADR indisponible pour ${secRows.length - withAdr} action(s)` : '';
+    }
     if (!secSel || !sorted.some(r => r.x.s === secSel)) secSel = ((sorted.find(r => r.rank != null) || sorted[0]) || secRows[0]).x.s;
     store.set(selKey(), secSel);
     $('secHead').innerHTML = cols.map(id => {
@@ -2825,7 +2909,7 @@
     const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom (mobile : « % > 1 » passe sous l'écart quand on trie dessus)
       : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : ''));
     // sous l'écart (mobile, vue TradingView) : la valeur du tri actif, Δ du rang par défaut
-    const dsub = r => secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
+    const dsub = r => secSort.k === 'adr' ? `<span class="dsub on">ADR ${r.adr == null ? '—' : nf(r.adr, 1) + ' %'}</span>` : secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
       : secSort.k === 'cap' ? `<span class="dsub on">${capFmt(r.x.cap)}</span>` : `<span class="dsub${secSort.k === 'delta' ? ' on' : ''}">${delta(r)}</span>`;
     const cell = {
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
@@ -2835,6 +2919,7 @@
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
       brd: r => `<td class="brd c-brd">${r.brd == null ? '—' : nf(r.brd, 0) + ' %'}</td>`,
       cap: r => `<td class="cap c-cap">${capFmt(r.x.cap)}</td>`,
+      adr: r => `<td class="adr c-adr">${r.adr == null ? '<span class="tag" title="Pas de plus haut / plus bas sur toute la fenêtre">—</span>' : nf(r.adr, 1) + ' %'}</td>`,
       dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? dsub(r) : ''}</td>`
         : r.tooFew ? `<td><span class="tag" title="Moins de ${TIC.min_members} titres retenus : pas de rang">&lt; ${TIC.min_members} titres</span></td>`
         : `<td><span class="tag">${r.count}/${TI.long} séances</span></td>`,
@@ -2918,7 +3003,7 @@
   $('secBack').addEventListener('click', () => { $('view-sec').classList.remove('detail'); renderSectors(); });
   $('secView').addEventListener('click', e => {        // bascule ETF / TradingView ; chaque vue garde sa sélection et son ordre de colonnes
     const b = e.target.closest('button'); if (!b || !b.dataset.v || b.disabled || b.dataset.v === secView) return;
-    if (b.dataset.v === 'tv' && !IND) return;
+    if (b.dataset.v === 'tv' && indState === 'absent') return;
     store.set(selKey(), secSel || '');
     secView = b.dataset.v; store.set('mm.secview', secView); secSel = store.get(selKey());
     secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail');
@@ -3027,7 +3112,8 @@
     if (card.hidden === isStk) { card.hidden = !isStk; fitSecLayout(); }
     if (isStk) {
       const last = secCtx.bars.size ? [...secCtx.bars.values()].pop() : null;
-      const F = stdFiche(x.s, { close: last ? last.c : null, chg: last ? last.chg : null, from: 'sec', after: () => { if (tab === 'sec') secHeader(); } });
+      const sr = secRows.find(q => q.x === x);         // ADR de la fiche = celui de la colonne (séance du classement)
+      const F = stdFiche(x.s, { close: last ? last.c : null, chg: last ? last.chg : null, adr: sr ? sr.adr : null, from: 'sec', after: () => { if (tab === 'sec') secHeader(); } });
       $('secFacts').innerHTML = F.facts; $('secLinks').innerHTML = F.links;
       $('secWhen').textContent = `séance du ${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })}`;
     }
@@ -3200,7 +3286,7 @@
     const [indName, secIx] = T.inds[c.ind], secName = T.secs[secIx], R = tkRanks();
     const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
     const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
-    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind,
+    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr,
              secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
   }
   const TK_DEFS = {
@@ -3208,19 +3294,21 @@
     sec:  { label: 'Secteur', k: 'sec', dir: 1, left: true },
     ind:  { label: 'Industrie', k: 'ind', dir: 1, left: true },
     ti:   { label: TIN, k: 'ti', dir: -1 },
+    adr:  { label: 'ADR', k: 'adr', dir: -1 },
     cap:  { label: 'Cap.', k: 'cap', dir: -1 },
     flt:  { label: 'Flottant', k: 'flt', dir: -1 },
     pct:  { label: '% shorté', k: 'pct', dir: -1 },
     dtc:  { label: '<span class="dsk">Days to cover</span><span class="mob">DTC</span>', k: 'dtc', dir: -1 },
     open: { label: '', k: '', fixed: true },
   };
-  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, cap: r => r.cap,
+  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, adr: r => r.adr, cap: r => r.cap,
                    flt: r => r.flt, pct: r => r.sh && r.sh.pct, dtc: r => r.sh && r.sh.dtc };
   const shares = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 2) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : nf(v / 1e3, 0) + ' k';
   function renderTickers() {
     const ta = $('tkInput');
     if (ta.value === '' && !tkRendered) { ta.value = store.get('mm.tklist') || ''; ta.placeholder = `Ex. ${TKC.example} (virgules, espaces ou lignes)`; }
     tkRendered = true;
+    if (!IND && indState !== 'absent') { $('tkRows').innerHTML = '<tr><td class="empty">Chargement des secteurs et industries…</td></tr>'; return; }
     if (!IND) { $('tkRows').innerHTML = '<tr><td class="empty">Données introuvables : lance <code>python fetch_industries.py</code>.</td></tr>'; return; }
     if (!tkLoaded.tickers || !tkLoaded.short) {
       tkLoad();
@@ -3263,7 +3351,8 @@
         `<td class="sym l" title="${escA(r.n)}">${escH(r.s)}<span class="tsub">${escH(r.n)}${r.kept ? '' : ' · hors filtres'}</span></td>` +
         `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
         `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
-        `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}</span></td>` +
+        `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}${r.adr != null ? `<span class="mob"> · ADR ${nf(r.adr, 1)} %</span>` : ''}</span></td>` +
+        `<td class="c-adr">${adrTxt(r.adr)}</td>` +
         `<td class="c-cap">${capFmt(r.cap)}</td><td class="c-flt">${shares(r.flt)}</td>` +
         `<td class="c-pct${r.old ? ' old' : ''}"${oldT}>${sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—'}</td>` +
         `<td class="c-dtc${r.old ? ' old' : ''}"${oldT}>${sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' : '—'}</td>` +
@@ -3322,7 +3411,7 @@
     const wrap = $('tkScroll'), cv = $('tkCanvas');
     $('view-tk').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }
     const below = (($('tkScoreCard').offsetHeight) || 150) + (($('tkCard').offsetHeight) || 160) + 16, nav = $('tkNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
@@ -3379,6 +3468,7 @@
       fact(`${TIN} de l'action`, dv == null ? '—' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}${r.rankInd ? ` · <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : r.kept ? '' : ' · hors filtres'}`) +
       fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<br>${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`) +
       fact('Secteur', `${escH(tvSecLabel(r.secName))}<br>${rk(r.sec, R.sec.total)}`) +
+      fact(`ADR ${CFG.adr.sessions} j`, adrTxt(o.adr != null ? o.adr : r.adr)) +
       fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
       fact('Flottant', r.flt == null ? '—' : shares(r.flt) + ' actions') +
       fact('% du flottant shorté', sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' + sdate : '—') +
@@ -3445,6 +3535,15 @@
     for (const [s, v] of Object.entries(H.bars || {})) out[s] = v.slice(1).map((b, k) => [H.dates[v[0] + k]].concat(b));
     return out;
   })();
+  // ADR d'un titre du scan à la séance d : bougies Yahoo du scan (titres du dernier instantané), sinon l'index des tickers (robot,
+  // dernière séance publiée), sinon null
+  function pmAdr(s, d) {
+    const H = pmHist[s], n = CFG.adr.sessions;
+    if (H) { const w = H.filter(b => b[0] <= d).slice(-n);
+      if (w.length === n && w.every(b => b[2] != null && b[3] > 0)) return 100 * (w.reduce((t, b) => t + b[2] / b[3], 0) / n - 1); }
+    const r = window.TICKERS && tkLookup(s) ? tkRow(s) : null;
+    return r && r.adr != null ? r.adr : null;
+  }
   let pmDir = ['up', 'down', 'all'].includes(store.get('mm.pmdir')) ? store.get('mm.pmdir') : 'up';
   let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'dv', dir: -1 }, pmCur = null, pmShown = [];
   function pmSnap() {                                   // instantané de la séance choisie (ou le plus proche avant), sinon le dernier
@@ -3456,6 +3555,7 @@
   const PM_DEFS = [
     { id: 'sym', label: 'Symbole', l: true, dir: 1, v: r => r.s },
     { id: 'pch', label: 'Var AH', dir: -1, v: r => r.pch, title: 'Variation post-market par rapport à la clôture de la séance' },
+    { id: 'adr', label: 'ADR', dir: -1, v: r => r.adr, title: `ADR ${CFG.adr.sessions} j : amplitude moyenne d'une séance (100 × (moyenne de plus haut ÷ plus bas − 1)), à la séance du scan` },
     { id: 'dv', label: 'Vol AH $', dir: -1, v: r => r.dv, title: 'Volume post-market en dollars ≈ actions échangées × cours post-market' },
     { id: 'pv', label: 'Vol AH', dir: -1, v: r => r.pv, title: 'Nombre d\'actions échangées en post-market' },
     { id: 'rv', label: 'RVol', dir: -1, v: r => r.rv, title: 'Volume post-market ÷ volume journalier moyen sur 90 jours' },
@@ -3478,7 +3578,9 @@
       return;
     }
     pmCur = snap; $('view-pm').classList.remove('nodata');
+    if (!tkLoaded.tickers) tkLoad(() => { if (tab === 'pm') renderPM(); });   // index des tickers : ADR des titres sans bougies Yahoo
     const all = snap.rows.map(pmRowOf), side = r => pmDir === 'all' || (pmDir === 'up' ? r.pch > 0 : r.pch < 0);
+    all.forEach(r => { r.adr = pmAdr(r.s, snap.d); });
     const nUp = all.filter(r => r.pch > 0).length, nEr = all.filter(r => r.er && side(r)).length;
     $('pmFilt').innerHTML = [['up', 'Hausses', nUp], ['down', 'Baisses', all.length - nUp], ['all', 'Les deux', all.length]]
       .map(([k, l, n]) => `<button data-dir="${k}" class="${pmDir === k ? 'on' : ''}" aria-pressed="${pmDir === k}">${l}<span>${n}</span></button>`).join('') +
@@ -3499,6 +3601,7 @@
     const cell = {
       sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
       pch: r => `<td class="dev"><div class="devc"><span class="trk"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i></span><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
+      adr: r => `<td class="c-adr">${adrTxt(r.adr)}</td>`,
       dv: r => `<td>${big(r.dv)}</td>`,
       pv: r => `<td>${big(r.pv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
@@ -3522,7 +3625,7 @@
     const wrap = $('pmScroll'), cv = $('pmCanvas');
     $('view-pm').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }
     const fc = $('pmCard'), fh = (fc && fc.offsetHeight) || 160, nav = $('pmNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
@@ -3538,7 +3641,7 @@
     $('pmWhen').textContent = `séance du ${fmtDate(snap.d, { day: 'numeric', month: 'short' })}`;
     const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
     // fiche standard (même contenu que l'onglet Tickers), puis les informations propres au scan post-market
-    const F = stdFiche(r.s, { close: r.c, chg: r.ch, tv: r.t, from: 'pm', after: () => { if (tab === 'pm' && pmRowSel === r) pmDetail(r); } });
+    const F = stdFiche(r.s, { close: r.c, chg: r.ch, tv: r.t, adr: r.adr, from: 'pm', after: () => { if (tab === 'pm' && pmRowSel === r) pmDetail(r); } });
     $('pmFacts').innerHTML = F.facts +
       fact('Post-market', `${nf(r.pc, pxd(r.pc))} <span class="${cls(r.pch)}">${pct(r.pch)}</span>`) +
       fact('Volume post-market', `${big(r.dv)} $ · ${big(r.pv)} actions${r.rv != null ? ' · RVol ' + nf(r.rv, r.rv < 10 ? 1 : 0) + '×' : ''}`) +
@@ -3564,8 +3667,9 @@
     $('tkInput').value = pmShown.map(r => r.s).join(', '); store.set('mm.tklist', $('tkInput').value);
     tkSel = pmSel; $('view-tk').classList.remove('detail'); setTab('tk');
   });
-  $('pmCopy').addEventListener('click', async () => {
-    const b = $('pmCopy'), txt = pmShown.map(r => r.s).join(', '); if (!txt) return;
+  // copie d'une liste de tickers « A, B, C » (scan post-market, actions d'une industrie, onglet Tickers) : presse-papiers, sinon repli
+  async function copyTickers(b, syms) {
+    const txt = syms.join(', '); if (!txt) return;
     let ok = false;
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (x) { /* repli ci-dessous */ }
     if (!ok) {                                           // repli : ancien navigateur ou page hors https
@@ -3575,9 +3679,17 @@
       ta.remove();
     }
     const lab = b.querySelector('span');
-    lab.textContent = ok ? `${pmShown.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
+    lab.textContent = ok ? `${syms.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
     clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
-  });
+  }
+  $('pmCopy').addEventListener('click', () => copyTickers($('pmCopy'), pmShown.map(r => r.s)));
+  $('tkCopy').addEventListener('click', () => copyTickers($('tkCopy'), tkShown.map(r => r.s)));
+  $('secCopy').addEventListener('click', () => { if (secD && secD.kind === 'stk') copyTickers($('secCopy'), secSorted().map(r => r.x.s)); });
+  let adrTimer = 0;
+  const adrApply = v => { clearTimeout(adrTimer); const x = Math.max(0, parseFloat(String(v).replace(',', '.')) || 0); if (x === adrMin) return;
+    adrMin = x; store.set('mm.adrmin', String(adrMin)); renderSectors(); };
+  $('adrMin').addEventListener('input', ev => { clearTimeout(adrTimer); const v = ev.target.value; adrTimer = setTimeout(() => adrApply(v), 250); });   // pendant la saisie
+  $('adrMin').addEventListener('change', ev => adrApply(ev.target.value));   // Entrée ou sortie du champ : tout de suite
   try { localStorage.removeItem('perso.recap'); } catch (e) { /* ancien lien du récap news (retiré le 14/10/2026) */ }
   $('pmBack').addEventListener('click', () => { $('view-pm').classList.remove('detail'); renderPM(); });
   $('pmFilt').addEventListener('click', e => {
@@ -4061,6 +4173,8 @@
     placeRanges(); renderMtop(); renderDatebar(); renderFresh();   // « Stats du » : séances de l'onglet (Post-market : dates des scans en plus)
     document.querySelectorAll('#tabbar button[data-tab]').forEach(b => { b.className = b.dataset.tab === t ? 'on' : ''; });
     closeMenu(); tip.style.display = 'none';
+    if ((t === 'sec' || t === 'tk' || t === 'pm') && indState === 'idle')     // première ouverture : industries_data.js, puis l'onglet redessiné
+      indLoad(() => { if (tab === 'sec') renderSectors(); else if (tab === 'tk') renderTickers(); else if (tab === 'pm') renderPM(); });
     if (t === 'sec') renderSectors();
     else if (t === 'pm') renderPM();
     else if (t === 'tk') renderTickers();
@@ -4377,10 +4491,13 @@
     box.classList.toggle('past', !!at);
     const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
     const D4 = D.filter(d => net(d) != null), net4 = net(d4);
-    const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
+    const r5v = sb(d4, 'ratio5');
+    // sous le ratio 5 j : les deux totaux qu'il compare (hausses / baisses de 4 % cumulées sur les 5 dernières séances) ; le ratio
+    // 10 j n'est plus affiché (demande du 20/10/2026), ses données restent calculées
+    const w5 = D4.filter(d => d <= d4).slice(-5), s5u = w5.length === 5 ? w5.reduce((s, d) => s + sb(d, 'up4'), 0) : null, s5d = w5.length === 5 ? w5.reduce((s, d) => s + sb(d, 'down4'), 0) : null;
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
-    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
+    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
     const t2S0 = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
     // T2108 hors Stockbee : la zone est donnée, mais l'alerte (case orange) attend la confirmation de Stockbee
     const t2S = t2S0[0] === 'warn' && !T2_ALERT.has(srcOf(dt, 't2108')) ? ['neutral', t2S0[1] + ' (alerte à la confirmation de Stockbee)'] : t2S0;
@@ -4413,7 +4530,7 @@
     const tiles = [
       ['solde', '±4 % du jour', `<span class="${cl(n4S)}">${recNum('net4', d4, signed(net4))}</span>`,
         `+${recNum('up4', d4, nf(sb(d4, 'up4')))} / −${recNum('down4', d4, nf(sb(d4, 'down4')))}`, n4S, spark(D4.slice(-40).map(net), 'bars')],
-      ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['r5', 'Ratio 5 j', nf(r5v, 2), `<span title="Hausses / baisses de 4 % cumulées sur les 5 dernières séances">+${nf(s5u)} / −${nf(s5d)}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
@@ -4423,7 +4540,7 @@
     tiles.forEach(t => { if (wait[t[0]]) { t[2] = '—'; t[3] = W8; t[4] = ['neutral', '']; } });
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
-    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
+    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j']],
       rq: [['rq', dq, 'ratio'], ['up25q', dq, '+25 %'], ['down25q', dq, '−25 %']], rm: [['rm', dq, 'ratio'], ['up25m', dq, '+25 %'], ['down25m', dq, '−25 %']],
       t2108: [['t2108', dt, 'T2108']] };
     const hotOf = id => {
@@ -4462,9 +4579,9 @@
       solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
         <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
         <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p>${srcNote('solde')}`],
-      r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
-        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
-        <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p>${srcNote('r5')}<p class="src">Seuils calibrés sur IWM.</p>`],
+      r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (les deux totaux sont écrits en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
+        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (+${nf(s5u)} / −${nf(s5d)} sur 5 séances) → zone ${r5S[1]}.</div>
+        ${srcNote('r5')}<p class="src">Seuils calibrés sur IWM.</p>`],
       rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> et, selon lui, le marché est haussier tant qu'il reste au-dessus de 1 (lecture de Stockbee). ${kRule('rq')}</p>
         ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → zone ${rqS[1]}.</div>
         ${srcNote('rq')}<p class="src">Calcul maison expérimental (clôture ÷ plus bas ou plus haut des 63 séances précédentes) · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],

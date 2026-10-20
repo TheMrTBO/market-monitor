@@ -21,7 +21,7 @@ function boot(ls,opts={}){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(opts.after)vm.runInContext(opts.after,sb);
@@ -44,6 +44,8 @@ ok('onglet Tickers : vue affichée, champ vide, exemple en indication',A.$('view
 // saisie : formats variés, doublons, inconnu
 A.$('tkInput').value='nvda, $MU  NASDAQ:AMD\nPENG;nvda ZZZZQ BRK-B';
 A.L.tkGo.click();
+{ let copied=null; A.sb.navigator={clipboard:{writeText:s=>{copied=s;return Promise.resolve();}}}; A.sb.isSecureContext=true; A.L.tkCopy.click({});
+  ok('Copier : tickers affichés dans l\'ordre, séparés par des virgules',copied===rows(A).map(r=>r.s).join(', ')&&rows(A).length>0,String(copied)); }
 const r=rows(A), syms=r.map(x=>x.s);
 ok('saisie : $, préfixe de bourse, minuscules, séparateurs, doublons',['NVDA','MU','AMD','PENG'].every(s=>syms.includes(s))&&syms.filter(s=>s==='NVDA').length===1,syms.join(','));
 ok('BRK-B reconnu pour BRK.B',syms.includes('BRK.B')||!T.rows.some(x=>x[0]==='BRK.B'));
@@ -63,13 +65,16 @@ ok('thèmes : une carte par industrie de la liste, triées par rang',th.length==
   &&th.map(t=>now.indexOf(t.ind)).filter(i=>i>=0).every((v,i,a)=>!i||a[i-1]<=v),th.map(t=>t.ind+(t.hot?'*':'')).join(' · '));
 ok('thèmes : étiquette chaud / émergent = règle de la config',th.every(t=>{const h=heat(t.ind);return (h==='hot')===t.hot&&(h!=='emerging'||/émergent/.test(t.t));}),th.map(t=>t.ind+':'+heat(t.ind)).join(' · '));
 // short interest (si le fichier est là)
-if(A.sb.SHORT){const s=A.sb.SHORT.rows['PENG'];const rp=r.find(x=>x.s==='PENG');ok('short interest PENG : % shorté et days to cover',!s||(rp.cells[6].startsWith((s[2]*100).toFixed(1).replace('.',','))&&rp.cells[7].startsWith(s[3].toFixed(1).replace('.',','))),rp.cells.slice(6,8).join(' | '));}
+if(A.sb.SHORT){const s=A.sb.SHORT.rows['PENG'];const rp=r.find(x=>x.s==='PENG');ok('short interest PENG : % shorté et days to cover',!s||(rp.cells[7].startsWith((s[2]*100).toFixed(1).replace('.',','))&&rp.cells[8].startsWith(s[3].toFixed(1).replace('.',','))),rp.cells.slice(6,8).join(' | '));}
 // tri par days to cover
 A.L.tkHead.click({target:{closest:()=>({dataset:{k:'dtc'}})}});
-const d1=rows(A).map(x=>parseFloat((x.cells[7]||'').replace(',','.'))).filter(v=>!isNaN(v));
+const d1=rows(A).map(x=>parseFloat((x.cells[8]||'').replace(',','.'))).filter(v=>!isNaN(v));
 ok('tri par days to cover (décroissant)',d1.every((v,i,a)=>!i||a[i-1]>=v),d1.join(' > '));
 // bulles
-ok('bulle sur chaque en-tête',(A.$('tkHead')._h.match(/data-tip="tk:/g)||[]).length===8);
+ok('bulle sur chaque en-tête',(A.$('tkHead')._h.match(/data-tip="tk:/g)||[]).length===9);
+{ const T2=A.sb.TICKERS, ci=Object.fromEntries(T2.cols.map((c,i)=>[c,i])), rr=rows(A);
+  const ok1=rr.every(x=>{const row=T2.rows.find(y=>y[ci.s]===x.s), v=row&&ci.adr!=null?row[ci.adr]:null; return x.cells[4]===(v==null?'—':v.toFixed(1).replace('.',',')+' %');});
+  ok('colonne ADR = valeur de l\'index (tickers_data.js) ou « — »',ok1,rr.map(x=>x.s+' '+x.cells[4]).join(' · ')); }
 // clic : onglet Secteurs, vue TradingView, action retenue ouverte
 A.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?{dataset:{open:'MU'}}:sel==='tr'?{dataset:{s:'MU'}}:null}});
 const nav=JSON.parse(ls['mm.tvnav']);
