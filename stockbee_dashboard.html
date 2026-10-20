@@ -163,6 +163,8 @@
   .secstrip .gflow { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
   .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
   .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
+  /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
+  .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 56px; display: block; cursor: ew-resize; touch-action: pan-y; }
   /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
   .secflow { padding: 10px 12px; margin-bottom: 10px; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
@@ -595,6 +597,7 @@
     #secTable.tv td.dev .dsub { display: block; font-size: 11px; text-align: right; }
     #view-sec .secsort:not([hidden]) { display: flex; }
     #rrgCv { aspect-ratio: 1 / 1; }
+    .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -700,6 +703,7 @@
   <div id="view-sec" hidden>
     <div id="dslot-sec"></div>
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
+    <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas></div>
     <div class="seckpinote" id="secKpiNote" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secrrg" id="secRrg" hidden>
@@ -2355,7 +2359,7 @@
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
-    box.hidden = note.hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = true; return; }
+    box.hidden = note.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = true; return; }
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
     const f0 = x => nf(x, 0) + ' %', f1 = x => (x > 0 ? '+' : '') + nf(x, 0), past = e - TI.delta;
@@ -2404,7 +2408,8 @@
         `<div class="top"><span class="lbl">${lbl}</span>${tipI('skpi:' + id, lbl)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>${g.html}</div>`;
     }).join('');
     note.textContent = (dHover ? 'Survol : ' : pinned ? 'Séance choisie : ' : 'Séance du ') + fmtDate(Ds[e], { weekday: 'short', day: 'numeric', month: 'short' }) +
-      ' · toucher une case = raccourci';
+      ' · glisser sur la frise = remonter le temps · toucher une case = raccourci';
+    drawFrise(K, e, !!dHover);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
       fp.hidden = !skFlow;
@@ -2429,6 +2434,52 @@
     }
     drawRrg(e);
   }
+  // ------------------------------------------------------------------ frise temporelle (demande du 20/10/2026 : « comme le MM »)
+  // Industries TI65 > 1 (%) sur tout l'historique ; glisser la souris ou le doigt = cases, flux et carte de rotation à la séance
+  // survolée (aperçu) ; clic ou doigt levé = cette séance devient celle de « Stats du » (le classement suit).
+  let friseG = null;
+  function drawFrise(K, e, hovering) {
+    const cv = $('friseCv'); if (!cv) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    const Ds = IND.dates, i0 = K.ind.findIndex(v => v != null); if (i0 < 0 || Ds.length - i0 < 2) { friseG = null; return; }
+    const P = 4, B = 13, n = Ds.length - i0, X = i => P + (i - i0) / (n - 1) * (W - 2 * P), Y = v => P + (1 - v / 100) * (H - P - B);
+    friseG = { i0, n, P, W };
+    g.fillStyle = css('--panel2'); g.fillRect(0, 0, W, H - B + 2);
+    g.strokeStyle = css('--faint'); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(P, Y(50)); g.lineTo(W - P, Y(50)); g.stroke(); g.setLineDash([]);
+    // repères de mois (fins traits verticaux) pour se situer dans le temps
+    g.strokeStyle = css('--border'); g.lineWidth = 1;
+    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, P); g.lineTo(Math.round(X(i)) + .5, H - B + 2); g.stroke(); }
+    const pts = []; for (let i = i0; i < Ds.length; i++) { const v = K.ind[i] && K.ind[i].pct; if (v != null) pts.push([X(i), Y(v)]); }
+    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b));
+    g.lineTo(pts[pts.length - 1][0], H - B + 2); g.lineTo(pts[0][0], H - B + 2); g.closePath(); g.fillStyle = css('--upbg'); g.fill();
+    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b)); g.strokeStyle = css('--text'); g.globalAlpha = .8; g.lineWidth = 1.4; g.stroke(); g.globalAlpha = 1;
+    // repère de la séance affichée (survol : couleur du réticule ; sinon : séance de « Stats du »)
+    const v = K.ind[e] && K.ind[e].pct, x = X(Math.max(e, i0));
+    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, P); g.lineTo(x, H - B + 2); g.stroke();
+    if (v != null) { g.fillStyle = css(hovering ? '--ccross' : '--up'); g.beginPath(); g.arc(x, Y(v), 3, 0, 2 * Math.PI); g.fill(); }
+    g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.fillStyle = css('--faint'); g.textBaseline = 'bottom';
+    const lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${v != null ? ' · ' + nf(v, 0) + ' % des industries > 1' : ''}`;
+    const lw = g.measureText(lbl).width, lx = Math.max(P + lw / 2, Math.min(W - P - lw / 2, x));   // libellé de la séance, dans la frise
+    const d0 = fmtDate(Ds[i0], { day: 'numeric', month: 'short' }), d1 = fmtDate(Ds[Ds.length - 1], { day: 'numeric', month: 'short' });
+    if (lx - lw / 2 > P + g.measureText(d0).width + 8) { g.textAlign = 'left'; g.fillText(d0, P, H); }          // dates des bouts : seulement
+    if (lx + lw / 2 < W - P - g.measureText(d1).width - 8) { g.textAlign = 'right'; g.fillText(d1, W - P, H); }  // si le libellé ne les couvre pas
+    g.textAlign = 'center'; g.fillStyle = css('--text'); g.fillText(lbl, lx, H);
+  }
+  const friseDate = ev => { if (!friseG || !IND) return null; const r = $('friseCv').getBoundingClientRect(), f = (ev.clientX - r.left - friseG.P) / (friseG.W - 2 * friseG.P);
+    return IND.dates[Math.max(friseG.i0, Math.min(IND.dates.length - 1, Math.round(friseG.i0 + f * (friseG.n - 1))))]; };
+  let friseDrag = false;
+  $('friseCv').addEventListener('pointermove', ev => { if (ev.pointerType !== 'mouse' && !friseDrag) return; const d = friseDate(ev); if (d) renderSecKpis(d); });
+  $('friseCv').addEventListener('pointerleave', ev => { if (ev.pointerType === 'mouse') renderSecKpis(); });
+  $('friseCv').addEventListener('pointerdown', ev => {
+    if (ev.pointerType === 'mouse') return; friseDrag = true;
+    try { $('friseCv').setPointerCapture(ev.pointerId); } catch (x) { /* déjà relâché */ }
+    const d = friseDate(ev); if (d) renderSecKpis(d);
+  });
+  $('friseCv').addEventListener('pointerup', ev => { if (ev.pointerType === 'mouse' || !friseDrag) return; friseDrag = false; const d = friseDate(ev); if (d) showDate(d); });
+  $('friseCv').addEventListener('pointercancel', () => { friseDrag = false; renderSecKpis(); });
+  $('friseCv').addEventListener('click', ev => { if (ev.pointerType && ev.pointerType !== 'mouse') return; const d = friseDate(ev); if (d) showDate(d); });
+
   // ------------------------------------------------------------------ carte de rotation (type RRG), relative au marché
   // Décision du 20/10/2026 (« où va l'argent ») : chaque secteur (ou industrie d'un secteur filtré) est placé selon sa force
   // relative au marché (x = TI65 de indice ÷ marché, × 100) et l'accélération de celle-ci (y = 100 × x / x d'il y a `momentum`

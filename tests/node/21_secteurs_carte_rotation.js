@@ -89,4 +89,20 @@ ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre 
 // repliée : rien n'est dessiné, l'état est mémorisé
 A.L.rrgHead.click({});
 ok('repli de la carte mémorisé',ls['mm.rrg']==='0'&&A.$('rrgBody').hidden===true);
+// frise temporelle : survol souris = aperçu (cases, carte) ; clic = « Stats du » ; doigt : glisser = aperçu, lever = « Stats du »
+const C=boot({}); tab(C); view(C,'tv');
+C.$('friseCv').getBoundingClientRect=()=>({left:0,top:0,width:900,height:56});
+const i0=IND.dates.findIndex((d,e)=>IND.industries.some(x=>x.n>=min&&sc(x.c,e)!=null)), at=f=>IND.dates[Math.round(i0+(f*900-4)/(900-8)*(N-1-i0))];
+C.L.friseCv.pointermove({pointerType:'mouse',clientX:0.5*900,clientY:20});
+const dh=at(0.5);
+ok('frise : survol = aperçu à la séance survolée (cases et carte), « Stats du » inchangé',/^Survol : /.test(C.$('secKpiNote')._t)&&C.$('dPick').value===C.$('dPick').max&&!(C.$('rrgWhat')._t||'').includes(' 19 oct.'),C.$('secKpiNote')._t+' | '+C.$('rrgWhat')._t);
+C.L.friseCv.pointerleave({pointerType:'mouse'});
+ok('frise : souris sortie = retour à la séance du classement',/^Séance du /.test(C.$('secKpiNote')._t),C.$('secKpiNote')._t);
+C.L.friseCv.click({pointerType:'mouse',clientX:0.5*900,clientY:20});
+ok('frise : clic = la séance devient celle de « Stats du »',C.$('dPick').value===dh,C.$('dPick').value+' / '+dh);
+C.L.friseCv.pointerdown({pointerType:'touch',pointerId:3,clientX:0.3*900,clientY:20});
+C.L.friseCv.pointermove({pointerType:'touch',pointerId:3,clientX:0.25*900,clientY:20});
+ok('frise au doigt : glisser = aperçu, « Stats du » inchangé pendant le geste',/^Survol : /.test(C.$('secKpiNote')._t)&&C.$('dPick').value===dh);
+C.L.friseCv.pointerup({pointerType:'touch',pointerId:3,clientX:0.25*900,clientY:20});
+ok('frise au doigt : lever = « Stats du » à la séance relâchée',C.$('dPick').value===at(0.25),C.$('dPick').value+' / '+at(0.25));
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');

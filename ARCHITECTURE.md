@@ -160,6 +160,9 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
   toucher une case annule l'effet de la précédente (`skMode`, `skToggle`). **Flux par secteur** (toucher la case
   Rotation) : entrées / sorties regroupées par secteur, résumé « ↑ 3 premiers · ↓ 3 premiers », puis blocs « L'argent arrive » /
   « L'argent repart » / « se compensent » ; toucher un secteur ouvre ses industries. La case Rotation affiche ↑ / ↓ à la place de la jauge.
+- **Frise temporelle** (Secteurs / TradingView, sous les cases) : Industries TI65 > 1 sur tout l'historique ; survol souris ou
+  glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la
+  séance devient celle de « Stats du » (`showDate`, le classement suit). `touch-action: pan-y` : la page défile toujours à la verticale.
 - **Carte de rotation** (type RRG, Secteurs / TradingView) : chaque secteur (ou industrie du secteur filtré) placé par sa force
   relative au **marché** (x = 100 × TI65 de indice ÷ marché) et son accélération (y = 100 × x / x d'il y a `momentum` séances),
   traînée sur `trail` séances, taille = volume en dollars relatif au marché ; zones Meneur / S'affaiblit / En retard / S'améliore
