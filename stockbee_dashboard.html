@@ -2233,11 +2233,20 @@
     }, { passive: true });
     v.addEventListener('touchcancel', () => { t0 = null; }, { passive: true });
   }
+  // hauteur disponible d'une liste / d'un graphique : jusqu'au bas de la fenêtre s'il est dans le 1er écran ; sinon (Secteurs :
+  // cases, frise et carte au-dessus, classement plus bas dans la page) un écran entier, moins la barre du haut collée (mobile) —
+  // avant, le calcul tombait au minimum (260 px) dès que l'élément était sous le 1er écran (signalé le 20/10/2026)
+  function freeHeight(el) {
+    const mtop = document.querySelector && document.querySelector('.mtop');
+    const stuck = mtop && mtop.offsetHeight && getComputedStyle(mtop).position === 'sticky' ? mtop.offsetHeight : 0;
+    const first = window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14;
+    return Math.max(260, Math.floor(first >= 360 ? first : window.innerHeight - stuck - 14));
+  }
   function fitSecLayout() {                              // la liste et le graphique prennent toute la hauteur disponible de la fenêtre
     const wrap = $('secScroll'), cv = $('secCanvas');
     $('view-sec').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }   // mobile : barre d'onglets en bas ; graphique en vh (CSS)
     const sc = $('secScoreCard'), bc = $('secBrdCard'), nav = $('secNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
@@ -3366,7 +3375,7 @@
     const wrap = $('tkScroll'), cv = $('tkCanvas');
     $('view-tk').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }
     const below = (($('tkScoreCard').offsetHeight) || 150) + (($('tkCard').offsetHeight) || 160) + 16, nav = $('tkNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
@@ -3566,7 +3575,7 @@
     const wrap = $('pmScroll'), cv = $('pmCanvas');
     $('view-pm').classList.toggle('stack', isStacked());
     if (!wrap.getBoundingClientRect || !cv.getBoundingClientRect) return;
-    const free = el => Math.max(260, Math.floor(window.innerHeight - (el.getBoundingClientRect().top + (window.pageYOffset || 0)) - 14));
+    const free = el => freeHeight(el);
     wrap.style.height = free(wrap) + 'px';
     if (isMobile()) { wrap.style.height = Math.max(260, free(wrap) - 70) + 'px'; cv.style.height = ''; return; }
     const fc = $('pmCard'), fh = (fc && fc.offsetHeight) || 160, nav = $('pmNav'), navH = nav.offsetHeight ? nav.offsetHeight + 16 : 0;
