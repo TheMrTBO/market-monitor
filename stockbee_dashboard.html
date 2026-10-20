@@ -2275,16 +2275,16 @@
     const i = id.indexOf(':'), kind = i < 0 ? id : id.slice(0, i), key = i < 0 ? '' : id.slice(i + 1);
     const filt = `prix ≥ ${nf(TIC.min_price)} $, volume moyen sur ${TIC.avg_volume_sessions} séances ≥ ${nf(TIC.min_avg_volume)} actions, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $`;
     const lvl = secView === 'etf' ? 'etf' : secD ? secD.kind : 'sec';
-    const g3 = `<p>Mini-courbe : ${TI.spark} dernières séances (pointillé : 50 %). Jauge 3M : position dans la plage des ${SKP.record_sessions} séances précédentes ; « plus haut / plus bas 3 mois » = information sur un indicateur retardé, pas un signal.</p>`;
-    // repère mesuré du ratio de rotation : variation moyenne d'IWM sur les rotation_ratio_sessions séances suivantes, par zone
+    const g3 = `<p>Mini-courbe : ${TI.spark} dernières séances (pointillé : ${SKP.breadth_mid} %). Jauge 3M : position dans la plage des ${SKP.record_sessions} séances précédentes ; « plus haut / plus bas 3 mois » = information sur un indicateur retardé, pas un signal.</p>`;
+    // repère mesuré du ratio de rotation : variation moyenne de SKP.benchmark (IWM par défaut) sur les rotation_ratio_sessions séances suivantes, par zone
     // (recalculé à chaque chargement ; fenêtres qui se chevauchent : un repère, pas une statistique indépendante)
     const thr = v => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 »
     const rrBack = (key, W) => {
-      const K = secKpiData(), iw = new Map(barsFor('IWM').map(b => [b.d, b.c])), Ds = IND.dates, z = [[], [], []];
+      const K = secKpiData(), iw = new Map((window.PRICES && window.PRICES[SKP.benchmark] ? barsFor(SKP.benchmark) : []).map(b => [b.d, b.c]))   // instrument absent : repère « — », Ds = IND.dates, z = [[], [], []];
       K[key].forEach((r, e) => { if (!r || r.ratio == null || e + W >= Ds.length) return; const a = iw.get(Ds[e]), b = iw.get(Ds[e + W]); if (a == null || b == null) return;
         z[r.ratio < SKP.rotation_ratio[0] ? 0 : r.ratio >= SKP.rotation_ratio[1] ? 2 : 1].push(100 * (b / a - 1)); });
       const m = a => a.length ? `${pct(a.reduce((s, x) => s + x, 0) / a.length)} (${a.length} séances)` : '—';
-      return `<li>ratio ${W} j → IWM ${W} séances plus tard, en moyenne : sous ${thr(SKP.rotation_ratio[0])} <b>${m(z[0])}</b> · entre les deux ${m(z[1])} · à partir de ${thr(SKP.rotation_ratio[1])} <b>${m(z[2])}</b></li>`;
+      return `<li>ratio ${W} j → ${escH(SKP.benchmark)} ${W} séances plus tard, en moyenne : sous ${thr(SKP.rotation_ratio[0])} <b>${m(z[0])}</b> · entre les deux ${m(z[1])} · à partir de ${thr(SKP.rotation_ratio[1])} <b>${m(z[2])}</b></li>`;
     };
     if (kind === 'skpi') return {
       rrg: ['Carte de rotation', `<p>Chaque point est un secteur (ou, quand un secteur est filtré, une de ses industries), placé par rapport au <b>marché</b> (toutes les actions retenues, équipondérées) :</p>
@@ -2463,10 +2463,10 @@
         (id === 'sec' && b ? `<span class="kw"> · il y a ${TI.delta} j : ${nf(b.pct, 0)} %</span>` : '')] : ['—', 'historique trop court'];   // « il y a 5 j » masqué sur mobile : la mini-courbe suffit
     };
     const series = id => Array.from({ length: TI.spark }, (_, j) => { const k = e - TI.spark + 1 + j; return k >= 0 ? skVal(K, id, k) : null; });
-    const col = v => css(v == null ? '--muted' : v >= 50 ? '--up' : '--down');
+    const col = v => css(v == null ? '--muted' : v >= SKP.breadth_mid ? '--up' : '--down');
     const T_ = {
-      ind: () => { const [v, s] = cnt('ind'), g = skGauge(K, 'ind', e, f0); return [`Industries ${TIN} > 1`, v, s, spark(series('ind'), { ref: 50 }, col(skVal(K, 'ind', e))), g]; },
-      sec: () => { const [v, s] = cnt('sec'), g = skGauge(K, 'sec', e, f0); return [`Secteurs ${TIN} > 1`, v, s, spark(series('sec'), { ref: 50 }, col(skVal(K, 'sec', e))), g]; },
+      ind: () => { const [v, s] = cnt('ind'), g = skGauge(K, 'ind', e, f0); return [`Industries ${TIN} > 1`, v, s, spark(series('ind'), { ref: SKP.breadth_mid }, col(skVal(K, 'ind', e))), g]; },
+      sec: () => { const [v, s] = cnt('sec'), g = skGauge(K, 'sec', e, f0); return [`Secteurs ${TIN} > 1`, v, s, spark(series('sec'), { ref: SKP.breadth_mid }, col(skVal(K, 'sec', e))), g]; },
       rot: () => {                                   // même lecture que « ±4 % du jour » : solde en grand, entrées / sorties dessous
         const lbl = `Rotation ${SKP.rotation_window} j`, r = K.rot[e]; if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
         return [lbl, `<span class="${cls(r.net)}">${signed(r.net)}</span>`,
@@ -2490,7 +2490,7 @@
         const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;
         if (v == null) return [`Actions ${TIN} > 1`, '—', K.stk ? 'historique trop court' : 'disponible au prochain passage du robot', '', { html: '', rec: 0 }];
         return [`Actions ${TIN} > 1`, nf(v, 0) + ' %', `de ${nf(K.stkN)} actions` + (b != null ? ` · ${TI.delta} j : ${nf(b, 0)} %` : ''),
-          spark(series('stk'), { ref: 50 }, col(v)), skGauge(K, 'stk', e, f0)];
+          spark(series('stk'), { ref: SKP.breadth_mid }, col(v)), skGauge(K, 'stk', e, f0)];
       },
     };
     // « Actions TI65 > 1 » : série publiée par le robot ; tant qu'elle manque (ancien fichier), la case n'est pas affichée
