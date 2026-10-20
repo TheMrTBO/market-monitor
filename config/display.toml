@@ -47,6 +47,10 @@ record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : 
 trail = 10                    # séances de la traînée (direction du mouvement)
 momentum = 5                  # séances de la variation de x
 labels = { lead = "Meneur", weak = "S'affaiblit", lag = "En retard", impr = "S'améliore" }
+# plus gros mouvements (demande du 20/10/2026) : déplacement net sur la carte en `movers_window` séances (pas le chemin parcouru,
+# qui compte les allers-retours ; pas le changement de zone : 12 secteurs sur 20 en changent en 5 séances près du centre)
+movers = 3                    # mis en avant de chaque côté : les plus fortes hausses et baisses de force relative
+movers_window = 5
 
 [ti65]
 # indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :
