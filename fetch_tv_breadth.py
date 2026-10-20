@@ -33,7 +33,7 @@ COLUMNS = ["date", "t2108", "n"]          # n = actions retenues (clôture et SM
 SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session"]
 
 
-def load_existing(path=OUT):
+def load_existing(path):
     try:
         text = Path(path).read_text()
         return {r[0]: r for r in json.loads(text[text.index("=") + 1:].strip().rstrip(";"))["rows"]}
@@ -41,7 +41,7 @@ def load_existing(path=OUT):
         return {}
 
 
-def write_js(rows, scanned, path=OUT):
+def write_js(rows, scanned, path):
     payload = {"columns": COLUMNS, "rows": rows, "asof": rows[-1][0] if rows else None, "scanned": scanned}
     Path(path).write_text("window.TV_BREADTH = " + json.dumps(payload, separators=(",", ":")) + ";\n")
 
@@ -69,7 +69,7 @@ def measure(items, now_utc):
 def main():
     from fetch_postmarket import scan            # même client (en-têtes, essais) que le scan post-market
     now = datetime.now(timezone.utc)
-    existing = load_existing()
+    existing = load_existing(OUT)          # OUT lu à l'appel (les tests le redirigent vers un dossier temporaire)
     raw = scan({"columns": SCAN_COLS, "markets": [CFG["market"]], "range": [0, CFG["scan_limit"]],
                 "filter": [{"left": "type", "operation": "equal", "right": CFG["type"]},
                            {"left": "exchange", "operation": "in_range", "right": CFG["exchanges"]}]})
@@ -79,10 +79,14 @@ def main():
     if day is None:
         print(f"T2108 TradingView : rien à relever ({res}).")
         if not OUT.exists():                     # premier passage hors fenêtre : fichier vide, pour que le site le charge
-            write_js([], None)
+            write_js([], None, OUT)
         return
-    existing[day] = [day, *res]
-    write_js([existing[d] for d in sorted(existing)], now.isoformat(timespec="seconds"))
+    row = [day, *res]
+    if existing.get(day) == row:                 # relevé identique : fichier inchangé (pas de commit ni de déploiement à chaque passage)
+        print(f"T2108 TradingView : séance {day} déjà relevée à l'identique ({res[0]} %).")
+        return
+    existing[day] = row
+    write_js([existing[d] for d in sorted(existing)], now.isoformat(timespec="seconds"), OUT)
     print(f"Ecrit : {OUT.name} | séance {day} : T2108 {res[0]} % sur {res[1]} actions ({len(existing)} séances)")
 
 

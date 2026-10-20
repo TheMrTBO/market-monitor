@@ -1028,8 +1028,10 @@
   const tvT = d => TVB.has(d) ? TVB.get(d) : null;
   // source d'un chiffre affiché : 'sb' (Stockbee), 'own' (calcul maison, clôtures Polygon), 'tv' (relevé TradingView), null
   const srcOf = (d, k) => !d || sb(d, k) == null ? null : SB_REAL.has(d) ? 'sb' : k === 't2108' && own(d, k) == null ? 'tv' : 'own';
-  const SRC_LBL = { sb: 'Stockbee', own: 'maison', tv: 'TradingView' };
-  const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: 'relevé TradingView (screener, SMA 40)' };
+  const SRC_LBL = CFG.breadth.source_labels;                                   // config/display.toml [breadth]
+  const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: `relevé TradingView (screener, SMA ${CFG.breadth.tv_sma})` };
+  const T2_ALERT = new Set(CFG.breadth.t2108_alert_sources);                    // sources dont un T2108 extrême déclenche l'alerte
+  const TV_FIRST = TVB.size ? [...TVB.keys()].sort()[0] : null;                 // premier relevé TradingView (la série démarre là)
   // Contrôle croisé avec Stockbee sur les dernières séances communes (config/display.toml compare_sessions) : corrélation,
   // écart moyen (biais) et écart absolu moyen, par indicateur ; calculé une fois, à la demande.
   let _agree = null;
@@ -1037,7 +1039,7 @@
     if (_agree) return _agree;
     const D = [...SB_REAL].sort(), N = CFG.breadth.compare_sessions;
     const stat = p => {
-      if (p.length < 5) return { n: p.length };
+      if (p.length < CFG.breadth.compare_min) return { n: p.length };
       const ma = p.reduce((s, x) => s + x[0], 0) / p.length, mb = p.reduce((s, x) => s + x[1], 0) / p.length;
       let ab = 0, aa = 0, bb = 0; for (const [a, b] of p) { ab += (a - ma) * (b - mb); aa += (a - ma) ** 2; bb += (b - mb) ** 2; }
       return { n: p.length, corr: aa && bb ? ab / Math.sqrt(aa * bb) : null, bias: ma - mb, mad: p.reduce((s, [a, b]) => s + Math.abs(a - b), 0) / p.length };
@@ -1052,7 +1054,7 @@
   const AG_FMT = { solde: [0, ' titres'], r5: [2, ''], rm: [2, ''], rq: [2, ''], t2108: [1, ' pt'], t2108tv: [1, ' pt'] };
   function agreeTxt(id) {
     const a = agree()[id], [k, u] = AG_FMT[id];
-    if (a.n < 5) return `${a.n} séance${a.n > 1 ? 's' : ''} comparée${a.n > 1 ? 's' : ''} (corrélation à partir de 5)`;
+    if (a.n < CFG.breadth.compare_min) return `${a.n} séance${a.n > 1 ? 's' : ''} comparée${a.n > 1 ? 's' : ''} (corrélation à partir de ${CFG.breadth.compare_min})`;
     const sg = v => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), k === 0 ? 1 : k);
     return `corrélation ${nf(a.corr, 2)}, écart moyen ${sg(a.bias)}${u} (absolu ${nf(a.mad, k === 0 ? 1 : k)}${u}) sur ${a.n} séances` + (id === 'solde' ? ' (hausses et baisses)' : '');
   }
@@ -1153,8 +1155,8 @@
   const REC = {}, BEAR = new Set(['down4', 'down25m', 'down25q']);
   function recMap(k) {                  // date -> 1 (plus haut 3 mois) ou -1 (plus bas 3 mois)
     if (!REC[k]) {
-      // T2108 : un extrême n'est signalé que sur un chiffre Stockbee (décision du 20/10/2026 : notre T2108 a encore un biais de niveau)
-      const f = serFn(k), D = sbDates(), v = D.map(d => k === 't2108' && !SB_REAL.has(d) ? null : f(d)), out = new Map();
+      // T2108 : un extrême n'est signalé que sur un chiffre des sources de t2108_alert_sources (Stockbee : notre T2108 a un biais de niveau)
+      const f = serFn(k), D = sbDates(), v = D.map(d => k === 't2108' && !T2_ALERT.has(srcOf(d, 't2108')) ? null : f(d)), out = new Map();
       for (let i = 63; i < v.length; i++) {
         if (v[i] == null) continue; let hi = -Infinity, lo = Infinity;
         for (let j = i - 63; j < i; j++) if (v[j] != null) { if (v[j] > hi) hi = v[j]; if (v[j] < lo) lo = v[j]; }
@@ -3265,7 +3267,7 @@
         vis.forEach((b, i) => { const v = own(b.d, 't2108'); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
         g.stroke(); g.restore();
       }
-      if (TVB.size) {                                               // relevé TradingView en points (un relevé par séance depuis le 20/10/2026)
+      if (TVB.size) {                                               // relevé TradingView en points (un relevé par séance, depuis TV_FIRST)
         g.save(); g.fillStyle = css('--ctext'); g.strokeStyle = css('--ctext'); g.setLineDash([1.5, 3]); g.lineWidth = 1.3; g.beginPath(); let pen = false;
         vis.forEach((b, i) => { const v = tvT(b.d); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
         g.stroke(); vis.forEach((b, i) => { const v = tvT(b.d); if (v != null) { g.beginPath(); g.arc(X(i), Y(v), 1.8, 0, 2 * Math.PI); g.fill(); } }); g.restore();
@@ -3794,7 +3796,7 @@
     const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
     const t2S0 = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
     // T2108 hors Stockbee : la zone est donnée, mais l'alerte (case orange) attend la confirmation de Stockbee
-    const t2S = t2S0[0] === 'warn' && srcOf(dt, 't2108') !== 'sb' ? ['neutral', t2S0[1] + ' (alerte à la confirmation de Stockbee)'] : t2S0;
+    const t2S = t2S0[0] === 'warn' && !T2_ALERT.has(srcOf(dt, 't2108')) ? ['neutral', t2S0[1] + ' (alerte à la confirmation de Stockbee)'] : t2S0;
     // source de chaque case : clé de la colonne et séance affichée
     const SRCK = { solde: ['up4', d4], r5: ['ratio5', d4], rm: ['up25m', dq], rq: ['up25q', dq], t2108: ['t2108', dt] };
     const srcTag = id => {
@@ -3882,13 +3884,14 @@
         ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → zone ${rmS[1]}.</div>
         ${srcNote('rm')}<p class="src">Seuils calibrés sur IWM.</p>`],
       t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous ${T2E[0]} % et au-dessus de ${T2E[1]} % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
-        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div>${srcNote('t2108')}<p class="src">Seuils usuels ${T2E[0]} / ${T2E[1]} %. Écart de niveau probable : univers Worden ≈ 6 550 titres, le nôtre et celui de TradingView ≈ 5 150.</p>`],
+        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div>${srcNote('t2108')}<p class="src">Seuils usuels ${T2E[0]} / ${T2E[1]} %. ${(() => { const u = sb([...SB_REAL].sort().pop(), 'universe'), tr = ((window.TV_BREADTH || {}).rows || []).slice(-1)[0];
+          return u && tr ? `Écart de niveau probable : univers Worden ${nf(u)} titres (Stockbee), TradingView ${nf(tr[2])} titres comptés.` : ''; })()}</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p>
         <p>Pointillé : notre calcul (clôture du jour ÷ clôture 20 séances plus tôt, prix de départ ≥ 5 $). Sur juil.-oct. 2026 : corrélation 0,99 à 1,00 avec Stockbee, écart moyen de 2 % (+25 %) et 8 % (−25 %).</p><p class="src">Source : Stockbee ; pointillé : calcul maison (Polygon / Massive).</p>`],
       sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
         <p>Lignes pointillées horizontales : <b>${T2E[0]} %</b> et <b>${T2E[1]} %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
-        <p>Tirets : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive) ; points : relevé TradingView (screener, un relevé par séance depuis le 20/10/2026). Une séance pas encore publiée par Stockbee est prolongée par notre calcul, sinon par TradingView.</p>
+        <p>Tirets : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive) ; points : relevé TradingView (screener, un relevé par séance${TV_FIRST ? ' depuis le ' + fmtDate(TV_FIRST) : ''}). Une séance pas encore publiée par Stockbee est prolongée par notre calcul, sinon par TradingView.</p>
         <p>Contrôle avec Stockbee — calcul maison : ${agreeTxt('t2108')} · TradingView : ${agreeTxt('t2108tv')}.</p><p class="src">Source : Stockbee ; tirets : calcul maison ; points : TradingView.</p>`],
       savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
         <p>Lignes pointillées : <b>${CFG.vix.refs[0]}</b> et <b>${CFG.vix.refs[1]}</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],

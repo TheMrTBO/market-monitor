@@ -65,6 +65,23 @@ with tempfile.TemporaryDirectory() as tmp:
     tb.write_js([], None, out)
     check("contrôle : fichier vide (premier passage hors fenêtre) accepté", validate_data.validate("tv_breadth", out, date(2026, 10, 20)) == [])
 
+# passages répétés (postmarket.yml : toutes les 15 min le soir) : un relevé identique ne réécrit pas le fichier, sinon
+# chaque passage produirait un commit et un déploiement du site
+import types
+fake = types.ModuleType("fetch_postmarket")
+items = [{"d": r} for r in rows(half, half, state="out_of_session")]
+fake.scan = lambda payload: items
+sys.modules["fetch_postmarket"] = fake
+with tempfile.TemporaryDirectory() as tmp:
+    tb.OUT = Path(tmp) / "tv_breadth_data.js"
+    tb.main()
+    first = tb.OUT.read_text()
+    tb.main()
+    check("relevé identique : fichier inchangé (pas de commit à chaque passage)", tb.OUT.read_text() == first and '"2026-10-19",50.0' in first)
+    items[0] = {"d": [9, 10, "common", BAR_1019, "out_of_session"]}          # une valeur change : nouveau relevé écrit
+    tb.main()
+    check("relevé différent : fichier réécrit", tb.OUT.read_text() != first)
+
 for label, ok in checks.items():
     print(("ok     " if ok else "ECHEC  ") + label)
 sys.exit(0 if all(checks.values()) else 1)

@@ -58,7 +58,7 @@ def front_config():
         "schedule": {k: {"label": w["label"], "cron": w["cron_job_org"]} for k, w in load("schedule")["workflows"].items()},
         "postmarket": {**{k: pm[k] for k in ("min_price", "min_volume", "min_change", "max_per_side", "keep_sessions")},
                        "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])]},
-        "breadth": d["breadth"],
+        "breadth": {**d["breadth"], "tv_sma": load("sources")["tv_breadth"]["sma"]},
         "vix": d["vix"],
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
