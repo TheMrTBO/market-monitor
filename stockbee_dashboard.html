@@ -154,6 +154,10 @@
   .secfilt { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
   .secfilt button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
   .secfilt button span { color: var(--faint); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
+  .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
+  .secsort button .arr { color: inherit; margin-left: 3px; }
+  .rk td.dev .dsub.on { font-weight: 600; }
   .secfilt button.on { background: color-mix(in srgb, var(--up) 18%, transparent); border-color: color-mix(in srgb, var(--up) 55%, transparent); color: var(--text); }
   #view-sec .chartbar { min-height: 32px; margin-bottom: 8px; }
   .seccol { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: start; min-width: 0; }   /* minmax : les canvas n'élargissent pas la colonne */   /* colonne de droite : graphique + carte du score */
@@ -566,6 +570,7 @@
     #secTable.tv th.c-dev { width: 72px; } #secTable.tv th.c-open { width: 32px; }
     #secTable.tv .c-delta { display: none; }          /* vue TradingView (noms longs) : Δ 5 j passe sous l'écart */
     #secTable.tv td.dev .dsub { display: block; font-size: 11px; text-align: right; }
+    #view-sec .secsort:not([hidden]) { display: flex; }   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
     #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
@@ -673,6 +678,7 @@
         </div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
+        <div class="secfilt secsort" id="secSortBar" role="group" aria-label="Classer par" hidden></div>
         <div class="tablewrap secscroll" id="secScroll">
           <table id="secTable" class="rk">
             <thead><tr id="secHead"></tr></thead>
@@ -2041,7 +2047,18 @@
     if (secView === 'etf') { secCols = order; store.set('mm.seccols', JSON.stringify(order)); }
     else { tvCols = order; store.set('mm.tvcols', JSON.stringify(order)); }
   }
-  let secSort = { k: 'rank', dir: 1 };
+  let secSort = { k: 'rank', dir: 1 }, secSortLvl = null;
+  // Tri mémorisé par niveau de la vue TradingView (secteurs, industries, actions : décision du 20/10/2026) ; vue ETF : rang par défaut
+  const sortStoreKey = kind => 'mm.tvsort.' + kind;
+  function syncSort(D) {                             // nouveau niveau (ou nouvelle vue) : on reprend son tri mémorisé
+    const lvl = secView === 'tv' ? D.kind : 'etf'; if (lvl === secSortLvl) return;
+    secSortLvl = lvl; secSort = { k: 'rank', dir: 1 };
+    if (secView !== 'tv') return;
+    try { const s = JSON.parse(store.get(sortStoreKey(lvl)) || 'null'); if (s && SEC_VAL[s.k] && (s.dir === 1 || s.dir === -1)) secSort = s; } catch (e) { /* tri illisible : rang */ }
+  }
+  function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
+  // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
@@ -2049,7 +2066,7 @@
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
-    if (!shownCols().some(c => curDefs()[c].k === secSort.k)) secSort = { k: 'rank', dir: 1 };   // colonne absente de ce niveau
+    if (!shownCols().some(c => curDefs()[c].k === secSort.k)) setSort({ k: 'rank', dir: 1 });   // colonne absente de ce niveau
     const val = SEC_VAL[secSort.k], dir = secSort.dir;
     return secRows.filter(secShown).sort((a, b) => {
       if ((a.rank == null) !== (b.rank == null)) return a.rank == null ? 1 : -1;   // sans rang : toujours en bas
@@ -2222,13 +2239,14 @@
     }
     if (!D.items.length) {                               // actions d'une industrie : fichier en cours de chargement ou introuvable
       secRows = []; secD = D; secBuiltKey = '';
-      renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = '';
+      renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = ''; $('secSortBar').hidden = true;
       body.innerHTML = `<tr class="loading"><td>${D.wait ? `Chargement des actions de ${escH(D.ind.k)}…`
         : `Actions de ${escH(D.ind.k)} introuvables (fichier <code>${escH(TIC.folder)}/${escH(D.ind.f)}.js</code>).`}</td></tr>`;
       return;
     }
     if (secBuiltKey !== D.key + '|' + secEnd(D)) secBuild(D);
     if (!GRP.some(([k]) => k === secGroup)) secGroup = 'all';
+    syncSort(D);
     renderSecFilt();
     $('secTable').classList.toggle('tv', secView === 'tv');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
@@ -2241,13 +2259,23 @@
       return `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" draggable="true" data-c="${id}" data-k="${d.k}" ` +
         `title="${escA((d.title || (d.k ? 'Trier par ' + label : label)) + ' · glisser pour déplacer')}">${label}${tipI('col:' + id, label)}<span class="arr">${arrow}</span></th>`;
     }).join('');
+    const bar = $('secSortBar'), opts = secView === 'tv' ? SORT_OPTS[D.kind] || [] : [];
+    bar.hidden = !opts.length;
+    bar.innerHTML = opts.length ? '<span class="slbl">Classer par</span>' + opts.map(k => {
+      const on = secSort.k === k, lbl = k === 'rank' ? TIN : defs[k].label;
+      return `<button data-sort="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}" title="${escA(defs[k].title || 'Trier par ' + lbl)}${on ? ' · toucher à nouveau : sens inverse' : ''}">` +
+        `${escH(lbl)}${on ? `<span class="arr">${secSort.dir > 0 ? '▲' : '▼'}</span>` : ''}</button>`;
+    }).join('') : '';
     const delta = r => {
       if (r.rank == null) return '<span class="tag">—</span>';
       if (r.isNew) return '<span class="tag">nouveau</span>';
       return r.delta > 0 ? `<span class="pos">▲ ${r.delta}</span>` : r.delta < 0 ? `<span class="neg">▼ ${-r.delta}</span>` : '<span style="color:var(--muted)">=</span>';
     };
-    const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom ; « % > 1 » seulement sur mobile (colonne masquée)
-      : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : '')) + (r.brd != null ? `<span class="mob"> · ${nf(r.brd, 0)} % &gt; 1</span>` : '');
+    const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom (mobile : « % > 1 » passe sous l'écart quand on trie dessus)
+      : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : ''));
+    // sous l'écart (mobile, vue TradingView) : la valeur du tri actif, Δ du rang par défaut
+    const dsub = r => secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
+      : secSort.k === 'cap' ? `<span class="dsub on">${capFmt(r.x.cap)}</span>` : `<span class="dsub${secSort.k === 'delta' ? ' on' : ''}">${delta(r)}</span>`;
     const cell = {
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
       sym: r => `<td class="sym l" title="${escA(r.x.n)}">${escH(r.x.lbl || r.x.s)}<span class="tsub">${sub(r)}</span></td>`,
@@ -2256,7 +2284,7 @@
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
       brd: r => `<td class="brd c-brd">${r.brd == null ? '—' : nf(r.brd, 0) + ' %'}</td>`,
       cap: r => `<td class="cap c-cap">${capFmt(r.x.cap)}</td>`,
-      dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? `<span class="dsub">${delta(r)}</span>` : ''}</td>`
+      dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? dsub(r) : ''}</td>`
         : r.tooFew ? `<td><span class="tag" title="Moins de ${TIC.min_members} titres retenus : pas de rang">&lt; ${TIC.min_members} titres</span></td>`
         : `<td><span class="tag">${r.count}/${TI.long} séances</span></td>`,
       delta: r => `<td class="c-delta">${delta(r)}</td>`,
@@ -2292,8 +2320,15 @@
     const th = e.target.closest('th'), defs = curDefs();
     if (!th || !th.dataset.k || !defs[th.dataset.c || th.dataset.k]) return;   // colonne inconnue (retirée) ou « › » : ignorée
     const k = th.dataset.k;
-    secSort = secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[th.dataset.c || k].dir };
+    setSort(secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[th.dataset.c || k].dir });
     renderSectors();
+  });
+  $('secSortBar').addEventListener('click', e => {     // « Classer par » (mobile) : même état que les en-têtes ; bouton actif = sens inverse
+    const b = e.target.closest('button'), defs = curDefs(); if (!b || !b.dataset.sort || !defs[b.dataset.sort]) return;
+    const k = b.dataset.sort;
+    setSort(secSort.k === k ? { k, dir: -secSort.dir } : { k, dir: defs[k].dir });
+    renderSectors();
+    const sc = $('secScroll'); if (sc) sc.scrollTop = 0;   // nouveau classement : on repart du haut de la liste
   });
   $('secHead').addEventListener('dragstart', e => {
     const th = e.target.closest('th'); if (!th || !th.dataset.c) return;
@@ -2334,7 +2369,7 @@
     if (b.dataset.v === 'tv' && !IND) return;
     store.set(selKey(), secSel || '');
     secView = b.dataset.v; store.set('mm.secview', secView); secSel = store.get(selKey());
-    secBuiltKey = ''; secSort = { k: 'rank', dir: 1 }; $('view-sec').classList.remove('detail');
+    secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail');
     renderSectors();
   });
   $('secChips').addEventListener('wheel', e => {        // molette verticale : fait défiler la ligne de pastilles
@@ -2705,7 +2740,7 @@
   function tvGoto(indName, sym) {                        // ouvre l'onglet Secteurs (vue TradingView) sur une industrie, ou sur une action retenue
     const I = IND && IND.industries.find(i => i.k === indName); if (!I) return;
     const r = sym ? tkRow(sym) : null;
-    secView = 'tv'; store.set('mm.secview', 'tv'); secBuiltKey = ''; secSort = { k: 'rank', dir: 1 };
+    secView = 'tv'; store.set('mm.secview', 'tv'); secBuiltKey = ''; secSortLvl = null;
     tvNav = r && r.kept ? { lvl: 'stk', sec: I.sec, ind: I.k } : { lvl: 'ind', sec: I.sec, ind: null };
     secSel = r && r.kept ? r.s : I.k; tvSave(); store.set(selKey(), secSel);
     $('view-sec').classList.remove('detail');
