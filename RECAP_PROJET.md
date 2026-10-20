@@ -407,6 +407,10 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > **Fait (13/10/2026)** : gabarit ≤ 640 px, barre du haut, barre d'onglets en bas + « Plus », feuilles (Réglages, Plus), cibles
 > ≥ 44 px, zones sûres, cartes repliées par défaut, tableau défilant (1re colonne fixe). **Reste** : gestes (pincement,
 > appui long = réticule, double-tap), Secteurs en maître/détail, onglet Comparer en mobile, PWA, essai sur un vrai téléphone.
+> **20/10/2026 (choix de l'utilisateur)** : vue TradingView de Secteurs, rangée « Classer par » mobile (TI65 · Δ 5 j · % > 1 ;
+> Cap. pour les actions) plutôt que défilement horizontal ou en-tête à bascule ; Δ : plus fortes hausses d'abord ; tri mémorisé par
+> niveau ; « % > 1 » affiché sous l'écart seulement quand on trie dessus (retiré du sous-titre, souvent tronqué). Constat : trier par
+> Écart ou 3 mois redonne l'ordre du rang. Limite connue : « % > 1 » d'une industrie de 3 à 5 titres est très volatil.
 
 Constat initial : mise en page pensée pour le bureau ; seuls quelques `@media` (grilles) ; événements pointeur sans **pincement** ;
 zoom à la molette ; menus déroulants ; en-tête qui se replie sur plusieurs lignes ; tableaux larges.
