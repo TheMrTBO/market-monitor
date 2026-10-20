@@ -15,6 +15,19 @@ keep = 400
 rate = 5               # appels par minute (plan gratuit Polygon / Massive)
 max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 min) : un passage tient toujours avant le suivant
 
+[tv_breadth]
+# T2108 relevé sur le screener TradingView (fetch_tv_breadth.py) : seconde source maison, comparée à Stockbee (décision du
+# 20/10/2026). Univers = actions ordinaires des trois bourses (≈ 5 130 avec une SMA 40 en octobre 2026 ; Worden ≈ 6 550).
+market = "america"
+type = "stock"
+subtype = "common"
+exchanges = ["NYSE", "NASDAQ", "AMEX"]
+sma = 40                      # moyenne mobile du T2108 (champ SMA40 du screener)
+scan_limit = 20000            # lignes demandées ; atteinte = liste peut-être tronquée, relevé refusé
+min_stocks = 3000             # en dessous : réponse incomplète, relevé refusé
+delay_minutes = 20            # après la clôture : données différées de 15 min sans compte (+5 min de marge)
+sessions_ok = ["post_market", "out_of_session"]   # états du screener où la bougie du jour est close (pas en séance ni pre-market)
+
 [[step]]
 name = "stockbee"
 label = "Stockbee"
@@ -36,6 +49,17 @@ restore = ["breadth_data.js"]
 attempts = 1
 waits = [0]
 freshness = { min_rows = 10, max_age = 6, max_gap = 12 }
+
+[[step]]
+name = "tv_breadth"
+label = "T2108 TradingView"
+label_inline = "T2108 TradingView"   # dans une phrase (« … en échec »)
+script = "fetch_tv_breadth.py"        # aussi lancé par postmarket.yml (relevé dès la fin de séance)
+output = "tv_breadth_data.js"
+restore = ["tv_breadth_data.js"]
+attempts = 2
+waits = [30]
+freshness = { min_rows = 0, max_age = 6, max_gap = 12 }   # min_rows = 0 : la série démarre le 20/10/2026, un relevé par séance
 
 [[step]]
 name = "vix"

@@ -6,6 +6,10 @@ ratio5 = [1, 1.5]
 rq = [1, 1.5]
 rm = [1, 2]
 t2108_extremes = [20, 70]   # T2108 : zones extrêmes (orange)
+compare_sessions = 60       # contrôle croisé calcul maison / TradingView ↔ Stockbee : dernières séances communes (corrélation, écart)
+compare_min = 5             # en dessous de ce nombre de séances communes : pas de corrélation affichée
+t2108_alert_sources = ["sb"]   # sources dont un T2108 extrême déclenche l'alerte (sb = Stockbee ; own = calcul maison ; tv = TradingView)
+source_labels = { sb = "Stockbee", own = "maison", tv = "TradingView" }   # étiquette de source sur les cases du MM
 
 [vix]
 refs = [20, 30]            # lignes de repère du graphique VIX
