@@ -139,8 +139,8 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
     kp = load("display")["sectors"]["kpis"]
     if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "stk"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
-            or not (isinstance(kp["rotation_ranks"], int) and kp["rotation_ranks"] > 0) or not kp["record_sessions"] > 1:
-        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, stk (sans doublon), rotation_ranks et record_sessions > 0 attendus")
+            or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1:
+        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, stk (sans doublon), rotation_window et record_sessions > 0 attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")

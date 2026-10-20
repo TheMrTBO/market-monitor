@@ -62,12 +62,15 @@ ok('vue TradingView : cases dans l\'ordre de la config',A.$('secKpis').hidden===
 const cntAbove=L=>{const s=L.filter(x=>x.n>=min).map(x=>sc(x.c,N-1)).filter(v=>v!=null);return s.filter(v=>v>1).length+' / '+s.length;};
 ok('industries TI65 > 1 = recalcul',val(c.find(x=>x.k==='ind'))===cntAbove(IND.industries),val(c.find(x=>x.k==='ind'))+' vs '+cntAbove(IND.industries));
 ok('secteurs TI65 > 1 = recalcul',val(c.find(x=>x.k==='sec'))===cntAbove(IND.sectors),val(c.find(x=>x.k==='sec')));
-// rotation : industrie qui gagne le plus de rangs en Δ séances (mêmes règles que le classement)
-const rk=e=>new Map(order(IND.industries,IND.dates.slice(0,e+1),min).map((k,i)=>[k,i+1]));
-const now=rk(N-1), bef=rk(N-1-dl); let best=null,nUp=0,nDn=0;
-for(const [k,r] of now){const b=bef.get(k);if(b==null)continue;const d=b-r;if(d>=K.rotation_ranks)nUp++;if(d<=-K.rotation_ranks)nDn++;if(!best||d>best.d||(d===best.d&&r<best.r))best={k,d,r};}
-const rot=c.find(x=>x.k==='rot');
-ok('rotation : meilleure industrie et compteurs ±'+K.rotation_ranks+' = recalcul',rot.t.includes(best.k)&&val(rot)===(best.d>0?'▲ '+best.d:best.d<0?'▼ '+(-best.d):'=')&&rot.t.includes(nUp+' ▲')&&rot.t.includes(nDn+' ▼'),rot.t.slice(0,120));
+// rotation : industries qui franchissent 1 en rotation_window séances (entrées / sorties), solde en grand comme le ±4 %
+const W=K.rotation_window, I0=IND.industries.filter(x=>x.n>=min);
+const ent=I0.filter(x=>{const a=sc(x.c,N-1-W),b=sc(x.c,N-1);return a!=null&&b!=null&&a<=1&&b>1;}).map(x=>x.k);
+const out=I0.filter(x=>{const a=sc(x.c,N-1-W),b=sc(x.c,N-1);return a!=null&&b!=null&&a>1&&b<=1;}).map(x=>x.k);
+const net=ent.length-out.length, rot=c.find(x=>x.k==='rot');
+ok('rotation : solde, entrées et sorties = recalcul',val(rot)===(net>0?'+':'')+net&&rot.t.includes('+'+ent.length+' entrées')&&rot.t.includes('−'+out.length+' sorties'),rot.t.slice(0,100));
+ok('rotation : le solde = variation du nombre d\'industries au-dessus de 1 (même ensemble d\'industries)',
+  net===I0.filter(x=>sc(x.c,N-1-W)!=null&&sc(x.c,N-1)>1).length-I0.filter(x=>sc(x.c,N-1)!=null&&sc(x.c,N-1-W)>1).length);
+ok('industries : plus de « il y a 5 j » (c\'est le solde de la rotation)',!/il y a/.test(c.find(x=>x.k==='ind').t));
 // actions TI65 > 1 : série du robot ; ancien fichier sans la série → message, pas d'erreur
 const stk=c.find(x=>x.k==='stk');
 if(IND.stocks)ok('actions TI65 > 1 = dernière valeur de la série du robot',val(stk)===Math.round(IND.stocks.b[N-1])+' %',val(stk));
@@ -83,10 +86,11 @@ ok('Industries > 1 : la liste montre les industries au-dessus de 1',rows(A).leng
 sk(A,'ind');
 ok('Industries > 1 touchée à nouveau : filtre retiré, case inactive',ls['mm.tvabove']==='0'&&!kp(A).find(x=>x.k==='ind').on);
 sk(A,'rot');
-const dv=rows(A).map(r=>r.cells[heads(A).indexOf('delta')]).map(s=>/^▲ \d+$/.test(s)?+s.slice(2):/^▼ \d+$/.test(s)?-s.slice(2):s==='='?0:null).filter(v=>v!=null);
-ok('Rotation : industries classées par Δ (plus fortes hausses d\'abord), case active',ls['mm.tvsort.ind']==='{"k":"delta","dir":-1}'&&dv.every((v,i)=>!i||v<=dv[i-1])&&kp(A).find(x=>x.k==='rot').on,dv.slice(0,5).join(' '));
+ok('Rotation : seulement les industries entrées au-dessus de 1, case active',crumbs(A).length===2&&rows(A).map(r=>r.s).sort().join('|')===ent.slice().sort().join('|')&&kp(A).find(x=>x.k==='rot').on,rows(A).length+' / '+ent.length);
 sk(A,'rot');
-ok('Rotation touchée à nouveau : retour au classement TI65',ls['mm.tvsort.ind']==='{"k":"rank","dir":1}'&&!kp(A).find(x=>x.k==='rot').on);
+ok('Rotation touchée à nouveau : toutes les industries',rows(A).length===IND.industries.length&&!kp(A).find(x=>x.k==='rot').on,rows(A).length);
+sk(A,'rot'); up(A,0);
+ok('remonter aux secteurs : filtre « entrées » levé',!kp(A).find(x=>x.k==='rot').on&&rows(A).length===IND.sectors.length);
 sk(A,'sec');
 ok('Secteurs > 1 : niveau secteurs, filtre TI65 > 1',crumbs(A).length===1&&ls['mm.tvabove']==='1'&&kp(A).find(x=>x.k==='sec').on);
 sk(A,'sec'); sk(A,'stk');

@@ -24,10 +24,11 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 
 [sectors.kpis]
 # cases en tête de la vue TradingView de l'onglet Secteurs (décision du 20/10/2026) ; un toucher = raccourci (filtre ou tri)
-# ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (rangs gagnés en `ti65.delta` séances) ·
+# ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (industries qui passent au-dessus / en dessous
+# de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
 tiles = ["ind", "sec", "rot", "stk"]
-rotation_ranks = 10           # « Rotation » : industries qui gagnent / perdent au moins ce nombre de rangs
+rotation_window = 5           # « Rotation » : entrées / sorties au-dessus de 1 comptées sur ce nombre de séances
 record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
 
 [ti65]

@@ -577,7 +577,8 @@
     .kpis.secstrip { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 12px; scrollbar-width: none; gap: 10px; padding: 12px 12px 6px; margin: 0; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .kpis.secstrip::-webkit-scrollbar { display: none; }
-    .secstrip .kpi { flex: 0 0 64%; scroll-snap-align: start; }   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
+    .secstrip .kpi { flex: 0 0 64%; scroll-snap-align: start; }
+    .secstrip .kw { display: none; }                  /* mobile : « +14 / −6 », comme « +161 / −172 » du ±4 % (les mots restent dans la bulle ⓘ) */   /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
     #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
@@ -2023,9 +2024,11 @@
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
   const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
+  let skEntries = false;                             // raccourci « Rotation » : seulement les industries entrées au-dessus de 1 (séance du classement)
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
     if (secD && secD.kind === 'ind' && tvNav.sec !== 'all' && r.x.sec !== tvNav.sec) return false;
+    if (skEntries && secD && secD.kind === 'ind') { const ro = secKpiData() && secKpiData().rot[secBuiltEnd]; if (!ro || !ro.ent.includes(r.x.s)) return false; }
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
@@ -2136,7 +2139,8 @@
     if (kind === 'skpi') return {
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
-      rot: [`Rotation ${TI.delta} j`, `<p>Industrie qui a gagné le plus de rangs en ${TI.delta} séances (rang global). Dessous : nombre d'industries qui gagnent (▲) ou perdent (▼) au moins ${SKP.rotation_ranks} rangs. Barres : solde ▲ − ▼ à chaque séance.</p><p>Toucher : industries classées par Δ ${TI.delta} j ; à nouveau : retour au classement.</p>`],
+      rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
+        <p>Le solde est la variation du nombre d'industries au-dessus de 1 ; les deux chiffres dessous disent comment il se forme (+8 = 14 entrées et 6 sorties, ou 8 entrées et aucune sortie).</p>${g3.replace('pointillé : 50 %', 'barres : solde à chaque séance')}<p>Toucher : seulement les industries qui viennent d'entrer ; à nouveau : toutes.</p><p class="src">Pourquoi pas les rangs : un classement est à somme nulle, les places gagnées par les unes sont perdues par les autres.</p>`],
       stk: [`Actions ${TIN} > 1`, `<p>Part des actions retenues (${filt}) dont le ${TIN} dépasse 1. Même esprit que le T2108 du MM (actions au-dessus de leur moyenne 40 jours), sur un autre indicateur : les deux devraient évoluer ensemble.</p>${g3}<p>Toucher : classe le niveau affiché par « % > 1 » ; à nouveau : retour au classement.</p><p class="src">Série calculée par le robot (fetch_industries.py), clôtures Polygon / Massive.</p>`],
     }[key] || null;
     if (kind === 'tkhelp') return ['Onglet Tickers', `<p>Colle un ticker ou une liste (virgules, espaces ou lignes ; <code>$TSLA</code> et <code>NASDAQ:NVDA</code> acceptés). Pour chaque action : son secteur et son industrie TradingView avec leur rang ${TIN} du jour, son propre ${TIN}, sa capitalisation, son flottant et son short interest.</p>
@@ -2211,18 +2215,17 @@
       const v = L.map(x => x.s[e]).filter(v => v != null), up = v.filter(x => x > 1).length;
       return v.length ? { up, n: v.length, pct: 100 * up / v.length } : null;
     });
-    // rangs des industries à chaque séance : mêmes règles que le classement (secRanks : TI65 décroissant, puis nom)
-    const ranks = Array.from({ length: N }, (_, e) => new Map(I.filter(x => x.s[e] != null)
-      .sort((a, b) => b.s[e] - a.s[e] || (a.k < b.k ? -1 : 1)).map((x, i) => [x.k, i + 1])));
+    // rotation : industries dont le TI65 franchit 1 en rotation_window séances. Entrées = sous 1 (ou à 1) avant, au-dessus
+    // maintenant ; sorties = l'inverse. Pas à somme nulle, contrairement aux rangs (un rang gagné est perdu par une autre).
+    const W = SKP.rotation_window;
     const rot = Array.from({ length: N }, (_, e) => {
-      if (e < TI.delta || !ranks[e].size) return null;
-      let best = null, up = 0, dn = 0;
-      for (const [k, r] of ranks[e]) {
-        const b = ranks[e - TI.delta].get(k); if (b == null) continue;
-        const d = b - r; if (d >= SKP.rotation_ranks) up++; if (d <= -SKP.rotation_ranks) dn++;
-        if (!best || d > best.d || (d === best.d && r < best.r)) best = { k, d, r };
+      if (e < W) return null;
+      const ent = [], out = []; let n = 0;
+      for (const x of I) {
+        const a = x.s[e - W], b = x.s[e]; if (a == null || b == null) continue;
+        n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k);
       }
-      return best ? { best, up, dn, net: up - dn } : null;
+      return n ? { ent, out, net: ent.length - out.length } : null;
     });
     const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
     return (SKD = { src: IND, ind: above(I), sec: above(S), rot, stk: st ? st.b : null, stkN: st ? st.n : null });
@@ -2245,12 +2248,11 @@
   const SK_ACT = {
     ind: { on: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('ind'); setAbove(true); } } },
     sec: { on: () => tvNav.lvl === 'sec' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('sec'); setAbove(true); } } },
-    rot: { on: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && secSort.k === 'delta' && secSort.dir < 0,
-           go: on => { if (on) sortLevel('ind', RANK); else { goLevel('ind'); sortLevel('ind', { k: 'delta', dir: -1 }); } } },
+    rot: { on: () => tvNav.lvl === 'ind' && skEntries, go: on => { if (on) skEntries = false; else { goLevel('ind'); skEntries = true; } } },
     stk: { on: () => tvNav.lvl !== 'stk' && secSort.k === 'brd' && secSort.dir < 0,
            go: on => { const lvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; if (on) sortLevel(lvl, RANK); else { goLevel(lvl); sortLevel(lvl, { k: 'brd', dir: -1 }); } } },
   };
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: `Classer les industries par Δ ${TI.delta} j`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Afficher les industries qui viennent de passer au-dessus de 1', stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
@@ -2260,18 +2262,20 @@
     const f0 = x => nf(x, 0) + ' %', f1 = x => (x > 0 ? '+' : '') + nf(x, 0), past = e - TI.delta;
     const cnt = id => {                              // industries / secteurs au TI65 > 1
       const a = K[id][e], b = past >= 0 ? K[id][past] : null;
-      return a ? [`${a.up}<span class="kden"> / ${a.n}</span>`, `${nf(a.pct, 0)} %` + (b ? ` · il y a ${TI.delta} j : ${nf(b.pct, 0)} %` : '')] : ['—', 'historique trop court'];
+      // industries : la variation sur 5 j est le solde de la case Rotation (pas répétée ici) ; secteurs : part d'il y a Δ séances
+      return a ? [`${a.up}<span class="kden"> / ${a.n}</span>`, `${nf(a.pct, 0)} % des ${id === 'ind' ? 'industries' : 'secteurs'}` +
+        (id === 'sec' && b ? ` · il y a ${TI.delta} j : ${nf(b.pct, 0)} %` : '')] : ['—', 'historique trop court'];
     };
     const series = id => Array.from({ length: TI.spark }, (_, j) => { const k = e - TI.spark + 1 + j; return k >= 0 ? skVal(K, id, k) : null; });
     const col = v => css(v == null ? '--muted' : v >= 50 ? '--up' : '--down');
     const T_ = {
       ind: () => { const [v, s] = cnt('ind'), g = skGauge(K, 'ind', e, f0); return [`Industries ${TIN} > 1`, v, s, spark(series('ind'), { ref: 50 }, col(skVal(K, 'ind', e))), g]; },
       sec: () => { const [v, s] = cnt('sec'), g = skGauge(K, 'sec', e, f0); return [`Secteurs ${TIN} > 1`, v, s, spark(series('sec'), { ref: 50 }, col(skVal(K, 'sec', e))), g]; },
-      rot: () => {
-        const r = K.rot[e]; if (!r) return [`Rotation ${TI.delta} j`, '—', 'historique trop court', '', { html: '', rec: 0 }];
-        const d = r.best.d, v = d > 0 ? `<span class="pos">▲ ${d}</span>` : d < 0 ? `<span class="neg">▼ ${-d}</span>` : '=';
-        return [`Rotation ${TI.delta} j`, v, escH(r.best.k), spark(series('rot'), 'bars'),
-          { html: `<div class="g3" title="Industries qui gagnent (▲) ou perdent (▼) au moins ${SKP.rotation_ranks} rangs en ${TI.delta} séances"><span class="gt">±${SKP.rotation_ranks}</span><span class="pos">${r.up} ▲</span><span class="neg">${r.dn} ▼</span></div>`, rec: 0 }];
+      rot: () => {                                   // même lecture que « ±4 % du jour » : solde en grand, entrées / sorties dessous
+        const lbl = `Rotation ${SKP.rotation_window} j`, r = K.rot[e]; if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
+        return [lbl, `<span class="${cls(r.net)}">${signed(r.net)}</span>`,
+          `<span title="Industries passées au-dessus de 1 en ${SKP.rotation_window} séances">+${r.ent.length}<span class="kw"> entrées</span></span> / <span title="Industries repassées à 1 ou en dessous">−${r.out.length}<span class="kw"> sorties</span></span>`,
+          spark(series('rot'), 'bars'), skGauge(K, 'rot', e, signed)];
       },
       stk: () => {
         const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;
@@ -2299,6 +2303,7 @@
 
   function renderSectors() {
     const body = $('secRows');
+    if (secView !== 'tv' || tvNav.lvl !== 'ind') skEntries = false;   // filtre « entrées » propre au niveau industries
     renderSecView();
     renderSecKpis();
     const D = secData();

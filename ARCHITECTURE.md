@@ -148,9 +148,11 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
   de mars). Les créneaux cron-job.org sont en **UTC** (vérifié sur les heures des commits) : ils ne bougent pas aux
   changements d'heure. Le soir, la vue TradingView montre la veille (alerte « séance … pas encore publiée » dans l'onglet).
 - **Cases de la vue TradingView** (Secteurs, décision du 20/10/2026) : industries, secteurs et actions au TI65 > 1, rotation
-  (`config/display.toml [sectors.kpis]` : ordre, seuil de rangs, fenêtre des records). Séance = celle survolée sur un graphique de
-  l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1, tri Δ
-  ou % > 1), second toucher = retour au classement. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  = industries qui **franchissent 1** en `rotation_window` séances (solde en grand, « +entrées / −sorties » dessous, comme le ±4 % ;
+  pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) (`config/display.toml [sectors.kpis]` :
+  ordre, fenêtre de la rotation, fenêtre des records). Séance = celle survolée sur un graphique de
+  l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1,
+  industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case « — ».
   Mobile : bande qui défile, la case suivante dépasse.
 - Vue TradingView sur mobile (≤ 640 px) : les colonnes Δ 5 j et « % > 1 » sont masquées ; la rangée **« Classer par »**
