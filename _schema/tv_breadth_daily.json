@@ -1,0 +1,14 @@
+{
+  "name": "tv_breadth_daily",
+  "description": "T2108 relevé sur le screener TradingView (aucun historique chez TradingView : un relevé par séance depuis le 20/10/2026)",
+  "primary_key": [
+    "session_date"
+  ],
+  "partition": "month",
+  "partition_by": "session_date",
+  "columns": {
+    "session_date": "date",
+    "t2108": "float",
+    "n": "int"
+  }
+}
