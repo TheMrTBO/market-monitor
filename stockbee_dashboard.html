@@ -618,7 +618,7 @@
     /* onglet Tickers sur mobile : thèmes en bande qui défile, tableau réduit à Ticker · Industrie · TI65 · Days to cover */
     #tkThemes { display: flex; overflow-x: auto; gap: 8px; scrollbar-width: none; padding-bottom: 2px; }
     #tkThemes .tktheme { flex: none; width: 250px; }
-    #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct { display: none; }
+    #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct, #tkTable .c-adr { display: none; }   /* ADR : sous le TI65 */
     #tkTable { table-layout: fixed; width: 100%; }
     #tkTable th.c-ti { width: 80px; } #tkTable th.c-dtc { width: 54px; } #tkTable th.c-open { width: 32px; } #tkTable th.c-sym { width: 74px; }
     .rk .dsk { display: none; }
@@ -1996,6 +1996,9 @@
     (document.head || document.body).appendChild(el);
   }
   const TI = CFG.ti65, TIN = TI.name, TIC = CFG.industries;
+  // ADR (average daily range, config/display.toml [adr]) : affiché sur toutes les listes de tickers et dans la fiche
+  const adrTxt = v => v == null ? '<span class="tag" title="Pas de plus haut / plus bas sur toute la fenêtre">—</span>' : nf(v, 1) + ' %';
+  const ADR_TIP = `<p><b>ADR ${CFG.adr.sessions} j</b> (average daily range) = 100 × (moyenne des ${CFG.adr.sessions} dernières séances de plus haut ÷ plus bas − 1) : l'amplitude moyenne d'une séance, en %. Exemple : 5 % = l'action bouge en moyenne de 5 % entre son plus bas et son plus haut du jour.</p><p class="src">Plus hauts / plus bas Polygon / Massive (Post-market : Yahoo pour les titres du dernier scan).</p>`;
   function secScore(c, end) {                       // TI65 à l'index end ; null si l'une des clôtures de la fenêtre manque
     const S = TI.short, L = TI.long;
     if (end < L - 1) return null;
@@ -2108,7 +2111,7 @@
   }
   // ADR d'une action à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1) ; null sans OHLC ou si
   // l'une des n séances manque (config/display.toml [sectors.adr])
-  function adrAt(x, end, n = CFG.sectors.adr.sessions) {
+  function adrAt(x, end, n = CFG.adr.sessions) {
     if (!x.h || !x.l || end < n - 1) return null;
     let s = 0; for (let k = end - n + 1; k <= end; k++) { const h = x.h[k], l = x.l[k]; if (h == null || l == null || !(l > 0)) return null; s += h / l; }
     return 100 * (s / n - 1);
@@ -2141,7 +2144,7 @@
     cnt:   { label: 'Titres', k: 'cnt', dir: -1, title: `Actions retenues : prix ≥ ${nf(TIC.min_price)} $, volume moyen ${TIC.avg_volume_sessions} j ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $` },
     brd:   { label: '% > 1', k: 'brd', dir: -1, title: `Part des actions retenues dont le ${TIN} dépasse 1` },
     cap:   { label: 'Cap.', k: 'cap', dir: -1, title: 'Capitalisation boursière (dollars, TradingView)' },
-    adr:   { label: 'ADR', k: 'adr', dir: -1, title: `Average daily range : 100 × (moyenne des ${CFG.sectors.adr.sessions} dernières séances de plus haut ÷ plus bas − 1), en %` },
+    adr:   { label: 'ADR', k: 'adr', dir: -1, title: `Average daily range : 100 × (moyenne des ${CFG.adr.sessions} dernières séances de plus haut ÷ plus bas − 1), en %` },
     spark: SPARK_DEF,
     dev:   DEV_DEF,
     delta: DELTA_DEF,
@@ -2371,6 +2374,7 @@
       sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
       ind: ['Industrie', `<p>Industrie TradingView ; rang du ${TIN} de son indice parmi les industries classées, part de ses actions au ${TIN} &gt; 1, étiquette chaud / émergent (voir la bulle de l'onglet).</p>`],
       ti: [TIN, `<p>${TIN} de l'action − 1, en % (flèche : sens depuis ${TI.delta} séances) ; dessous, son rang dans son industrie.</p>`],
+      adr: ['ADR', ADR_TIP],
       cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView).</p>'],
       flt: ['Flottant', '<p>Actions librement échangeables (Yahoo, sinon TradingView).</p>'],
       pct: ['% shorté', '<p>Actions vendues à découvert ÷ flottant (Yahoo). Grisé : relevé ancien.</p>'],
@@ -2876,7 +2880,7 @@
     // niveau actions : filtre « ADR > x % » et copie des tickers affichés
     const stk = secView === 'tv' && D.kind === 'stk', ab = $('secAdr'); ab.hidden = !stk;
     if (stk) {
-      $('adrN').textContent = CFG.sectors.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.sectors.adr.step;
+      $('adrN').textContent = CFG.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.adr.step;
       if (document.activeElement !== inp) inp.value = adrMin > 0 ? String(adrMin) : '';
       const withAdr = secRows.filter(r => r.adr != null).length;
       $('adrInfo').textContent = adrMin > 0 ? `${sorted.length} / ${secRows.length} actions` : withAdr < secRows.length ? `ADR indisponible pour ${secRows.length - withAdr} action(s)` : '';
@@ -3108,7 +3112,8 @@
     if (card.hidden === isStk) { card.hidden = !isStk; fitSecLayout(); }
     if (isStk) {
       const last = secCtx.bars.size ? [...secCtx.bars.values()].pop() : null;
-      const F = stdFiche(x.s, { close: last ? last.c : null, chg: last ? last.chg : null, from: 'sec', after: () => { if (tab === 'sec') secHeader(); } });
+      const sr = secRows.find(q => q.x === x);         // ADR de la fiche = celui de la colonne (séance du classement)
+      const F = stdFiche(x.s, { close: last ? last.c : null, chg: last ? last.chg : null, adr: sr ? sr.adr : null, from: 'sec', after: () => { if (tab === 'sec') secHeader(); } });
       $('secFacts').innerHTML = F.facts; $('secLinks').innerHTML = F.links;
       $('secWhen').textContent = `séance du ${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })}`;
     }
@@ -3281,7 +3286,7 @@
     const [indName, secIx] = T.inds[c.ind], secName = T.secs[secIx], R = tkRanks();
     const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
     const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
-    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind,
+    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr,
              secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
   }
   const TK_DEFS = {
@@ -3289,13 +3294,14 @@
     sec:  { label: 'Secteur', k: 'sec', dir: 1, left: true },
     ind:  { label: 'Industrie', k: 'ind', dir: 1, left: true },
     ti:   { label: TIN, k: 'ti', dir: -1 },
+    adr:  { label: 'ADR', k: 'adr', dir: -1 },
     cap:  { label: 'Cap.', k: 'cap', dir: -1 },
     flt:  { label: 'Flottant', k: 'flt', dir: -1 },
     pct:  { label: '% shorté', k: 'pct', dir: -1 },
     dtc:  { label: '<span class="dsk">Days to cover</span><span class="mob">DTC</span>', k: 'dtc', dir: -1 },
     open: { label: '', k: '', fixed: true },
   };
-  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, cap: r => r.cap,
+  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, adr: r => r.adr, cap: r => r.cap,
                    flt: r => r.flt, pct: r => r.sh && r.sh.pct, dtc: r => r.sh && r.sh.dtc };
   const shares = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 2) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : nf(v / 1e3, 0) + ' k';
   function renderTickers() {
@@ -3345,7 +3351,8 @@
         `<td class="sym l" title="${escA(r.n)}">${escH(r.s)}<span class="tsub">${escH(r.n)}${r.kept ? '' : ' · hors filtres'}</span></td>` +
         `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
         `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
-        `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}</span></td>` +
+        `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}${r.adr != null ? `<span class="mob"> · ADR ${nf(r.adr, 1)} %</span>` : ''}</span></td>` +
+        `<td class="c-adr">${adrTxt(r.adr)}</td>` +
         `<td class="c-cap">${capFmt(r.cap)}</td><td class="c-flt">${shares(r.flt)}</td>` +
         `<td class="c-pct${r.old ? ' old' : ''}"${oldT}>${sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—'}</td>` +
         `<td class="c-dtc${r.old ? ' old' : ''}"${oldT}>${sh && sh.dtc != null ? nf(sh.dtc, 1) + ' j' : '—'}</td>` +
@@ -3461,6 +3468,7 @@
       fact(`${TIN} de l'action`, dv == null ? '—' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}${r.rankInd ? ` · <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : r.kept ? '' : ' · hors filtres'}`) +
       fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<br>${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`) +
       fact('Secteur', `${escH(tvSecLabel(r.secName))}<br>${rk(r.sec, R.sec.total)}`) +
+      fact(`ADR ${CFG.adr.sessions} j`, adrTxt(o.adr != null ? o.adr : r.adr)) +
       fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
       fact('Flottant', r.flt == null ? '—' : shares(r.flt) + ' actions') +
       fact('% du flottant shorté', sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' + sdate : '—') +
@@ -3527,6 +3535,15 @@
     for (const [s, v] of Object.entries(H.bars || {})) out[s] = v.slice(1).map((b, k) => [H.dates[v[0] + k]].concat(b));
     return out;
   })();
+  // ADR d'un titre du scan à la séance d : bougies Yahoo du scan (titres du dernier instantané), sinon l'index des tickers (robot,
+  // dernière séance publiée), sinon null
+  function pmAdr(s, d) {
+    const H = pmHist[s], n = CFG.adr.sessions;
+    if (H) { const w = H.filter(b => b[0] <= d).slice(-n);
+      if (w.length === n && w.every(b => b[2] != null && b[3] > 0)) return 100 * (w.reduce((t, b) => t + b[2] / b[3], 0) / n - 1); }
+    const r = window.TICKERS && tkLookup(s) ? tkRow(s) : null;
+    return r && r.adr != null ? r.adr : null;
+  }
   let pmDir = ['up', 'down', 'all'].includes(store.get('mm.pmdir')) ? store.get('mm.pmdir') : 'up';
   let pmEarn = store.get('mm.pmer') === '1', pmSel = store.get('mm.pmsel'), pmSort = { k: 'dv', dir: -1 }, pmCur = null, pmShown = [];
   function pmSnap() {                                   // instantané de la séance choisie (ou le plus proche avant), sinon le dernier
@@ -3538,6 +3555,7 @@
   const PM_DEFS = [
     { id: 'sym', label: 'Symbole', l: true, dir: 1, v: r => r.s },
     { id: 'pch', label: 'Var AH', dir: -1, v: r => r.pch, title: 'Variation post-market par rapport à la clôture de la séance' },
+    { id: 'adr', label: 'ADR', dir: -1, v: r => r.adr, title: `ADR ${CFG.adr.sessions} j : amplitude moyenne d'une séance (100 × (moyenne de plus haut ÷ plus bas − 1)), à la séance du scan` },
     { id: 'dv', label: 'Vol AH $', dir: -1, v: r => r.dv, title: 'Volume post-market en dollars ≈ actions échangées × cours post-market' },
     { id: 'pv', label: 'Vol AH', dir: -1, v: r => r.pv, title: 'Nombre d\'actions échangées en post-market' },
     { id: 'rv', label: 'RVol', dir: -1, v: r => r.rv, title: 'Volume post-market ÷ volume journalier moyen sur 90 jours' },
@@ -3560,7 +3578,9 @@
       return;
     }
     pmCur = snap; $('view-pm').classList.remove('nodata');
+    if (!tkLoaded.tickers) tkLoad(() => { if (tab === 'pm') renderPM(); });   // index des tickers : ADR des titres sans bougies Yahoo
     const all = snap.rows.map(pmRowOf), side = r => pmDir === 'all' || (pmDir === 'up' ? r.pch > 0 : r.pch < 0);
+    all.forEach(r => { r.adr = pmAdr(r.s, snap.d); });
     const nUp = all.filter(r => r.pch > 0).length, nEr = all.filter(r => r.er && side(r)).length;
     $('pmFilt').innerHTML = [['up', 'Hausses', nUp], ['down', 'Baisses', all.length - nUp], ['all', 'Les deux', all.length]]
       .map(([k, l, n]) => `<button data-dir="${k}" class="${pmDir === k ? 'on' : ''}" aria-pressed="${pmDir === k}">${l}<span>${n}</span></button>`).join('') +
@@ -3581,6 +3601,7 @@
     const cell = {
       sym: r => `<td class="sym l" title="${esc(r.n)}">${r.s}<span class="tsub" title="${esc(r.ind)}">${pmSector(r)}</span></td>`,
       pch: r => `<td class="dev"><div class="devc"><span class="trk"><i class="${r.pch >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.min(1, Math.abs(r.pch) / vmax) * 100)}%"></i></span><span class="v ${cls(r.pch)}">${pct(r.pch)}</span></div></td>`,
+      adr: r => `<td class="c-adr">${adrTxt(r.adr)}</td>`,
       dv: r => `<td>${big(r.dv)}</td>`,
       pv: r => `<td>${big(r.pv)}</td>`,
       rv: r => `<td class="c-rv">${r.rv == null ? '—' : nf(r.rv, r.rv < 10 ? 1 : 0) + '×'}</td>`,
@@ -3620,7 +3641,7 @@
     $('pmWhen').textContent = `séance du ${fmtDate(snap.d, { day: 'numeric', month: 'short' })}`;
     const fact = (k, v) => `<div><dt>${k}</dt><dd>${v}</dd></div>`;
     // fiche standard (même contenu que l'onglet Tickers), puis les informations propres au scan post-market
-    const F = stdFiche(r.s, { close: r.c, chg: r.ch, tv: r.t, from: 'pm', after: () => { if (tab === 'pm' && pmRowSel === r) pmDetail(r); } });
+    const F = stdFiche(r.s, { close: r.c, chg: r.ch, tv: r.t, adr: r.adr, from: 'pm', after: () => { if (tab === 'pm' && pmRowSel === r) pmDetail(r); } });
     $('pmFacts').innerHTML = F.facts +
       fact('Post-market', `${nf(r.pc, pxd(r.pc))} <span class="${cls(r.pch)}">${pct(r.pch)}</span>`) +
       fact('Volume post-market', `${big(r.dv)} $ · ${big(r.pv)} actions${r.rv != null ? ' · RVol ' + nf(r.rv, r.rv < 10 ? 1 : 0) + '×' : ''}`) +

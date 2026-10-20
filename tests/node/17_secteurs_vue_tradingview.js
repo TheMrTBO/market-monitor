@@ -144,7 +144,7 @@ const r3=rows(A), exp3=order(F.rows,F.dates);
 ok('actions de l\'industrie, classées par TI65',r3.length===I.n&&r3.slice(0,exp3.length).map(r=>r.s).join('|')===exp3.join('|'),r3.slice(0,3).map(r=>r.s).join(', '));
 ok('colonnes du niveau actions',heads(A).join(',')==='rank,sym,cap,adr,spark,dev,delta'&&!/data-open=/.test(A.$('secRows')._h),heads(A).join(','));
 // ADR 20 j (OHLC simulé ci-dessus : haut = C × 1,02, bas = C × 0,98 → haut ÷ bas = 1,0408… → ADR ≈ 4,1 %), filtre et copie
-{ const AD=CFG.sectors.adr.sessions, ia=heads(A).indexOf('adr'), rA=rows(A), exp=100*(1.02/0.98-1);
+{ const AD=CFG.adr.sessions, ia=heads(A).indexOf('adr'), rA=rows(A), exp=100*(1.02/0.98-1);
   ok('ADR '+AD+' j : 100 × (moyenne(haut ÷ bas) − 1) = recalcul',rA.length&&rA.every(r=>r.cells[ia]===exp.toFixed(1).replace('.',',')+' %'),rA[0]&&rA[0].cells[ia]);
   ok('niveau actions : filtre ADR et bouton Copier visibles',A.$('secAdr').hidden===false);
   A.L.adrMin.change({target:{value:'4,5'}});

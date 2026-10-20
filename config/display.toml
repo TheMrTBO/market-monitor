@@ -41,12 +41,6 @@ record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : 
 breadth_mid = 50              # cases « … TI65 > 1 » : bleu à partir de ce pourcentage, rouge en dessous ; pointillé des mini-courbes
 benchmark = "IWM"             # repère mesuré du ratio de rotation (bulle ⓘ) : variation de cet instrument (prices_data.js) après chaque séance
 
-[sectors.adr]
-# ADR (average daily range) des actions, niveau « actions d'une industrie » de la vue TradingView (demande du 20/10/2026) :
-# 100 × (moyenne des `sessions` dernières séances de plus haut ÷ plus bas − 1) ; filtre « ADR > x % » (0 = pas de filtre)
-sessions = 20
-step = 0.5                    # pas du champ du filtre
-
 [sectors.rrg]
 # carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :
 # x = TI65 de la force relative (indice ÷ marché) × 100 (> 100 : surperforme) ; y = 100 × x / x d'il y a `momentum` séances
@@ -59,6 +53,13 @@ labels = { lead = "Meneur", weak = "S'affaiblit", lag = "En retard", impr = "S'a
 # qui compte les allers-retours ; pas le changement de zone : 12 secteurs sur 20 en changent en 5 séances près du centre)
 movers = 3                    # mis en avant de chaque côté : les plus fortes hausses et baisses de force relative
 movers_window = 5
+
+[adr]
+# ADR (average daily range) des actions, sur toutes les listes de tickers (Secteurs, Tickers, Post-market, fiche) — décision du
+# 20/10/2026 : 100 × (moyenne des `sessions` dernières séances de plus haut ÷ plus bas − 1). Lu aussi par fetch_industries.py
+# (colonne adr de tickers_data.js). Filtre « ADR > x % » au niveau actions de Secteurs (0 = pas de filtre).
+sessions = 20
+step = 0.5                    # pas du champ du filtre
 
 [ti65]
 # indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :

@@ -65,13 +65,16 @@ ok('thèmes : une carte par industrie de la liste, triées par rang',th.length==
   &&th.map(t=>now.indexOf(t.ind)).filter(i=>i>=0).every((v,i,a)=>!i||a[i-1]<=v),th.map(t=>t.ind+(t.hot?'*':'')).join(' · '));
 ok('thèmes : étiquette chaud / émergent = règle de la config',th.every(t=>{const h=heat(t.ind);return (h==='hot')===t.hot&&(h!=='emerging'||/émergent/.test(t.t));}),th.map(t=>t.ind+':'+heat(t.ind)).join(' · '));
 // short interest (si le fichier est là)
-if(A.sb.SHORT){const s=A.sb.SHORT.rows['PENG'];const rp=r.find(x=>x.s==='PENG');ok('short interest PENG : % shorté et days to cover',!s||(rp.cells[6].startsWith((s[2]*100).toFixed(1).replace('.',','))&&rp.cells[7].startsWith(s[3].toFixed(1).replace('.',','))),rp.cells.slice(6,8).join(' | '));}
+if(A.sb.SHORT){const s=A.sb.SHORT.rows['PENG'];const rp=r.find(x=>x.s==='PENG');ok('short interest PENG : % shorté et days to cover',!s||(rp.cells[7].startsWith((s[2]*100).toFixed(1).replace('.',','))&&rp.cells[8].startsWith(s[3].toFixed(1).replace('.',','))),rp.cells.slice(6,8).join(' | '));}
 // tri par days to cover
 A.L.tkHead.click({target:{closest:()=>({dataset:{k:'dtc'}})}});
-const d1=rows(A).map(x=>parseFloat((x.cells[7]||'').replace(',','.'))).filter(v=>!isNaN(v));
+const d1=rows(A).map(x=>parseFloat((x.cells[8]||'').replace(',','.'))).filter(v=>!isNaN(v));
 ok('tri par days to cover (décroissant)',d1.every((v,i,a)=>!i||a[i-1]>=v),d1.join(' > '));
 // bulles
-ok('bulle sur chaque en-tête',(A.$('tkHead')._h.match(/data-tip="tk:/g)||[]).length===8);
+ok('bulle sur chaque en-tête',(A.$('tkHead')._h.match(/data-tip="tk:/g)||[]).length===9);
+{ const T2=A.sb.TICKERS, ci=Object.fromEntries(T2.cols.map((c,i)=>[c,i])), rr=rows(A);
+  const ok1=rr.every(x=>{const row=T2.rows.find(y=>y[ci.s]===x.s), v=row&&ci.adr!=null?row[ci.adr]:null; return x.cells[4]===(v==null?'—':v.toFixed(1).replace('.',',')+' %');});
+  ok('colonne ADR = valeur de l\'index (tickers_data.js) ou « — »',ok1,rr.map(x=>x.s+' '+x.cells[4]).join(' · ')); }
 // clic : onglet Secteurs, vue TradingView, action retenue ouverte
 A.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?{dataset:{open:'MU'}}:sel==='tr'?{dataset:{s:'MU'}}:null}});
 const nav=JSON.parse(ls['mm.tvnav']);
