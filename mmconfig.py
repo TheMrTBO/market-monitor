@@ -62,12 +62,13 @@ def front_config():
         "vix": d["vix"],
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
                     "short_stale_days": load("short")["stale_days"]},
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
+                       "volume": ind["volume"],
                        **{k: ind["universe"][k] for k in ("min_price", "min_avg_volume", "avg_volume_sessions", "min_market_cap")}},
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
@@ -146,6 +147,10 @@ def check():
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]):
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
                       "rotation_ratio_sessions = [court, long] croissant et rotation_ratio = [bas, haut] croissant attendus")
+    rg = load("display")["sectors"]["rrg"]
+    if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0) \
+            or set(rg["labels"]) != {"lead", "weak", "lag", "impr"}:
+        errors.append("display.sectors.rrg : trail et momentum entiers > 0, labels lead / weak / lag / impr attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")

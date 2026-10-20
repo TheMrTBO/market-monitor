@@ -60,8 +60,8 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[history]` : profondeur de l'historique Polygon (séances, gardées, appels/min) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
-| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
+| `display.toml` | `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), carte de rotation (`[sectors.rrg]`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique) | `mm/store/`, `build_site.py` |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
@@ -127,6 +127,8 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
 - Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente) dans le front → phase 4.
 - Colonnes de la vue TradingView par niveau (`TV_LEVEL`), choix de « Classer par » par niveau (`SORT_OPTS`), largeurs des colonnes (`#secTable`), taille de la miniature (60 × 18)
   → phase 4. `display.toml [postmarket.sector_fr]` sert aussi à l'onglet Secteurs (nom historique, à renommer en phase 4).
+- Défilement : `scrollWithin` (conteneur seul) remplace `scrollIntoView` dans Secteurs, qui faisait descendre la page à chaque
+  changement de date ; les onglets Tickers et Post-market utilisent encore `scrollIntoView` (à vérifier).
 - Constantes d'interface des onglets Secteurs / Post-market : seuil « liste et détail empilés » (`isStacked`, ≤ 1000 px),
   seuils du balayage entre titres (60 px, horizontal ≥ 2 × vertical, < 700 ms) → phase 4.
 - `fetch_data.py` (univers Polygon, âge max du cache), `breadth_own.py` (formules TC2000 : ne pas modifier sans accord).
@@ -163,9 +165,24 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
   cumulées sur `rotation_ratio_sessions` = [5, 10] séances (5 j en grand, « 10 jours : … » dessous, comme « Ratio 5 j » du MM), couleurs `rotation_ratio` (rouge < 1, bleu ≥ 1,5) comme le ratio 5 / 10 j des
   ±4 % ; toucher = industries entrées dans la fenêtre et toujours au-dessus de 1 ; bulle : repère IWM recalculé à chaque chargement. Séance = celle survolée sur un graphique de
   l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1,
-  industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. **Flux par secteur** (toucher la case
+  industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. **Une seule case active à la fois** :
+  toucher une case annule l'effet de la précédente (`skMode`, `skToggle`). **Flux par secteur** (toucher la case
   Rotation) : entrées / sorties regroupées par secteur, résumé « ↑ 3 premiers · ↓ 3 premiers », puis blocs « L'argent arrive » /
-  « L'argent repart » / « se compensent » ; toucher un secteur ouvre ses industries. La case Rotation affiche ↑ / ↓ à la place de la jauge. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  « L'argent repart » / « se compensent » ; toucher un secteur ouvre ses industries. La case Rotation affiche ↑ / ↓ à la place de la jauge.
+- **Frise temporelle** (Secteurs / TradingView, sous les cases) : Industries TI65 > 1 sur tout l'historique ; survol souris ou
+  glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la
+  séance devient celle de « Stats du » (`showDate`, le classement suit). `touch-action: pan-y` : la page défile toujours à la verticale.
+- **Carte de rotation** (type RRG, Secteurs / TradingView) : chaque secteur (ou industrie du secteur filtré) placé par sa force
+  relative au **marché** (x = 100 × TI65 de indice ÷ marché) et son accélération (y = 100 × x / x d'il y a `momentum` séances),
+  traînée sur `trail` séances, taille = volume en dollars relatif au marché ; zones Meneur / S'affaiblit / En retard / S'améliore
+  (`config/display.toml [sectors.rrg]`). Marché = série `stocks.c` de `industries_data.js` (indice équipondéré de toutes les actions
+  retenues) ; ancien fichier : indices des secteurs pondérés par leur nombre de titres (« marché approché »). Volume en dollars
+  relatif `rv` (secteurs, industries, marché) : `config/industries.toml [volume]` (5 / 50 séances), calculé par `fetch_industries.py`
+  (+30 Ko compressés). Pleine largeur (hauteur = moitié de la largeur, plafonnée) ; repliée par défaut sur mobile (`mm.rrg`).
+  **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
+  fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
+  et traînée (datée) en avant, les autres atténués. **Tickers** (champ au-dessus, `mm.rrgtk`, index `tickers_data.js` chargé à
+  la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mise en page des cases comme le MM : une ligne sur bureau, 3 colonnes sous 1 100 px, 2 sous 640 px (pas de défilement
   horizontal, demande du 20/10/2026) ; sous-titres courts (« +14 / −6 »), le détail est dans la bulle ⓘ.

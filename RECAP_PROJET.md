@@ -433,6 +433,16 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > compris) vers la consommation courante, le commerce de détail et la santé (rotation défensive). Ajouts : flux par secteur
 > (fait), puis graphique de rotation relatif au marché (RRG) et volume en dollars (PR suivante). Limites : TI65 sans volume,
 > équipondéré, absolu, retardé ; effet de seuil à 1.
+> **Carte de rotation (RRG) + volume en dollars (PR suivante, référence = toutes les actions retenues, choix de l'utilisateur)** :
+> force relative au marché et son accélération, 4 zones, traînée 10 séances, taille = volume en dollars relatif (5 / 50 séances).
+> 19/10 : Électronique glisse vers « En retard », Conso. courante en tête des « Meneurs » : cohérent avec le flux par secteur.
+> Principe du RRG de Julius de Kempenaer, avec le TI65 comme mesure (pas ses formules propriétaires).
+> **UX du 20/10/2026** : l'écran ne descend plus au changement de date (scrollIntoView remplacé) ; une seule case active ; carte
+> pleine largeur ; **frise temporelle** (choix A parmi frise / ▶ rejouer / flèches) sur Industries TI65 > 1 : glisser = remonter
+> le temps comme sur le MM. Exemple : le 7 août, Électronique était dans « S'améliore », avant de plonger « En retard » en octobre.
+> **Carte, suite (choix de l'utilisateur)** : arbre dans la carte (secteurs → industries → actions, fil et ‹), survol qui met un
+> point en avant et atténue les autres, tickers saisis au-dessus de la carte (leurs secteurs / industries en avant ; pastille =
+> descente jusqu'à l'industrie). 19/10 : NVDA dans « S'affaiblit » parmi 57 semi-conducteurs, XOM « Meneur » des pétrolières.
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
