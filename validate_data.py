@@ -225,8 +225,13 @@ def check_industries(data, today, folder=None):
         errors.append(f"industries : {len(bad)} indice(s) incomplet(s) ou non positif(s) ({', '.join(bad[:3])})")
     st = data.get("stocks")                   # % des actions retenues au TI65 > 1 (ajouté le 20/10/2026 : absent des anciens fichiers)
     if st is not None and (st.get("n") != total or len(st.get("b", [])) != len(dates)
-                           or any(v is not None and not 0 <= v <= 100 for v in st["b"])):
-        errors.append("industries : série « actions TI65 > 1 » incohérente (effectif, longueur ou bornes)")
+                           or any(v is not None and not 0 <= v <= 100 for v in st["b"])
+                           or ("c" in st and (len(st["c"]) != len(dates) or any(v is None or not v > 0 for v in st["c"])))):
+        errors.append("industries : série « actions TI65 > 1 » ou indice de marché incohérent (effectif, longueur ou bornes)")
+    bad_rv = [x["k"] for x in secs + inds + ([st] if st else []) if "rv" in x and (len(x["rv"]) != len(dates)
+              or any(v is not None and not 0 <= v < 100 for v in x["rv"]))]   # volume relatif (ajouté le 20/10/2026)
+    if bad_rv:
+        errors.append(f"industries : volume en dollars relatif incohérent ({', '.join(str(k) for k in bad_rv[:3])})")
     if folder is not None:
         missing = []
         for i in inds:

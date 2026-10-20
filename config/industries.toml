@@ -21,6 +21,13 @@ daily_return_clip = 0.5       # variation journalière d'un titre plafonnée à 
 min_members = 3               # en dessous : secteur ou industrie affiché sans rang
 few_members = 5               # en dessous : étiquette « peu de titres »
 
+[volume]
+# volume en dollars relatif (cours × volume, ajustés des splits) d'un secteur, d'une industrie et de toutes les actions retenues :
+# moyenne des `short` dernières séances ÷ moyenne des `long` dernières (1,3 = 30 % d'argent échangé de plus que d'habitude).
+# Sert à la carte de rotation de l'onglet Secteurs (décision du 20/10/2026 : « où va l'argent »).
+short = 5
+long = 50
+
 [output]
 stock_sessions = 190          # séances par action dans industries/<industrie>.js (fiche action : graphique, TI65 sur ~6 mois)
 folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie

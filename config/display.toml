@@ -35,6 +35,15 @@ rotation_ratio_sessions = [5, 10]
 rotation_ratio = [1, 1.5]     # couleur : rouge sous 1 (plus de sorties que d'entrées), bleue à partir de 1,5, grise entre
 record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
 
+[sectors.rrg]
+# carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :
+# x = TI65 de la force relative (indice ÷ marché) × 100 (> 100 : surperforme) ; y = 100 × x / x d'il y a `momentum` séances
+# (> 100 : la surperformance accélère). Quatre zones : Meneur, S'affaiblit, En retard, S'améliore. Taille du point = volume en
+# dollars relatif au marché (config/industries.toml [volume]).
+trail = 10                    # séances de la traînée (direction du mouvement)
+momentum = 5                  # séances de la variation de x
+labels = { lead = "Meneur", weak = "S'affaiblit", lag = "En retard", impr = "S'améliore" }
+
 [ti65]
 # indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :
 # moyenne des `short` dernières clôtures ÷ moyenne des `long` dernières ; lu aussi par fetch_industries.py (% de titres > 1)
