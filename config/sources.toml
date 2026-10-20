@@ -52,8 +52,8 @@ freshness = { min_rows = 10, max_age = 6, max_gap = 12 }
 
 [[step]]
 name = "tv_breadth"
-label = "T2108 TradingView"
-label_inline = "T2108 TradingView"   # dans une phrase (« … en échec »)
+label = "Breadth TradingView"
+label_inline = "breadth TradingView"   # dans une phrase (« … en échec ») : T2108 et ±4 % du jour
 script = "fetch_tv_breadth.py"        # aussi lancé par postmarket.yml (relevé dès la fin de séance)
 output = "tv_breadth_data.js"
 restore = ["tv_breadth_data.js"]

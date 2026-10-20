@@ -1,7 +1,7 @@
 // Décision du 20/10/2026 : nos chiffres s'affichent dès qu'ils existent (calcul maison, puis relevé TradingView pour le T2108),
 // avec leur source sur chaque case ; Stockbee reprend la main à sa publication et sert de contrôle (corrélation, écart).
 // L'alerte d'extrême du T2108 attend un chiffre Stockbee.
-const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const fs=require('fs'),vm=require('vm'),assert=require('assert');let ok6;
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(extra){
@@ -64,4 +64,18 @@ assert(/en attente/.test(strip(tile(kc,'solde'))),'±4 % : en attente (TradingVi
 // 5. pied de page : contrôle croisé de chaque source avec Stockbee
 const foot=strip(C.$('dataStatus')._h);
 for(const k of ['±4 %','ratio mois','ratio trim.','T2108 maison','T2108 TradingView'])assert(foot.includes(k+' '),'contrôle « '+k+' » absent : '+foot.slice(-400));
+// 6. ±4 % TradingView (5 colonnes) : la séance nd2 que ni Stockbee ni Polygon n'ont prend les ±4 % TradingView et le ratio 5 j
+// recalculé sur les 5 dernières séances ; les ±25 % restent en attente (TradingView ne les fournit pas)
+const TV5=`window.TV_BREADTH={columns:['date','t2108','n','up4','down4'],rows:[['${nd2}',18.5,5100,200,100]],asof:'${nd2}'};`;
+const E=boot(OWN2+TV5), ke=E.$('kpis')._h, ts=tile(ke,'solde'), tr=tile(ke,'r5');
+ok6=/\+100/.test(strip(ts))&&/class="ksrc s-tv"/.test(ts);
+assert(ok6,'±4 % TradingView : solde +100 étiqueté TradingView attendu : '+strip(ts));
+const M=new Map();                                       // séances fusionnées comme le dashboard : Stockbee, puis maison, puis TradingView
+{ const S=E.sb.STOCKBEE, si=Object.fromEntries(S.columns.map((c,i)=>[c,i])); S.rows.forEach(r=>M.set(r[0],[r[si.up4],r[si.down4]]));
+  const O=E.sb.BREADTH_OWN; O.rows.forEach(r=>{if(!M.has(r[0]))M.set(r[0],[r[1],r[2]]);}); M.set(nd2,[200,100]); }
+const ds=[...M.keys()].sort(), i2=ds.indexOf(nd2), w=ds.slice(i2-4,i2+1).map(d=>M.get(d));
+const r5=Math.round(100*w.reduce((s,x)=>s+x[0],0)/w.reduce((s,x)=>s+x[1],0))/100;
+assert(strip(tr).includes(r5.toFixed(2).replace('.',',')),'ratio 5 j recalculé '+r5+' attendu : '+strip(tr));
+assert(/en attente/.test(strip(tile(ke,'rm')))&&/en attente/.test(strip(tile(ke,'rq'))),'±25 % : en attente (pas fournis par TradingView)');
+assert(/±4 % TradingView : \d+ séance/.test(strip(E.$('dataStatus')._h)),'pied de page : contrôle « ±4 % TradingView » attendu');
 console.log('ok : maison x5 sans attente · T2108 maison sans alerte · Stockbee reprend la main (alerte) · T2108 TradingView seul · contrôles :',foot.slice(foot.indexOf('Contrôle'),foot.indexOf('Contrôle')+120));

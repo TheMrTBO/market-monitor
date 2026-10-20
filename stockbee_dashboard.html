@@ -1024,12 +1024,16 @@
   }
   // T2108 relevé sur le screener TradingView (tv_breadth_data.js, fetch_tv_breadth.py) : seconde source maison, disponible dès
   // la fin de séance ; affiché seulement si ni Stockbee ni le calcul Polygon n'ont la séance, comparé à Stockbee sinon.
-  const TVB = new Map(((window.TV_BREADTH || {}).rows || []).map(r => [r[0], r[1]]));
-  const tvT = d => TVB.has(d) ? TVB.get(d) : null;
+  // ±4 % TradingView (même formule TC2000, dès le soir) : complète une séance que ni Stockbee ni Polygon n'ont encore.
+  const TVX = window.TV_BREADTH || {}, TVC = Object.fromEntries((TVX.columns || ['date', 't2108', 'n']).map((c, i) => [c, i]));
+  const TVR = new Map((TVX.rows || []).map(r => [r[0], r]));
+  const tvV = (d, k) => { const r = TVR.get(d); return r && TVC[k] != null && r[TVC[k]] != null ? r[TVC[k]] : null; };
+  const TVB = new Map([...TVR.keys()].filter(d => tvV(d, 't2108') != null).map(d => [d, tvV(d, 't2108')]));
+  const tvT = d => tvV(d, 't2108');
   // source d'un chiffre affiché : 'sb' (Stockbee), 'own' (calcul maison, clôtures Polygon), 'tv' (relevé TradingView), null
-  const srcOf = (d, k) => !d || sb(d, k) == null ? null : SB_REAL.has(d) ? 'sb' : k === 't2108' && own(d, k) == null ? 'tv' : 'own';
+  const srcOf = (d, k) => !d || sb(d, k) == null ? null : SB_REAL.has(d) ? 'sb' : own(d, k) != null ? 'own' : 'tv';
   const SRC_LBL = CFG.breadth.source_labels;                                   // config/display.toml [breadth]
-  const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: `relevé TradingView (screener, SMA ${CFG.breadth.tv_sma})` };
+  const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: `relevé TradingView (screener : clôtures, volumes, SMA ${CFG.breadth.tv_sma})` };
   const T2_ALERT = new Set(CFG.breadth.t2108_alert_sources);                    // sources dont un T2108 extrême déclenche l'alerte
   const TV_FIRST = TVB.size ? [...TVB.keys()].sort()[0] : null;                 // premier relevé TradingView (la série démarre là)
   // Contrôle croisé avec Stockbee sur les dernières séances communes (config/display.toml compare_sessions) : corrélation,
@@ -1047,16 +1051,17 @@
     const pairs = (mine, ref) => D.map(d => [mine(d), ref(d), d]).filter(x => x[0] != null && x[1] != null).slice(-N);
     const rat = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const p4 = pairs(d => own(d, 'up4'), d => sb(d, 'up4')).concat(pairs(d => own(d, 'down4'), d => sb(d, 'down4')));
-    return (_agree = { solde: stat(p4), r5: stat(pairs(d => own(d, 'ratio5'), d => sb(d, 'ratio5'))),
+    const p4tv = pairs(d => tvV(d, 'up4'), d => sb(d, 'up4')).concat(pairs(d => tvV(d, 'down4'), d => sb(d, 'down4')));
+    return (_agree = { solde: stat(p4), solde_tv: stat(p4tv), r5: stat(pairs(d => own(d, 'ratio5'), d => sb(d, 'ratio5'))),
       rm: stat(pairs(OWN_RATIO.rm, rat('up25m', 'down25m'))), rq: stat(pairs(OWN_RATIO.rq, rat('up25q', 'down25q'))),
       t2108: stat(pairs(d => own(d, 't2108'), d => sb(d, 't2108'))), t2108tv: stat(pairs(tvT, d => sb(d, 't2108'))) });
   }
-  const AG_FMT = { solde: [0, ' titres'], r5: [2, ''], rm: [2, ''], rq: [2, ''], t2108: [1, ' pt'], t2108tv: [1, ' pt'] };
+  const AG_FMT = { solde: [0, ' titres'], solde_tv: [0, ' titres'], r5: [2, ''], rm: [2, ''], rq: [2, ''], t2108: [1, ' pt'], t2108tv: [1, ' pt'] };
   function agreeTxt(id) {
     const a = agree()[id], [k, u] = AG_FMT[id];
     if (a.n < CFG.breadth.compare_min) return `${a.n} séance${a.n > 1 ? 's' : ''} comparée${a.n > 1 ? 's' : ''} (corrélation à partir de ${CFG.breadth.compare_min})`;
     const sg = v => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), k === 0 ? 1 : k);
-    return `corrélation ${nf(a.corr, 2)}, écart moyen ${sg(a.bias)}${u} (absolu ${nf(a.mad, k === 0 ? 1 : k)}${u}) sur ${a.n} séances` + (id === 'solde' ? ' (hausses et baisses)' : '');
+    return `corrélation ${nf(a.corr, 2)}, écart moyen ${sg(a.bias)}${u} (absolu ${nf(a.mad, k === 0 ? 1 : k)}${u}) sur ${a.n} séances` + (id === 'solde' || id === 'solde_tv' ? ' (hausses et baisses)' : '');
   }
   // Séance du jour terminée (heure de clôture passée à New York, QQQ a coté ce jour-là) mais breadth pas encore publié (Stockbee, calcul
   // maison) : on l'ajoute aux séances avec une ligne vide, pour que tous les onglets passent au jour même ; les chiffres
@@ -1076,10 +1081,21 @@
     return d && (!lastSb || d > lastSb) ? d : null;
   })();
   if (PENDING) { const row = STOCKBEE.columns.map(() => null); row[COL.date] = PENDING; SB.set(PENDING, row); }
-  for (const [d, v] of TVB) {                    // après PENDING : une séance au seul T2108 TradingView reste « en attente » pour le reste
+  for (const d of TVR.keys()) {                  // après PENDING ; ce que TradingView ne fournit pas (±25 %) reste « en attente »
     if (SB_REAL.has(d)) continue;
     let row = SB.get(d); if (!row) { row = STOCKBEE.columns.map(() => null); row[COL.date] = d; SB.set(d, row); }
-    if (row[COL.t2108] == null) row[COL.t2108] = v;
+    for (const k of ['up4', 'down4', 't2108']) if (row[COL[k]] == null && tvV(d, k) != null) row[COL[k]] = tvV(d, k);
+  }
+  // ratios 5 / 10 j d'une séance complétée par TradingView : sommes des ±4 % des 5 / 10 dernières séances (Stockbee, maison ou
+  // TradingView, comme breadth_own.py) ; absents si l'une manque
+  { const ds = [...SB.keys()].sort();
+    ds.forEach((d, i) => {
+      const row = SB.get(d); if (SB_REAL.has(d) || row[COL.up4] == null || row[COL.ratio5] != null) return;
+      for (const [k, n] of [['ratio5', 5], ['ratio10', 10]]) {
+        const w = ds.slice(Math.max(0, i - n + 1), i + 1).map(x => SB.get(x)); if (w.length < n || w.some(r => r[COL.up4] == null || r[COL.down4] == null)) continue;
+        const dn = w.reduce((s, r) => s + r[COL.down4], 0); row[COL[k]] = dn ? Math.round(100 * w.reduce((s, r) => s + r[COL.up4], 0) / dn) / 100 : null;
+      }
+    });
   }
   const NAMES = Object.keys(window.PRICES);
   const VIXMAP = new Map((window.VIX || []).map(r => [r[0], r[4]]));   // date -> clôture du VIX (CBOE) ; vide si vix_data.js manque
@@ -1696,7 +1712,7 @@
       const kk = kind === 'r5' ? 'ratio5' : kind, f = serFn(kk), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
       const ov = SB_REAL.has(d) && OWN_RATIO[kk] ? OWN_RATIO[kk](d) : null;
       const mine = ov == null ? '' : `<div style="margin-top:2px">Calcul maison${kind === 'rq' ? ' (expérimental)' : ''} : ${nf(ov, 2)}</div>`
-        + (SB_REAL.has(d) ? '' : '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>');
+        + (SB_REAL.has(d) ? '' : `<div style="margin-top:2px">Source : ${SRC_TXT[srcOf(d, kk === 'ratio5' ? 'ratio5' : kk === 'rm' ? 'up25m' : 'up25q')] || 'calcul maison'} (Stockbee n'a pas encore publié)</div>`);
       return (kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
         : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`) + mine;
     }
@@ -1704,7 +1720,7 @@
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>${d === PENDING ? 'En attente des données (publiées après la clôture)' : 'Pas de donnée (jour non boursier)'}`;
     const mine = SB_REAL.has(d) && own(d, k[0]) != null
       ? `<div style="margin-top:2px">Calcul maison${kind === 'hist2' ? ' (expérimental)' : ''} : +${nf(own(d, k[0]))} / −${nf(own(d, k[1]))}</div>` : '';
-    const src = !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
+    const src = !SB_REAL.has(d) ? `<div style="margin-top:2px">Source : ${SRC_TXT[srcOf(d, k[0])] || 'calcul maison'} (Stockbee n'a pas encore publié)</div>` : '';
     return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
       (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>' + mine + src;
   }
@@ -3702,9 +3718,9 @@
       return s.ok ? `${label} ${d} ✓` : `<span class="neg" title="${(s.error || '').replace(/"/g, '&quot;')}">${label} ${d} ⚠ non mis à jour</span>`;
     }).filter(Boolean).join(' · ') + (() => {      // contrôle croisé de nos sources avec Stockbee (dernières séances communes)
       if (!OWN && !TVB.size) return '';
-      const L = { solde: '±4 %', r5: 'ratio 5 j', rm: 'ratio mois', rq: 'ratio trim. (expérimental)', t2108: 'T2108 maison', t2108tv: 'T2108 TradingView' };
+      const L = { solde: '±4 % maison', solde_tv: '±4 % TradingView', r5: 'ratio 5 j', rm: 'ratio mois', rq: 'ratio trim. (expérimental)', t2108: 'T2108 maison', t2108tv: 'T2108 TradingView' };
       return `<br>Contrôle avec Stockbee (${CFG.breadth.compare_sessions} dernières séances communes au plus) : ` +
-        Object.keys(L).filter(id => id === 't2108tv' ? TVB.size : OWN).map(id => `${L[id]} : ${agreeTxt(id)}`).join(' · ');
+        Object.keys(L).filter(id => id === 't2108tv' || id === 'solde_tv' ? TVR.size : OWN).map(id => `${L[id]} : ${agreeTxt(id)}`).join(' · ');
     })() + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
   })();
 
@@ -3811,7 +3827,8 @@
     const srcNote = id => {
       const [k, d] = SRCK[id], s = srcOf(d, k); if (!s) return '';
       const head = `Chiffre affiché : <b>${SRC_TXT[s]}</b>` + (s === 'sb' ? '.' : `. Stockbee n'a pas encore publié cette séance : ses chiffres remplaceront les nôtres à sa publication${id === 't2108' ? ', et l\'alerte d\'extrême attend sa confirmation' : ''}.`);
-      const ctl = id === 't2108' ? `calcul maison : ${agreeTxt('t2108')} · TradingView : ${agreeTxt('t2108tv')}` : `calcul maison : ${agreeTxt(id)}`;
+      const ctl = id === 't2108' ? `calcul maison : ${agreeTxt('t2108')} · TradingView : ${agreeTxt('t2108tv')}`
+        : id === 'solde' ? `calcul maison : ${agreeTxt('solde')} · TradingView : ${agreeTxt('solde_tv')}` : `calcul maison : ${agreeTxt(id)}`;
       return `<p class="src">${head}<br>Contrôle avec Stockbee — ${ctl}.</p>`;
     };
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';

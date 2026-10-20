@@ -36,7 +36,13 @@ def breadth_own(data):
 
 
 def tv_breadth(data):
-    return {"tv_breadth_daily": [{"session_date": r[0], "t2108": r[1], "n": r[2]} for r in data["rows"]]}
+    cols = data.get("columns", ["date", "t2108", "n"])
+    rows = []
+    for r in data["rows"]:
+        d = {c: (r[i] if i < len(r) else None) for i, c in enumerate(cols)}
+        d["session_date"] = d.pop("date")
+        rows.append(d)
+    return {"tv_breadth_daily": rows}
 
 
 def prices(data):

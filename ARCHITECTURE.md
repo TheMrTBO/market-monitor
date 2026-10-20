@@ -19,7 +19,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `config_data.js` | **Généré** (`python mmconfig.py --js`) : `window.MM_CONFIG`. Ne pas éditer. |
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
-| `fetch_tv_breadth.py` | T2108 relevé sur le screener TradingView (champ SMA40, actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
+| `fetch_tv_breadth.py` | T2108 (champ SMA40) et **±4 % du jour** (formule TC2000 de `breadth_own.count_breadth`, appliquée à close / close[1] / volume / volume[1]) relevés sur le screener TradingView (actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
 | `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, affichés en courbe de tendance ; % de titres au TI65 > 1) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie) et `tickers_data.js` (toutes les actions US, retenues ou non : secteur, industrie, cap, flottant, TI65, rang dans l'industrie ; onglet Tickers ; sert aussi de composition publiée et de secours si TradingView ne répond pas). |
 | `fetch_short.py` | Short interest de l'onglet Tickers (flottant, actions à découvert, % du flottant, days to cover ; Yahoo via yfinance) → `short_data.js`, par lots (`config/short.toml`), lancé seul par `short.yml` l'après-midi. |
 | `build_site.py` | Prépare `_site` (GitHub Pages) depuis la liste unique `config/storage.toml [site]` ; appelé par les trois workflows. |
@@ -134,7 +134,8 @@ le 20/10/2026 : breadth affiché dès que possible depuis nos sources + T2108 Tr
 - **Sources du breadth** (décision du 20/10/2026 : « le plus autonome possible, vérifié avec Stockbee ») : chaque case du MM affiche
   le chiffre dès qu'il existe, avec sa **source** en étiquette (Stockbee / maison / TradingView). Priorité : Stockbee (dès sa
   publication, il remplace nos chiffres) > calcul maison Polygon (`breadth_data.js`, toutes les colonnes) > relevé TradingView
-  (`tv_breadth_data.js`, T2108 seul, disponible dès 16 h 20 à New York). L'**alerte d'extrême du T2108** (case orange, records 3 mois)
+  (`tv_breadth_data.js` : T2108 et ±4 %, disponibles dès 16 h 20 à New York ; ratios 5 / 10 j recalculés dans le navigateur ;
+  ±25 % seulement le lendemain matin, par Polygon). L'**alerte d'extrême du T2108** (case orange, records 3 mois)
   n'existe que sur un chiffre Stockbee : notre T2108 a un biais de niveau (univers ≈ 5 150 titres contre ≈ 6 550 chez Worden). Contrôle
   croisé (corrélation, écart moyen, sur `config/display.toml [breadth] compare_sessions` séances) : pied de page et bulles ⓘ.
   Sur l'onglet SA, trait plein = Stockbee seul ; la variation du T2108 se calcule dans la même source (pas de faux saut).
