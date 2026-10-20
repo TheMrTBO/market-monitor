@@ -48,7 +48,9 @@ const bodies=A=>(A.R.secCanvas||[]).filter(r=>r[3]>0&&r[3]<20&&r[4]>0&&(r[0]==='
 
 
 
-const ls={}; let A=boot(ls);
+// cas « ancien fichier » (sans indice de marché ni volume relatif) simulé : le robot publie ces séries depuis le 20/10/2026, le test
+// ne doit pas dépendre du fichier du jour (il échouait dès la première publication des séries)
+const ls={}; let A=boot(ls,{after:'delete INDUSTRIES.stocks;'});
 const IND=A.sb.INDUSTRIES, CFG=A.sb.MM_CONFIG, R=CFG.sectors.rrg, N=IND.dates.length, min=CFG.industries.min_members;
 tab(A); view(A,'tv');
 ok('carte visible en vue TradingView, titre « secteurs · relatif au marché »',A.$('secRrg').hidden===false&&/secteurs · relatif au marché/.test(A.$('rrgWhat')._t||''),A.$('rrgWhat')._t);
