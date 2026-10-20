@@ -169,7 +169,11 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
   (`config/display.toml [sectors.rrg]`). Marché = série `stocks.c` de `industries_data.js` (indice équipondéré de toutes les actions
   retenues) ; ancien fichier : indices des secteurs pondérés par leur nombre de titres (« marché approché »). Volume en dollars
   relatif `rv` (secteurs, industries, marché) : `config/industries.toml [volume]` (5 / 50 séances), calculé par `fetch_industries.py`
-  (+30 Ko compressés). Pleine largeur (hauteur = moitié de la largeur, plafonnée) ; repliée par défaut sur mobile (`mm.rrg`). Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  (+30 Ko compressés). Pleine largeur (hauteur = moitié de la largeur, plafonnée) ; repliée par défaut sur mobile (`mm.rrg`).
+  **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
+  fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
+  et traînée (datée) en avant, les autres atténués. **Tickers** (champ au-dessus, `mm.rrgtk`, index `tickers_data.js` chargé à
+  la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mise en page des cases comme le MM : une ligne sur bureau, 3 colonnes sous 1 100 px, 2 sous 640 px (pas de défilement
   horizontal, demande du 20/10/2026) ; sous-titres courts (« +14 / −6 »), le détail est dans la bulle ⓘ.

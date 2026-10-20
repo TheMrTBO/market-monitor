@@ -181,6 +181,16 @@
   /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
   #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
   .rrginfo { font-size: 11.5px; color: var(--muted); min-height: 16px; margin-top: 4px; }
+  /* arbre de la carte (secteurs › industries › actions) et tickers mis en avant */
+  .rrgbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 6px; }
+  .rrgnav { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: 12.5px; min-width: 0; }
+  .rrgnav button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 2px 9px; font-size: 12px; cursor: pointer; }
+  .rrgnav button.on { color: var(--text); border-color: color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 18%, transparent); }
+  .rrgnav .back { font-weight: 600; color: var(--text); } .rrgnav .sep { color: var(--faint); }
+  #rrgTk { margin-left: auto; width: 220px; max-width: 100%; padding: 4px 9px; font-size: 12.5px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); }
+  .rrgchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; } .rrgchips:empty { display: none; }
+  .rrgchips button, .rrgchips span { border: 1px solid var(--border); background: none; color: var(--text); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; cursor: pointer; }
+  .rrgchips .unk { color: var(--faint); cursor: default; } .rrgchips b { font-weight: 600; }
   .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
   .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
   .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
@@ -597,6 +607,7 @@
     #secTable.tv td.dev .dsub { display: block; font-size: 11px; text-align: right; }
     #view-sec .secsort:not([hidden]) { display: flex; }
     #rrgCv { aspect-ratio: 1 / 1; }
+    #rrgTk { width: 100%; margin-left: 0; }
     .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
@@ -709,7 +720,11 @@
     <div class="card secrrg" id="secRrg" hidden>
       <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><b>Carte de rotation</b> <span id="rrgWhat"></span><span class="car">▾</span></button>
       <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
-      <div id="rrgBody"><canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div></div>
+      <div id="rrgBody">
+        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
+          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
+        <div class="rrgchips" id="rrgChips"></div>
+        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div></div>
     </div>
     <div class="secsplit">
       <div class="card seclist">
@@ -2506,15 +2521,50 @@
       return { k: x.k, n: x.n, sec: x.sec, px, py, rv };
     };
     const ok = x => x.n >= TIC.min_members;
-    return (RRD = { src: IND, approx, hasRv: !!mrv, sec: IND.sectors.filter(ok).map(one), ind: IND.industries.filter(ok).map(one) });
+    return (RRD = { src: IND, approx, hasRv: !!mrv, one, stk: new Map(), sec: IND.sectors.filter(ok).map(one), ind: IND.industries.filter(ok).map(one) });
+  }
+  // actions d'une industrie sur la carte : clôtures du fichier de l'industrie (chargé à son ouverture), alignées sur les séances
+  // de la vue ; volume en dollars relatif recalculé ici (mêmes fenêtres que le robot, config/industries.toml [volume])
+  function rrgStocks(D, indKey) {
+    const ind = IND.industries.find(x => x.k === indKey), F = ind && window.TV_STOCKS && window.TV_STOCKS[ind.f]; if (!F) return null;
+    if (D.stk.has(F)) return D.stk.get(F);
+    const N = IND.dates.length, at = new Map(IND.dates.map((d, k) => [d, k])), vs = TIC.volume.short, vl = TIC.volume.long;
+    const items = F.rows.map(([s, , , c, v]) => {
+      const cl = Array(N).fill(null), dv = Array(N).fill(null);
+      F.dates.forEach((d, j) => { const k = at.get(d); if (k == null) return; cl[k] = c[j]; dv[k] = c[j] != null && v && v[j] != null ? c[j] * v[j] * (F.vu || 1) : null; });
+      const rv = dv.map((_, k) => { if (k < vl - 1) return null; let a = 0, b = 0; for (let j = k - vl + 1; j <= k; j++) { if (dv[j] == null) return null; b += dv[j]; if (j > k - vs) a += dv[j]; } return b ? (a / vs) / (b / vl) : null; });
+      return D.one({ k: s, n: 1, sec: ind.sec, c: cl, rv });
+    });
+    D.stk.set(F, items); return items;
+  }
+  // tickers saisis au-dessus de la carte : leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant, les autres atténués
+  let rrgTkText = store.get('mm.rrgtk') || '';
+  function rrgTickers() {
+    const syms = tkParse(rrgTkText); if (!syms.length) return { list: [] };
+    if (!window.TICKERS) { if (tkLoaded.tickers !== 'absent') tkLoad(() => drawRrg(rrgE)); return { list: [], wait: true }; }
+    return { list: syms.map(s => { const r = tkRow(s); return { s, r }; }) };
   }
   function drawRrg(e) {
     const card = $('secRrg'), D = secView === 'tv' ? rrgData() : null; if (!card) return;
     card.hidden = !D; if (!D) return;
     rrgE = e; $('rrgBody').hidden = !rrgOpen; $('rrgHead').setAttribute('aria-expanded', String(rrgOpen)); $('rrgHead').querySelector('.car').textContent = rrgOpen ? '▾' : '▸';
-    const showInd = tvNav.lvl === 'ind' && tvNav.sec !== 'all', items = showInd ? D.ind.filter(x => x.sec === tvNav.sec) : D.sec;
-    $('rrgWhat').textContent = `· ${showInd ? 'industries · ' + tvSecLabel(tvNav.sec) : 'secteurs'} · relatif au marché · ${fmtDate(IND.dates[e], { day: 'numeric', month: 'short' })}` + (D.approx ? ' · marché approché' : '');
+    // arbre de la carte (demande du 20/10/2026) : suit le niveau de la liste — secteurs, industries d'un secteur, actions d'une industrie
+    const lvl = tvNav.lvl === 'stk' && tvNav.ind ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec', showInd = lvl === 'ind';
+    const indRec = lvl === 'stk' ? IND.industries.find(x => x.k === tvNav.ind) : null, secK = lvl === 'stk' ? (indRec ? indRec.sec : tvNav.sec) : tvNav.sec;
+    const stkItems = lvl === 'stk' ? rrgStocks(D, tvNav.ind) : null;
+    const items = lvl === 'stk' ? stkItems || [] : showInd ? D.ind.filter(x => x.sec === tvNav.sec) : D.sec;
+    $('rrgWhat').textContent = `· ${lvl === 'stk' ? 'actions · ' + tvNav.ind : showInd ? 'industries · ' + tvSecLabel(tvNav.sec) : 'secteurs'} · relatif au marché · ${fmtDate(IND.dates[e], { day: 'numeric', month: 'short' })}` + (D.approx ? ' · marché approché' : '');
     if (!rrgOpen) return;
+    const crumbs = [['sec', 'Secteurs']].concat(lvl !== 'sec' ? [['ind', tvSecLabel(secK)]] : [], lvl === 'stk' ? [['stk', tvNav.ind]] : []);
+    $('rrgNav').innerHTML = (lvl !== 'sec' ? `<button class="back" data-up="${lvl === 'stk' ? 'ind' : 'sec'}" aria-label="Niveau précédent" title="Niveau précédent">‹</button>` : '') +
+      crumbs.map(([k, l], i) => (i ? '<span class="sep">›</span>' : '') + `<button data-up="${k}" class="${k === lvl ? 'on' : ''}"${k === lvl ? ' aria-current="page"' : ''} data-sec="${escA(secK || '')}">${escH(l)}</button>`).join('');
+    // tickers : clés mises en avant au niveau affiché, pastilles « NVDA → Électronique › Semiconductors »
+    const TKs = rrgTickers(), tkKey = t => !t.r ? null : lvl === 'sec' ? t.r.secName : lvl === 'ind' ? (t.r.secName === tvNav.sec ? t.r.indName : null) : (t.r.indName === tvNav.ind ? t.s : null);
+    const tkFocus = new Set(TKs.list.map(tkKey).filter(Boolean));
+    $('rrgChips').innerHTML = TKs.wait ? '<span class="unk">chargement de l\'index des tickers…</span>' : TKs.list.map(t => t.r
+      ? `<button data-tkgo="${escA(t.s)}" title="Ouvrir son industrie sur la carte${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
+      : `<span class="unk" title="Ticker absent de l'index (actions ordinaires NYSE / Nasdaq / AMEX)">${escH(t.s)} ?</span>`).join('') + (TKs.list.length ? '<button data-tkclear="1" title="Effacer les tickers">✕</button>' : '');
+    if (lvl === 'stk' && !stkItems) { $('rrgInfo').textContent = 'Chargement des actions de l\'industrie…'; }
     const cv = $('rrgCv'), W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
     const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
@@ -2537,10 +2587,10 @@
     g.textAlign = 'left'; g.fillText('↙ ' + RRG.labels.lag, P + 4, H - P - 4); g.textBaseline = 'top'; g.fillText('↖ ' + RRG.labels.impr, P + 4, P + 4);
     g.globalAlpha = 1;
     const col = q => css(q === 'lead' ? '--up' : q === 'weak' ? '--warn' : q === 'lag' ? '--down' : '--ccross');
-    const lab = k => { const s = showInd ? k : tvSecLabel(k); return s.length > 18 ? s.slice(0, 17) + '…' : s; };
+    const lab = k => { const s = lvl === 'sec' ? tvSecLabel(k) : k; return s.length > 18 ? s.slice(0, 17) + '…' : s; };
     // mise en avant (demande du 20/10/2026) : le point survolé ou touché, en pleine couleur avec sa traînée épaissie et datée ;
     // les autres atténués et dessinés dessous
-    const focus = rrgHot ? new Set([rrgHot]) : new Set(), dim = k => focus.size > 0 && !focus.has(k);
+    const focus = rrgHot ? new Set([rrgHot]) : tkFocus, dim = k => focus.size > 0 && !focus.has(k);   // survol > tickers saisis
     pts.slice().sort((u, v) => dim(v.x.k) - dim(u.x.k)).forEach(o => {
       const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null, f = focus.has(o.x.k), d = dim(o.x.k);
       g.strokeStyle = c; g.globalAlpha = d ? .12 : f ? .95 : .5; g.lineWidth = f ? 2.2 : 1.2;
@@ -2553,7 +2603,7 @@
         const [u0, v0] = o.tr[0];                     // début de la traînée daté : d'où vient le point
         g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(fmtDate(IND.dates[t0 + (e - t0 + 1 - o.tr.length)], { day: 'numeric', month: 'short' }), X(u0), Y(v0) + 4);
       }
-      rrgHits.push({ k: o.x.k, ind: showInd, x: X(a), y: Y(b), q, a, b, rv, r, dim: d });
+      rrgHits.push({ k: o.x.k, lvl, x: X(a), y: Y(b), q, a, b, rv, r, dim: d });
     });
     // étiquettes : d'abord les points les plus éloignés du centre (les plus nets) ; une étiquette qui en recouvrirait une autre
     // est omise (le point reste touchable, son nom s'affiche dessous) ; celle du point touché est toujours écrite
@@ -2565,10 +2615,11 @@
         placed.push(box); g.fillStyle = css(focus.has(p.k) ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle';
         if (focus.has(p.k)) { g.font = '600 12px -apple-system, "Segoe UI", sans-serif'; g.fillText(s, x0, p.y); g.font = '11px -apple-system, "Segoe UI", sans-serif'; } else g.fillText(s, x0, p.y);
       });
-    const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length;
-    $('rrgInfo').innerHTML = h ? `<b>${escH(showInd ? h.k : tvSecLabel(h.k))}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
-        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ' · toucher à nouveau : ouvrir'
-      : ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
+    const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length, nm = k => escH(lvl === 'sec' ? tvSecLabel(k) : k);
+    const tkLine = tkFocus.size ? 'En avant : ' + rrgHits.filter(p => tkFocus.has(p.k)).map(p => `<b>${nm(p.k)}</b> (${escH(RRG.labels[p.q])})`).join(' · ') + ' · ' : '';
+    $('rrgInfo').innerHTML = h ? `<b>${nm(h.k)}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
+        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` · toucher à nouveau : ${lvl === 'stk' ? 'sa fiche' : 'ouvrir'}`
+      : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
   }
   $('rrgHead').addEventListener('click', () => { rrgOpen = !rrgOpen; store.set('mm.rrg', rrgOpen ? '1' : '0'); drawRrg(rrgE); });
   const rrgPick = ev => { const r = $('rrgCv').getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
@@ -2576,8 +2627,29 @@
   $('rrgCv').addEventListener('click', ev => {         // premier toucher : détail ; second sur le même point : ouvre le secteur (ses industries) ou l'industrie (ses actions)
     const p = rrgPick(ev); if (!p) { rrgHot = null; drawRrg(rrgE); return; }
     if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
-    rrgHot = null; tvNav = p.ind ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null; skEntries = false; skMode = null;
+    rrgHot = null; skEntries = false; skMode = null;
+    if (p.lvl === 'stk') {                            // action : sa fiche (comme toucher sa ligne dans la liste)
+      secSel = p.k; if (isStacked()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
+      renderSectors(); return;
+    }
+    tvNav = p.lvl === 'ind' ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
+  });
+  $('rrgNav').addEventListener('click', ev => {       // fil de la carte : Secteurs › secteur › industrie ; ‹ = niveau précédent (l'élément quitté reste choisi)
+    const b = ev.target.closest('[data-up]'); if (!b) return;
+    const to = b.dataset.up, from = tvNav.lvl === 'stk' ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec'; if (to === from) return;
+    const indK = tvNav.ind, secK = b.dataset.sec || tvNav.sec;
+    if (to === 'sec') { tvNav = { lvl: 'sec', sec: secK, ind: null }; secSel = secK; }
+    else { tvNav = { lvl: 'ind', sec: secK, ind: null }; secSel = indK; }
+    tvSave(); rrgHot = null; skMode = null; renderSectors();
+  });
+  let rrgTkTimer = 0;
+  $('rrgTk').value = rrgTkText;
+  $('rrgTk').addEventListener('input', ev => { clearTimeout(rrgTkTimer); rrgTkTimer = setTimeout(() => { rrgTkText = ev.target.value; store.set('mm.rrgtk', rrgTkText); drawRrg(rrgE); }, 250); });
+  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : la carte (et la liste) descendent jusqu'à son industrie
+    const c = ev.target.closest('[data-tkclear]'); if (c) { rrgTkText = ''; $('rrgTk').value = ''; store.set('mm.rrgtk', ''); drawRrg(rrgE); return; }
+    const b = ev.target.closest('[data-tkgo]'); if (!b) return; const r = tkRow(b.dataset.tkgo); if (!r) return;
+    tvNav = { lvl: 'stk', sec: r.secName, ind: r.indName }; tvSave(); secSel = r.kept ? r.s : null; rrgHot = null; skMode = null; renderSectors();
   });
   $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; drawRrg(rrgE); } });
   $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé

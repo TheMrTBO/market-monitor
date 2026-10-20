@@ -431,6 +431,9 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > **UX du 20/10/2026** : l'écran ne descend plus au changement de date (scrollIntoView remplacé) ; une seule case active ; carte
 > pleine largeur ; **frise temporelle** (choix A parmi frise / ▶ rejouer / flèches) sur Industries TI65 > 1 : glisser = remonter
 > le temps comme sur le MM. Exemple : le 7 août, Électronique était dans « S'améliore », avant de plonger « En retard » en octobre.
+> **Carte, suite (choix de l'utilisateur)** : arbre dans la carte (secteurs → industries → actions, fil et ‹), survol qui met un
+> point en avant et atténue les autres, tickers saisis au-dessus de la carte (leurs secteurs / industries en avant ; pastille =
+> descente jusqu'à l'industrie). 19/10 : NVDA dans « S'affaiblit » parmi 57 semi-conducteurs, XOM « Meneur » des pétrolières.
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres
