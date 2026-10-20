@@ -419,6 +419,11 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > solde en grand (19/10 : +8), « +14 / −6 » dessous ; toucher = les industries qui viennent d'entrer. Le solde est la variation du
 > nombre d'industries > 1 : retiré du sous-titre de la case Industries pour ne pas l'afficher deux fois.
 > Mobile : la bande qui défile est remplacée par la grille du MM (2 colonnes ; 3 sous 1 100 px), demande de l'utilisateur.
+> **Critique demandée par l'utilisateur (« où va l'argent ? »)** : les cases comptaient sans localiser, et « bleu = la hausse
+> s'élargit » trompait — le 19/10, le TI65 moyen des industries est à 0,96 et le flux va de l'Électronique (−4, semi-conducteurs
+> compris) vers la consommation courante, le commerce de détail et la santé (rotation défensive). Ajouts : flux par secteur
+> (fait), puis graphique de rotation relatif au marché (RRG) et volume en dollars (PR suivante). Limites : TI65 sans volume,
+> équipondéré, absolu, retardé ; effet de seuil à 1.
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres

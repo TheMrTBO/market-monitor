@@ -92,12 +92,22 @@ const nAb=IND.industries.filter(x=>x.n>=min&&sc(x.c,N-1)>1).length;
 ok('Industries > 1 : la liste montre les industries au-dessus de 1',rows(A).length===nAb,rows(A).length+' / '+nAb);
 sk(A,'ind');
 ok('Industries > 1 touchée à nouveau : filtre retiré, case inactive',ls['mm.tvabove']==='0'&&!kp(A).find(x=>x.k==='ind').on);
+// Rotation : flux par secteur (d'où part et où arrive le mouvement), même séance que les cases
+const secOf=new Map(IND.industries.map(x=>[x.k,x.sec])), byS=new Map();
+ent.forEach(k=>{const s=secOf.get(k);byS.set(s,(byS.get(s)||0)+1);}); out.forEach(k=>{const s=secOf.get(k);byS.set(s,(byS.get(s)||0)-1);});
+const best=[...byS].sort((a,b)=>b[1]-a[1])[0], worst=[...byS].sort((a,b)=>a[1]-b[1])[0];
+const fr=CFG.sector_fr, lab=k=>fr[k]||k;
+const tops=[...byS].filter(x=>best&&x[1]===best[1]).map(x=>lab(x[0])), bots=[...byS].filter(x=>worst&&x[1]===worst[1]).map(x=>lab(x[0]));   // égalités : l'un des secteurs ex aequo
+ok('Rotation : dernière ligne = secteur où l\'on entre le plus (↑) et celui qu\'on quitte le plus (↓)',(!best||best[1]<=0||tops.some(s=>rot.t.includes('↑ '+s)))&&(!worst||worst[1]>=0||bots.some(s=>rot.t.includes('↓ '+s))),rot.t.slice(-60));
 sk(A,'rot');
-ok('Rotation : seulement les industries entrées au-dessus de 1, case active',crumbs(A).length===2&&rows(A).map(r=>r.s).sort().join('|')===ent.slice().sort().join('|')&&kp(A).find(x=>x.k==='rot').on,rows(A).length+' / '+ent.length);
-sk(A,'rot');
-ok('Rotation touchée à nouveau : toutes les industries',rows(A).length===IND.industries.length&&!kp(A).find(x=>x.k==='rot').on,rows(A).length);
-sk(A,'rot'); up(A,0);
-ok('remonter aux secteurs : filtre « entrées » levé',!kp(A).find(x=>x.k==='rot').on&&rows(A).length===IND.sectors.length);
+const fh=A.$('secFlow')._h, frows=[...fh.matchAll(/data-flsec="([^"]+)"[^>]*>[\s\S]*?<span class="fc">([\s\S]*?)<\/span><span class="fn">/g)].map(m=>{const c=m[2];const p=c.match(/class="pos">\+(\d+)/),n=c.match(/class="neg">−(\d+)/);return [m[1].replace(/&amp;/g,'&'),p?+p[1]:0,n?+n[1]:0];});
+ok('Rotation touchée : panneau « flux par secteur », totaux = entrées / sorties, case active',A.$('secFlow').hidden===false&&frows.reduce((s,r)=>s+r[1],0)===ent.length&&frows.reduce((s,r)=>s+r[2],0)===out.length&&kp(A).find(x=>x.k==='rot').on,frows.slice(0,3).map(r=>r.join(' ')).join(' | '));
+const nets=frows.map(r=>r[1]-r[2]), iPos=nets.filter(v=>v>0).length, iNeg=nets.filter(v=>v<0).length;
+ok('flux : « l\'argent arrive » (soldes > 0 décroissants) puis « l\'argent repart » (du plus fort) puis mouvements compensés',
+  /L'argent arrive/.test(strip(fh))===(iPos>0)&&/L'argent repart/.test(strip(fh))===(iNeg>0)&&nets.slice(0,iPos).every((v,i)=>v>0&&(!i||v<=nets[i-1]))&&nets.slice(iPos,iPos+iNeg).every((v,i,a)=>v<0&&(!i||v>=a[i-1]))&&nets.slice(iPos+iNeg).every(v=>v===0),nets.join(' '));
+A.L.secFlow.click({target:{closest:()=>({dataset:{flsec:frows[0][0]}})}});
+ok('toucher un secteur du flux : ses industries (filtre de secteur), panneau refermé',A.$('secFlow').hidden===true&&chips(A).some(c=>c.on&&c.k===frows[0][0])&&rows(A).every(r=>IND.industries.find(i=>i.k===r.s).sec===frows[0][0]),chips(A).filter(c=>c.on).map(c=>c.k).join(','));
+up(A,0); sk(A,'ind'); sk(A,'ind');
 sk(A,'rr');
 ok('Ratio rotation : industries entrées ces '+RN+' séances et toujours au-dessus de 1',rows(A).map(r=>r.s).sort().join('|')===still.slice().sort().join('|')&&kp(A).find(x=>x.k==='rr').on&&!kp(A).find(x=>x.k==='rot').on,rows(A).length+' / '+still.length);
 sk(A,'rr');

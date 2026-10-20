@@ -160,8 +160,19 @@
   .secstrip .kpi { cursor: pointer; } .secstrip .kpi:hover { border-color: var(--faint); }
   .secstrip .kpi.on { box-shadow: inset 0 0 0 1.5px var(--up); border-color: var(--up); }
   .secstrip .kden { color: var(--muted); font-weight: 500; font-size: .7em; }
+  .secstrip .gflow { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
   .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
   .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
+  /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
+  .secflow { padding: 10px 12px; margin-bottom: 10px; }
+  .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
+  .secflow button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%; text-align: left; border: 0; background: none;
+                    color: var(--text); padding: 6px 4px; border-top: 1px solid var(--border); font-size: 12.5px; cursor: pointer; }
+  .secflow button:hover { background: var(--hover); }
+  .secflow .fn { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
+  .secflow .fc { font-variant-numeric: tabular-nums; }
+  .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
+  .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
   .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
   .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
   .secsort button .arr { color: inherit; margin-left: 3px; }
@@ -681,6 +692,7 @@
     <div id="dslot-sec"></div>
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="seckpinote" id="secKpiNote" hidden></div>
+    <div class="card secflow" id="secFlow" hidden></div>
     <div class="secsplit">
       <div class="card seclist">
         <div class="sechead">
@@ -2026,6 +2038,7 @@
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
   const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
+  let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
   let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
@@ -2159,7 +2172,7 @@
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
       rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
-        <p>Le solde est la variation du nombre d'industries au-dessus de 1 ; les deux chiffres dessous disent comment il se forme (+8 = 14 entrées et 6 sorties, ou 8 entrées et aucune sortie).</p>${g3.replace('pointillé : 50 %', 'barres : solde à chaque séance')}<p>Toucher : seulement les industries qui viennent d'entrer ; à nouveau : toutes.</p><p class="src">Pourquoi pas les rangs : un classement est à somme nulle, les places gagnées par les unes sont perdues par les autres.</p>`],
+        <p>Le solde est la variation du nombre d'industries au-dessus de 1 ; les deux chiffres dessous disent comment il se forme (+8 = 14 entrées et 6 sorties, ou 8 entrées et aucune sortie).</p>${g3.replace('pointillé : 50 %', 'barres : solde à chaque séance')}<p>Dernière ligne : le secteur où arrivent le plus d'industries (↑) et celui qu'elles quittent le plus (↓). <b>Toucher</b> : le <b>flux par secteur</b> détaillé (quelles industries entrent, lesquelles sortent) ; toucher un secteur ouvre ses industries.</p><p class="src">Pourquoi pas les rangs : un classement est à somme nulle, les places gagnées par les unes sont perdues par les autres.</p>`],
       stk: [`Actions ${TIN} > 1`, `<p>Part des actions retenues (${filt}) dont le ${TIN} dépasse 1. Même esprit que le T2108 du MM (actions au-dessus de leur moyenne 40 jours), sur un autre indicateur : les deux devraient évoluer ensemble.</p>${g3}<p>Toucher : classe le niveau affiché par « % > 1 » ; à nouveau : retour au classement.</p><p class="src">Série calculée par le robot (fetch_industries.py), clôtures Polygon / Massive.</p>`],
     }[key] || null;
     if (kind === 'tkhelp') return ['Onglet Tickers', `<p>Colle un ticker ou une liste (virgules, espaces ou lignes ; <code>$TSLA</code> et <code>NASDAQ:NVDA</code> acceptés). Pour chaque action : son secteur et son industrie TradingView avec leur rang ${TIN} du jour, son propre ${TIN}, sa capitalisation, son flottant et son short interest.</p>
@@ -2261,7 +2274,14 @@
     });
     const rr = win(RN), rrL = win(RL);
     const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
-    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
+    // flux par secteur : entrées / sorties de la rotation regroupées par secteur (d'où part et où arrive le mouvement)
+    const secOf = new Map(IND.industries.map(x => [x.k, x.sec]));
+    const flow = e => { const r = rot[e]; if (!r) return null; const m = new Map();
+      const at = k => { const s = secOf.get(k); if (!m.has(s)) m.set(s, { sec: s, ent: [], out: [] }); return m.get(s); };
+      r.ent.forEach(k => at(k).ent.push(k)); r.out.forEach(k => at(k).out.push(k));
+      return [...m.values()].map(f => Object.assign(f, { net: f.ent.length - f.out.length }))
+        .sort((a, b) => b.net - a.net || b.ent.length - a.ent.length || (a.sec < b.sec ? -1 : 1)); };
+    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
   }
   const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
@@ -2282,12 +2302,12 @@
   const SK_ACT = {
     ind: { on: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('ind'); setAbove(true); } } },
     sec: { on: () => tvNav.lvl === 'sec' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('sec'); setAbove(true); } } },
-    rot: { on: () => tvNav.lvl === 'ind' && skEntries === 'rot', go: on => { if (on) skEntries = false; else { goLevel('ind'); skEntries = 'rot'; } } },
+    rot: { on: () => skFlow, go: on => { skFlow = !on; } },             // panneau « flux par secteur » sous les cases
     rr: { on: () => tvNav.lvl === 'ind' && skEntries === 'rr', go: on => { if (on) skEntries = false; else { goLevel('ind'); skEntries = 'rr'; } } },
     stk: { on: () => tvNav.lvl !== 'stk' && secSort.k === 'brd' && secSort.dir < 0,
            go: on => { const lvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; if (on) sortLevel(lvl, RANK); else { goLevel(lvl); sortLevel(lvl, { k: 'brd', dir: -1 }); } } },
   };
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Afficher les industries qui viennent de passer au-dessus de 1', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
@@ -2310,7 +2330,12 @@
         const lbl = `Rotation ${SKP.rotation_window} j`, r = K.rot[e]; if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
         return [lbl, `<span class="${cls(r.net)}">${signed(r.net)}</span>`,
           `<span title="Industries passées au-dessus de 1 en ${SKP.rotation_window} séances">+${r.ent.length}<span class="kw"> entrées</span></span> / <span title="Industries repassées à 1 ou en dessous">−${r.out.length}<span class="kw"> sorties</span></span>`,
-          spark(series('rot'), 'bars'), skGauge(K, 'rot', e, signed)];
+          spark(series('rot'), 'bars'), (() => {      // à la place de la jauge : le secteur où l'argent arrive le plus, celui qu'il quitte le plus
+            const fl = K.flow(e) || [], top = fl.find(f => f.net > 0), bot = fl.slice().reverse().find(f => f.net < 0), g = skGauge(K, 'rot', e, signed);
+            const one = (f, up) => `<span class="${up ? 'pos' : 'neg'}">${up ? '↑' : '↓'} ${escH(tvSecLabel(f.sec))} ${signed(f.net)}</span>`;
+            return { rec: g.rec, html: `<div class="g3 gflow" title="Secteur qui gagne le plus d'industries au-dessus de 1 (↑) et celui qui en perd le plus (↓), en ${SKP.rotation_window} séances">` +
+              (top || bot ? [top && one(top, true), bot && one(bot, false)].filter(Boolean).join(' · ') : '<span>aucun mouvement</span>') + '</div>' };
+          })()];
       },
       rr: () => {                                    // même présentation que « Ratio 5 j » du MM : court en grand, « 10 jours : … » dessous
         const [n, nl] = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e], rl = K.rrL[e];
@@ -2336,7 +2361,33 @@
     }).join('');
     note.textContent = (dHover ? 'Survol : ' : pinned ? 'Séance choisie : ' : 'Séance du ') + fmtDate(Ds[e], { weekday: 'short', day: 'numeric', month: 'short' }) +
       ' · toucher une case = raccourci';
+    const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
+    if (fp) {
+      fp.hidden = !skFlow;
+      if (skFlow) {
+        const nm = (ks, c) => ks.length ? `<span class="${c}">${ks.map(escH).join(', ')}</span>` : '';
+        // deux blocs : où l'argent arrive (solde > 0, du plus fort au plus faible), d'où il repart (solde < 0, du plus fort) ; mixte = 0
+        const cnt = f => [f.ent.length && `<span class="pos">+${f.ent.length}</span>`, f.out.length && `<span class="neg">−${f.out.length}</span>`].filter(Boolean).join(' / ');
+        const row = f => `<button type="button" data-flsec="${escA(f.sec)}" title="Ouvrir les industries de ce secteur"><b>${escH(tvSecLabel(f.sec))}</b>` +
+          `<span class="fc">${cnt(f)}</span><span class="fn">${[nm(f.ent, 'pos'), nm(f.out, 'neg')].filter(Boolean).join(' · ')}</span></button>`;
+        const L = fl || [], blk = (t, a) => a.length ? `<div class="fgrp">${t}</div>` + a.map(row).join('') : '';
+        fp.innerHTML = `<h4>Flux ${SKP.rotation_window} j par secteur <span>· ${fmtDate(Ds[e], { day: 'numeric', month: 'short' })} · industries passées au-dessus de 1 (+) ou repassées dessous (−)</span></h4>` +
+          (L.length ? (() => {                       // résumé en tête : les 3 plus forts de chaque sens (le détail suit)
+            const up = L.filter(f => f.net > 0).slice(0, 3), dn = L.filter(f => f.net < 0).sort((a, b) => a.net - b.net).slice(0, 3);
+            const s = (a, c) => a.map(f => `${escH(tvSecLabel(f.sec))} <span class="${c}">${signed(f.net)}</span>`).join(', ');
+            return `<p class="fsum">${up.length ? `<span class="pos">↑</span> ${s(up, 'pos')}` : ''}${up.length && dn.length ? '<br>' : ''}${dn.length ? `<span class="neg">↓</span> ${s(dn, 'neg')}` : ''}</p>`;
+          })() + blk('<span class="pos">↑ L\'argent arrive</span>', L.filter(f => f.net > 0)) +
+            blk('<span class="neg">↓ L\'argent repart</span>', L.filter(f => f.net < 0).sort((a, b) => a.net - b.net || b.out.length - a.out.length)) +
+            blk('Mouvements qui se compensent', L.filter(f => f.net === 0))
+            : '<p class="fn">Aucune industrie n\'a franchi 1 sur la période.</p>');
+      }
+    }
   }
+  $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé
+    const b = e.target.closest('[data-flsec]'); if (!b) return;
+    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false;
+    renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
+  });
   $('secKpis').addEventListener('click', e => {
     const t = e.target.closest('[data-sk]'); if (!t || !SK_ACT[t.dataset.sk]) return;
     SK_ACT[t.dataset.sk].go(SK_ACT[t.dataset.sk].on());

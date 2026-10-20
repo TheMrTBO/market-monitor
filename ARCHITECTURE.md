@@ -154,7 +154,9 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
   cumulées sur `rotation_ratio_sessions` = [5, 10] séances (5 j en grand, « 10 jours : … » dessous, comme « Ratio 5 j » du MM), couleurs `rotation_ratio` (rouge < 1, bleu ≥ 1,5) comme le ratio 5 / 10 j des
   ±4 % ; toucher = industries entrées dans la fenêtre et toujours au-dessus de 1 ; bulle : repère IWM recalculé à chaque chargement. Séance = celle survolée sur un graphique de
   l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1,
-  industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. **Flux par secteur** (toucher la case
+  Rotation) : entrées / sorties regroupées par secteur, résumé « ↑ 3 premiers · ↓ 3 premiers », puis blocs « L'argent arrive » /
+  « L'argent repart » / « se compensent » ; toucher un secteur ouvre ses industries. La case Rotation affiche ↑ / ↓ à la place de la jauge. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mise en page des cases comme le MM : une ligne sur bureau, 3 colonnes sous 1 100 px, 2 sous 640 px (pas de défilement
   horizontal, demande du 20/10/2026) ; sous-titres courts (« +14 / −6 »), le détail est dans la bulle ⓘ.
