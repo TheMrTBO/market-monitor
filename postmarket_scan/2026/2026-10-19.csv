@@ -106,3 +106,11 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-19,2026-10-19T23:52:43+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,233.65,-4.7,261074,0.23,35139747943,133593305,amc
 2026-10-19,2026-10-19T23:52:43+00:00,false,NASDAQ:XLAB,XLAB,Exascale Labs Holdings Inc. Class A,Finance,Financial Conglomerates,3.06,30.21,2.8,-8.5,1471307,0.45,103088496,19397076,
 2026-10-19,2026-10-19T23:52:43+00:00,false,NYSE:MMM,MMM,3M Company,Producer Manufacturing,Industrial Conglomerates,162.01,-1.66,170.64,5.33,634104,0.2,83552187985,515297045,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:ACRS,ACRS,"Aclaris Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.48,6.1,3.11,-10.63,257712,0.1,512252108,111055463,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:ARHS,ARHS,"Arhaus, Inc. Class A",Consumer Durables,Home Furnishings,10.23,3.02,9.6593,-5.58,189564,0.14,1450120255,51532196,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:MDXG,MDXG,"MiMedx Group, Inc.",Health Technology,Medical Specialties,4.38,-1.13,4.162,-4.98,378285,0.3,638430822,114304554,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,3.41,7.91,4.55,33.43,1335154,1.16,57352011,4494439,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,233.65,-4.7,261074,0.23,35139747943,133593305,amc
+2026-10-19,2026-10-20T00:07:37+00:00,true,NASDAQ:XLAB,XLAB,Exascale Labs Holdings Inc. Class A,Finance,Financial Conglomerates,3.06,30.21,2.79,-8.82,1504909,0.47,103088496,19397076,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NYSE:MMM,MMM,3M Company,Producer Manufacturing,Industrial Conglomerates,162.01,-1.66,171.3915,5.79,634864,0.2,83552187985,515297045,
+2026-10-19,2026-10-20T00:07:37+00:00,true,NYSE:SFBS,SFBS,ServisFirst Bancshares Inc,Finance,Regional Banks,38.75,-1.55,37.0,-4.52,104672,0.17,4235375184,102148173,amc
