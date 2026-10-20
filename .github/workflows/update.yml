@@ -57,7 +57,7 @@ jobs:
 
       - name: Sauvegarder l'historique des clôtures
         if: always() && hashFiles('cache/**') != ''   # rien à sauvegarder si le téléchargement a échoué avant de créer le dossier
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: cache
           key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
@@ -105,7 +105,7 @@ jobs:
       - name: Sauvegarder les fichiers générés (cache hors dépôt)
         if: ${{ !cancelled() && hashFiles('industries_data.js') != '' }}
         continue-on-error: true            # cache déjà existant (même contenu) ou indisponible : secours = site publié
-        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
         with:
           path: |
             industries_data.js
