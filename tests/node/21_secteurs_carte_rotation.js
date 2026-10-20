@@ -88,14 +88,10 @@ const lab=(CFG.sector_fr||{})[far.k]||far.k;
 ok('premier toucher sur un point : détail (nom, zone, force relative)',strip(A.$('rrgInfo')._h).startsWith(lab)&&/force relative/.test(strip(A.$('rrgInfo')._h)),strip(A.$('rrgInfo')._h).slice(0,100));
 tapAt(A,X(far.p[0]),Y(far.p[1]));
 ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre ses industries',crumbs(A).length===2&&chips(A).some(c=>c.on&&c.k===far.k)&&/industries · /.test(A.$('rrgWhat')._t),A.$('rrgWhat')._t);
-// sous-vues Résumé | Carte | Classement (mémorisées) ; un raccourci qui filtre la liste montre le Classement
-const subOf=X=>X.$('view-sec').dataset.sub, pick=(X,s)=>X.L.secSub.click({target:{closest:()=>({dataset:{sub:s}})}});
-pick(A,'map'); ok('sous-vue Carte : mémorisée',subOf(A)==='map'&&ls['mm.secsub']==='map');
-pick(A,'sum'); A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'ind'}})}});
-ok('raccourci « Industries > 1 » depuis le Résumé : passe au Classement',subOf(A)==='list',subOf(A));
-A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'ind'}})}}); pick(A,'sum'); A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'rot'}})}});
-ok('raccourci « Rotation » (flux) : reste dans le Résumé',subOf(A)==='sum'&&A.$('secFlow').hidden===false);
-A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'rot'}})}}); pick(A,'map');
+// une seule page, dans l'ordre (demande du 20/10/2026) : cases, frise, note, flux, carte de rotation, classement
+{ const H=fs.readFileSync('stockbee_dashboard.html','utf8'), at=id=>H.indexOf('id="'+id+'"');
+  const ids=['secKpis','secFrise','secKpiNote','secFlow','secRrg','secTable'];
+  ok('ordre de la page : '+ids.join(' → '),ids.every((id,i)=>at(id)>0&&(!i||at(id)>at(ids[i-1])))&&!/id="secSub"/.test(H)); }
 // plus gros mouvements : déplacement net sur movers_window séances (marché approché de A), 3 hausses (x monte) + 3 baisses
 { const MW=R.movers_window, mvs=S.map(x=>{const a=rx(x,mk,N-1),a0=rx(x,mk,N-1-MW),r1=rx(x,mk,N-1-R.momentum),r0=rx(x,mk,N-1-MW-R.momentum);
     if(a==null||a0==null||r1==null||r0==null)return null;const b=100*a/r1,b0=100*a0/r0;return {k:x.k,d:Math.hypot(a-a0,b-b0),up:a>=a0};}).filter(Boolean);

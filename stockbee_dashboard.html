@@ -167,12 +167,7 @@
   /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
   .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 56px; display: block; cursor: ew-resize; touch-action: pan-y; }
   /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
-  /* sous-vues de la vue TradingView (demande du 20/10/2026 : onglet trop long sur mobile) : Résumé (cases, flux), Carte, Classement ;
-     la frise et la note restent communes. Vue ETF : classement seul. */
-  .secsub { margin: 0 0 8px; } .secsub button { padding: 6px 16px; }
-  #view-sec[data-sub="sum"] #secRrg, #view-sec[data-sub="sum"] .secsplit,
-  #view-sec[data-sub="map"] #secKpis, #view-sec[data-sub="map"] #secFlow, #view-sec[data-sub="map"] .secsplit,
-  #view-sec[data-sub="list"] #secKpis, #view-sec[data-sub="list"] #secFlow, #view-sec[data-sub="list"] #secRrg { display: none !important; }
+  /* carte de rotation toujours ouverte (une seule page, demande du 20/10/2026) : plus de repli */
   #secRrg .rrghead { cursor: default; } #secRrg .rrghead .car { display: none; }   /* la carte est la vue : plus de repli */
   .secflow { padding: 10px 12px; margin-bottom: 10px; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
@@ -636,7 +631,6 @@
     #rrgTk { width: 100%; margin-left: 0; }
     .rrgmoves { grid-template-columns: minmax(0, 1fr); }
     .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
-    .secsub { display: flex; margin: 0 12px 8px; } .secsub:not([hidden]) { display: flex; } .secsub button { flex: 1; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -741,12 +735,9 @@
 
   <div id="view-sec" hidden>
     <div id="dslot-sec"></div>
-    <div class="seg secsub" id="secSub" role="tablist" aria-label="Vue de l'onglet Secteurs" hidden>
-      <button type="button" role="tab" data-sub="sum">Résumé</button><button type="button" role="tab" data-sub="map">Carte</button><button type="button" role="tab" data-sub="list">Classement</button>
-    </div>
+    <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas></div>
     <div class="seckpinote" id="secKpiNote" hidden></div>
-    <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secrrg" id="secRrg" hidden>
       <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><b>Carte de rotation</b> <span id="rrgWhat"></span><span class="car">▾</span></button>
@@ -2786,8 +2777,8 @@
   });
   function rrgOpenPoint(p) {                           // ouvrir un point : secteur → ses industries, industrie → ses actions, action → sa fiche
     rrgHot = null; skEntries = false; skMode = null;
-    if (p.lvl === 'stk') {                            // action : sa fiche (comme toucher sa ligne dans la liste), dans le Classement
-      secSel = p.k; setSecSub('list'); if (isStacked()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
+    if (p.lvl === 'stk') {                            // action : sa fiche (comme toucher sa ligne dans la liste)
+      secSel = p.k; if (isStacked()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
       renderSectors(); return;
     }
     tvNav = p.lvl === 'ind' ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null;
@@ -2815,35 +2806,19 @@
   $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; drawRrg(rrgE); } });
   $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé
     const b = e.target.closest('[data-flsec]'); if (!b) return;
-    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false; skMode = null; setSecSub('list');
+    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false; skMode = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   });
   $('secKpis').addEventListener('click', e => {
     const t = e.target.closest('[data-sk]'); if (!t || !SK_ACT[t.dataset.sk]) return;
     skToggle(t.dataset.sk);
-    if (skMode && skMode !== 'rot') setSecSub('list');   // un raccourci qui filtre ou trie la liste : on montre la liste (le flux reste dans le Résumé)
     renderSectors();
     const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   });
   $('secKpis').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset && e.target.dataset.sk) { e.preventDefault(); e.target.click(); } });
 
-  // sous-vue de la vue TradingView : Résumé (cases, flux), Carte, Classement (mémorisée) ; vue ETF : classement seul
-  let secSub = ['sum', 'map', 'list'].includes(store.get('mm.secsub')) ? store.get('mm.secsub') : 'sum';
-  function setSecSub(s) { if (s === secSub) return; secSub = s; store.set('mm.secsub', s); }
-  function applySecSub() {
-    const tv = secView === 'tv' && !!IND, sub = tv ? secSub : 'list', bar = $('secSub');
-    $('view-sec').dataset.sub = sub; bar.hidden = !tv;
-    bar.querySelectorAll && bar.querySelectorAll('button').forEach(b => { const on = b.dataset.sub === sub; b.classList.toggle('on', on); b.setAttribute('aria-selected', String(on)); });
-  }
-  $('secSub').addEventListener('click', e => {
-    const b = e.target.closest('[data-sub]'); if (!b || b.dataset.sub === secSub) return;
-    setSecSub(b.dataset.sub); $('view-sec').classList.remove('detail'); renderSectors();   // redessine la carte / le graphique à leur taille
-    if (window.scrollTo) window.scrollTo(0, 0);
-  });
-
   function renderSectors() {
     const body = $('secRows');
-    applySecSub();
     if (secView !== 'tv' || tvNav.lvl !== 'ind') skEntries = false;   // filtre « entrées » propre au niveau industries
     renderSecView();
     renderSecKpis();
