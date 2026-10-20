@@ -2284,7 +2284,8 @@
           spark(series('stk'), { ref: 50 }, col(v)), skGauge(K, 'stk', e, f0)];
       },
     };
-    box.innerHTML = SKP.tiles.map(id => {
+    // « Actions TI65 > 1 » : série publiée par le robot ; tant qu'elle manque (ancien fichier), la case n'est pas affichée
+    box.innerHTML = SKP.tiles.filter(id => id !== 'stk' || K.stk).map(id => {
       const [lbl, val, sub, sp, g] = T_[id](), on = SK_ACT[id].on();
       const ban = g.rec ? `<div class="kban" title="Indicateur retardé : information, pas un signal">${g.rec > 0 ? '▲ Plus haut' : '▼ Plus bas'} 3 mois</div>` : '';
       return `<div class="kpi ${g.rec ? 'hot-warn' : ''}${on ? ' on' : ''}" data-sk="${id}" role="button" tabindex="0" aria-pressed="${on}" title="${escA(on ? 'Revenir au classement' : SK_GO[id])}">${ban}` +

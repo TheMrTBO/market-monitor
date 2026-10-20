@@ -57,7 +57,8 @@ tab(A);
 ok('vue ETF : pas de cases',A.$('secKpis').hidden===true);
 view(A,'tv');
 let c=kp(A);
-ok('vue TradingView : cases dans l\'ordre de la config',A.$('secKpis').hidden===false&&c.map(x=>x.k).join(',')===K.tiles.join(','),c.map(x=>x.k).join(','));
+const tilesNow=K.tiles.filter(k=>k!=='stk'||(IND.stocks&&IND.stocks.b));
+ok('vue TradingView : cases dans l\'ordre de la config (secteurs avant industries)',A.$('secKpis').hidden===false&&c.map(x=>x.k).join(',')===tilesNow.join(',')&&K.tiles.indexOf('sec')<K.tiles.indexOf('ind'),c.map(x=>x.k).join(','));
 // industries / secteurs au TI65 > 1 : recalcul indépendant à la dernière séance
 const cntAbove=L=>{const s=L.filter(x=>x.n>=min).map(x=>sc(x.c,N-1)).filter(v=>v!=null);return s.filter(v=>v>1).length+' / '+s.length;};
 ok('industries TI65 > 1 = recalcul',val(c.find(x=>x.k==='ind'))===cntAbove(IND.industries),val(c.find(x=>x.k==='ind'))+' vs '+cntAbove(IND.industries));
@@ -74,8 +75,8 @@ ok('industries : plus de « il y a 5 j » (c\'est le solde de la rotation)',!/il
 // actions TI65 > 1 : série du robot ; ancien fichier sans la série → message, pas d'erreur
 const stk=c.find(x=>x.k==='stk');
 if(IND.stocks)ok('actions TI65 > 1 = dernière valeur de la série du robot',val(stk)===Math.round(IND.stocks.b[N-1])+' %',val(stk));
-else ok('actions TI65 > 1 : fichier sans la série → « prochain passage du robot »',/prochain passage du robot/.test(stk.t),stk.t);
-const B=boot({},{after:`INDUSTRIES.stocks={n:1234,b:INDUSTRIES.dates.map((_,i)=>i<70?null:40+i%7)};`});tab(B);view(B,'tv');
+else ok('actions TI65 > 1 : fichier sans la série → case masquée (pas de case vide)',!stk);
+const lsB={}, B=boot(lsB,{after:`INDUSTRIES.stocks={n:1234,b:INDUSTRIES.dates.map((_,i)=>i<70?null:40+i%7)};`});tab(B);view(B,'tv');
 const sB=kp(B).find(x=>x.k==='stk');
 ok('actions TI65 > 1 avec la série : valeur et effectif',val(sB)===(40+(N-1)%7)+' %'&&/1 234 actions/.test(sB.t),sB.t);
 // raccourcis
@@ -93,10 +94,10 @@ sk(A,'rot'); up(A,0);
 ok('remonter aux secteurs : filtre « entrées » levé',!kp(A).find(x=>x.k==='rot').on&&rows(A).length===IND.sectors.length);
 sk(A,'sec');
 ok('Secteurs > 1 : niveau secteurs, filtre TI65 > 1',crumbs(A).length===1&&ls['mm.tvabove']==='1'&&kp(A).find(x=>x.k==='sec').on);
-sk(A,'sec'); sk(A,'stk');
-ok('Actions > 1 : niveau affiché classé par % > 1',ls['mm.tvsort.sec']==='{"k":"brd","dir":-1}'&&kp(A).find(x=>x.k==='stk').on);
-sk(A,'stk');
-ok('Actions > 1 touchée à nouveau : retour au classement',ls['mm.tvsort.sec']==='{"k":"rank","dir":1}');
+sk(A,'sec'); sk(B,'stk');
+ok('Actions > 1 : niveau affiché classé par % > 1',lsB['mm.tvsort.sec']==='{"k":"brd","dir":-1}'&&kp(B).find(x=>x.k==='stk').on);
+sk(B,'stk');
+ok('Actions > 1 touchée à nouveau : retour au classement',lsB['mm.tvsort.sec']==='{"k":"rank","dir":1}');
 // survol du graphique : les cases suivent la séance survolée, puis reviennent à la séance du classement
 const note0=strip(A.$('secKpiNote')._t);
 A.L.secCanvas.pointermove({clientX:200,clientY:50,pageX:200,pageY:50,pointerType:'mouse'});

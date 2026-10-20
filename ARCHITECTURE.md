@@ -153,7 +153,7 @@ le 20/10/2026 : cases en tête de la vue TradingView de Secteurs (puis, dans une
   ordre, fenêtre de la rotation, fenêtre des records). Séance = celle survolée sur un graphique de
   l'onglet, sinon « Stats du » ; séries précalculées une fois par fichier. Toucher une case = raccourci (filtre TI65 > 1,
   industries entrées au-dessus de 1, tri % > 1), second toucher = retour au classement. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
-  `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case « — ».
+  `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mobile : bande qui défile, la case suivante dépasse.
 - Vue TradingView sur mobile (≤ 640 px) : les colonnes Δ 5 j et « % > 1 » sont masquées ; la rangée **« Classer par »**
   (TI65 · Δ 5 j · % > 1, Cap. au niveau des actions) trie à leur place, même état que les en-têtes, et la ligne sous l'écart
