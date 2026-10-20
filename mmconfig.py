@@ -62,6 +62,7 @@ def front_config():
         "vix": d["vix"],
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
+                    "kpis": d["sectors"]["kpis"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
@@ -136,6 +137,15 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : champs vides {missing}")
         if e.get("group") not in groups:
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
+    kp = load("display")["sectors"]["kpis"]
+    rr = kp.get("rotation_ratio", [])
+    if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
+            or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
+            or not (len(kp.get("rotation_ratio_sessions", [])) == 2 and all(isinstance(n, int) and n > 0 for n in kp["rotation_ratio_sessions"])
+                    and kp["rotation_ratio_sessions"][0] < kp["rotation_ratio_sessions"][1]) \
+            or not (len(rr) == 2 and 0 < rr[0] <= rr[1]):
+        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
+                      "rotation_ratio_sessions = [court, long] croissant et rotation_ratio = [bas, haut] croissant attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")

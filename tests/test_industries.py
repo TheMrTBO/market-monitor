@@ -101,6 +101,9 @@ check("fichier d'industrie : 70 dernières séances, une ligne par action", len(
       and [r[0] for r in soft["rows"]] == ["AAA", "BBB", "CCC"] and len(soft["rows"][0][3]) == 70 and soft["rows"][0][4][0] == 500)
 check("fichier d'industrie : OHLC des actions (null avant le cache OHLC)", len(soft["rows"][0]) == 8
       and soft["rows"][0][5][0] is None and soft["rows"][0][6][-1] == fi.num(close["AAA"][-1] * 1.03))
+check("actions TI65 > 1 : toutes les actions retenues, une valeur par séance",
+      payload["stocks"]["n"] == len(members) and len(payload["stocks"]["b"]) == len(dates)
+      and payload["stocks"]["b"] == fi.breadth([m["s"] for m in members], {m["s"]: fi.ti65_series(close[m["s"]]) for m in members}, len(dates)))
 check("indices : courbe seulement (pas de bougie d'indice)", all("o" not in x for x in payload["sectors"] + payload["industries"]))
 _, f2 = fi.compute(dates, close, vol, members, keep=70)
 check("sans OHLC en cache : pas de colonnes OHLC pour les actions", len(f2[inds["Soft"]["f"]]["rows"][0]) == 5)

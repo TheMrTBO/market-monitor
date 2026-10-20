@@ -239,6 +239,10 @@ def check_industries(data, today, folder=None):
            or any(v is None or not v > 0 for v in x["c"])]
     if bad:
         errors.append(f"industries : {len(bad)} indice(s) incomplet(s) ou non positif(s) ({', '.join(bad[:3])})")
+    st = data.get("stocks")                   # % des actions retenues au TI65 > 1 (ajouté le 20/10/2026 : absent des anciens fichiers)
+    if st is not None and (st.get("n") != total or len(st.get("b", [])) != len(dates)
+                           or any(v is not None and not 0 <= v <= 100 for v in st["b"])):
+        errors.append("industries : série « actions TI65 > 1 » incohérente (effectif, longueur ou bornes)")
     if folder is not None:
         missing = []
         for i in inds:

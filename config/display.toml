@@ -26,6 +26,19 @@ group_tips = { all = "Les 55 ETF suivis, tous groupes confondus.", "Secteur" = "
 # bascule en tête de l'onglet : [clé, libellé] ; etf = config/sectors.toml, tv = secteurs → industries → actions TradingView
 views = [["etf", "ETF"], ["tv", "TradingView"]]
 
+[sectors.kpis]
+# cases en tête de la vue TradingView de l'onglet Secteurs (décision du 20/10/2026) ; un toucher = raccourci (filtre ou tri)
+# ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (industries qui passent au-dessus / en dessous
+# de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
+# stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
+tiles = ["sec", "ind", "rot", "rr", "stk"]   # secteurs d'abord, puis industries (demande du 20/10/2026)
+rotation_window = 5           # « Rotation » : entrées / sorties au-dessus de 1 comptées sur ce nombre de séances
+# rr : ratio de rotation = entrées ÷ sorties de chaque séance, cumulées sur [court, long] séances, lu comme « Ratio 5 j » du MM :
+# le court en grand (nerveux : 0,1 ↔ 3,7 d'une semaine à l'autre, mesuré le 20/10/2026), le long dessous (« 10 jours : … »)
+rotation_ratio_sessions = [5, 10]
+rotation_ratio = [1, 1.5]     # couleur : rouge sous 1 (plus de sorties que d'entrées), bleue à partir de 1,5, grise entre
+record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
+
 [ti65]
 # indicateur de classement de l'onglet Secteurs (formule TC2000 de l'utilisateur, ne pas modifier sans accord) :
 # moyenne des `short` dernières clôtures ÷ moyenne des `long` dernières ; lu aussi par fetch_industries.py (% de titres > 1)
