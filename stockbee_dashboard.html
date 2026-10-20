@@ -1018,7 +1018,7 @@
   <footer>
     <div id="dataStatus"></div>
     Breadth : <a href="https://stockbee.blogspot.com/p/mm.html" target="_blank" rel="noopener">Market Monitor de Stockbee</a> (Pradeep Bonde), univers Worden common stocks, calculs TC2000 ·
-    +4 % : hausse d'au moins 4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratios 5 j et 10 j = somme des +4 % / somme des −4 % · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Yahoo Finance (QQQ, IWM), Coinbase (BTC) · Secteurs : Yahoo Finance · Post-market : screener public TradingView (différé de 15 min), graphiques Yahoo Finance · VIX : CBOE.
+    +4 % : hausse d'au moins 4 % sur la séance avec V ≥ 100 000 et V &gt; V1 · ratio 5 j = somme des +4 % / somme des −4 % sur 5 séances · T2108 = % de titres au-dessus de leur MM 40 jours (Stockbee) · +4 % / −4 % : Stockbee, avec notre calcul maison en pointillé (clôtures Polygon.io / Massive) · Prix : Yahoo Finance (QQQ, IWM), Coinbase (BTC) · Secteurs : Yahoo Finance · Post-market : screener public TradingView (différé de 15 min), graphiques Yahoo Finance · VIX : CBOE.
   </footer>
   </details>
 </div>
@@ -2321,11 +2321,11 @@
         <p>Les secteurs tournent en général dans le sens des aiguilles d'une montre : <b>${CFG.sectors.rrg.labels.impr}</b> (l'argent commence à arriver) → <b>${CFG.sectors.rrg.labels.lead}</b> → <b>${CFG.sectors.rrg.labels.weak}</b> (l'argent commence à repartir) → <b>${CFG.sectors.rrg.labels.lag}</b>. La <b>traînée</b> (${CFG.sectors.rrg.trail} séances) montre la direction ; la <b>taille</b> du point, le volume en dollars des ${TIC.volume.short} dernières séances par rapport à sa moyenne sur ${TIC.volume.long}, comparé au marché (gros point = plus d'argent échangé que d'habitude).</p>
         <p><b>Lecture</b> : un secteur qui passe de « ${CFG.sectors.rrg.labels.impr} » à « ${CFG.sectors.rrg.labels.lead} » avec un gros point = arrivée d'argent confirmée ; un meneur qui glisse vers « ${CFG.sectors.rrg.labels.weak} » = l'argent commence à partir. Toucher un point : détail ; à nouveau : ouvre le secteur.</p>
         <p class="src">Principe du Relative Rotation Graph (Julius de Kempenaer), avec le ${TIN} comme mesure ; pas les formules propriétaires du RRG. Information, pas un conseil.</p>`],
-      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions[0]} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions[0]} séances (grand chiffre) et sur ${SKP.rotation_ratio_sessions[1]} séances (dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Le ${SKP.rotation_ratio_sessions[0]} j réagit vite mais saute beaucoup ; le ${SKP.rotation_ratio_sessions[1]} j confirme.</p>
+      rr: [`Ratio rotation ${SKP.rotation_ratio_sessions} j`, `<p>Chaque séance, on compte les industries qui <b>passent au-dessus de 1</b> (entrées) et celles qui <b>repassent à 1 ou dessous</b> (sorties). Ratio = entrées ÷ sorties cumulées sur ${SKP.rotation_ratio_sessions} séances (grand chiffre ; les deux totaux dessous), comme « Ratio 5 j » du MM : <b>au-dessus de 1</b>, la hausse gagne de nouvelles industries ; <b>sous 1</b>, elle en perd. Nerveux : il saute d'une semaine à l'autre, à lire sur la mini-courbe.</p>
         <p><b>Lecture</b> : rouge (sous ${thr(SKP.rotation_ratio[0])}) longtemps = marché qui se rétrécit (sélectivité) ; retour au-dessus de 1 après une phase rouge = premières industries qui repartent ; bleu (à partir de ${thr(SKP.rotation_ratio[1])}) = plus d'industries entrent qu'il n'en sort.</p>
         <p><b>À lire avec le niveau du marché</b> : si la plupart des industries sont sous 1 (case « Industries ${TIN} > 1 » basse), un ratio bleu signale souvent une <b>rotation défensive</b> (l'argent se réfugie dans quelques secteurs) plutôt qu'une hausse qui s'élargit. Le <b>flux par secteur</b> (case Rotation) dit lesquels.</p>
-        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
-        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions[0])}${rrBack('rrL', SKP.rotation_ratio_sessions[1])}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
+        <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
+        <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions)}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
       rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
@@ -2418,7 +2418,7 @@
     });
     // ratio de rotation : entrées et sorties de chaque séance (franchissement de 1 d'une séance à l'autre), cumulées sur RN
     // séances ; « still » = industries entrées dans la fenêtre et toujours au-dessus de 1 (la liste du raccourci)
-    const [RN, RL] = SKP.rotation_ratio_sessions;
+    const RN = SKP.rotation_ratio_sessions;
     const day = Array.from({ length: N }, (_, e) => {
       if (e < 1) return null; const ent = [], out = []; let n = 0;
       for (const x of I) { const a = x.s[e - 1], b = x.s[e]; if (a == null || b == null) continue; n++; if (a <= 1 && b > 1) ent.push(x.k); else if (a > 1 && b <= 1) out.push(x.k); }
@@ -2429,7 +2429,7 @@
       for (let j = e - n + 1; j <= e; j++) { const x = day[j]; if (!x) return null; en += x.ent.length; ou += x.out.length; x.ent.forEach(k => keys.add(k)); }
       return { en, ou, ratio: ou ? en / ou : null, still: I.filter(x => keys.has(x.k) && x.s[e] != null && x.s[e] > 1).map(x => x.k) };
     });
-    const rr = win(RN), rrL = win(RL);
+    const rr = win(RN);
     const st = IND.stocks && Array.isArray(IND.stocks.b) && IND.stocks.b.length === N ? IND.stocks : null;   // absent des anciens fichiers
     // flux par secteur : entrées / sorties de la rotation regroupées par secteur (d'où part et où arrive le mouvement)
     const secOf = new Map(IND.industries.map(x => [x.k, x.sec]));
@@ -2438,7 +2438,7 @@
       r.ent.forEach(k => at(k).ent.push(k)); r.out.forEach(k => at(k).out.push(k));
       return [...m.values()].map(f => Object.assign(f, { net: f.ent.length - f.out.length }))
         .sort((a, b) => b.net - a.net || b.ent.length - a.ent.length || (a.sec < b.sec ? -1 : 1)); };
-    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, rrL, stk: st ? st.b : null, stkN: st ? st.n : null });
+    return (SKD = { src: IND, ind: above(I), sec: above(S), rot, flow, rr, stk: st ? st.b : null, stkN: st ? st.n : null });
   }
   const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
@@ -2476,7 +2476,7 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = secView === 'tv' ? secKpiData() : null;
@@ -2506,12 +2506,12 @@
               (top || bot ? [top && one(top, true), bot && one(bot, false)].filter(Boolean).join(' · ') : '<span>aucun mouvement</span>') + '</div>' };
           })()];
       },
-      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : court en grand, « 10 jours : … » dessous
-        const [n, nl] = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e], rl = K.rrL[e];
+      rr: () => {                                    // même présentation que « Ratio 5 j » du MM : ratio en grand, les deux totaux dessous
+        const n = SKP.rotation_ratio_sessions, lbl = `Ratio rotation ${n} j`, r = K.rr[e];
         if (!r) return [lbl, '—', 'historique trop court', '', { html: '', rec: 0 }];
         const v = r.ratio, f2 = x => nf(x, 2), c = css(v == null ? '--muted' : v < RRT[0] ? '--down' : v >= RRT[1] ? '--up' : '--muted');
         const show = x => x == null ? '—' : `<span class="${rrCls(x.ratio)}">${x.ratio == null ? (x.en ? '∞' : '—') : f2(x.ratio)}</span>`;
-        return [lbl, show(r), `<span title="Entrées / sorties : ${r.en} / ${r.ou} en ${n} séances${rl ? `, ${rl.en} / ${rl.ou} en ${nl}` : ''}">${nl} jours : ${show(rl)}</span>`,
+        return [lbl, show(r), `<span title="Industries entrées / sorties au-dessus de 1, cumulées sur ${n} séances">${r.en}<span class="kw"> entrées</span> / ${r.ou}<span class="kw"> sorties</span></span>`,
           spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
       },
       stk: () => {
@@ -4423,10 +4423,13 @@
     box.classList.toggle('past', !!at);
     const net = d => { const u = sb(d, 'up4'), v = sb(d, 'down4'); return u == null || v == null ? null : u - v; };
     const D4 = D.filter(d => net(d) != null), net4 = net(d4);
-    const r5v = sb(d4, 'ratio5'), r10v = sb(d4, 'ratio10');
+    const r5v = sb(d4, 'ratio5');
+    // sous le ratio 5 j : les deux totaux qu'il compare (hausses / baisses de 4 % cumulées sur les 5 dernières séances) ; le ratio
+    // 10 j n'est plus affiché (demande du 20/10/2026), ses données restent calculées
+    const w5 = D4.filter(d => d <= d4).slice(-5), s5u = w5.length === 5 ? w5.reduce((s, d) => s + sb(d, 'up4'), 0) : null, s5d = w5.length === 5 ? w5.reduce((s, d) => s + sb(d, 'down4'), 0) : null;
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
-    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
+    const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
     const t2S0 = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
     // T2108 hors Stockbee : la zone est donnée, mais l'alerte (case orange) attend la confirmation de Stockbee
     const t2S = t2S0[0] === 'warn' && !T2_ALERT.has(srcOf(dt, 't2108')) ? ['neutral', t2S0[1] + ' (alerte à la confirmation de Stockbee)'] : t2S0;
@@ -4459,7 +4462,7 @@
     const tiles = [
       ['solde', '±4 % du jour', `<span class="${cl(n4S)}">${recNum('net4', d4, signed(net4))}</span>`,
         `+${recNum('up4', d4, nf(sb(d4, 'up4')))} / −${recNum('down4', d4, nf(sb(d4, 'down4')))}`, n4S, spark(D4.slice(-40).map(net), 'bars')],
-      ['r5', 'Ratio 5 j', nf(r5v, 2), `10 jours : <span class="${cl(r10S)}">${recNum('ratio10', d4, nf(r10v, 2))}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
+      ['r5', 'Ratio 5 j', nf(r5v, 2), `<span title="Hausses / baisses de 4 % cumulées sur les 5 dernières séances">+${nf(s5u)} / −${nf(s5d)}</span>`, r5S, spark(D4.slice(-60).map(d => sb(d, 'ratio5')), { ref: 1 }, stCol(r5S))],
       ['rm', 'Ratio mois', nf(rm, 2), `${recNum('up25m', dq, nf(sb(dq, 'up25m')))} / ${recNum('down25m', dq, nf(sb(dq, 'down25m')))}`, rmS, spark(DQ.map(d => ratio(d, 'up25m', 'down25m')), { ref: 1 }, stCol(rmS))],
       ['rq', 'Ratio trim.', nf(rq, 2), `${recNum('up25q', dq, nf(sb(dq, 'up25q')))} / ${recNum('down25q', dq, nf(sb(dq, 'down25q')))}`, rqS, spark(DQ.map(d => ratio(d, 'up25q', 'down25q')), { ref: 1 }, stCol(rqS))],
       ['t2108', 'T2108', t21 == null ? '—' : nf(t21, 1) + ' %', `VIX ${nf(VIXMAP.get(dt), 1)}`, t2S, spark(DQ.map(d => sb(d, 't2108')), null, css('--muted'))]];
@@ -4469,7 +4472,7 @@
     tiles.forEach(t => { if (wait[t[0]]) { t[2] = '—'; t[3] = W8; t[4] = ['neutral', '']; } });
     const G = { solde: ['net4', d4, signed], r5: ['ratio5', d4, x => nf(x, 2)], rq: ['rq', dq, x => nf(x, 2)], rm: ['rm', dq, x => nf(x, 2)], t2108: ['t2108', dt, x => nf(x, 1)] };
     // chiffres de chaque case (principal d'abord) : un record de l'un d'eux encadre la case
-    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j'], ['ratio10', d4, '10 j']],
+    const NUMS = { solde: [['up4', d4, '+4 %'], ['down4', d4, '−4 %'], ['net4', d4, 'solde']], r5: [['ratio5', d4, '5 j']],
       rq: [['rq', dq, 'ratio'], ['up25q', dq, '+25 %'], ['down25q', dq, '−25 %']], rm: [['rm', dq, 'ratio'], ['up25m', dq, '+25 %'], ['down25m', dq, '−25 %']],
       t2108: [['t2108', dt, 'T2108']] };
     const hotOf = id => {
@@ -4508,9 +4511,9 @@
       solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
         <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
         <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p>${srcNote('solde')}`],
-      r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
-        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
-        <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p>${srcNote('r5')}<p class="src">Seuils calibrés sur IWM.</p>`],
+      r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (les deux totaux sont écrits en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
+        ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (+${nf(s5u)} / −${nf(s5d)} sur 5 séances) → zone ${r5S[1]}.</div>
+        ${srcNote('r5')}<p class="src">Seuils calibrés sur IWM.</p>`],
       rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> et, selon lui, le marché est haussier tant qu'il reste au-dessus de 1 (lecture de Stockbee). ${kRule('rq')}</p>
         ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → zone ${rqS[1]}.</div>
         ${srcNote('rq')}<p class="src">Calcul maison expérimental (clôture ÷ plus bas ou plus haut des 63 séances précédentes) · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],
