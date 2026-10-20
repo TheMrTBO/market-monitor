@@ -1,6 +1,7 @@
 // Onglet Tickers : saisie d'une liste (formats variés), secteur / industrie / TI65 / short interest, thèmes chauds
 // (règle de config/display.toml recalculée ici), inconnus, tri, ouverture dans l'onglet Secteurs, noms échappés.
 const fs=require('fs'),vm=require('vm');
+require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){

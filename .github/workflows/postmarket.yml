@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 15
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
+      site: ${{ steps.site.outcome }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
@@ -78,9 +79,28 @@ jobs:
           echo "::error::Scan non poussé : main a changé pendant l'exécution (3 essais)."
           exit 1
 
-      - name: Préparer le site
+      # Fichiers générés (config/storage.toml [generated] : vue TradingView, index Tickers), jamais commités : repris du
+      # cache de update.yml (mêmes chemins), sinon du site publié ; sans eux le site n'est pas republié (rien n'est perdu).
+      - name: Restaurer les fichiers générés (cache hors dépôt)
         if: steps.commit.outputs.changed == 'true'
-        run: python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684  # v4.2.3
+        with:
+          path: |
+            industries_data.js
+            tickers_data.js
+            industries
+          key: generes-${{ github.run_id }}   # jamais trouvée : on prend le plus récent (restore-keys)
+          restore-keys: generes-
+
+      - name: Secours si le cache manque (version du site publié)
+        if: steps.commit.outputs.changed == 'true'
+        continue-on-error: true
+        run: python generated.py fetch     # ne télécharge que s'il manque un fichier
+
+      - name: Préparer le site
+        id: site
+        if: steps.commit.outputs.changed == 'true'
+        run: python generated.py check && python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
 
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
         if: steps.commit.outputs.changed == 'true'
@@ -120,7 +140,7 @@ jobs:
 
   deploy:
     needs: scan
-    if: ${{ !cancelled() && needs.scan.outputs.changed == 'true' }}   # publie même si seul le stockage a échoué
+    if: ${{ !cancelled() && needs.scan.outputs.site == 'success' }}   # publie même si seul le stockage a échoué
     runs-on: ubuntu-24.04
     environment:
       name: github-pages

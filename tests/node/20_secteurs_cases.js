@@ -2,6 +2,7 @@
 // rotation ; valeurs recalculées indépendamment, raccourcis (filtre / tri, second toucher = retour), survol du graphique,
 // fichier sans la série des actions (ancien format), vue ETF sans cases.
 const fs=require('fs'),vm=require('vm');
+require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){

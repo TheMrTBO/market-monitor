@@ -314,6 +314,9 @@ def validate(name, path=None, today=None):
     path = Path(path) if path else HERE / FILES[name]
     if not path.exists() and mmconfig.step(name).get("separate"):
         return []                             # source à passage séparé pas encore produite : rien à contrôler (pas un échec)
+    if not path.exists() and path.name in mmconfig.load("storage")["generated"]["files"]:
+        print(f"[{name}] {path.name} absent (fichier généré, non versionné : python generated.py fetch) : non contrôlé")
+        return []                             # pas de copie locale ni en cache : la publication le signale (generated.py check)
     try:
         data = load_js(path)
     except (OSError, ValueError) as e:

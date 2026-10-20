@@ -220,10 +220,25 @@ def check():
         for f in s_["restore"]:
             if f not in listed and not f.endswith(".csv"):
                 errors.append(f"storage.site : {f} (étape {s_['name']}) absent de la liste des fichiers publiés")
+    gen = load("storage").get("generated", {})
+    for f in gen.get("files", []) + [d + "/" for d in gen.get("dirs", [])]:   # fichiers générés : publiés, jamais versionnés
+        if f not in listed:
+            errors.append(f"storage.generated : {f} absent de la liste des fichiers publiés ([site])")
+        if "/" + f not in (HERE / ".gitignore").read_text().split():
+            errors.append(f"storage.generated : /{f} absent de .gitignore (le fichier serait commité)")
+    ind_out = load("industries")["output"]
+    if ind_out["folder"] not in gen.get("dirs", []) or ind_out["tickers_file"] not in gen.get("files", []):
+        errors.append("storage.generated : dossier et index de config/industries.toml [output] attendus")
+    cache_paths = "\n".join(gen.get("files", []) + gen.get("dirs", []))
     for wf in sorted(WORKFLOWS.glob("*.yml")):   # les workflows qui publient passent tous par build_site.py
         text = wf.read_text()
         if "upload-pages-artifact" in text and ("build_site.py" not in text or re.search(r"\bcp\s+index\.html", text)):
             errors.append(f"{wf.name} : le site doit être préparé par build_site.py (liste unique config/storage.toml [site])")
+        # mêmes chemins partout : le cache Actions n'est retrouvé qu'avec la même liste (sinon : version différente, cache absent)
+        blocks = re.findall(r"path: \|\n((?:\s+\S.*\n)+?)\s+key: " + re.escape(gen.get("cache_prefix", "")), text)
+        if "upload-pages-artifact" in text and gen and (not blocks or any("\n".join(x.strip() for x in b.strip().splitlines()) != cache_paths for b in blocks)):
+            errors.append(f"{wf.name} : cache « {gen.get('cache_prefix')} » absent ou chemins différents de storage.generated "
+                          f"(attendu, dans l'ordre : {', '.join(cache_paths.splitlines())})")
     if not JS.exists() or JS.read_text() != js_text():
         errors.append("config_data.js n'est pas à jour : lance python mmconfig.py --js")
     return errors

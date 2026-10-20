@@ -28,6 +28,8 @@ echo "--- test Python : vue TradingView de l'onglet Secteurs (indices, filtres, 
 python3 tests/test_industries.py || fail=1
 echo "--- test Python : short interest de l'onglet Tickers (lots, erreurs, controle)"
 python3 tests/test_short.py || fail=1
+echo "--- test Python : fichiers générés non versionnés (cache, secours du site publié, annulation, workflows)"
+python3 tests/test_generated.py || fail=1
 echo "--- test Python : stockage historique (mm/store)"
 python3 tests/test_store.py || fail=1
 echo "--- test Python : synchronisation vers la branche data (dépôts Git temporaires)"

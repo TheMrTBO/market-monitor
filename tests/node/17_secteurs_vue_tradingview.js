@@ -2,6 +2,7 @@
 // -> actions classés par TI65, filtre TI65 > 1, miniature TI65, bulles d'information, courbe de tendance des groupes et
 // carte « % > 1 », bougies des actions, chargement à la demande.
 const fs=require('fs'),vm=require('vm');
+require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){
