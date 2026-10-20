@@ -88,15 +88,19 @@ const lab=(CFG.sector_fr||{})[far.k]||far.k;
 ok('premier toucher sur un point : détail (nom, zone, force relative)',strip(A.$('rrgInfo')._h).startsWith(lab)&&/force relative/.test(strip(A.$('rrgInfo')._h)),strip(A.$('rrgInfo')._h).slice(0,100));
 tapAt(A,X(far.p[0]),Y(far.p[1]));
 ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre ses industries',crumbs(A).length===2&&chips(A).some(c=>c.on&&c.k===far.k)&&/industries · /.test(A.$('rrgWhat')._t),A.$('rrgWhat')._t);
-// repliée : rien n'est dessiné, l'état est mémorisé
-A.L.rrgHead.click({});
-ok('repli de la carte mémorisé',ls['mm.rrg']==='0'&&A.$('rrgBody').hidden===true);
+// sous-vues Résumé | Carte | Classement (mémorisées) ; un raccourci qui filtre la liste montre le Classement
+const subOf=X=>X.$('view-sec').dataset.sub, pick=(X,s)=>X.L.secSub.click({target:{closest:()=>({dataset:{sub:s}})}});
+pick(A,'map'); ok('sous-vue Carte : mémorisée',subOf(A)==='map'&&ls['mm.secsub']==='map');
+pick(A,'sum'); A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'ind'}})}});
+ok('raccourci « Industries > 1 » depuis le Résumé : passe au Classement',subOf(A)==='list',subOf(A));
+A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'ind'}})}}); pick(A,'sum'); A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'rot'}})}});
+ok('raccourci « Rotation » (flux) : reste dans le Résumé',subOf(A)==='sum'&&A.$('secFlow').hidden===false);
+A.L.secKpis.click({target:{closest:()=>({dataset:{sk:'rot'}})}}); pick(A,'map');
 // plus gros mouvements : déplacement net sur movers_window séances (marché approché de A), 3 hausses (x monte) + 3 baisses
 { const MW=R.movers_window, mvs=S.map(x=>{const a=rx(x,mk,N-1),a0=rx(x,mk,N-1-MW),r1=rx(x,mk,N-1-R.momentum),r0=rx(x,mk,N-1-MW-R.momentum);
     if(a==null||a0==null||r1==null||r0==null)return null;const b=100*a/r1,b0=100*a0/r0;return {k:x.k,d:Math.hypot(a-a0,b-b0),up:a>=a0};}).filter(Boolean);
   const top=up=>mvs.filter(m=>m.up===up).sort((p,q)=>q.d-p.d).slice(0,R.movers).map(m=>((CFG.sector_fr||{})[m.k]||m.k)+' '+m.d.toFixed(1).replace('.',','));
   A.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:''}})}});                       // retour au niveau secteurs
-  if(ls['mm.rrg']!=='1')A.L.rrgHead.click({});                                                    // carte ouverte (repliée plus haut)
   const mh=strip(A.$('rrgMoves')._h);
   ok('liste des plus gros mouvements = recalcul (↗ '+top(true).join(', ')+' · ↘ '+top(false).join(', ')+')',top(true).every(s=>mh.includes(s))&&top(false).every(s=>mh.includes(s))&&/Plus gros mouvements 5 j/.test(mh),mh.slice(0,160));
   const k0=mvs.filter(m=>!m.up).sort((p,q)=>q.d-p.d)[0].k;
