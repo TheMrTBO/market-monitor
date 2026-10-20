@@ -144,9 +144,9 @@ def check():
             or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
             or not (len(kp.get("rotation_ratio_sessions", [])) == 2 and all(isinstance(n, int) and n > 0 for n in kp["rotation_ratio_sessions"])
                     and kp["rotation_ratio_sessions"][0] < kp["rotation_ratio_sessions"][1]) \
-            or not (len(rr) == 2 and 0 < rr[0] <= rr[1]):
+            or not (len(rr) == 2 and 0 < rr[0] <= rr[1]) or not 0 < kp.get("breadth_mid", -1) < 100 or not kp.get("benchmark"):
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
-                      "rotation_ratio_sessions = [court, long] croissant et rotation_ratio = [bas, haut] croissant attendus")
+                      "rotation_ratio_sessions = [court, long] croissant, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
     rg = load("display")["sectors"]["rrg"]
     if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
             and isinstance(rg.get("movers"), int) and rg["movers"] >= 0 and isinstance(rg.get("movers_window"), int) and rg["movers_window"] > 0) \
