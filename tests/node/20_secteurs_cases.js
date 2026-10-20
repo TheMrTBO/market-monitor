@@ -47,6 +47,7 @@ const order=(items,dates,minN)=>items.filter(x=>minN==null||x.n>=minN).map(x=>[x
 const bodies=A=>(A.R.secCanvas||[]).filter(r=>r[3]>0&&r[3]<20&&r[4]>0&&(r[0]==='#f6e24b'||r[0]==='#cf5148')).length;
 
 
+const nAbS=()=>IND.sectors.filter(x=>x.n>=CFG.industries.min_members&&sc(x.c,IND.dates.length-1)>1).length;
 const kp=A=>[...A.$('secKpis')._h.matchAll(/<div class="kpi([^"]*)" data-sk="([^"]+)"[^>]*>([\s\S]*?)(?=<div class="kpi|$)/g)].map(m=>({k:m[2],on:/\bon\b/.test(m[1]),t:strip(m[3]),h:m[3]}));
 const val=c=>strip((c.h.match(/<div class="val">([\s\S]*?)<\/div>/)||[])[1]);
 const sk=(A,k)=>A.L.secKpis.click({target:{closest:()=>({dataset:{sk:k}})}});
@@ -118,6 +119,16 @@ sk(A,'sec'); sk(B,'stk');
 ok('Actions > 1 : niveau affiché classé par % > 1',lsB['mm.tvsort.sec']==='{"k":"brd","dir":-1}'&&kp(B).find(x=>x.k==='stk').on);
 sk(B,'stk');
 ok('Actions > 1 touchée à nouveau : retour au classement',lsB['mm.tvsort.sec']==='{"k":"rank","dir":1}');
+// une seule case active à la fois : la case touchée remplace l'effet de la précédente
+sk(A,'ind'); sk(A,'rot');
+const onNow=()=>kp(A).filter(x=>x.on).map(x=>x.k).join(',');
+ok('Industries puis Rotation : seule Rotation active, filtre TI65 > 1 retiré',onNow()==='rot'&&ls['mm.tvabove']==='0'&&A.$('secFlow').hidden===false,onNow()+' / tvabove '+ls['mm.tvabove']);
+sk(A,'rr');
+ok('Rotation puis Ratio rotation : seul Ratio actif, panneau du flux refermé',onNow()==='rr'&&A.$('secFlow').hidden===true,onNow());
+sk(A,'sec');
+ok('Ratio puis Secteurs : seul Secteurs actif, filtre « entrées » levé',onNow()==='sec'&&rows(A).length===nAbS(),onNow());
+sk(A,'sec');
+ok('case active touchée : plus aucune case active',onNow()===''&&ls['mm.tvabove']==='0');
 // survol du graphique : les cases suivent la séance survolée, puis reviennent à la séance du classement
 const note0=strip(A.$('secKpiNote')._t);
 A.L.secCanvas.pointermove({clientX:200,clientY:50,pageX:200,pageY:50,pointerType:'mouse'});

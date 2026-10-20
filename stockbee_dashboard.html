@@ -176,8 +176,8 @@
   .rrghead { display: flex; align-items: baseline; gap: 6px; width: calc(100% - 28px); border: 0; background: none; color: var(--text); padding: 2px 0; font-size: 13px; cursor: pointer; text-align: left; }
   .rrghead span { color: var(--muted); font-size: 11.5px; } .rrghead .car { margin-left: auto; }
   .secrrg > .tipbtn { position: absolute; right: 10px; top: 8px; }
-  #rrgBody { max-width: 760px; }                    /* carte presque carrée : les distances se lisent pareil sur les deux axes */
-  #rrgCv { width: 100%; aspect-ratio: 4 / 3; height: auto; max-height: 560px; display: block; margin-top: 6px; touch-action: manipulation; }
+  /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
+  #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
   .rrginfo { font-size: 11.5px; color: var(--muted); min-height: 16px; margin-top: 4px; }
   .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
   .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
@@ -2130,6 +2130,17 @@
     }).join('');
     $('secTiName').textContent = TIN; $('secScoreName').textContent = 'Score ' + TIN;
   }
+  // fait défiler un conteneur (et lui seul) pour que el soit visible : scrollIntoView faisait aussi défiler la page, et l'écran
+  // descendait à chaque changement de date dans « Stats du » (signalé le 20/10/2026)
+  function scrollWithin(box, el, axis) {
+    if (!box || !el || !el.getBoundingClientRect || !box.getBoundingClientRect) return;
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    if (axis === 'x') { if (box.scrollWidth <= box.clientWidth) return;
+      if (r.left < b.left) box.scrollLeft -= b.left - r.left; else if (r.right > b.right) box.scrollLeft += r.right - b.right; return; }
+    if (box.scrollHeight <= box.clientHeight) return;            // liste non défilante (mobile : la page défile) : rien à faire
+    const head = (box.querySelector && box.querySelector('thead')) ? box.querySelector('thead').getBoundingClientRect().height : 0;
+    if (r.top < b.top + head) box.scrollTop -= b.top + head - r.top; else if (r.bottom > b.bottom) box.scrollTop += r.bottom - b.bottom;
+  }
   const tipI = (id, label) => `<span class="tipbtn mini" role="button" tabindex="0" data-tip="${escA(id)}" aria-label="Explication : ${escA(label)}" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>`;
   function renderSecFilt() {                             // ETF : filtres par groupe · TradingView : fil d'Ariane, puis pastilles (secteur, TI65 > 1)
     const f = $('secFilt'), chips = $('secChips');
@@ -2160,7 +2171,7 @@
     chips.hidden = false; chips.innerHTML = above + (secChips ? '<span class="fsep" aria-hidden="true"></span>' + secChips.replace(/<span class="fsep" aria-hidden="true"><\/span>$/, '') : '');
     chips.setAttribute('aria-label', 'Filtres');
     const on = chips.querySelector && chips.querySelector('button.on[data-sec]');
-    if (on && on.scrollIntoView && tvNav.sec !== 'all') on.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    if (on && tvNav.sec !== 'all') scrollWithin(chips, on, 'x');   // la pastille active reste visible, sans faire défiler la page
   }
   // --- bulles d'information de l'onglet (filtres, niveaux, colonnes) : contenu calculé à l'ouverture (voir openTip)
   function secTip(id) {
@@ -2320,14 +2331,26 @@
   const sortLevel = (kind, s) => { store.set(sortStoreKey(kind), JSON.stringify(s)); secSortLvl = null; };   // relu par syncSort au rendu
   const goLevel = lvl => { if (tvNav.lvl !== lvl || (lvl === 'ind' && tvNav.sec !== 'all')) { tvNav = { lvl, sec: lvl === 'ind' ? 'all' : tvNav.sec, ind: null }; tvSave(); secSel = null; } };
   const setAbove = v => { tvAbove = v; store.set('mm.tvabove', v ? '1' : '0'); };
+  // Une seule case active à la fois (demande du 20/10/2026) : toucher une case annule l'effet de la case précédente avant
+  // d'appliquer le sien ; toucher la case active l'annule. skMode = case active ; state() = son effet est-il toujours en place
+  // (une pastille ou un tri changé à la main désactive la case, sans rien annuler d'autre).
+  let skMode = null, skStkLvl = 'sec';
   const SK_ACT = {
-    ind: { on: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('ind'); setAbove(true); } } },
-    sec: { on: () => tvNav.lvl === 'sec' && tvAbove, go: on => { if (on) setAbove(false); else { goLevel('sec'); setAbove(true); } } },
-    rot: { on: () => skFlow, go: on => { skFlow = !on; } },             // panneau « flux par secteur » sous les cases
-    rr: { on: () => tvNav.lvl === 'ind' && skEntries === 'rr', go: on => { if (on) skEntries = false; else { goLevel('ind'); skEntries = 'rr'; } } },
-    stk: { on: () => tvNav.lvl !== 'stk' && secSort.k === 'brd' && secSort.dir < 0,
-           go: on => { const lvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; if (on) sortLevel(lvl, RANK); else { goLevel(lvl); sortLevel(lvl, { k: 'brd', dir: -1 }); } } },
+    ind: { state: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, set: () => { goLevel('ind'); setAbove(true); }, unset: () => setAbove(false) },
+    sec: { state: () => tvNav.lvl === 'sec' && tvAbove, set: () => { goLevel('sec'); setAbove(true); }, unset: () => setAbove(false) },
+    rot: { state: () => skFlow, set: () => { skFlow = true; }, unset: () => { skFlow = false; } },   // panneau « flux par secteur »
+    rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
+    stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
+           set: () => { skStkLvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
+           unset: () => sortLevel(skStkLvl, RANK) },
   };
+  Object.values(SK_ACT).forEach(a => { a.on = () => skMode != null && SK_ACT[skMode] === a && a.state(); });
+  function skToggle(id) {
+    const was = skMode && SK_ACT[skMode].state() ? skMode : null;
+    if (was) SK_ACT[was].unset();                          // l'effet de la case précédente est retiré dans tous les cas
+    if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
+    SK_ACT[id].set(); skMode = id;
+  }
   const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions[0]} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
@@ -2494,18 +2517,18 @@
   $('rrgCv').addEventListener('click', ev => {         // premier toucher : détail ; second sur le même point : ouvre le secteur (ses industries) ou l'industrie (ses actions)
     const p = rrgPick(ev); if (!p) { rrgHot = null; drawRrg(rrgE); return; }
     if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
-    rrgHot = null; tvNav = p.ind ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null; skEntries = false;
+    rrgHot = null; tvNav = p.ind ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null; skEntries = false; skMode = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   });
   $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; drawRrg(rrgE); } });
   $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé
     const b = e.target.closest('[data-flsec]'); if (!b) return;
-    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false;
+    tvNav = { lvl: 'ind', sec: b.dataset.flsec, ind: null }; tvSave(); secSel = null; skFlow = false; skEntries = false; skMode = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   });
   $('secKpis').addEventListener('click', e => {
     const t = e.target.closest('[data-sk]'); if (!t || !SK_ACT[t.dataset.sk]) return;
-    SK_ACT[t.dataset.sk].go(SK_ACT[t.dataset.sk].on());
+    skToggle(t.dataset.sk);
     renderSectors();
     const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   });
@@ -2597,7 +2620,7 @@
     detNavSync('sec', sorted.map(r => r.x.s), secSel, { etf: 'ETF', sec: 'Secteur', ind: 'Industrie', stk: 'Titre' }[D.kind], s => lblOf.get(s) || s);
     renderSecKpis();                                 // après syncSort : état actif des raccourcis (tri, filtre) à jour
     fitSecLayout();
-    if (sel && sel.scrollIntoView) sel.scrollIntoView({ block: 'nearest' });
+    if (sel) scrollWithin($('secScroll'), sel, 'y');   // ligne choisie visible dans la liste, sans faire défiler la page (changement de date)
     secRedraw();
   }
 
