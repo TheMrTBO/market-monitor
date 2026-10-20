@@ -5,6 +5,8 @@ Etapes (chacune est un script independant ; si une etape echoue, les anciennes d
   stockbee  -> stockbee_data.js   (Google Sheet public de Stockbee)
   breadth   -> breadth_data.js    (calcul maison +4 % / -4 % depuis l'historique cache/history/ ; fetch_history.py le remplit
                                    avant, voir le workflow ; Stockbee sert de controle croise)
+  tv_breadth-> tv_breadth_data.js (T2108 du screener public TradingView, un releve par seance ; ne fait rien en seance ;
+                                   aussi lance par .github/workflows/postmarket.yml, des la fin de seance)
   vix       -> vix_data.js        (fichier CSV public du CBOE)
   prices    -> prices_data.js     (QQQ, IWM : Yahoo Finance ; BTC : Coinbase)
   sectors   -> sectors_data.js    (ETF sectoriels : Yahoo Finance)
@@ -47,8 +49,8 @@ def last_date(name, path):
             return data["rows"][-1][0]
         if name == "vix":
             return data[-1][0]
-        if name == "breadth":
-            return data["rows"][-1][0]
+        if name in ("breadth", "tv_breadth"):
+            return data["rows"][-1][0] if data["rows"] else None
         if name == "prices":
             return min(v[-1][0] for v in data.values() if v)        # la serie la plus en retard
         if name == "sectors":
