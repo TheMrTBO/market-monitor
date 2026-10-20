@@ -35,6 +35,10 @@ def breadth_own(data):
     return {"breadth_own_daily": rows}
 
 
+def tv_breadth(data):
+    return {"tv_breadth_daily": [{"session_date": r[0], "t2108": r[1], "n": r[2]} for r in data["rows"]]}
+
+
 def prices(data):
     rows = [{"symbol": sym, "session_date": b[0], "open": b[1], "high": b[2], "low": b[3], "close": b[4], "volume": b[5]}
             for sym, bars in data.items() for b in bars]
@@ -94,6 +98,7 @@ def runs(status, run_id):
 SOURCES = {
     "stockbee_data.js": stockbee,
     "breadth_data.js": breadth_own,
+    "tv_breadth_data.js": tv_breadth,
     "prices_data.js": prices,
     "sectors_data.js": sectors,
     "vix_data.js": vix,

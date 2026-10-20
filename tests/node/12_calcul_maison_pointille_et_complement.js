@@ -45,7 +45,7 @@ assert(strokesOwn-strokesBase>=2,`surimpression pointillée absente (${strokesBa
 // 3. pied de page : statut du calcul maison et contrôle croisé
 const foot=strip(A.$('dataStatus')._h);
 assert(/Calcul maison \d+ \S+ ✓/.test(foot),'statut « Calcul maison » absent du pied de page : '+foot);
-assert(/écart calcul maison \/ Stockbee/.test(foot),'contrôle croisé absent du pied de page : '+foot);
+assert(/Contrôle avec Stockbee .*±4 % : corrélation/.test(foot),'contrôle croisé absent du pied de page : '+foot);
 // 4. séance absente chez Stockbee : complétée par le calcul maison (ligne du tableau, avec les valeurs)
 const lastSb=vm.runInContext('STOCKBEE.rows[STOCKBEE.rows.length-1][0]',A.sb);
 // séance fictive après Stockbee ET après le calcul maison (chaque matin, le calcul maison a déjà une séance d'avance sur Stockbee)

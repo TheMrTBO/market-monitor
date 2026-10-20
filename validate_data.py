@@ -124,6 +124,22 @@ def check_breadth(data, today, stockbee_path=None):
     return errors
 
 
+def check_tv_breadth(data, today):
+    """T2108 TradingView (fetch_tv_breadth.py) : structure, bornes, fraicheur (la serie demarre le 20/10/2026)."""
+    errors, f = [], fresh("tv_breadth")
+    rows = data["rows"]
+    if len(rows) < f["min_rows"]:
+        errors.append(f"tv_breadth : seulement {len(rows)} seances (minimum {f['min_rows']})")
+    if not rows:
+        return errors
+    _check_dates([r[0] for r in rows], "tv_breadth", today, f["max_age"], f["max_gap"], errors)
+    bad = [r[0] for r in rows if not isinstance(r[1], (int, float)) or not 0 <= r[1] <= 100 or not isinstance(r[2], int)
+           or r[2] < mmconfig.load("sources")["tv_breadth"]["min_stocks"]]
+    if bad:
+        errors.append(f"tv_breadth : {len(bad)} seance(s) incoherente(s) ({', '.join(bad[:3])})")
+    return errors
+
+
 def check_vix(data, today):
     errors = []
     f = fresh("vix")
@@ -281,7 +297,7 @@ def check_short(data, today):
     return errors
 
 
-CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
+CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "tv_breadth": check_tv_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
           "industries": check_industries, "short": check_short}
 
 

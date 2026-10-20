@@ -18,6 +18,13 @@ partition = "month"
 partition_by = "session_date"
 columns = { session_date = "date", up4 = "int", down4 = "int", ratio5 = "float?", ratio10 = "float?", up25m = "int?", down25m = "int?", up25q = "int?", down25q = "int?", t2108 = "float?" }
 
+[datasets.tv_breadth_daily]
+description = "T2108 relevé sur le screener TradingView (aucun historique chez TradingView : un relevé par séance depuis le 20/10/2026)"
+primary_key = ["session_date"]
+partition = "month"
+partition_by = "session_date"
+columns = { session_date = "date", t2108 = "float", n = "int" }
+
 [datasets.prices_daily]
 description = "Bougies journalières QQQ, IWM (Yahoo) et BTC (Coinbase)"
 primary_key = ["symbol", "session_date"]

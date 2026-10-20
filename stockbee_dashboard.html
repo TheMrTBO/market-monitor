@@ -369,7 +369,10 @@
   .kpis { display: grid; grid-template-columns: 1.4fr repeat(5, minmax(0, 1fr)); gap: 14px 8px; margin: 10px 0 4px; }   /* place pour les étiquettes « record » */
   .kpi { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 10px 12px 8px; min-width: 0; }
   .kpi .top { display: flex; align-items: center; gap: 4px; color: var(--muted); font-size: 12px; white-space: nowrap; }
-  .kpi .top .lbl { overflow: hidden; text-overflow: ellipsis; min-width: 0; }   /* une seule ligne : la case ne change pas de hauteur au survol */
+  .kpi .top .lbl { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  /* source du chiffre affiché : Stockbee (trait plein) ou nos sources, maison / TradingView (pointillé, comme sur les graphiques) */
+  .kpi .top .ksrc { margin-left: auto; flex: none; font-size: 10px; line-height: 14px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); }
+  .kpi .top .ksrc.s-own, .kpi .top .ksrc.s-tv { border-style: dashed; border-color: var(--faint); color: var(--text); }   /* une seule ligne : la case ne change pas de hauteur au survol */
   /* hauteurs fixes : le contenu change au survol (valeurs, pastilles ▲ / ▼), pas la taille des cases */
   .kpi .top { height: 20px; } .kpi .val { height: 30px; line-height: 30px; white-space: nowrap; } .kpi .ksub { height: 18px; line-height: 18px; }
   .irow { height: 26px; } .irow .rec { line-height: 14px; padding-top: 0; padding-bottom: 0; } .g3 { height: 14px; }
@@ -512,6 +515,7 @@
     .kpi .top { font-size: 11px; }
     .kpi .val { font-size: 19px; }
     .kpi .top { flex-wrap: wrap; row-gap: 3px; }
+    .kpi .top .ksrc { font-size: 9.5px; padding: 0 5px; }
     .kpi .body { grid-template-columns: minmax(0, 1fr) 40%; gap: 8px; margin: 2px 0 4px; }
     .kpi svg.spark { height: 24px; margin: 0 0 3px; }
     .kpi .rec { font-size: 9.5px; padding: 0 4px; margin-left: 4px; vertical-align: 3px; }
@@ -1008,7 +1012,7 @@
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'industries_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
+    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'industries_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
@@ -1029,8 +1033,10 @@
   const COL = Object.fromEntries(STOCKBEE.columns.map((c, i) => [c, i]));
   const SB = new Map(STOCKBEE.rows.map(r => [r[0], r]));       // date -> ligne Stockbee
   const sb = (d, k) => { const r = SB.get(d); return r ? r[COL[k]] : null; };
-  // Calcul maison (breadth_data.js, calculé par breadth_own.py) : +4 % / −4 % et ratios 5 / 10 j. Stockbee reste prioritaire ;
-  // une séance qu'il n'a pas (encore) publiée est complétée par notre calcul, et sert de contrôle croisé en pointillé.
+  // Calcul maison (breadth_data.js, calculé par breadth_own.py) : ±4 %, ratios 5 / 10 j, ±25 % mois et trimestre, T2108.
+  // Décision du 20/10/2026 : afficher nos chiffres dès qu'ils existent, puis vérifier avec Stockbee. Une séance que Stockbee n'a
+  // pas (encore) publiée est complétée par notre calcul ; dès sa publication, ses chiffres reprennent la main et les nôtres
+  // servent de contrôle croisé (pointillé, écart, corrélation). La source de chaque chiffre affiché est toujours indiquée.
   const SB_REAL = new Set(STOCKBEE.rows.map(r => r[0]));
   const OWN = window.BREADTH_OWN || null;
   const OWNC = OWN ? Object.fromEntries(OWN.columns.map((c, i) => [c, i])) : {};
@@ -1042,12 +1048,49 @@
   document.querySelectorAll('.legown').forEach(el => { el.hidden = !(OWN && OWNC[el.dataset.k] != null); });
   const OWN_RATIO = { ratio5: d => own(d, 'ratio5'), rm: d => { const a = own(d, 'up25m'), b = own(d, 'down25m'); return a == null || !b ? null : a / b; },
                       rq: d => { const a = own(d, 'up25q'), b = own(d, 'down25q'); return a == null || !b ? null : a / b; } };
+  const OWN_FILL = ['up4', 'down4', 'ratio5', 'ratio10', 'up25m', 'down25m', 'up25q', 'down25q', 't2108'];
   for (const r of OWN ? OWN.rows : []) {
     if (SB.has(r[0])) continue;
     const row = STOCKBEE.columns.map(() => null);
     row[COL.date] = r[0];
-    for (const k of ['up4', 'down4', 'ratio5', 'ratio10']) row[COL[k]] = own(r[0], k);
+    for (const k of OWN_FILL) { const v = OWNC[k] != null ? own(r[0], k) : null; row[COL[k]] = v == null ? null : v; }
     SB.set(r[0], row);
+  }
+  // T2108 relevé sur le screener TradingView (tv_breadth_data.js, fetch_tv_breadth.py) : seconde source maison, disponible dès
+  // la fin de séance ; affiché seulement si ni Stockbee ni le calcul Polygon n'ont la séance, comparé à Stockbee sinon.
+  const TVB = new Map(((window.TV_BREADTH || {}).rows || []).map(r => [r[0], r[1]]));
+  const tvT = d => TVB.has(d) ? TVB.get(d) : null;
+  // source d'un chiffre affiché : 'sb' (Stockbee), 'own' (calcul maison, clôtures Polygon), 'tv' (relevé TradingView), null
+  const srcOf = (d, k) => !d || sb(d, k) == null ? null : SB_REAL.has(d) ? 'sb' : k === 't2108' && own(d, k) == null ? 'tv' : 'own';
+  const SRC_LBL = CFG.breadth.source_labels;                                   // config/display.toml [breadth]
+  const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: `relevé TradingView (screener, SMA ${CFG.breadth.tv_sma})` };
+  const T2_ALERT = new Set(CFG.breadth.t2108_alert_sources);                    // sources dont un T2108 extrême déclenche l'alerte
+  const TV_FIRST = TVB.size ? [...TVB.keys()].sort()[0] : null;                 // premier relevé TradingView (la série démarre là)
+  // Contrôle croisé avec Stockbee sur les dernières séances communes (config/display.toml compare_sessions) : corrélation,
+  // écart moyen (biais) et écart absolu moyen, par indicateur ; calculé une fois, à la demande.
+  let _agree = null;
+  function agree() {
+    if (_agree) return _agree;
+    const D = [...SB_REAL].sort(), N = CFG.breadth.compare_sessions;
+    const stat = p => {
+      if (p.length < CFG.breadth.compare_min) return { n: p.length };
+      const ma = p.reduce((s, x) => s + x[0], 0) / p.length, mb = p.reduce((s, x) => s + x[1], 0) / p.length;
+      let ab = 0, aa = 0, bb = 0; for (const [a, b] of p) { ab += (a - ma) * (b - mb); aa += (a - ma) ** 2; bb += (b - mb) ** 2; }
+      return { n: p.length, corr: aa && bb ? ab / Math.sqrt(aa * bb) : null, bias: ma - mb, mad: p.reduce((s, [a, b]) => s + Math.abs(a - b), 0) / p.length };
+    };
+    const pairs = (mine, ref) => D.map(d => [mine(d), ref(d), d]).filter(x => x[0] != null && x[1] != null).slice(-N);
+    const rat = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
+    const p4 = pairs(d => own(d, 'up4'), d => sb(d, 'up4')).concat(pairs(d => own(d, 'down4'), d => sb(d, 'down4')));
+    return (_agree = { solde: stat(p4), r5: stat(pairs(d => own(d, 'ratio5'), d => sb(d, 'ratio5'))),
+      rm: stat(pairs(OWN_RATIO.rm, rat('up25m', 'down25m'))), rq: stat(pairs(OWN_RATIO.rq, rat('up25q', 'down25q'))),
+      t2108: stat(pairs(d => own(d, 't2108'), d => sb(d, 't2108'))), t2108tv: stat(pairs(tvT, d => sb(d, 't2108'))) });
+  }
+  const AG_FMT = { solde: [0, ' titres'], r5: [2, ''], rm: [2, ''], rq: [2, ''], t2108: [1, ' pt'], t2108tv: [1, ' pt'] };
+  function agreeTxt(id) {
+    const a = agree()[id], [k, u] = AG_FMT[id];
+    if (a.n < CFG.breadth.compare_min) return `${a.n} séance${a.n > 1 ? 's' : ''} comparée${a.n > 1 ? 's' : ''} (corrélation à partir de ${CFG.breadth.compare_min})`;
+    const sg = v => (v > 0 ? '+' : v < 0 ? '−' : '') + nf(Math.abs(v), k === 0 ? 1 : k);
+    return `corrélation ${nf(a.corr, 2)}, écart moyen ${sg(a.bias)}${u} (absolu ${nf(a.mad, k === 0 ? 1 : k)}${u}) sur ${a.n} séances` + (id === 'solde' ? ' (hausses et baisses)' : '');
   }
   // Séance du jour terminée (heure de clôture passée à New York, QQQ a coté ce jour-là) mais breadth pas encore publié (Stockbee, calcul
   // maison) : on l'ajoute aux séances avec une ligne vide, pour que tous les onglets passent au jour même ; les chiffres
@@ -1067,6 +1110,11 @@
     return d && (!lastSb || d > lastSb) ? d : null;
   })();
   if (PENDING) { const row = STOCKBEE.columns.map(() => null); row[COL.date] = PENDING; SB.set(PENDING, row); }
+  for (const [d, v] of TVB) {                    // après PENDING : une séance au seul T2108 TradingView reste « en attente » pour le reste
+    if (SB_REAL.has(d)) continue;
+    let row = SB.get(d); if (!row) { row = STOCKBEE.columns.map(() => null); row[COL.date] = d; SB.set(d, row); }
+    if (row[COL.t2108] == null) row[COL.t2108] = v;
+  }
   const NAMES = Object.keys(window.PRICES);
   const VIXMAP = new Map((window.VIX || []).map(r => [r[0], r[4]]));   // date -> clôture du VIX (CBOE) ; vide si vix_data.js manque
   const $ = id => document.getElementById(id);
@@ -1141,7 +1189,8 @@
   const REC = {}, BEAR = new Set(['down4', 'down25m', 'down25q']);
   function recMap(k) {                  // date -> 1 (plus haut 3 mois) ou -1 (plus bas 3 mois)
     if (!REC[k]) {
-      const D = sbDates(), v = D.map(serFn(k)), out = new Map();
+      // T2108 : un extrême n'est signalé que sur un chiffre des sources de t2108_alert_sources (Stockbee : notre T2108 a un biais de niveau)
+      const f = serFn(k), D = sbDates(), v = D.map(d => k === 't2108' && !T2_ALERT.has(srcOf(d, 't2108')) ? null : f(d)), out = new Map();
       for (let i = 63; i < v.length; i++) {
         if (v[i] == null) continue; let hi = -Infinity, lo = Infinity;
         for (let j = i - 63; j < i; j++) if (v[j] != null) { if (v[j] > hi) hi = v[j]; if (v[j] < lo) lo = v[j]; }
@@ -1680,7 +1729,8 @@
     if (kind === 'r5' || kind === 'rm' || kind === 'rq') {
       const kk = kind === 'r5' ? 'ratio5' : kind, f = serFn(kk), v = f(d); if (v == null) return `<b>${fmtDate(d)}</b>Pas de donnée`;
       const ov = SB_REAL.has(d) && OWN_RATIO[kk] ? OWN_RATIO[kk](d) : null;
-      const mine = ov == null ? '' : `<div style="margin-top:2px">Calcul maison${kind === 'rq' ? ' (expérimental)' : ''} : ${nf(ov, 2)}</div>`;
+      const mine = ov == null ? '' : `<div style="margin-top:2px">Calcul maison${kind === 'rq' ? ' (expérimental)' : ''} : ${nf(ov, 2)}</div>`
+        + (SB_REAL.has(d) ? '' : '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>');
       return (kind === 'r5' ? `<b>${fmtDate(d)}</b><div>Ratio 5 j : ${nf(v, 2)}</div>`
         : `<b>${fmtDate(d)}</b><div>Ratio : ${nf(v, 2)}</div><div>+25 % : ${nf(sb(d, kind === 'rm' ? 'up25m' : 'up25q'))} · −25 % : ${nf(sb(d, kind === 'rm' ? 'down25m' : 'down25q'))}</div>`) + mine;
     }
@@ -1688,7 +1738,7 @@
     const up = sb(d, k[0]), dn = sb(d, k[1]); if (up == null) return `<b>${fmtDate(d)}</b>${d === PENDING ? 'En attente des données (publiées après la clôture)' : 'Pas de donnée (jour non boursier)'}`;
     const mine = SB_REAL.has(d) && own(d, k[0]) != null
       ? `<div style="margin-top:2px">Calcul maison${kind === 'hist2' ? ' (expérimental)' : ''} : +${nf(own(d, k[0]))} / −${nf(own(d, k[1]))}</div>` : '';
-    const src = kind === 'hist' && !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
+    const src = !SB_REAL.has(d) ? '<div style="margin-top:2px">Source : calcul maison (Stockbee n\'a pas encore publié)</div>' : '';
     return `<b>${fmtDate(d)}</b>${sw('--up', `+${label} : ` + nf(up))}${sw('--down', `−${label} : ` + nf(dn))}<div>Net ${signed(up - dn)}` +
       (kind === 'hist' ? ` · ratio 5 j ${nf(sb(d, 'ratio5'), 2)}` : '') + '</div>' + mine + src;
   }
@@ -3403,16 +3453,23 @@
   // deux boîtes en bas de l'onglet : T2108 et VIX en bougies japonaises, sur la même fenêtre de dates que les graphiques de prix.
   //  - VIX : vraies bougies OHLC (CBOE).
   //  - T2108 : Stockbee ne publie que la valeur de clôture ; bougie = ouverture (clôture de la veille) → clôture, sans mèches.
+  //    Séances pas encore publiées par Stockbee : notre calcul, sinon le relevé TradingView (source dans l'infobulle). La veille
+  //    est lue dans la même source que le jour (les niveaux diffèrent de quelques points d'une source à l'autre).
   const T2108_SERIES = (() => {
-    const rows = STOCKBEE.rows.filter(r => r[COL.t2108] != null);
-    return rows.map((r, i) => { const c = r[COL.t2108], o = i ? rows[i - 1][COL.t2108] : c; return { d: r[0], o, h: Math.max(o, c), l: Math.min(o, c), c }; });
+    const ds = sbDates().filter(d => sb(d, 't2108') != null), same = { sb: d => sb(d, 't2108'), own: d => own(d, 't2108'), tv: tvT };
+    return ds.map((d, i) => {
+      const c = sb(d, 't2108'), src = srcOf(d, 't2108'), p = i ? ds[i - 1] : null;
+      const o = p == null ? c : (SB_REAL.has(p) && src !== 'sb' ? same[src](p) : null) ?? sb(p, 't2108');
+      return { d, o, h: Math.max(o, c), l: Math.min(o, c), c, src };
+    });
   })();
   const VIX_SERIES = (window.VIX || []).map(r => ({ d: r[0], o: r[1], h: r[2], l: r[3], c: r[4] }));
   const boxes = [{ kind: 'T2108', series: T2108_SERIES, tip: 'sat2108', d: 1 },
                  { kind: 'VIX', series: VIX_SERIES, tip: 'savix', d: 2 }].map(bx => {
     const card = document.createElement('div'); card.className = 'card';
-    const legT = bx.kind === 'T2108' && OWNC.t2108 != null
-      ? `<span class="legend" style="margin:0"><span><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison</span></span>` : '';
+    const legT = bx.kind === 'T2108' && (OWNC.t2108 != null || TVB.size)
+      ? `<span class="legend" style="margin:0">` + (OWNC.t2108 != null ? `<span><i style="background:none;border-top:2px dashed var(--ctext,#9aa0a6);height:0;border-radius:0"></i>calcul maison</span>` : '') +
+        (TVB.size ? `<span><i style="background:none;border-top:2px dotted var(--ctext,#9aa0a6);height:0;border-radius:0"></i>TradingView</span>` : '') + '</span>' : '';
     card.innerHTML = `<div class="mini-title"><b>${bx.kind}</b><button class="tipbtn" data-tip="${bx.tip}" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>${legT}<span class="px"></span></div><canvas></canvas>`;
     $('cmpBottom').appendChild(card);
     return Object.assign(bx, { cv: card.querySelector('canvas'), px: card.querySelector('.px'), vis: [], bw: 0 });
@@ -3460,13 +3517,19 @@
       g.fillText(fmtDate(vis[i].d, long ? { month: 'short', year: '2-digit' } : { day: 'numeric', month: 'short' }), X(i), H - 6);
     const w = Math.max(1, Math.min(12, bw * 0.7)), hi_ = idxAtOrBefore(vis, cmpSel());
     if (isT) {                                                      // T2108 : Stockbee ne publie que la clôture → une ligne, pas de bougie inventée
-      g.strokeStyle = css('--t2108'); g.lineWidth = 1.5; g.lineJoin = g.lineCap = 'round'; g.beginPath();
-      vis.forEach((b, i) => i ? g.lineTo(X(i), Y(b.c)) : g.moveTo(X(i), Y(b.c))); g.stroke();
+      g.strokeStyle = css('--t2108'); g.lineWidth = 1.5; g.lineJoin = g.lineCap = 'round'; g.beginPath(); let on = false;
+      // trait plein = Stockbee seulement ; une séance qu'il n'a pas publiée reste sur nos courbes pointillées (pas de faux saut de niveau)
+      vis.forEach((b, i) => { if (b.src !== 'sb') { on = false; return; } on ? g.lineTo(X(i), Y(b.c)) : g.moveTo(X(i), Y(b.c)); on = true; }); g.stroke();
       if (hi_ >= 0) { g.fillStyle = css('--t2108'); g.beginPath(); g.arc(X(hi_), Y(vis[hi_].c), 3, 0, 2 * Math.PI); g.fill(); }
       if (OWNC.t2108 != null) {                                     // notre T2108 en pointillé (clôtures Polygon / Massive)
         g.save(); g.setLineDash([3, 3]); g.strokeStyle = css('--ctext'); g.lineWidth = 1.3; g.beginPath(); let pen = false;
         vis.forEach((b, i) => { const v = own(b.d, 't2108'); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
         g.stroke(); g.restore();
+      }
+      if (TVB.size) {                                               // relevé TradingView en points (un relevé par séance, depuis TV_FIRST)
+        g.save(); g.fillStyle = css('--ctext'); g.strokeStyle = css('--ctext'); g.setLineDash([1.5, 3]); g.lineWidth = 1.3; g.beginPath(); let pen = false;
+        vis.forEach((b, i) => { const v = tvT(b.d); if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; });
+        g.stroke(); vis.forEach((b, i) => { const v = tvT(b.d); if (v != null) { g.beginPath(); g.arc(X(i), Y(v), 1.8, 0, 2 * Math.PI); g.fill(); } }); g.restore();
       }
     } else vis.forEach((b, i) => {                                  // VIX : bougies japonaises (OHLC du CBOE)
       const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
@@ -3485,7 +3548,9 @@
   }
   const boxTip = (bx, b) => bx.kind === 'T2108'
     ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>` +
-      (own(b.d, 't2108') != null ? `<div style="margin-top:2px">Calcul maison : ${nf(own(b.d, 't2108'), 1)} %</div>` : '')
+      `<div style="margin-top:2px">Source : ${SRC_TXT[b.src] || '—'}${b.src === 'sb' ? '' : ' (Stockbee pas encore publié)'}</div>` +
+      (b.src !== 'own' && own(b.d, 't2108') != null ? `<div>Calcul maison : ${nf(own(b.d, 't2108'), 1)} %</div>` : '') +
+      (b.src !== 'tv' && tvT(b.d) != null ? `<div>TradingView : ${nf(tvT(b.d), 1)} %</div>` : '')
     : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
   // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
@@ -3894,11 +3959,11 @@
       const s = st.sources && st.sources[k]; if (!s) return '';
       const d = s.last ? fmtDate(s.last, { day: 'numeric', month: 'short' }) : '?';
       return s.ok ? `${label} ${d} ✓` : `<span class="neg" title="${(s.error || '').replace(/"/g, '&quot;')}">${label} ${d} ⚠ non mis à jour</span>`;
-    }).filter(Boolean).join(' · ') + (() => {      // contrôle croisé : écart moyen entre notre calcul et Stockbee (20 dernières séances communes)
-      const common = OWN ? OWN.rows.filter(r => SB_REAL.has(r[0])).slice(-20) : [];
-      if (common.length < 5) return '';
-      const mad = common.reduce((a, r) => a + Math.abs(r[OWNC.up4] - sb(r[0], 'up4')) + Math.abs(r[OWNC.down4] - sb(r[0], 'down4')), 0) / (2 * common.length);
-      return ` · écart calcul maison / Stockbee (${common.length} séances) : ±${nf(mad, 1)} titres`;
+    }).filter(Boolean).join(' · ') + (() => {      // contrôle croisé de nos sources avec Stockbee (dernières séances communes)
+      if (!OWN && !TVB.size) return '';
+      const L = { solde: '±4 %', r5: 'ratio 5 j', rm: 'ratio mois', rq: 'ratio trim. (expérimental)', t2108: 'T2108 maison', t2108tv: 'T2108 TradingView' };
+      return `<br>Contrôle avec Stockbee (${CFG.breadth.compare_sessions} dernières séances communes au plus) : ` +
+        Object.keys(L).filter(id => id === 't2108tv' ? TVB.size : OWN).map(id => `${L[id]} : ${agreeTxt(id)}`).join(' · ');
     })() + ` · page chargée à ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
   })();
 
@@ -3988,7 +4053,26 @@
     const ratio = (d, u, v) => { const a = sb(d, u), b = sb(d, v); return a == null || !b ? null : a / b; };
     const rq = ratio(dq, 'up25q', 'down25q'), rm = ratio(dq, 'up25m', 'down25m'), t21 = dt ? sb(dt, 't2108') : null;
     const n4S = net4 == null ? ['neutral', '—'] : net4 > 0 ? ['up', ''] : net4 < 0 ? ['down', ''] : ['neutral', ''], r5S = kState(r5v, 'ratio5'), r10S = kState(r10v, 'ratio5'), rqS = kState(rq, 'rq'), rmS = kState(rm, 'rm');
-    const t2S = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
+    const t2S0 = t21 == null ? ['neutral', '—'] : t21 < T2E[0] ? ['warn', `< ${T2E[0]} %`] : t21 > T2E[1] ? ['warn', `> ${T2E[1]} %`] : ['neutral', `${T2E[0]} à ${T2E[1]} %`];
+    // T2108 hors Stockbee : la zone est donnée, mais l'alerte (case orange) attend la confirmation de Stockbee
+    const t2S = t2S0[0] === 'warn' && !T2_ALERT.has(srcOf(dt, 't2108')) ? ['neutral', t2S0[1] + ' (alerte à la confirmation de Stockbee)'] : t2S0;
+    // source de chaque case : clé de la colonne et séance affichée
+    const SRCK = { solde: ['up4', d4], r5: ['ratio5', d4], rm: ['up25m', dq], rq: ['up25q', dq], t2108: ['t2108', dt] };
+    const srcTag = id => {
+      const [k, d] = SRCK[id], s = srcOf(d, k); if (!s) return '';
+      const mine = s === 'sb' ? (id === 't2108' ? [own(d, k) != null && `calcul maison ${nf(own(d, k), 1)} %`, tvT(d) != null && `TradingView ${nf(tvT(d), 1)} %`].filter(Boolean).join(', ')
+        : OWN_RATIO[id === 'r5' ? 'ratio5' : id] ? (v => v == null ? '' : `calcul maison ${nf(v, 2)}`)(OWN_RATIO[id === 'r5' ? 'ratio5' : id](d))
+        : own(d, 'up4') != null ? `calcul maison +${nf(own(d, 'up4'))} / −${nf(own(d, 'down4'))}` : '') : '';
+      const t = `Source : ${SRC_TXT[s]}` + (s === 'sb' ? (mine ? ` · ${mine}` : '') : ' · Stockbee pas encore publié : ses chiffres remplaceront les nôtres');
+      return `<span class="ksrc s-${s}" title="${t}">${SRC_LBL[s]}</span>`;
+    };
+    // ligne « Source » des bulles ⓘ : source du chiffre affiché et contrôle croisé avec Stockbee
+    const srcNote = id => {
+      const [k, d] = SRCK[id], s = srcOf(d, k); if (!s) return '';
+      const head = `Chiffre affiché : <b>${SRC_TXT[s]}</b>` + (s === 'sb' ? '.' : `. Stockbee n'a pas encore publié cette séance : ses chiffres remplaceront les nôtres à sa publication${id === 't2108' ? ', et l\'alerte d\'extrême attend sa confirmation' : ''}.`);
+      const ctl = id === 't2108' ? `calcul maison : ${agreeTxt('t2108')} · TradingView : ${agreeTxt('t2108tv')}` : `calcul maison : ${agreeTxt(id)}`;
+      return `<p class="src">${head}<br>Contrôle avec Stockbee — ${ctl}.</p>`;
+    };
     const DQ = D.filter(d => sb(d, 'up25q') != null).slice(-60), cl = st => st[0] === 'neutral' ? '' : st[0] === 'up' ? 'pos' : 'neg';
     const barAt = n => { const a = barsFor(n); if (!at) return a[a.length - 1]; for (let i = a.length - 1; i >= 0; i--) if (a[i].d <= at) return a[i]; return null; };
     const idx = CMP.map(n => { const b = barAt(n); return b ? { n, b } : null; }).filter(Boolean);
@@ -4024,16 +4108,21 @@
     box.innerHTML = idxHtml + tiles.map(([id, lbl, val, sub, st, sp]) => {
       const h = wait[id] ? null : hotOf(id);
       return `<div class="kpi st-${st[0]} ${h ? h.cls : ''}" data-k="${id}">` + (h ? `<div class="kban" title="${h.title}">${h.txt}</div>` : '') +
-        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
+        `<div class="top"><span class="lbl" title="${({ r5: 'Ratio 5 j ±4 %', rm: 'Ratio ±25 % mois', rq: 'Ratio ±25 % trimestre' })[id] || lbl}">${lbl}</span>${tipBtn(id)}${wait[id] ? '' : srcTag(id)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>` +
         (wait[id] ? '' : gauge(...G[id])) + '</div>';
     }).join('');
     // un chiffre trop large pour sa colonne (« +1 024 / −1 312 » sur mobile) est réduit jusqu'à tenir, sans toucher à la mise en page
     try { box.querySelectorAll('.kpi .val').forEach(v => { let f = parseFloat(getComputedStyle(v).fontSize); while (v.scrollWidth > v.clientWidth && f > 12) v.style.fontSize = (f -= 1) + 'px'; }); } catch (e) { /* DOM simulé */ }
     const day = d => fmtDate(d, { weekday: 'long', day: 'numeric', month: 'long' });
+    // cases affichées avec nos sources (Stockbee pas encore publié), regroupées par source
+    const NM = { solde: '±4 %', r5: 'ratio 5 j', rm: 'ratio mois', rq: 'ratio trim.', t2108: 'T2108' }, bySrc = {};
+    Object.keys(SRCK).forEach(id => { const s = wait[id] ? null : srcOf(SRCK[id][1], SRCK[id][0]); if (s && s !== 'sb') (bySrc[s] = bySrc[s] || []).push(NM[id]); });
+    const srcSum = Object.keys(bySrc).length ? ' · ' + Object.entries(bySrc).map(([s, ids]) => `${ids.join(', ')} : ${s === 'own' ? 'calcul maison' : 'TradingView'}`).join(' · ') +
+      ' (Stockbee pas encore publié ; comparaison dès sa publication)' : '';
     const note = $('kpinote'); note.classList.toggle('past', !!at);
     note.innerHTML = (at ? `<span class="selday">${hover >= 0 ? 'Survol' : 'Séance choisie'} : <b>${day(at)}</b></span>`
-        : Object.values(wait).some(Boolean) ? `État au ${day(target)} · <span class="wait">en attente des données : ${[wait.solde && '±4 %', wait.rm && '±25 %', wait.t2108 && 'T2108'].filter(Boolean).join(', ')}</span> (publiées après la clôture ; prochain essai vers ${nextTxt(true)})` + (!wait.solde && d4 > dq ? ' · ±4 % : calcul maison (Stockbee pas encore publié)' : '')
-        : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)} (calcul maison, Stockbee pas encore publié)` : '')) +
+        : Object.values(wait).some(Boolean) ? `État au ${day(target)} · <span class="wait">en attente des données : ${[wait.solde && '±4 %', wait.rm && '±25 %', wait.t2108 && 'T2108'].filter(Boolean).join(', ')}</span> (publiées après la clôture ; prochain essai vers ${nextTxt(true)})` + srcSum
+        : `État au ${day(dq)}` + (d4 > dq ? ` · ±4 % : ${fmtDate(d4)}` : '') + srcSum) +
       '<span class="nhelp" title="▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois. Case bleue / rouge pleine = signal ±4 %, orange en pointillés = information sur un indicateur retardé (±25 %, T2108). Clic sur un graphique : fige une séance. Ctrl / ⌘ + molette : zoom. Glisser sur l\'axe des dates : zoom."> · ▲ / ▼ 3M : plus haut / plus bas des 3 derniers mois (case encadrée et bandeau quand un de ses chiffres atteint un extrême : bleu / rouge plein = signal ±4 %, orange en pointillés = information sur un indicateur retardé ±25 % ou T2108 ; jauge 3M : position du jour entre les deux ; sur le graphique : étiquettes +4▲ / −4▲ = records 3 mois des hausses et baisses de 4 %) · clic sur un graphique : fige une séance · Ctrl / ⌘ + molette : zoom · glisser sur l\'axe des dates : zoom · couleurs des indices : celles du fond des graphiques (MM' + MAS[TR1].len + ' / MM' + MAS[TR2].len + ') · couleurs et zones du breadth : seuils calibrés sur IWM (2019-2026) · ⓘ pour le détail</span>';
     const f1 = x => nf(x, 1);
     TIPS = {
@@ -4043,24 +4132,26 @@
         <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
       solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
         <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
-        <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p><p class="src">Source : Stockbee Market Monitor (et calcul maison si Stockbee n'a pas encore publié).</p>`],
+        <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p>${srcNote('solde')}`],
       r5: ['Ratio 5 jours', `<p>Somme des hausses de 4 % ÷ somme des baisses de 4 % sur les <b>5</b> dernières séances (10 séances en dessous). Au-dessus de 1, les fortes hausses dominent. ${kRule('ratio5')}</p>
         ${scaleHtml(0, 3, TH.ratio5[0], TH.ratio5[1], r5v, f1)}<div class="now">Aujourd'hui : <b>${nf(r5v, 2)}</b> (10 j : ${nf(r10v, 2)}) → zone ${r5S[1]}.</div>
-        <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p><p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
+        <p>Repère mesuré : quand le ratio 10 j est ≥ 1,5, IWM clôture au-dessus de ses MM 10 et 20 avec la MM 10 au-dessus de la MM 20, 73 à 91 % du temps (2019-2026).</p>${srcNote('r5')}<p class="src">Seuils calibrés sur IWM.</p>`],
       rq: ['Ratio ±25 % trimestre', `<p>Actions en hausse d'au moins <b>25 %</b> sur un trimestre ÷ actions en baisse d'au moins 25 %. Stockbee l'appelle le <b>ratio de breadth primaire</b> et, selon lui, le marché est haussier tant qu'il reste au-dessus de 1 (lecture de Stockbee). ${kRule('rq')}</p>
         ${scaleHtml(0, 3, TH.rq[0], TH.rq[1], rq, f1)}<div class="now">Aujourd'hui : <b>${nf(rq, 2)}</b> (${nf(sb(dq, 'up25q'))} / ${nf(sb(dq, 'down25q'))}) → zone ${rqS[1]}.</div>
-        <p class="src">Source : Stockbee · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],
+        ${srcNote('rq')}<p class="src">Calcul maison expérimental (clôture ÷ plus bas ou plus haut des 63 séances précédentes) · seuil 1 documenté par Stockbee, 1,5 calibré sur IWM.</p>`],
       rm: ['Ratio ±25 % mois', `<p>Même calcul sur <b>un mois</b> : plus nerveux que le trimestre et plus étiré, d'où un seuil haut placé à <b>2</b>. ${kRule('rm')}</p>
         ${scaleHtml(0, 4, TH.rm[0], TH.rm[1], rm, f1)}<div class="now">Aujourd'hui : <b>${nf(rm, 2)}</b> (${nf(sb(dq, 'up25m'))} / ${nf(sb(dq, 'down25m'))}) → zone ${rmS[1]}.</div>
-        <p class="src">Source : Stockbee · seuils calibrés sur IWM.</p>`],
+        ${srcNote('rm')}<p class="src">Seuils calibrés sur IWM.</p>`],
       t2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b>. On le lit surtout dans ses <b>extrêmes</b> : sous ${T2E[0]} % et au-dessus de ${T2E[1]} % (seuils usuels, que beaucoup de traders appellent survente et surachat).</p>
-        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div><p class="src">Source : Stockbee (Worden) · seuils usuels 20 / 70 %.</p>`],
+        <div class="now">Aujourd'hui : <b>${t21 == null ? '—' : nf(t21, 1) + ' %'}</b> → zone ${t2S[1]} · VIX ${nf(VIXMAP.get(dt), 1)}.</div>${srcNote('t2108')}<p class="src">Seuils usuels ${T2E[0]} / ${T2E[1]} %. ${(() => { const u = sb([...SB_REAL].sort().pop(), 'universe'), tr = ((window.TV_BREADTH || {}).rows || []).slice(-1)[0];
+          return u && tr ? `Écart de niveau probable : univers Worden ${nf(u)} titres (Stockbee), TradingView ${nf(tr[2])} titres comptés.` : ''; })()}</p>`],
       c4: ['Séance : +4 % / −4 %', `<p>Ligne blanche : moyenne mobile du solde (réglable dans Réglages). ▲ plein : la barre bat son plus haut des 3 derniers mois ; ▽ vide : son plus bas.</p><p>Barres : solde du jour, actions en hausse de 4 % moins actions en baisse de 4 % (bleu au-dessus de 0, rouge en dessous). Déplie « Détail » pour voir les deux histogrammes superposés ; le pointillé est notre calcul maison.</p><p class="src">Source : Stockbee, complété par le calcul maison (Polygon / Massive).</p>`],
       c25m: ['Mois : +25 % / −25 %', `<p>Lignes : moyennes mobiles des deux séries ; quand la rouge passe au-dessus de la bleue, les baisses dominent. Triangles : records sur 3 mois (bleu = côté hausses, rouge = côté baisses).</p><p>Bleu (second plan) : actions en hausse de 25 % sur un mois. Rouge (premier plan, translucide) : en baisse de 25 %. Quand le bleu dépasse, les hausses dominent.</p>
         <p>Pointillé : notre calcul (clôture du jour ÷ clôture 20 séances plus tôt, prix de départ ≥ 5 $). Sur juil.-oct. 2026 : corrélation 0,99 à 1,00 avec Stockbee, écart moyen de 2 % (+25 %) et 8 % (−25 %).</p><p class="src">Source : Stockbee ; pointillé : calcul maison (Polygon / Massive).</p>`],
       sat2108: ['T2108', `<p>Part des actions au-dessus de leur <b>moyenne mobile 40 jours</b> (Stockbee, univers Worden). Stockbee ne publie que la valeur de clôture : elle est tracée en ligne.</p>
         <p>Lignes pointillées horizontales : <b>${T2E[0]} %</b> et <b>${T2E[1]} %</b>, les seuils usuels des extrêmes (mêmes repères que l'onglet MM).</p>
-        <p>Courbe pointillée : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive). Corrélation 0,98 avec Stockbee sur 33 séances, mais quelques points au-dessus (biais de 0 à +6 points selon la période).</p><p class="src">Source : Stockbee ; pointillé : calcul maison.</p>`],
+        <p>Tirets : notre calcul (titres au-dessus de leur moyenne 40 jours, clôtures Polygon / Massive) ; points : relevé TradingView (screener, un relevé par séance${TV_FIRST ? ' depuis le ' + fmtDate(TV_FIRST) : ''}). Une séance pas encore publiée par Stockbee est prolongée par notre calcul, sinon par TradingView.</p>
+        <p>Contrôle avec Stockbee — calcul maison : ${agreeTxt('t2108')} · TradingView : ${agreeTxt('t2108tv')}.</p><p class="src">Source : Stockbee ; tirets : calcul maison ; points : TradingView.</p>`],
       savix: ['VIX', `<p>Indice de volatilité implicite du S&amp;P 500 sur 30 jours, calculé par le CBOE à partir des options. Bougies : ouverture, plus haut, plus bas, clôture.</p>
         <p>Lignes pointillées : <b>${CFG.vix.refs[0]}</b> et <b>${CFG.vix.refs[1]}</b>, repères usuels.</p><p class="src">Source : CBOE.</p>`],
       b100: ['Base 100', `<p>Chaque courbe vaut <b>100</b> à sa première clôture de la période affichée ; 108 = +8 % depuis ce point. On compare ainsi QQQ, IWM et BTC sur une même échelle, quel que soit leur prix.</p>
