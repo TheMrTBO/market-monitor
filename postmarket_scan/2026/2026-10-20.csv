@@ -1,0 +1,4 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-20,2026-10-20T20:22:38+00:00,false,NASDAQ:ISRG,ISRG,"Intuitive Surgical, Inc.",Health Technology,Medical Specialties,438.0,1.11,406.97,-7.08,348393,0.13,154735781380,350804700,amc
+2026-10-20,2026-10-20T20:22:38+00:00,false,NASDAQ:PEGA,PEGA,Pegasystems Inc.,Technology Services,Information Technology Services,36.23,3.4,34.11,-5.85,784818,0.3,5956391050,89099618,amc
+2026-10-20,2026-10-20T20:22:38+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,6.84,100.59,6.21,-9.21,1009960,0.58,101673147,4494439,
