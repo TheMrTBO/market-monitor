@@ -188,6 +188,16 @@
   .rrgnav button.on { color: var(--text); border-color: color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 18%, transparent); }
   .rrgnav .back { font-weight: 600; color: var(--text); } .rrgnav .sep { color: var(--faint); }
   #rrgTk { margin-left: auto; width: 220px; max-width: 100%; padding: 4px 9px; font-size: 12.5px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); }
+  .rrgmv { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 2px 10px; font-size: 12px; cursor: pointer; margin-left: auto; }
+  .rrgmv[aria-pressed="true"] { color: var(--text); border-color: color-mix(in srgb, var(--up) 55%, transparent); background: color-mix(in srgb, var(--up) 18%, transparent); }
+  .rrgbar .rrgmv + #rrgTk { margin-left: 0; }
+  /* liste des plus gros mouvements, sous la carte */
+  .rrgmoves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 16px; margin-top: 6px; } .rrgmoves:empty { display: none; }
+  .rrgmoves h5 { grid-column: 1 / -1; margin: 4px 0 0; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .rrgmoves button { width: 100%; display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 0 6px; align-items: baseline; text-align: left; border: 0; background: none;
+                     color: var(--text); padding: 4px 2px; border-top: 1px solid var(--border); font-size: 12.5px; cursor: pointer; }
+  .rrgmoves button:hover, .rrgmoves button.on { background: var(--hover); }
+  .rrgmoves .mz { grid-column: 2 / -1; font-size: 11px; color: var(--muted); } .rrgmoves .ma { font-variant-numeric: tabular-nums; }
   .rrgchips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; } .rrgchips:empty { display: none; }
   .rrgchips button, .rrgchips span { border: 1px solid var(--border); background: none; color: var(--text); border-radius: 999px; padding: 2px 9px; font-size: 11.5px; cursor: pointer; }
   .rrgchips .unk { color: var(--faint); cursor: default; } .rrgchips b { font-weight: 600; }
@@ -612,6 +622,7 @@
     #view-sec .secsort:not([hidden]) { display: flex; }
     #rrgCv { aspect-ratio: 1 / 1; }
     #rrgTk { width: 100%; margin-left: 0; }
+    .rrgmoves { grid-template-columns: minmax(0, 1fr); }
     .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
@@ -726,9 +737,10 @@
       <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
       <div id="rrgBody">
         <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
+          <button class="rrgmv" id="rrgMv" type="button" aria-pressed="true" title="Mettre en avant les plus gros mouvements">Mouvements</button>
           <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
         <div class="rrgchips" id="rrgChips"></div>
-        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div></div>
+        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgmoves" id="rrgMoves"></div></div>
     </div>
     <div class="secsplit">
       <div class="card seclist">
@@ -2654,45 +2666,77 @@
     g.globalAlpha = 1;
     const col = q => css(q === 'lead' ? '--up' : q === 'weak' ? '--warn' : q === 'lag' ? '--down' : '--ccross');
     const lab = k => { const s = lvl === 'sec' ? tvSecLabel(k) : k; return s.length > 18 ? s.slice(0, 17) + '…' : s; };
-    // mise en avant (demande du 20/10/2026) : le point survolé ou touché, en pleine couleur avec sa traînée épaissie et datée ;
-    // les autres atténués et dessinés dessous
-    const focus = rrgHot ? new Set([rrgHot]) : tkFocus, dim = k => focus.size > 0 && !focus.has(k);   // survol > tickers saisis
-    pts.slice().sort((u, v) => dim(v.x.k) - dim(u.x.k)).forEach(o => {
-      const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null, f = focus.has(o.x.k), d = dim(o.x.k);
-      g.strokeStyle = c; g.globalAlpha = d ? .12 : f ? .95 : .5; g.lineWidth = f ? 2.2 : 1.2;
+    // plus gros mouvements : déplacement net sur la carte en movers_window séances ; ↗ = la force relative monte, ↘ = elle baisse
+    const MW = RRG.movers_window, mv = items.map(x => {
+      const a = x.px[e], b = x.py[e], a0 = e >= MW ? x.px[e - MW] : null, b0 = e >= MW ? x.py[e - MW] : null;
+      return a == null || b == null || a0 == null || b0 == null ? null : { k: x.k, d: Math.hypot(a - a0, b - b0), up: a >= a0, from: rrgQ(a0, b0), to: rrgQ(a, b), rv: x.rv ? x.rv[e] : null };
+    }).filter(Boolean);
+    const ups = mv.filter(m => m.up).sort((p, q) => q.d - p.d).slice(0, RRG.movers), dns = mv.filter(m => !m.up).sort((p, q) => q.d - p.d).slice(0, RRG.movers);
+    const movers = new Map(ups.concat(dns).map(m => [m.k, m]));
+    // mise en avant : survol ou toucher > tickers saisis > plus gros mouvements (bouton « Mouvements ») ; les autres en retrait
+    const focus = rrgHot ? new Set([rrgHot]) : tkFocus, byMv = !focus.size && rrgMv && movers.size;
+    const emph = k => focus.size ? focus.has(k) : byMv ? movers.has(k) : false, dim = k => focus.size ? !focus.has(k) : byMv ? !movers.has(k) : false;
+    // flèche devant le point de tête, dans le sens du dernier pas de la traînée (sens du mouvement)
+    const arrow = (x1, y1, x2, y2, r, c) => { const ang = Math.atan2(y2 - y1, x2 - x1); if (!isFinite(ang) || Math.hypot(x2 - x1, y2 - y1) < .5) return;
+      const ux = Math.cos(ang), uy = Math.sin(ang), tx = x2 + ux * (r + 11), ty = y2 + uy * (r + 11), bx = x2 + ux * (r + 2), by = y2 + uy * (r + 2);
+      g.fillStyle = c; g.beginPath(); g.moveTo(tx, ty); g.lineTo(bx - uy * 5, by + ux * 5); g.lineTo(bx + uy * 5, by - ux * 5); g.closePath(); g.fill(); };
+    pts.slice().sort((u, v) => dim(v.x.k) - dim(u.x.k) || emph(u.x.k) - emph(v.x.k)).forEach(o => {
+      const [a, b] = o.tr[o.tr.length - 1], q = rrgQ(a, b), c = col(q), rv = o.x.rv ? o.x.rv[e] : null, f = emph(o.x.k), d = dim(o.x.k), soft = byMv && d;
+      g.strokeStyle = c; g.globalAlpha = soft ? .28 : d ? .12 : f ? .95 : .5; g.lineWidth = f ? 2.2 : 1.2;
       g.beginPath(); o.tr.forEach(([u, v], i) => i ? g.lineTo(X(u), Y(v)) : g.moveTo(X(u), Y(v))); g.stroke();
       o.tr.slice(0, -1).forEach(([u, v]) => { g.fillStyle = c; g.beginPath(); g.arc(X(u), Y(v), f ? 2.4 : 1.4, 0, 2 * Math.PI); g.fill(); });
       const r = rv == null ? 5 : Math.max(3, Math.min(10, 2 + 4 * rv));   // taille : volume en dollars relatif au marché (1 = comme le marché)
-      g.globalAlpha = d ? .25 : 1; g.fillStyle = c; g.beginPath(); g.arc(X(a), Y(b), r, 0, 2 * Math.PI); g.fill(); g.globalAlpha = 1;
-      if (f) {
+      if (f && o.tr.length > 1) { const [u1, v1] = o.tr[o.tr.length - 2]; g.globalAlpha = 1; arrow(X(u1), Y(v1), X(a), Y(b), r, c); }
+      g.globalAlpha = soft ? .55 : d ? .25 : 1; g.fillStyle = c; g.beginPath(); g.arc(X(a), Y(b), r, 0, 2 * Math.PI); g.fill(); g.globalAlpha = 1;
+      if (f && focus.size) {
         g.strokeStyle = css('--ccross'); g.lineWidth = 2; g.beginPath(); g.arc(X(a), Y(b), r + 3, 0, 2 * Math.PI); g.stroke();
         const [u0, v0] = o.tr[0];                     // début de la traînée daté : d'où vient le point
         g.fillStyle = css('--ctext'); g.textAlign = 'center'; g.textBaseline = 'top'; g.fillText(fmtDate(IND.dates[t0 + (e - t0 + 1 - o.tr.length)], { day: 'numeric', month: 'short' }), X(u0), Y(v0) + 4);
       }
-      rrgHits.push({ k: o.x.k, lvl, x: X(a), y: Y(b), q, a, b, rv, r, dim: d });
+      rrgHits.push({ k: o.x.k, lvl, x: X(a), y: Y(b), q, a, b, rv, r, dim: d && !soft, emph: f });
     });
     // étiquettes : d'abord les points les plus éloignés du centre (les plus nets) ; une étiquette qui en recouvrirait une autre
     // est omise (le point reste touchable, son nom s'affiche dessous) ; celle du point touché est toujours écrite
     const placed = [];
-    rrgHits.slice().sort((p, q) => (p.k === rrgHot) - (q.k === rrgHot) || ((q.x - cx) ** 2 + (q.y - cy) ** 2) - ((p.x - cx) ** 2 + (p.y - cy) ** 2))
-      .sort((p, q) => (q.k === rrgHot) - (p.k === rrgHot)).forEach(p => {
-        const s = lab(p.k), w = g.measureText(s).width, right = p.x > W * 0.72, x0 = right ? p.x - p.r - 3 - w : p.x + p.r + 3, box = [x0 - 1, p.y - 7, x0 + w + 1, p.y + 7];
-        if (!focus.has(p.k) && (p.dim || placed.some(b => !(box[2] < b[0] || box[0] > b[2] || box[3] < b[1] || box[1] > b[3])))) return;   // atténués : sans nom
-        placed.push(box); g.fillStyle = css(focus.has(p.k) ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle';
-        if (focus.has(p.k)) { g.font = '600 12px -apple-system, "Segoe UI", sans-serif'; g.fillText(s, x0, p.y); g.font = '11px -apple-system, "Segoe UI", sans-serif'; } else g.fillText(s, x0, p.y);
+    rrgHits.slice().sort((p, q) => (q.emph ? 1 : 0) - (p.emph ? 1 : 0) || ((q.x - cx) ** 2 + (q.y - cy) ** 2) - ((p.x - cx) ** 2 + (p.y - cy) ** 2)).forEach(p => {
+        if (p.emph) g.font = '600 12px -apple-system, "Segoe UI", sans-serif';
+        const s = lab(p.k), w = g.measureText(s).width, right = p.x > W * 0.72, x0 = right ? p.x - p.r - 3 - w : p.x + p.r + 3;
+        const hit = bx => placed.some(b => !(bx[2] < b[0] || bx[0] > b[2] || bx[3] < b[1] || bx[1] > b[3]));
+        // nom mis en avant qui en recouvre un autre : décalé au-dessus, puis au-dessous (il reste toujours écrit) ; les autres : omis
+        let y = p.y; const at = dy => [x0 - 1, p.y + dy - 7, x0 + w + 1, p.y + dy + 7];
+        if (hit(at(0))) { if (!p.emph || p.dim) { g.font = '11px -apple-system, "Segoe UI", sans-serif'; return; } y = p.y + ([-14, 14, -28, 28].find(dy => !hit(at(dy))) ?? 0); }
+        else if (p.dim) return;                                                                                      // atténués : sans nom
+        placed.push(at(y - p.y)); g.fillStyle = css(p.emph ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(s, x0, y);
+        g.font = '11px -apple-system, "Segoe UI", sans-serif';
       });
     const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length, nm = k => escH(lvl === 'sec' ? tvSecLabel(k) : k);
     const tkLine = tkFocus.size ? 'En avant : ' + rrgHits.filter(p => tkFocus.has(p.k)).map(p => `<b>${nm(p.k)}</b> (${escH(RRG.labels[p.q])})`).join(' · ') + ' · ' : '';
     $('rrgInfo').innerHTML = h ? `<b>${nm(h.k)}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
         (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` · toucher à nouveau : ${lvl === 'stk' ? 'sa fiche' : 'ouvrir'}`
       : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
+    // liste « plus gros mouvements » : toucher = mettre en avant (comme toucher le point), à nouveau = ouvrir
+    const row = (m, up) => `<button type="button" data-mv="${escA(m.k)}" class="${rrgHot === m.k ? 'on' : ''}"><span class="${up ? 'pos' : 'neg'}">${up ? '↗' : '↘'}</span><span>${nm(m.k)}</span>` +
+      `<span class="ma">${nf(m.d, 1)}</span><span class="mz">${escH(RRG.labels[m.from])}${m.from !== m.to ? ' → ' + escH(RRG.labels[m.to]) : ''}${m.rv != null ? ` · vol. ×${nf(m.rv, 2)}` : ''}</span></button>`;
+    $('rrgMoves').innerHTML = rrgMv && (ups.length || dns.length) ? `<h5>Plus gros mouvements ${MW} j <span title="Déplacement net sur la carte en ${MW} séances : ↗ la force relative monte, ↘ elle baisse">ⓘ</span></h5>` +
+      `<div>${ups.map(m => row(m, true)).join('')}</div><div>${dns.map(m => row(m, false)).join('')}</div>` : '';
   }
+  let rrgMv = store.get('mm.rrgmv') !== '0';           // bouton « Mouvements » (activé par défaut)
+  $('rrgMv').addEventListener('click', () => { rrgMv = !rrgMv; store.set('mm.rrgmv', rrgMv ? '1' : '0'); $('rrgMv').setAttribute('aria-pressed', String(rrgMv)); drawRrg(rrgE); });
+  $('rrgMv').setAttribute('aria-pressed', String(rrgMv));
+  $('rrgMoves').addEventListener('click', ev => {     // une ligne : met le point en avant ; à nouveau : l'ouvre (comme sur la carte)
+    const b = ev.target.closest('[data-mv]'); if (!b) return; const p = rrgHits.find(h => h.k === b.dataset.mv); if (!p) return;
+    if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
+    rrgOpenPoint(p);
+  });
   $('rrgHead').addEventListener('click', () => { rrgOpen = !rrgOpen; store.set('mm.rrg', rrgOpen ? '1' : '0'); drawRrg(rrgE); });
   const rrgPick = ev => { const r = $('rrgCv').getBoundingClientRect(), x = ev.clientX - r.left, y = ev.clientY - r.top;
     let best = null, bd = 22 * 22; for (const p of rrgHits) { const d = (p.x - x) ** 2 + (p.y - y) ** 2; if (d < bd) { bd = d; best = p; } } return best; };
   $('rrgCv').addEventListener('click', ev => {         // premier toucher : détail ; second sur le même point : ouvre le secteur (ses industries) ou l'industrie (ses actions)
     const p = rrgPick(ev); if (!p) { rrgHot = null; drawRrg(rrgE); return; }
     if (rrgHot !== p.k) { rrgHot = p.k; drawRrg(rrgE); return; }
+    rrgOpenPoint(p);
+  });
+  function rrgOpenPoint(p) {                           // ouvrir un point : secteur → ses industries, industrie → ses actions, action → sa fiche
     rrgHot = null; skEntries = false; skMode = null;
     if (p.lvl === 'stk') {                            // action : sa fiche (comme toucher sa ligne dans la liste)
       secSel = p.k; if (isStacked()) { $('view-sec').classList.add('detail'); if (window.scrollTo) window.scrollTo(0, 0); }
@@ -2700,7 +2744,7 @@
     }
     tvNav = p.lvl === 'ind' ? { lvl: 'stk', sec: tvNav.sec, ind: p.k } : { lvl: 'ind', sec: p.k, ind: null }; tvSave(); secSel = null;
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
-  });
+  }
   $('rrgNav').addEventListener('click', ev => {       // fil de la carte : Secteurs › secteur › industrie ; ‹ = niveau précédent (l'élément quitté reste choisi)
     const b = ev.target.closest('[data-up]'); if (!b) return;
     const to = b.dataset.up, from = tvNav.lvl === 'stk' ? 'stk' : tvNav.lvl === 'ind' && tvNav.sec !== 'all' ? 'ind' : 'sec'; if (to === from) return;

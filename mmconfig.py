@@ -148,9 +148,10 @@ def check():
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
                       "rotation_ratio_sessions = [court, long] croissant et rotation_ratio = [bas, haut] croissant attendus")
     rg = load("display")["sectors"]["rrg"]
-    if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0) \
+    if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
+            and isinstance(rg.get("movers"), int) and rg["movers"] >= 0 and isinstance(rg.get("movers_window"), int) and rg["movers_window"] > 0) \
             or set(rg["labels"]) != {"lead", "weak", "lag", "impr"}:
-        errors.append("display.sectors.rrg : trail et momentum entiers > 0, labels lead / weak / lag / impr attendus")
+        errors.append("display.sectors.rrg : trail, momentum, movers_window entiers > 0, movers ≥ 0, labels lead / weak / lag / impr attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")

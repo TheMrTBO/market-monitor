@@ -33,7 +33,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 19 tests Node (dashboard en DOM simulé), 8 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 21 tests Node (dashboard en DOM simulé), 8 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
 ## 3. Flux
@@ -183,7 +183,11 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
   **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
   fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
   et traînée (datée) en avant, les autres atténués. **Tickers** (champ au-dessus, `mm.rrgtk`, index `tickers_data.js` chargé à
-  la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker.
+  **Plus gros mouvements** (bouton « Mouvements », `mm.rrgmv`, activé par défaut) : déplacement net sur la carte en
+  `movers_window` séances, les `movers` plus fortes hausses (force relative qui monte, ↗) et baisses (↘) mises en avant (traînée
+  épaissie, flèche de sens, nom toujours écrit, décalé en cas de chevauchement), les autres en retrait ; liste sous la carte
+  (zone de départ → d'arrivée, volume) ; toucher une ligne = mettre en avant, à nouveau = ouvrir. Priorité : survol > tickers > mouvements. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mise en page des cases comme le MM : une ligne sur bureau, 3 colonnes sous 1 100 px, 2 sous 640 px (pas de défilement
   horizontal, demande du 20/10/2026) ; sous-titres courts (« +14 / −6 »), le détail est dans la bulle ⓘ.
