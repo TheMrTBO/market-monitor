@@ -159,3 +159,12 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-19,2026-10-20T01:07:52+00:00,true,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,110.25,-4.04,355404,0.35,12495494664,107754199,amc
 2026-10-19,2026-10-20T01:07:52+00:00,true,NYSE:MMM,MMM,3M Company,Producer Manufacturing,Industrial Conglomerates,162.01,-1.66,170.8,5.43,635464,0.2,83552187985,515297045,
 2026-10-19,2026-10-20T01:07:52+00:00,true,NYSE:SFBS,SFBS,ServisFirst Bancshares Inc,Finance,Regional Banks,38.75,-1.55,37.0,-4.52,104672,0.17,4235375184,102148173,amc
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:ACRS,ACRS,"Aclaris Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.48,6.1,3.11,-10.63,257712,0.1,512252108,111055463,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:ARHS,ARHS,"Arhaus, Inc. Class A",Consumer Durables,Home Furnishings,10.23,3.02,9.6593,-5.58,189564,0.14,1450120255,51532196,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:MDXG,MDXG,"MiMedx Group, Inc.",Health Technology,Medical Specialties,4.38,-1.13,4.162,-4.98,378285,0.3,638430822,114304554,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,3.41,7.91,5.04,47.8,1445426,1.25,57352011,4494439,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,245.17,1.92,233.7943,-4.64,261459,0.23,35139747943,133593305,amc
+2026-10-19,2026-10-20T01:18:48+00:00,true,NASDAQ:XLAB,XLAB,Exascale Labs Holdings Inc. Class A,Finance,Financial Conglomerates,3.06,30.21,2.75,-10.13,1545018,0.48,103088496,19397076,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NYSE:CCK,CCK,"Crown Holdings, Inc.",Process Industries,Containers/Packaging,114.89,0.65,110.25,-4.04,355404,0.35,12495494664,107754199,amc
+2026-10-19,2026-10-20T01:18:48+00:00,true,NYSE:MMM,MMM,3M Company,Producer Manufacturing,Industrial Conglomerates,162.01,-1.66,170.8,5.43,635464,0.2,83552187985,515297045,
+2026-10-19,2026-10-20T01:18:48+00:00,true,NYSE:SFBS,SFBS,ServisFirst Bancshares Inc,Finance,Regional Banks,38.75,-1.55,37.0,-4.52,104672,0.17,4235375184,102148173,amc
