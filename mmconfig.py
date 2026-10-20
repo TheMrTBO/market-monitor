@@ -62,7 +62,7 @@ def front_config():
         "vix": d["vix"],
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "adr": d["sectors"]["adr"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
@@ -146,6 +146,9 @@ def check():
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]) or not 0 < kp.get("breadth_mid", -1) < 100 or not kp.get("benchmark"):
         errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
                       "rotation_ratio_sessions entier > 0, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
+    ad = load("display")["sectors"]["adr"]
+    if not (isinstance(ad.get("sessions"), int) and ad["sessions"] > 1 and ad.get("step", 0) > 0):
+        errors.append("display.sectors.adr : sessions entier > 1 et step > 0 attendus")
     rg = load("display")["sectors"]["rrg"]
     if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
             and isinstance(rg.get("movers"), int) and rg["movers"] >= 0 and isinstance(rg.get("movers_window"), int) and rg["movers_window"] > 0) \

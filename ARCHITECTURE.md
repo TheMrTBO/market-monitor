@@ -171,6 +171,10 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
   toucher une case annule l'effet de la précédente (`skMode`, `skToggle`). **Flux par secteur** (toucher la case
   Rotation) : entrées / sorties regroupées par secteur, résumé « ↑ 3 premiers · ↓ 3 premiers », puis blocs « L'argent arrive » /
   « L'argent repart » / « se compensent » ; toucher un secteur ouvre ses industries. La case Rotation affiche ↑ / ↓ à la place de la jauge.
+- **ADR et copie (niveau actions d'une industrie)** : colonne ADR = 100 × (moyenne des 20 dernières séances de plus haut ÷ plus
+  bas − 1) (`config/display.toml [sectors.adr]`, calcul dans le navigateur depuis l'OHLC du fichier de l'industrie, « — » sans
+  OHLC) ; filtre « ADR > x % » (`mm.adrmin`) ; tri ADR dans « Classer par » ; bouton Copier (tickers affichés, ordre et filtres
+  du tableau), comme le scan post-market et l'onglet Tickers (`copyTickers`). Ratio 10 j : plus affiché nulle part (données gardées).
 - **Ordre de l'onglet Secteurs (TradingView)**, une seule page (choix de l'utilisateur, 20/10/2026 : pas de sous-vues) : cases,
   frise, note, flux par secteur (au toucher de la case Rotation), carte de rotation (toujours ouverte), classement.
 - **Frise temporelle** (Secteurs / TradingView, sous les cases) : Industries TI65 > 1 sur tout l'historique ; survol souris ou

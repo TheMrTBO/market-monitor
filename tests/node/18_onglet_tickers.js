@@ -21,7 +21,7 @@ function boot(ls,opts={}){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(opts.after)vm.runInContext(opts.after,sb);
@@ -44,6 +44,8 @@ ok('onglet Tickers : vue affichée, champ vide, exemple en indication',A.$('view
 // saisie : formats variés, doublons, inconnu
 A.$('tkInput').value='nvda, $MU  NASDAQ:AMD\nPENG;nvda ZZZZQ BRK-B';
 A.L.tkGo.click();
+{ let copied=null; A.sb.navigator={clipboard:{writeText:s=>{copied=s;return Promise.resolve();}}}; A.sb.isSecureContext=true; A.L.tkCopy.click({});
+  ok('Copier : tickers affichés dans l\'ordre, séparés par des virgules',copied===rows(A).map(r=>r.s).join(', ')&&rows(A).length>0,String(copied)); }
 const r=rows(A), syms=r.map(x=>x.s);
 ok('saisie : $, préfixe de bourse, minuscules, séparateurs, doublons',['NVDA','MU','AMD','PENG'].every(s=>syms.includes(s))&&syms.filter(s=>s==='NVDA').length===1,syms.join(','));
 ok('BRK-B reconnu pour BRK.B',syms.includes('BRK.B')||!T.rows.some(x=>x[0]==='BRK.B'));

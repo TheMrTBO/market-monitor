@@ -453,6 +453,9 @@ exécution < 10 min dans GitHub Actions ; échec d'une source = anciennes donné
 > la même page, dans le même ordre qu'avant ») : cases, frise, note, flux, carte (toujours ouverte), classement ;
 > carte plus lisible (sens des axes sur les bords, zone « S'améliore » teintée, légende de taille, « Ouvrir › ») ; industries_data.js
 > chargé à la demande (Secteurs, Tickers, Post-market) au lieu du démarrage : le MM et SA ne le téléchargent plus.
+> **20/10/2026, suite (choix de l'utilisateur)** : ratio 10 j retiré de l'affichage (totaux 5 j à la place) ; classement sur toute la
+> hauteur (le calcul tombait à 260 px) ; ADR 20 j (définition 100 × (moyenne haut ÷ bas − 1)) + filtre « ADR > x % » au niveau actions
+> de Secteurs ; Copier sur les actions de Secteurs et l'onglet Tickers. 19/10 : 26 semi-conducteurs sur 57 ont un ADR > 5 %.
 > **Ajout « Ratio rotation » (demande : une courbe et quelque chose d'actionnable)** : entrées ÷ sorties de chaque séance,
 > cumulées sur 5 séances en grand et 10 dessous, comme « Ratio 5 j » du MM (demande de l'utilisateur : « le ratio doit être sur 5 j
 > aussi »). 19/10 : 5 j 2,33 (14 / 6), 10 j 1,90 (19 / 10). Repère mesuré (191 séances, un cycle, fenêtres

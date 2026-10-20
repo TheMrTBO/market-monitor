@@ -41,6 +41,12 @@ record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : 
 breadth_mid = 50              # cases « … TI65 > 1 » : bleu à partir de ce pourcentage, rouge en dessous ; pointillé des mini-courbes
 benchmark = "IWM"             # repère mesuré du ratio de rotation (bulle ⓘ) : variation de cet instrument (prices_data.js) après chaque séance
 
+[sectors.adr]
+# ADR (average daily range) des actions, niveau « actions d'une industrie » de la vue TradingView (demande du 20/10/2026) :
+# 100 × (moyenne des `sessions` dernières séances de plus haut ÷ plus bas − 1) ; filtre « ADR > x % » (0 = pas de filtre)
+sessions = 20
+step = 0.5                    # pas du champ du filtre
+
 [sectors.rrg]
 # carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :
 # x = TI65 de la force relative (indice ÷ marché) × 100 (> 100 : surperforme) ; y = 100 × x / x d'il y a `momentum` séances

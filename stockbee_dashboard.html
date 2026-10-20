@@ -210,6 +210,11 @@
   .rrgchips .unk { color: var(--faint); cursor: default; } .rrgchips b { font-weight: 600; }
   .secflow .fsum { margin: 0 0 6px; font-size: 12.5px; line-height: 1.5; }
   .secflow .fgrp { font-size: 11.5px; font-weight: 600; margin: 8px 0 2px; color: var(--muted); }
+  /* filtre ADR et copie (niveau actions de la vue TradingView) */
+  .secadr { display: flex; align-items: center; gap: 8px 10px; flex-wrap: wrap; margin: 0 0 10px; font-size: 12.5px; color: var(--muted); }
+  .secadr input { width: 64px; padding: 3px 6px; border-radius: 7px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); font-size: 12.5px; }
+  .secadr .copybtn { margin-left: auto; }
+  #secTable th.c-adr { width: 70px; }
   .secsort { display: none; }                         /* « Classer par » : mobile seulement (colonnes Δ et % > 1 masquées), voir @media 640 px */
   .secsort .slbl { align-self: center; flex: none; font-size: 12px; color: var(--muted); }
   .secsort button .arr { color: inherit; margin-left: 3px; }
@@ -638,7 +643,7 @@
     .secstrip .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
    /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
-    #secTable.tv .c-brd, #secTable.tv td.dev .trk { display: none; }
+    #secTable.tv .c-brd, #secTable.tv .c-adr, #secTable.tv td.dev .trk { display: none; }   /* ADR : sous l'écart quand on trie dessus */
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
     #secTable.tv td.sym .tsub { white-space: nowrap; }
     .sechead .viewbox { order: 3; }
@@ -758,6 +763,9 @@
         </div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
+        <div class="secadr" id="secAdr" hidden><label>ADR <span id="adrN"></span> &gt; <input id="adrMin" type="number" min="0" inputmode="decimal" placeholder="0"> %</label>
+          <span class="adrinfo" id="adrInfo"></span>
+          <button class="copybtn" id="secCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button></div>
         <div class="secfilt secsort" id="secSortBar" role="group" aria-label="Classer par" hidden></div>
         <div class="tablewrap secscroll" id="secScroll">
           <table id="secTable" class="rk">
@@ -847,6 +855,7 @@
       <div class="card seclist">
         <div class="sechead">
           <b>Tickers · secteur, industrie, short</b><button class="tipbtn" data-tip="tkhelp" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <button class="copybtn" id="tkCopy" type="button" title="Copier les tickers affichés (ordre et filtres du tableau), séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>
           <span class="secmeta" id="tkMeta"></span>
         </div>
         <div class="tkinput">
@@ -2093,8 +2102,16 @@
       return { x, rank: n ? n.rank : null, score: n ? n.score : null, dev: n ? (n.score - 1) * 100 : null,
                delta: n && b ? b.rank - n.rank : null, isNew: !!n && !b, count: x.c.filter(v => v != null).length,
                brd: x.b && end >= 0 ? x.b[end] : null, few: idx && x.cnt < TIC.few_members, tooFew: !rankable(D, x),
-               sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null) };
+               sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null),
+               adr: D.kind === 'stk' ? adrAt(x, end) : null };
     });
+  }
+  // ADR d'une action à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1) ; null sans OHLC ou si
+  // l'une des n séances manque (config/display.toml [sectors.adr])
+  function adrAt(x, end, n = CFG.sectors.adr.sessions) {
+    if (!x.h || !x.l || end < n - 1) return null;
+    let s = 0; for (let k = end - n + 1; k <= end; k++) { const h = x.h[k], l = x.l[k]; if (h == null || l == null || !(l > 0)) return null; s += h / l; }
+    return 100 * (s / n - 1);
   }
   function sparkSvg(vals) {                          // TI65 des dernières séances (miniature) : ligne pointillée à 1,00, couleur selon la dernière valeur
     const have = vals.filter(v => v != null); if (have.length < 2) return '<span class="tag">—</span>';
@@ -2124,6 +2141,7 @@
     cnt:   { label: 'Titres', k: 'cnt', dir: -1, title: `Actions retenues : prix ≥ ${nf(TIC.min_price)} $, volume moyen ${TIC.avg_volume_sessions} j ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $` },
     brd:   { label: '% > 1', k: 'brd', dir: -1, title: `Part des actions retenues dont le ${TIN} dépasse 1` },
     cap:   { label: 'Cap.', k: 'cap', dir: -1, title: 'Capitalisation boursière (dollars, TradingView)' },
+    adr:   { label: 'ADR', k: 'adr', dir: -1, title: `Average daily range : 100 × (moyenne des ${CFG.sectors.adr.sessions} dernières séances de plus haut ÷ plus bas − 1), en %` },
     spark: SPARK_DEF,
     dev:   DEV_DEF,
     delta: DELTA_DEF,
@@ -2132,10 +2150,10 @@
   // vue TradingView : nom TradingView / secteur / nom de la société et nombre de titres sous le nom (sous-titre) ; au survol : nom complet
   const TV_LEVEL = { sec: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
                      ind: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
-                     stk: ['rank', 'sym', 'cap', 'spark', 'dev', 'delta'] };
+                     stk: ['rank', 'sym', 'cap', 'adr', 'spark', 'dev', 'delta'] };
   const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' } };
   const SEC_VAL = { rank: r => r.rank, sym: r => r.x.lbl || r.x.s, nm: r => r.x.n, grp: r => secView === 'etf' ? theme(r.x) : r.x.sub,
-                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap };
+                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr };
   function loadCols(key, order0) {
     try {
       const a = JSON.parse(store.get(key) || 'null');
@@ -2175,10 +2193,11 @@
   }
   function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
-  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'cap'] };
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
   let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
   let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
+  let adrMin = Math.max(0, parseFloat(store.get('mm.adrmin')) || 0);   // filtre « ADR > x % » du niveau actions (0 = aucun)
   function secShown(r) {                             // filtres : ETF par groupe ; TradingView : secteur (industries) et TI65 > 1 ; rangs inchangés
     if (secView === 'etf') return secGroup === 'all' || r.x.g === secGroup;
     if (secD && secD.kind === 'ind' && tvNav.sec !== 'all' && r.x.sec !== tvNav.sec) return false;
@@ -2186,6 +2205,7 @@
       const K = secKpiData(), ro = K && (skEntries === 'rr' ? K.rr : K.rot)[secBuiltEnd], keep = ro && (skEntries === 'rr' ? ro.still : ro.ent);
       if (!keep || !keep.includes(r.x.s)) return false;
     }
+    if (secD && secD.kind === 'stk' && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
@@ -2853,6 +2873,14 @@
     renderSecFilt();
     $('secTable').classList.toggle('tv', secView === 'tv');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
+    // niveau actions : filtre « ADR > x % » et copie des tickers affichés
+    const stk = secView === 'tv' && D.kind === 'stk', ab = $('secAdr'); ab.hidden = !stk;
+    if (stk) {
+      $('adrN').textContent = CFG.sectors.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.sectors.adr.step;
+      if (document.activeElement !== inp) inp.value = adrMin > 0 ? String(adrMin) : '';
+      const withAdr = secRows.filter(r => r.adr != null).length;
+      $('adrInfo').textContent = adrMin > 0 ? `${sorted.length} / ${secRows.length} actions` : withAdr < secRows.length ? `ADR indisponible pour ${secRows.length - withAdr} action(s)` : '';
+    }
     if (!secSel || !sorted.some(r => r.x.s === secSel)) secSel = ((sorted.find(r => r.rank != null) || sorted[0]) || secRows[0]).x.s;
     store.set(selKey(), secSel);
     $('secHead').innerHTML = cols.map(id => {
@@ -2877,7 +2905,7 @@
     const sub = r => secView === 'etf' ? escH(theme(r.x))   // sous le nom (mobile : « % > 1 » passe sous l'écart quand on trie dessus)
       : escH(r.x.sub + (r.few && !r.tooFew ? ' · peu de titres' : ''));
     // sous l'écart (mobile, vue TradingView) : la valeur du tri actif, Δ du rang par défaut
-    const dsub = r => secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
+    const dsub = r => secSort.k === 'adr' ? `<span class="dsub on">ADR ${r.adr == null ? '—' : nf(r.adr, 1) + ' %'}</span>` : secSort.k === 'brd' ? `<span class="dsub on">${r.brd == null ? '—' : nf(r.brd, 0) + ' % &gt; 1'}</span>`
       : secSort.k === 'cap' ? `<span class="dsub on">${capFmt(r.x.cap)}</span>` : `<span class="dsub${secSort.k === 'delta' ? ' on' : ''}">${delta(r)}</span>`;
     const cell = {
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
@@ -2887,6 +2915,7 @@
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
       brd: r => `<td class="brd c-brd">${r.brd == null ? '—' : nf(r.brd, 0) + ' %'}</td>`,
       cap: r => `<td class="cap c-cap">${capFmt(r.x.cap)}</td>`,
+      adr: r => `<td class="adr c-adr">${r.adr == null ? '<span class="tag" title="Pas de plus haut / plus bas sur toute la fenêtre">—</span>' : nf(r.adr, 1) + ' %'}</td>`,
       dev: r => r.dev != null ? `<td class="dev"><div class="devc"><span class="trk">${dbar(r.dev)}</span><span class="v ${cls(r.dev)}">${pct(r.dev)}</span></div>${secView === 'tv' ? dsub(r) : ''}</td>`
         : r.tooFew ? `<td><span class="tag" title="Moins de ${TIC.min_members} titres retenus : pas de rang">&lt; ${TIC.min_members} titres</span></td>`
         : `<td><span class="tag">${r.count}/${TI.long} séances</span></td>`,
@@ -3617,8 +3646,9 @@
     $('tkInput').value = pmShown.map(r => r.s).join(', '); store.set('mm.tklist', $('tkInput').value);
     tkSel = pmSel; $('view-tk').classList.remove('detail'); setTab('tk');
   });
-  $('pmCopy').addEventListener('click', async () => {
-    const b = $('pmCopy'), txt = pmShown.map(r => r.s).join(', '); if (!txt) return;
+  // copie d'une liste de tickers « A, B, C » (scan post-market, actions d'une industrie, onglet Tickers) : presse-papiers, sinon repli
+  async function copyTickers(b, syms) {
+    const txt = syms.join(', '); if (!txt) return;
     let ok = false;
     try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(txt); ok = true; } } catch (x) { /* repli ci-dessous */ }
     if (!ok) {                                           // repli : ancien navigateur ou page hors https
@@ -3628,9 +3658,17 @@
       ta.remove();
     }
     const lab = b.querySelector('span');
-    lab.textContent = ok ? `${pmShown.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
+    lab.textContent = ok ? `${syms.length} copiés` : 'Copie impossible'; b.classList.toggle('done', ok);
     clearTimeout(b.timer); b.timer = setTimeout(() => { lab.textContent = 'Copier'; b.classList.remove('done'); }, 2000);
-  });
+  }
+  $('pmCopy').addEventListener('click', () => copyTickers($('pmCopy'), pmShown.map(r => r.s)));
+  $('tkCopy').addEventListener('click', () => copyTickers($('tkCopy'), tkShown.map(r => r.s)));
+  $('secCopy').addEventListener('click', () => { if (secD && secD.kind === 'stk') copyTickers($('secCopy'), secSorted().map(r => r.x.s)); });
+  let adrTimer = 0;
+  const adrApply = v => { clearTimeout(adrTimer); const x = Math.max(0, parseFloat(String(v).replace(',', '.')) || 0); if (x === adrMin) return;
+    adrMin = x; store.set('mm.adrmin', String(adrMin)); renderSectors(); };
+  $('adrMin').addEventListener('input', ev => { clearTimeout(adrTimer); const v = ev.target.value; adrTimer = setTimeout(() => adrApply(v), 250); });   // pendant la saisie
+  $('adrMin').addEventListener('change', ev => adrApply(ev.target.value));   // Entrée ou sortie du champ : tout de suite
   try { localStorage.removeItem('perso.recap'); } catch (e) { /* ancien lien du récap news (retiré le 14/10/2026) */ }
   $('pmBack').addEventListener('click', () => { $('view-pm').classList.remove('detail'); renderPM(); });
   $('pmFilt').addEventListener('click', e => {
