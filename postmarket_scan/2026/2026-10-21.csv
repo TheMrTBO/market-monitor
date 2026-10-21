@@ -11,3 +11,12 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-21,2026-10-21T20:37:32+00:00,false,NYSE:IBM,IBM,International Business Machines Corporation,Technology Services,Information Technology Services,251.46,3.94,265.09,5.42,1449187,0.18,236909114283,941211650,amc
 2026-10-21,2026-10-21T20:37:32+00:00,false,NYSE:MOH,MOH,"Molina Healthcare, Inc.",Health Services,Managed Health Care,214.9,-2.19,203.0,-5.54,117348,0.13,11217780225,51446336,amc
 2026-10-21,2026-10-21T20:37:32+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,31.5,-5.83,1367158,0.22,16094314248,307885166,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NASDAQ:CSX,CSX,CSX Corporation,Transportation,Railroads,48.4,0.67,50.55,4.44,3335479,0.3,89659786324,1849929135,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,260.81,-1.0,244.21,-6.36,3106012,0.3,326383991084,1247459255,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NASDAQ:META,META,Meta Platforms Inc Class A,Technology Services,Internet Software/Services,697.52,0.47,737.51,5.73,4561647,0.24,1776936478566,2200380149,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NASDAQ:QS,QS,QuantumScape Corporation Class A,Producer Manufacturing,Electrical Products,3.98,0.0,4.2511,6.81,3091507,0.16,2464071822,503485681,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NYSE:GGG,GGG,Graco Inc.,Producer Manufacturing,Industrial Machinery,81.81,0.89,74.7,-8.69,313762,0.18,13249441981,160606056,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NYSE:HXL,HXL,Hexcel Corporation,Electronic Technology,Aerospace & Defense,89.84,-1.62,82.0,-8.73,239565,0.24,6794010836,74891767,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NYSE:IBM,IBM,International Business Machines Corporation,Technology Services,Information Technology Services,251.46,3.94,263.04,4.61,1669043,0.21,236909114283,941211650,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NYSE:MOH,MOH,"Molina Healthcare, Inc.",Health Services,Managed Health Care,214.9,-2.19,203.0,-5.54,121656,0.13,11217780225,51446336,amc
+2026-10-21,2026-10-21T20:52:39+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,31.12,-6.97,1372147,0.22,16094314248,307885166,amc
