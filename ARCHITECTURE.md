@@ -69,7 +69,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), carte de rotation (`[sectors.rrg]`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), carte de rotation (`[sectors.rrg]` : traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique), `[generated]` (publiés sans être commités : fichiers, dossiers, URL du site, préfixe du cache ; `--check` vérifie `.gitignore`, `[site]` et les mêmes chemins de cache dans les trois workflows) | `mm/store/`, `build_site.py`, `generated.py` |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
@@ -133,7 +133,8 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exceptions accordées le 18/10/2026 : vue TradingView de
 l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers (short interest Yahoo par lots, accord de l'utilisateur) ;
 le 20/10/2026 : breadth affiché dès que possible depuis nos sources + T2108 TradingView (voir §9, « Sources du breadth »), puis cases en
-tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-market). Détail : proposition privée de l'utilisateur
+tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-market) ; le 21/10/2026 : tableau « Depuis la veille »
+au-dessus de la carte de rotation (même vue TradingView). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
@@ -203,14 +204,42 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
   retenues) ; ancien fichier : indices des secteurs pondérés par leur nombre de titres (« marché approché »). Volume en dollars
   relatif `rv` (secteurs, industries, marché) : `config/industries.toml [volume]` (5 / 50 séances), calculé par `fetch_industries.py`
   (+30 Ko compressés). Pleine largeur (hauteur = moitié de la largeur, plafonnée) ; repliée par défaut sur mobile (`mm.rrg`).
+  **Ordre** : tableau « Depuis la veille » (périmètre écrit dans son en-tête), puis fil « ‹ Secteurs › … » et tickers juste
+  au-dessus du dessin (le fil décrit la carte, pas le tableau ; retour du 21/10/2026).
   **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
   fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
   et traînée (datée) en avant, les autres atténués. **Tickers** (champ au-dessus, `mm.rrgtk`, index `tickers_data.js` chargé à
   la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker.
-  **Plus gros mouvements** (bouton « Mouvements », `mm.rrgmv`, activé par défaut) : déplacement net sur la carte en
-  `movers_window` séances, les `movers` plus fortes hausses (force relative qui monte, ↗) et baisses (↘) mises en avant (traînée
-  épaissie, flèche de sens, nom toujours écrit, décalé en cas de chevauchement), les autres en retrait ; liste sous la carte
-  (zone de départ → d'arrivée, volume) ; toucher une ligne = mettre en avant, à nouveau = ouvrir. Priorité : survol > tickers > mouvements. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
+  **Tableau « Depuis la veille »** (au-dessus de la carte, demandes du 21/10/2026 : « repérer les changements majeurs assez
+  rapidement », « confirmer un secteur hot et donner des pistes sur le prochain » ; remplace la liste « plus gros mouvements », son
+  bouton et le choix 1 j / 5 j). **Au niveau secteurs de la carte, il liste les industries de tout le marché** (secteur et nombre
+  de titres sous le nom ; leurs secteurs mis en avant sur la carte ; toucher = son secteur en avant et « Ouvrir › » sous la carte,
+  à nouveau = l'industrie s'ouvre, ses actions ; `rrgTabInd` / `rrgTabHot` / `rrgOpenInd`). Vue propre dans un secteur ou une
+  industrie (`rrgViewIn`, `mm.rrgviewin`, `default_view_in` = Tous : Pistes y filtrait presque tout, retour du 21/10/2026), parce que le repère mesuré trouve un signal au niveau des industries
+  et pas des secteurs ; aux niveaux industries et actions, il suit la carte. Séance affichée comparée à e − `delta_windows[0]` et e − `delta_windows[1]` (suit la frise et
+  l'arbre). Colonnes : nom (pastille de zone), zone (« avant → après » si elle change, « limite » à moins de `zone_margin` de l'axe
+  franchi), force relative + mini-courbe sur `trail` séances, TI65 seul (sans le marché), Δ courte, Δ longue, largeur (secteur :
+  industries au TI65 > 1 « 3/4 +2 −1 » = entrées / sorties de la rotation sur `[sectors.kpis] rotation_window`, mêmes chiffres
+  et mêmes séries précalculées (`secKpiData().iser` / `.rot`) que le flux par secteur ; industrie : part des actions > 1, série `b`, et
+  sa variation en points ; actions : « — »), volume relatif. Colonne **Depuis** (vues Pistes et Confirmés) : séances consécutives dans l'état, jusqu'à
+  `streak_max` (`rrgStreak`, états mis en cache par périmètre et par séance dans `RRD.st`). Vues (`mm.rrgview`, `default_view` =
+  Pistes à la première visite) : **Confirmés** (Meneur,
+  TI65 seul > `confirm_ti65`, part des membres > 1 ≥ `confirm_breadth`, Δ longue > 0, tri force relative ; « s'essouffle » =
+  accélération en baisse sur la fenêtre longue), **Pistes** (force relative ≤ `pistes_max_rs`, Δ longue > 0, accélération en hausse,
+  largeur qui s'élargit, tri persistance, élargissement puis Δ longue ; puis « surveillance » = En retard dont la baisse ralentit),
+  **Changements** (mouvements « forts » = déplacement ≥ `major_factor` × médiane de la séance, puis bascules, « limite » en
+  dernier), **Tous** (lien sous le tableau, tri force relative). `table_rows` lignes puis « Voir les N autres ». Explications dans des bulles ⓘ placées là où elles servent (demandes du
+  21/10/2026 : rien sous le tableau, et pas tout au même endroit) : titre, chaque bouton de vue, chaque en-tête de colonne, lien
+  « Tous » (`skpi:rt…`, textes `rrgNotes` qui suivent le niveau affiché). Libellés des vues et étiquettes : `views` / `tags`. **Repère mesuré** (bulles Confirmés et Pistes, demande du 21/10/2026) :
+  `rrgMeasure` rejoue `rrgRows` (la fonction des lignes du tableau, partagée) sur chaque séance de l'historique au niveau des
+  industries, puis donne la force relative `measure_sessions` séances plus tard (moyenne, nombre de cas, % en hausse) face à toutes
+  les industries, les Pistes présentes depuis au moins `measure_streak` séances à part, et la part des Pistes passées en Confirmés (des « surveillance » passées en Pistes ou Confirmés) ; une fois par
+  fichier (`RRD.meas`).
+  Lignes atteignables au clavier (Tab, Entrée / Espace = toucher). Séance sans historique sur la carte : tableau vidé. Repliable seul (« ▾ Depuis la veille », `mm.rrgtab`, demande du 21/10/2026 :
+  réduire le tableau sans réduire la carte) : replié, l'en-tête et les vues restent et pilotent toujours la mise en avant sur la carte. Les
+  lignes de la vue sont mises en avant sur la carte (traînée épaissie, flèche, nom écrit), les autres en
+  retrait ; mobile : zone sous le nom, colonnes force relative et zone masquées. Toucher une ligne = mettre en avant, à nouveau =
+  ouvrir. Priorité : survol > tickers > vue du tableau. Toucher un point : détail ; à nouveau : ouvre le secteur / l'industrie. « Actions TI65 > 1 » = série `stocks` de `industries_data.js`, calculée par
   `fetch_industries.py` (le navigateur ne charge pas les fichiers des 127 industries) ; absente d'un ancien fichier : case masquée.
   Mise en page des cases comme le MM : une ligne sur bureau, 3 colonnes sous 1 100 px, 2 sous 640 px (pas de défilement
   horizontal, demande du 20/10/2026) ; sous-titres courts (« +14 / −6 »), le détail est dans la bulle ⓘ.

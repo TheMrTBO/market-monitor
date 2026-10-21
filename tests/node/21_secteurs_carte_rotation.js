@@ -66,7 +66,7 @@ const info=strip(A.$('rrgInfo')._h);
 ok('zones = recalcul (marché approché) : '+Object.entries(cnt).map(([k,v])=>R.labels[k]+' '+v).join(', '),Object.entries(cnt).every(([k,v])=>info.includes(R.labels[k]+' '+v))&&/marché approché/.test(A.$('rrgWhat')._t),info);
 ok('sans volume relatif du robot : la carte le signale',/taille des points : au prochain passage du robot/.test(info));
 // marché fourni par le robot (stocks.c) + volume relatif (rv) : plus d'approximation
-const B=boot({},{after:`INDUSTRIES.stocks={n:9999,b:INDUSTRIES.dates.map(()=>50),c:INDUSTRIES.sectors[0].c.slice(),rv:INDUSTRIES.dates.map(()=>1)};INDUSTRIES.sectors.forEach((x,i)=>x.rv=INDUSTRIES.dates.map(()=>i%2?1.5:0.7));`});
+const B=boot({},{after:`INDUSTRIES.stocks={n:9999,b:INDUSTRIES.dates.map(()=>50),c:INDUSTRIES.sectors[0].c.slice(),rv:INDUSTRIES.dates.map(()=>1)};INDUSTRIES.sectors.forEach((x,i)=>x.rv=INDUSTRIES.dates.map(()=>i%2?1.5:0.7));INDUSTRIES.industries.forEach((x,i)=>x.rv=INDUSTRIES.dates.map(()=>i%2?1.5:0.7));`});
 tab(B); view(B,'tv');
 const m2=B.sb.INDUSTRIES.stocks.c, c2={lead:0,weak:0,lag:0,impr:0};
 for(const x of B.sb.INDUSTRIES.sectors.filter(x=>x.n>=min)){const a=rx(x,m2,N-1),a0=rx(x,m2,N-1-R.momentum);if(a==null||a0==null)continue;c2[q(a,100*a/a0)]++;}
@@ -93,22 +93,122 @@ ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre 
 { const H=fs.readFileSync('stockbee_dashboard.html','utf8'), at=id=>H.indexOf('id="'+id+'"');
   const ids=['secKpis','secFrise','secKpiNote','secFlow','secRrg','secTable'];
   ok('ordre de la page : '+ids.join(' → '),ids.every((id,i)=>at(id)>0&&(!i||at(id)>at(ids[i-1])))&&!/id="secSub"/.test(H)); }
-// plus gros mouvements : déplacement net sur movers_window séances (marché approché de A), 3 hausses (x monte) + 3 baisses
-{ const MW=R.movers_window, mvs=S.map(x=>{const a=rx(x,mk,N-1),a0=rx(x,mk,N-1-MW),r1=rx(x,mk,N-1-R.momentum),r0=rx(x,mk,N-1-MW-R.momentum);
-    if(a==null||a0==null||r1==null||r0==null)return null;const b=100*a/r1,b0=100*a0/r0;return {k:x.k,d:Math.hypot(a-a0,b-b0),up:a>=a0};}).filter(Boolean);
-  const top=up=>mvs.filter(m=>m.up===up).sort((p,q)=>q.d-p.d).slice(0,R.movers).map(m=>((CFG.sector_fr||{})[m.k]||m.k)+' '+m.d.toFixed(1).replace('.',','));
+// tableau « Depuis la veille » (21/10/2026) : au niveau secteurs de la carte, il liste les industries de tout le marché (secteur
+// sous le nom) ; vues Pistes (par défaut) / Confirmés / Changements, Tous en lien ; lignes recalculées indépendamment (marché
+// approché de A) : TI65 seul, part des actions > 1 et sa variation, persistance (« Depuis »), forts, limites, toucher
+{ const by=x=>(CFG.sector_fr||{})[x]||x, [W1,W2]=R.delta_windows, e=N-1;
+  const IS=IND.industries.filter(x=>x.n>=min);
+  const mkRows=(m,list)=>{const P=list.map(x=>{const rs=x.c.map((v,k)=>v&&m[k]?v/m[k]:null),px=rs.map((_,k)=>{const v=sc(rs,k);return v==null?null:100*v;});
+      return {x,rs,px,py:px.map((v,k)=>v==null||k<R.momentum||px[k-R.momentum]==null?null:100*v/px[k-R.momentum])};});
+    return k=>{const L=P.map(({x,px,py})=>{const a=px[k],b=py[k],a1=px[k-W1],b1=py[k-W1],a2=k>=W2?px[k-W2]:null,b2=k>=W2?py[k-W2]:null;if([a,b,a1,b1].some(v=>v==null))return null;
+        const edge=Math.min((a1>=100)!==(a>=100)?Math.abs(a-100):Infinity,(b1>=100)!==(b>=100)?Math.abs(b-100):Infinity),t65=sc(x.c,k);
+        const br=Array.isArray(x.b)&&x.b[k]!=null?{share:x.b[k]/100,pct:x.b[k],w:k>=W2&&x.b[k-W2]!=null?x.b[k]-x.b[k-W2]:null}:null;
+        const d2=a2==null?null:a-a2,dy2=b2==null?null:b-b2,to=q(a,b),pist=a<=R.pistes_max_rs&&d2>0&&dy2>0&&(!br||br.w==null||br.w>0);
+        return {k:x.k,sec:x.sec,n:x.n,a,from:q(a1,b1),to,d1:a-a1,d2,dy2,t65,br,m:Math.hypot(a-a1,b-b1),lim:edge<R.zone_margin,pist,
+          conf:to==='lead'&&t65!=null&&t65>R.confirm_ti65&&(!br||br.share>=R.confirm_breadth)&&d2>0,fade:dy2<0,watch:!pist&&to==='lag'&&dy2>0&&a-a1>=0};}).filter(Boolean);
+      const ms=L.map(r=>r.m).sort((p,r)=>p-r),med=(ms[(ms.length-1)>>1]+ms[ms.length>>1])/2;
+      L.forEach(r=>{r.fort=r.m>=R.major_factor*med;r.bas=r.from!==r.to;r.weak=r.bas&&r.lim&&!r.fort;});return L;};};
+  const exp=m=>{const at=mkRows(m,IS),L=at(e),memo={},st=(k,key)=>{let n=0;for(let j=e;j>=0&&n<R.streak_max;j--){const r=(memo[j]=memo[j]||new Map(at(j).map(x=>[x.k,x]))).get(k);if(!r||!r[key])break;n++;}return n;};
+    L.forEach(r=>{r.nc=r.conf?st(r.k,'conf'):0;r.np=r.pist?st(r.k,'pist'):0;});const wd=r=>r.br&&r.br.w!=null?r.br.w:0;
+    return {L,pist:L.filter(r=>r.pist).sort((p,r)=>r.np-p.np||wd(r)-wd(p)||r.d2-p.d2).concat(L.filter(r=>r.watch).sort((p,r)=>r.dy2-p.dy2)),conf:L.filter(r=>r.conf).sort((p,r)=>r.a-p.a),
+      chg:L.filter(r=>r.fort||r.bas).sort((p,r)=>p.weak-r.weak||r.m-p.m),all:L.slice().sort((p,r)=>r.a-p.a)};};
+  const cl=(h,c)=>{const m=h.match(new RegExp('<td class="[^"]*\\b'+c+'\\b[^"]*">(.*?)</td>'));return m?strip(m[1]).replace(/&amp;/g,'&'):null;};
+  const trs=X=>[...X.$('rrgTab')._h.matchAll(/<tr data-mv="([^"]+)"[^>]*>(.*?)<\/tr>/g)].map(m=>({k:m[1].replace(/&amp;/g,'&'),h:m[2],on:/class="on/.test(m[0])}));
+  const name=r=>strip(r.h.match(/<td class="rtn">(.*?)<small>/)[1].replace(/<span class="rttag[^>]*>.*?<\/span>/g,'').replace(/<span class="rtsec">.*?<\/span>/,'')).replace(/&amp;/g,'&');
+  const rv=(X,v)=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-rv]'?{dataset:{rv:v}}:null}});
+  const tapRow=(X,k)=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-mv]'?{dataset:{mv:k}}:null}});
+  const rall=X=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-rall]'?{dataset:{rall:'1'}}:null}});
+  const same=(X,list,label)=>{const T=trs(X),want=list.slice(0,R.table_rows);
+    ok(label+' : '+(want.map(r=>r.k+(r.np?' '+r.np+' j':'')).join(', ')||'aucune ligne'),want.length?T.map(name).join('|')===want.map(r=>r.k).join('|'):T.length===0&&/class="rtnone"/.test(X.$('rrgTab')._h),T.map(name).join('|'));return T;};
   A.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:''}})}});                       // retour au niveau secteurs
-  const mh=strip(A.$('rrgMoves')._h);
-  ok('liste des plus gros mouvements = recalcul (↗ '+top(true).join(', ')+' · ↘ '+top(false).join(', ')+')',top(true).every(s=>mh.includes(s))&&top(false).every(s=>mh.includes(s))&&/Plus gros mouvements 5 j/.test(mh),mh.slice(0,160));
-  const k0=mvs.filter(m=>!m.up).sort((p,q)=>q.d-p.d)[0].k;
-  A.L.rrgMoves.click({target:{closest:()=>({dataset:{mv:k0}})}});
-  ok('ligne touchée : le point est mis en avant (détail sous la carte)',strip(A.$('rrgInfo')._h).startsWith((CFG.sector_fr||{})[k0]||k0),strip(A.$('rrgInfo')._h).slice(0,60));
-  A.L.rrgMoves.click({target:{closest:()=>({dataset:{mv:k0}})}});
-  ok('ligne touchée à nouveau : ouvre le secteur',/industries · /.test(A.$('rrgWhat')._t),A.$('rrgWhat')._t);
-  A.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:k0}})}});
-  A.L.rrgMv.click({});
-  ok('bouton « Mouvements » coupé : liste masquée, mémorisé',ls['mm.rrgmv']==='0'&&A.$('rrgMoves')._h==='');
-  A.L.rrgMv.click({});
+  const ns=x=>x.replace(/[+\-−]/g,''), E=exp(mk), f1=v=>{const r=Math.round(v*10)/10||0;return (r>0?'+':'')+Math.abs(r).toFixed(1).replace('.',',');};
+  console.log('      (fixtures, '+IS.length+' industries : '+E.pist.length+' piste(s), '+E.conf.length+' confirmé(s), '+E.chg.length+' changement(s))');
+  ok('tableau au niveau secteurs : industries de tout le marché, vue '+R.default_view+' par défaut, compteurs des trois vues, lien « Tous »',/Depuis la veille/.test(strip(A.$('rrgTab')._h))
+    &&new RegExp('data-rv="'+R.default_view+'" class="on"').test(A.$('rrgTab')._h)&&/<th class="rtn">Industrie/.test(A.$('rrgTab')._h)
+    &&['pist','conf','chg'].every(v=>new RegExp('data-rv="'+v+'"[^>]*>[^<]*<b>'+E[v].length+'</b>').test(A.$('rrgTab')._h))&&new RegExp('data-rv="all">Tous \\('+E.all.length+'\\)').test(A.$('rrgTab')._h),strip(A.$('rrgTab')._h).slice(0,140));
+  ok('en-tête du tableau : son périmètre écrit (« '+E.all.length+' industries, tout le marché »)',strip(A.$('rrgTab')._h).includes(E.all.length+' industries, tout le marché'));
+  rv(A,'pist'); let T=same(A,E.pist,'Pistes = recalcul (force ≤ '+R.pistes_max_rs+', Δ '+W2+' j > 0, accélération en hausse, part des actions > 1 en hausse ; tri persistance, élargissement, Δ '+W2+' j ; puis surveillance)');
+  ok('Pistes : colonne « Depuis » = séances consécutives recalculées, « '+R.tags.watch+' » sur les En retard dont la baisse ralentit',T.every((t,i)=>{const r=E.pist[i];return cl(t.h,'rts')===(r.np?(r.np>=R.streak_max?R.streak_max+'+':r.np)+' j':'—')&&t.h.includes('>'+R.tags.watch+'<')===!!r.watch;}),T.map(t=>cl(t.h,'rts')).join(' '));
+  ok('secteur et nombre de titres sous chaque industrie',T.every((t,i)=>new RegExp('<span class="rtsec">'+by(E.pist[i].sec).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+' · '+E.pist[i].n+' titres</span>').test(t.h.replace(/&amp;/g,'&'))),T.length&&strip(T[0].h).slice(0,80));
+  rv(A,'conf'); T=same(A,E.conf,'Confirmés = recalcul (Meneur, TI65 seul > '+R.confirm_ti65+', ≥ '+R.confirm_breadth*100+' % des actions > 1, Δ '+W2+' j > 0, tri force relative)');
+  ok('Confirmés : « '+R.tags.fade+' » quand l\'accélération baisse (libellés de la config)',T.every((t,i)=>(t.h.includes('>'+R.tags.fade+'<')||t.h.includes('>'+R.tags.fade.replace("'","&#39;")+'<'))===E.conf[i].fade));
+  rv(A,'all'); T=trs(A);
+  ok('Tous : '+R.table_rows+' lignes triées par force relative, puis « Voir les N autres » (coût du rendu borné)',T.length===Math.min(R.table_rows,E.all.length)&&T.map(name).join('|')===E.all.slice(0,R.table_rows).map(r=>r.k).join('|')
+    &&(E.all.length<=R.table_rows||new RegExp('Voir les '+(E.all.length-R.table_rows)+' autres').test(A.$('rrgTab')._h)),T.length);
+  rall(A); T=trs(A);
+  ok('Tous dépliés : toutes les industries',T.length===E.all.length&&T.map(name).join('|')===E.all.map(r=>r.k).join('|'),T.length);
+  ok('colonnes TI65 seul, Δ '+W1+' j, Δ '+W2+' j, Act. > 1 = recalcul',T.every((t,i)=>{const r=E.all[i],b=cl(t.h,'rtb');return cl(t.h,'rtt')===(r.t65==null?'—':r.t65.toFixed(3).replace('.',','))
+    &&ns(cl(t.h,'rd1'))===ns(f1(r.d1))&&ns(cl(t.h,'rd2'))===(r.d2==null?'—':ns(f1(r.d2)))&&(r.br?b.startsWith(Math.round(r.br.pct)+' %'):b==='—');}),
+    T.slice(0,3).map(t=>['rtt','rd1','rd2','rtb'].map(c=>cl(t.h,c)).join(' ')).join(' | '));
+  const hd=X=>[...X.$('rrgTab')._h.matchAll(/<th(?:[^>"]|"[^"]*")*>(.*?)<\/th>/g)].map(m=>strip(m[1].replace(/<span class="tipbtn.*?<\/span>/g,'').replace(/<span class="rtmob">.*?<\/span><\/span>/g,'')));
+  ok('en-têtes (vue Tous) : 8 colonnes bien formées',hd(A).length===8&&hd(A)[0]==='Industrie'&&hd(A)[6]==='Act. &gt; 1'&&hd(A)[7]==='Vol.',hd(A).join(' | '));
+  rv(A,'pist');
+  ok('en-têtes (vue Pistes) : colonne « Depuis » en plus',hd(A).length===9&&hd(A)[2]==='Depuis',hd(A).join(' | '));
+  // explications dans des bulles ⓘ placées là où elles servent : une par vue, une par colonne, le titre
+  const H=A.$('rrgTab')._h, phr='Pistes : force relative ≤ '+R.pistes_max_rs+' (pas encore étendue), en hausse sur '+W2+' j, accélération en hausse, part des actions au-dessus de 1 en hausse ; triées par persistance (depuis), puis élargissement, puis Δ '+W2+' j. « surveillance » : '+R.labels.lag+' dont la baisse ralentit.';
+  const ids=['use','conf','pist','chg','all','zone','since','force','ti65','delta','brd','vol'];
+  ok('bulles du tableau : une par vue (dans son bouton), par colonne et pour le titre',ids.every(k=>H.includes('data-tip="skpi:rt'+k+'"'))&&/data-rv="pist"[^>]*>Pistes <b>\d+<\/b><span class="tipbtn/.test(H),ids.filter(k=>!H.includes('data-tip="skpi:rt'+k+'"')).join(','));
+  const tp=k=>tip(A,'skpi:rt'+k);
+  ok('bulle Pistes : critères au niveau des industries',tp('pist').includes(phr),tp('pist').slice(0,300));
+  ok('bulles Confirmés / Changements / Act. > 1 / TI65 / Depuis / titre : chacune son sujet',/Confirmés : Meneur/.test(tp('conf'))&&!/Pistes :/.test(tp('conf'))&&tp('chg').includes(R.tags.strong+' : déplacement')
+    &&/Part des actions/.test(tp('brd'))&&/sans le comparer au marché/.test(tp('ti65'))&&/Séances consécutives/.test(tp('since'))&&/industries de tout le marché/.test(tp('use')),tp('use').slice(0,120));
+  ok('rien sous le tableau à part les liens',!/Pistes :|Confirmés :|Fort :/.test(strip(H.split('class="rtfoot"')[1]||'')));
+  rv(A,'chg'); T=trs(A);
+  ok('Changements = recalcul (forts puis bascules, limites en dernier) : '+E.chg.slice(0,R.table_rows).map(r=>r.k+(r.fort?' fort':'')+(r.bas?' '+r.from+'→'+r.to:'')+(r.lim?' limite':'')).join(', '),
+    T.map(name).join('|')===E.chg.slice(0,R.table_rows).map(r=>r.k).join('|')&&T.every((t,i)=>t.h.includes('>'+R.tags.strong+'<')===E.chg[i].fort&&t.h.includes('>'+R.tags.edge+'<')===(E.chg[i].bas&&E.chg[i].lim)),T.map(name).join(' | '));
+  ok('vue mémorisée',ls['mm.rrgview']==='chg');
+  if(E.chg.length>R.table_rows){ ok('« Voir les N autres » présent',new RegExp('Voir les '+(E.chg.length-R.table_rows)+' autres').test(A.$('rrgTab')._h));
+    rall(A); ok('« Voir les N autres » : toutes les lignes',trs(A).length===E.chg.length,trs(A).length); }
+  // toucher une industrie sur la carte des secteurs (retour du 21/10/2026 : « le même titre réapparaît ») : 1er = son secteur en
+  // avant, la ligne marquée et « Ouvrir › » sous la carte ; 2e = l'industrie s'ouvre (ses actions), pas son secteur
+  const r0=E.chg[0];
+  tapRow(A,r0.k);
+  ok('industrie touchée : la ligne marquée, son secteur en avant sur la carte, « Ouvrir › » pour l\'industrie',trs(A).find(t=>t.k===r0.k).on&&strip(A.$('rrgInfo')._h).startsWith(r0.k+' · '+by(r0.sec))
+    &&/data-openind="1"/.test(A.$('rrgInfo')._h),strip(A.$('rrgInfo')._h).slice(0,90));
+  tapRow(A,r0.k);
+  ok('industrie touchée à nouveau : l\'industrie s\'ouvre (ses actions)',A.$('rrgWhat')._t.includes('actions · '+r0.k),A.$('rrgWhat')._t);
+  A.L.rrgNav.click({target:{closest:()=>({dataset:{up:'ind',sec:r0.sec}})}});
+  ok('dans un secteur : le tableau suit la carte (ses industries), vue « '+R.views[R.default_view_in]+' » par défaut, celle du marché gardée',
+    A.$('rrgWhat')._t.includes('industries · '+by(r0.sec))&&trs(A).length===IND.industries.filter(x=>x.sec===r0.sec&&x.n>=min).length&&!/class="rtsec"/.test(A.$('rrgTab')._h)
+    &&!/data-rv="(pist|conf|chg)" class="on"/.test(A.$('rrgTab')._h)&&ls['mm.rrgview']==='chg',trs(A).map(t=>t.k).join(', '));
+  ok('dans un secteur : périmètre « industries de '+by(r0.sec)+' »',strip(A.$('rrgTab')._h).includes('industries de '+by(r0.sec)));
+  rv(A,'pist');
+  ok('vue choisie dans un secteur : mémorisée à part, la vue du marché inchangée',ls['mm.rrgviewin']==='pist'&&ls['mm.rrgview']==='chg');
+  ok('niveau industries : en-têtes « Industrie » et « Act. > 1 »',/<th class="rtn">Industrie/.test(A.$('rrgTab')._h)&&/>Act\. &gt; 1/.test(A.$('rrgTab')._h));
+  rv(A,'all');
+  // réduire le tableau sans réduire la carte : en-tête et vues gardés, lignes masquées, mémorisé
+  const tog=X=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-rtog]'?{dataset:{rtog:'1'}}:null}});
+  A.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:''}})}}); tog(A);
+  const th=A.$('rrgTab')._h;
+  ok('tableau réduit : lignes masquées, en-tête et vues gardés, carte toujours dessinée, mémorisé',!/<table/.test(th)&&/data-rv="pist"/.test(th)&&/aria-expanded="false"/.test(th)
+    &&A.$('secRrg').hidden===false&&/Meneur \d+/.test(strip(A.$('rrgInfo')._h))&&ls['mm.rrgtab']==='0',strip(th).slice(0,80));
+  tog(A);
+  ok('tableau déplié à nouveau',/<table/.test(A.$('rrgTab')._h)&&ls['mm.rrgtab']==='1');
+  // clavier : Entrée sur une ligne = toucher, sans déclencher le raccourci Entrée du classement (propagation arrêtée)
+  { let clicked=0, stopped=0; const t={dataset:{mv:'x'},click(){clicked++;}};
+    A.L.rrgTab.keydown({key:'Enter',target:{closest:sel=>sel==='tr[data-mv]'?t:null},preventDefault(){},stopPropagation(){stopped++;}});
+    ok('clavier : Entrée sur une ligne = toucher, propagation arrêtée',clicked===1&&stopped===1); }
+  // repère mesuré au niveau des industries : recalculé indépendamment sur le fichier réel (marché du robot), comparé aux bulles
+  { const Z=boot({}); tab(Z); view(Z,'tv'); const ZI=Z.sb.INDUSTRIES, at=mkRows(ZI.stocks.c,ZI.industries.filter(x=>x.n>=min)), ZN=ZI.dates.length, H=R.measure_sessions[0];
+    const rsOf=x=>x.c.map((v,k)=>v&&ZI.stocks.c[k]?v/ZI.stocks.c[k]:null), RS=new Map(ZI.industries.map(x=>[x.k,rsOf(x)]));
+    const F=Array.from({length:ZN},(_,k)=>new Map(at(k).map(r=>[r.k,r]))), c={all:[],conf:[],pist:[],long:[]}, run={}; let hit=0,np=0;
+    const streak=F.map(m=>{const o={};for(const k of RS.keys()){const r=m.get(k);run[k]=r&&r.pist?(run[k]||0)+1:0;o[k]=run[k];}return o;});
+    for(let k=0;k+H<ZN;k++)for(const [key,r] of F[k]){const rs=RS.get(key),A_=rs[k],B_=rs[k+H];if(!A_||!B_)continue;const v=100*(B_/A_-1);c.all.push(v);if(r.conf)c.conf.push(v);
+      if(r.pist){c.pist.push(v);np++;if(streak[k][key]>=R.measure_streak)c.long.push(v);for(let j=1;j<=H;j++){const g=F[k+j].get(key);if(g&&g.conf){hit++;break;}}}}
+    const avg=a=>a.reduce((p,v)=>p+v,0)/a.length, P=v=>(v>0?'+':'')+v.toFixed(2).replace('.',',')+' %';
+    const tc=tip(Z,'skpi:rtconf'), tpi=tip(Z,'skpi:rtpist');
+    ok('repère Confirmés ('+H+' séances, industries) = recalcul : '+P(avg(c.conf))+' ('+c.conf.length+' cas) · toutes '+P(avg(c.all))+' ('+c.all.length+' cas)',
+      tc.includes(H+' séances : '+R.views.conf+' '+P(avg(c.conf))+' ('+c.conf.length+' cas')&&tc.includes('toutes les industries '+P(avg(c.all))+' ('+c.all.length+' cas'),tc.slice(tc.indexOf('Repère'),tc.indexOf('Repère')+260));
+    ok('repère Pistes : '+P(avg(c.pist))+' ('+np+' cas), depuis '+R.measure_streak+' séances ou plus '+P(avg(c.long))+' ('+c.long.length+' cas), passées en '+R.views.conf+' en '+H+' séances : '+Math.round(100*hit/np)+' %',
+      tpi.includes(R.views.pist+' '+P(avg(c.pist))+' ('+np+' cas')&&tpi.includes('depuis '+R.measure_streak+' séances ou plus '+P(avg(c.long))+' ('+c.long.length+' cas')&&tpi.includes(H+' séances : '+Math.round(100*hit/np)+' % ('+np+' cas)'),
+      tpi.slice(tpi.indexOf('Repère'),tpi.indexOf('Repère')+300)); }
+  // ancien fichier sans séries « b » (part des actions > 1) : colonne « — », aucun critère de largeur, pas d'erreur
+  const O=boot({},{after:'INDUSTRIES.industries.forEach(x=>delete x.b);INDUSTRIES.sectors.forEach(x=>delete x.b);'}); tab(O); view(O,'tv'); rv(O,'all');
+  ok('ancien fichier sans part des actions : colonne « — », tableau rendu',/<th class="rtn">Industrie/.test(O.$('rrgTab')._h)&&trs(O).length>0&&trs(O).every(t=>cl(t.h,'rtb')==='—'),trs(O).length);
+  // volume relatif (B : une industrie sur deux à ×1,5, les autres à ×0,7) : colonne Vol. seulement, aucun critère n'en dépend
+  B.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:''}})}}); rv(B,'all'); rall(B);
+  const EB=exp(m2), TB=trs(B);
+  ok('avec volume : colonne « ×1,50 / ×0,70 », lignes = recalcul sans le volume',TB.every(t=>/^×(1,50|0,70)$/.test(cl(t.h,'rvol')))&&TB.map(name).join('|')===EB.all.map(r=>r.k).join('|'),TB.slice(0,4).map(t=>cl(t.h,'rvol')).join(' '));
 }
 // frise temporelle : survol souris = aperçu (cases, carte) ; clic = « Stats du » ; doigt : glisser = aperçu, lever = « Stats du »
 const C=boot({}); tab(C); view(C,'tv');
