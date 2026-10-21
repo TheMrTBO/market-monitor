@@ -49,10 +49,27 @@ benchmark = "IWM"             # repère mesuré du ratio de rotation (bulle ⓘ)
 trail = 10                    # séances de la traînée (direction du mouvement)
 momentum = 5                  # séances de la variation de x
 labels = { lead = "Meneur", weak = "S'affaiblit", lag = "En retard", impr = "S'améliore" }
-# plus gros mouvements (demande du 20/10/2026) : déplacement net sur la carte en `movers_window` séances (pas le chemin parcouru,
-# qui compte les allers-retours ; pas le changement de zone : 12 secteurs sur 20 en changent en 5 séances près du centre)
-movers = 3                    # mis en avant de chaque côté : les plus fortes hausses et baisses de force relative
-movers_window = 5
+# tableau « Depuis la veille » au-dessus de la carte (demandes du 21/10/2026 : repérer vite les changements majeurs, confirmer un
+# secteur chaud, donner des pistes sur le prochain ; remplace la liste « plus gros mouvements »). Vues : Confirmés (Meneur qui monte
+# aussi seul, largeur suffisante), Pistes (force relative pas encore étendue, en hausse, accélération qui monte, qui s'élargit ;
+# puis « en surveillance » : En retard dont la baisse ralentit), Changements (mouvements forts puis bascules), Tous (lien sous le
+# tableau). Mesuré au 19/10/2026 : marché faible (23 % des industries au TI65 > 1), les meneurs relatifs y sont souvent défensifs
+# (Conso. courante TI65 0,989, Services aux collectivités 0 industrie sur 4 au-dessus de 1) : d'où le TI65 seul et la largeur.
+delta_windows = [1, 5]        # colonnes Δ de la force relative (séances) : courte = changements, longue = tendance (Δ, accélération,
+                              # largeur des actions d'une industrie) ; entrées / sorties des industries d'un secteur : [sectors.kpis] rotation_window
+major_factor = 2.0            # mouvement « fort » : déplacement sur la carte ≥ ce facteur × le déplacement médian de la séance
+zone_margin = 0.5             # bascule de zone « limite » quand le point est à moins de cette distance de l'axe franchi
+table_rows = 6                # lignes affichées avant « Voir les N autres »
+confirm_ti65 = 1.0            # Confirmés : TI65 du secteur seul (sans le comparer au marché) au-dessus de ce seuil
+confirm_breadth = 0.5         # Confirmés : part minimale des membres au TI65 > 1 (industries d'un secteur, actions d'une industrie)
+pistes_max_rs = 101.0         # Pistes : force relative au plus à ce niveau (pas encore étendue ; 100 = comme le marché)
+views = { conf = "Confirmés", pist = "Pistes", chg = "Changements", all = "Tous" }   # libellés des vues du tableau
+tags = { strong = "fort", edge = "limite", fade = "s'essouffle", watch = "surveillance" }   # étiquettes des lignes
+measure_sessions = [5, 10]    # repère mesuré des bulles Confirmés / Pistes : force relative ces nombres de séances plus tard
+measure_streak = 3            # repère : Pistes présentes depuis au moins ce nombre de séances, mesurées à part
+streak_max = 20               # colonne « Depuis » : séances consécutives comptées au plus (affiché « 20+ j »)
+default_view = "pist"         # vue du tableau à la première visite (mesure du 21/10/2026 : Confirmés arrive tard)
+default_view_in = "all"       # vue dans un secteur ou une industrie (peu de membres : Pistes y filtre presque tout)
 
 [adr]
 # ADR (average daily range) des actions, sur toutes les listes de tickers (Secteurs, Tickers, Post-market, fiche) — décision du

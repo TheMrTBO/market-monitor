@@ -154,9 +154,19 @@ def check():
         errors.append("display.adr.sessions : plus de séances que les fichiers d'actions n'en contiennent (industries.output.stock_sessions)")
     rg = load("display")["sectors"]["rrg"]
     if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
-            and isinstance(rg.get("movers"), int) and rg["movers"] >= 0 and isinstance(rg.get("movers_window"), int) and rg["movers_window"] > 0) \
+            and isinstance(rg.get("delta_windows"), list) and len(rg["delta_windows"]) == 2 and all(isinstance(w, int) and w > 0 for w in rg["delta_windows"])
+            and rg["delta_windows"][0] < rg["delta_windows"][1]
+            and isinstance(rg.get("major_factor"), (int, float)) and rg["major_factor"] > 0 and isinstance(rg.get("zone_margin"), (int, float)) and rg["zone_margin"] >= 0
+            and isinstance(rg.get("table_rows"), int) and rg["table_rows"] > 0
+            and all(isinstance(rg.get(k), (int, float)) for k in ("confirm_ti65", "confirm_breadth", "pistes_max_rs"))
+            and 0 <= rg["confirm_breadth"] <= 1 and rg["confirm_ti65"] > 0 and rg["pistes_max_rs"] > 0
+            and set(rg.get("views", {})) == {"conf", "pist", "chg", "all"} and set(rg.get("tags", {})) == {"strong", "edge", "fade", "watch"}
+            and all(isinstance(v, str) and v for v in list(rg["views"].values()) + list(rg["tags"].values()))
+            and isinstance(rg.get("measure_sessions"), list) and rg["measure_sessions"] and all(isinstance(w, int) and w > 0 for w in rg["measure_sessions"])
+            and isinstance(rg.get("measure_streak"), int) and rg["measure_streak"] > 0 and isinstance(rg.get("streak_max"), int) and rg["streak_max"] > 0
+            and rg.get("default_view") in ("conf", "pist", "chg", "all") and rg.get("default_view_in") in ("conf", "pist", "chg", "all")) \
             or set(rg["labels"]) != {"lead", "weak", "lag", "impr"}:
-        errors.append("display.sectors.rrg : trail, momentum, movers_window entiers > 0, movers ≥ 0, labels lead / weak / lag / impr attendus")
+        errors.append("display.sectors.rrg : trail, momentum, table_rows entiers > 0, delta_windows = [courte, longue] entiers croissants, major_factor > 0, zone_margin ≥ 0, confirm_ti65 et pistes_max_rs > 0, confirm_breadth entre 0 et 1, views conf / pist / chg / all et tags strong / edge / fade / watch non vides, measure_sessions liste d'entiers > 0, measure_streak et streak_max entiers > 0, default_view et default_view_in parmi conf / pist / chg / all, labels lead / weak / lag / impr attendus")
     ti, ind = load("display")["ti65"], load("industries")
     if not (isinstance(ti["short"], int) and isinstance(ti["long"], int) and 0 < ti["short"] < ti["long"]) or not ti.get("name"):
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
