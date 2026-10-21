@@ -64,3 +64,15 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-21,2026-10-21T21:52:40+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,19.1,-19.58,17.85,-6.54,564112,0.37,2432067443,85501308,
 2026-10-21,2026-10-21T21:52:40+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,30.99,-7.35,1386660,0.23,16094314248,307885166,amc
 2026-10-21,2026-10-21T21:52:40+00:00,false,NYSE:SON,SON,Sonoco Products Company,Process Industries,Containers/Packaging,50.96,0.26,46.0,-9.73,279977,0.25,5038670181,97587252,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NASDAQ:CSX,CSX,CSX Corporation,Transportation,Railroads,48.4,0.67,50.45,4.24,3396768,0.3,89659786324,1849929135,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,260.81,-1.0,245.8925,-5.72,3700569,0.35,326383991084,1247459255,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NASDAQ:QS,QS,QuantumScape Corporation Class A,Producer Manufacturing,Electrical Products,3.98,0.0,4.4601,12.06,6180016,0.32,2464071822,503485681,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:ESI,ESI,Element Solutions Inc,Process Industries,Chemicals: Major Diversified,36.34,1.88,37.94,4.4,584869,0.12,8855726949,228086734,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:GGG,GGG,Graco Inc.,Producer Manufacturing,Industrial Machinery,81.81,0.89,74.0,-9.55,328918,0.19,13249441981,160606056,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:HXL,HXL,Hexcel Corporation,Electronic Technology,Aerospace & Defense,89.84,-1.62,80.8,-10.06,280580,0.29,6794010836,74891767,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:LBRT,LBRT,"Liberty Energy, Inc. Class A",Industrial Services,Oilfield Services/Equipment,16.69,0.66,18.24,9.29,604042,0.14,2723664812,159663789,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:MOH,MOH,"Molina Healthcare, Inc.",Health Services,Managed Health Care,214.9,-2.19,204.98,-4.62,123276,0.13,11217780225,51446336,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:OII,OII,"Oceaneering International, Inc.",Producer Manufacturing,Industrial Machinery,44.09,0.05,42.0,-4.74,110654,0.11,4388262141,97909157,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,19.1,-19.58,17.8457,-6.57,574349,0.38,2432067443,85501308,
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,30.99,-7.35,1387210,0.23,16094314248,307885166,amc
+2026-10-21,2026-10-21T22:07:35+00:00,false,NYSE:SON,SON,Sonoco Products Company,Process Industries,Containers/Packaging,50.96,0.26,46.0,-9.73,280077,0.25,5038670181,97587252,amc
