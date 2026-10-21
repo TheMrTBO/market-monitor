@@ -28,3 +28,14 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-21,2026-10-21T21:07:36+00:00,false,NYSE:GGG,GGG,Graco Inc.,Producer Manufacturing,Industrial Machinery,81.81,0.89,75.4,-7.84,320242,0.19,13249441981,160606056,amc
 2026-10-21,2026-10-21T21:07:36+00:00,false,NYSE:HXL,HXL,Hexcel Corporation,Electronic Technology,Aerospace & Defense,89.84,-1.62,82.33,-8.36,239965,0.24,6794010836,74891767,amc
 2026-10-21,2026-10-21T21:07:36+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,31.02,-7.26,1381940,0.23,16094314248,307885166,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NASDAQ:CSX,CSX,CSX Corporation,Transportation,Railroads,48.4,0.67,50.4,4.13,3381839,0.3,89659786324,1849929135,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,260.81,-1.0,243.5,-6.64,3509395,0.34,326383991084,1247459255,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NASDAQ:QS,QS,QuantumScape Corporation Class A,Producer Manufacturing,Electrical Products,3.98,0.0,4.55,14.32,4253616,0.22,2464071822,503485681,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NASDAQ:SEIC,SEIC,SEI Investments Company,Finance,Investment Managers,108.43,1.19,119.0,9.75,127106,0.17,13013679904,98006195,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:GGG,GGG,Graco Inc.,Producer Manufacturing,Industrial Machinery,81.81,0.89,75.1,-8.2,320442,0.19,13249441981,160606056,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:HXL,HXL,Hexcel Corporation,Electronic Technology,Aerospace & Defense,89.84,-1.62,80.93,-9.92,265236,0.27,6794010836,74891767,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:JBS,JBS,JBS N.V. Class A,Consumer Non-Durables,Food: Meat/Fish/Dairy,12.47,-1.81,11.96,-4.09,548313,0.09,13354485652,348376917,
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:OII,OII,"Oceaneering International, Inc.",Producer Manufacturing,Industrial Machinery,44.09,0.05,42.0,-4.74,110654,0.11,4388262141,97909157,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,19.1,-19.58,18.0,-5.76,536836,0.35,2432067443,85501308,
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,30.2,-9.72,1383740,0.23,16094314248,307885166,amc
+2026-10-21,2026-10-21T21:22:39+00:00,false,NYSE:SON,SON,Sonoco Products Company,Process Industries,Containers/Packaging,50.96,0.26,48.0,-5.81,271678,0.24,5038670181,97587252,amc
