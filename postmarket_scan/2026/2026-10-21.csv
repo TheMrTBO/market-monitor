@@ -1,0 +1,5 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-21,2026-10-21T20:22:42+00:00,false,NASDAQ:CSX,CSX,CSX Corporation,Transportation,Railroads,48.4,0.67,50.9,5.17,3035971,0.27,89659786324,1849929135,amc
+2026-10-21,2026-10-21T20:22:42+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,260.81,-1.0,246.9,-5.33,2373839,0.23,326383991084,1247459255,amc
+2026-10-21,2026-10-21T20:22:42+00:00,false,NASDAQ:META,META,Meta Platforms Inc Class A,Technology Services,Internet Software/Services,697.52,0.47,726.1395,4.1,3216299,0.17,1776936478566,2200380149,amc
+2026-10-21,2026-10-21T20:22:42+00:00,false,NYSE:GTY,GTY,Getty Realty Corp.,Finance,Real Estate Investment Trusts,27.47,-2.03,28.6765,4.39,206666,0.35,1701291355,59621061,amc
