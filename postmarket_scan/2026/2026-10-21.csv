@@ -184,3 +184,21 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-21,2026-10-21T23:37:34+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,19.1,-19.58,18.01,-5.71,647337,0.43,2432067443,85501308,
 2026-10-21,2026-10-21T23:37:34+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,30.98,-7.38,1398435,0.23,16094314248,307885166,amc
 2026-10-21,2026-10-21T23:37:34+00:00,false,NYSE:SON,SON,Sonoco Products Company,Process Industries,Containers/Packaging,50.96,0.26,45.75,-10.22,284424,0.25,5038670181,97587252,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:CYPH,CYPH,Cypherpunk Technologies Inc.,Finance,Financial Conglomerates,3.33,18.51,3.05,-8.41,1088509,0.12,358855383,70048970,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:FULT,FULT,Fulton Financial Corporation,Finance,Major Banks,22.53,-0.44,23.6,4.75,289329,0.16,4301305013,188734177,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,260.81,-1.0,243.43,-6.66,3866309,0.37,326383991084,1247459255,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:NUAI,NUAI,"New Era Energy & Digital, Inc.",Industrial Services,Engineering & Construction,3.32,17.73,3.178,-4.28,841692,0.1,353776979,85377261,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:QS,QS,QuantumScape Corporation Class A,Producer Manufacturing,Electrical Products,3.98,0.0,4.43,11.31,7320262,0.38,2464071822,503485681,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:SPHL,SPHL,Springview Holdings Ltd. Class A,Consumer Durables,Homebuilding,3.54,45.68,3.2,-9.6,521412,0.55,43407410,1236979,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NASDAQ:TKNO,TKNO,"Alpha Teknova, Inc.",Health Technology,Pharmaceuticals: Major,5.85,-20.84,5.6,-4.27,258985,0.86,314076243,10925602,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:AVEX,AVEX,AEVEX Corp. Class A,Electronic Technology,Aerospace & Defense,9.68,-32.5,10.3576,7.0,989885,0.51,1227123699,32444129,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:GGG,GGG,Graco Inc.,Producer Manufacturing,Industrial Machinery,81.81,0.89,74.7997,-8.57,363737,0.21,13249441981,160606056,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:HXL,HXL,Hexcel Corporation,Electronic Technology,Aerospace & Defense,89.84,-1.62,80.9,-9.95,281517,0.29,6794010836,74891767,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:IBM,IBM,International Business Machines Corporation,Technology Services,Information Technology Services,251.46,3.94,241.1591,-4.1,2551149,0.32,236909114283,941211650,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:LAZ,LAZ,Lazard Inc,Finance,Investment Banks/Brokers,37.37,1.91,39.8394,6.61,221333,0.11,3641727586,96557660,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:LBRT,LBRT,"Liberty Energy, Inc. Class A",Industrial Services,Oilfield Services/Equipment,16.69,0.66,18.0232,7.99,621305,0.15,2723664812,159663789,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:MOH,MOH,"Molina Healthcare, Inc.",Health Services,Managed Health Care,214.9,-2.19,205.47,-4.39,124505,0.13,11217780225,51446336,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:OII,OII,"Oceaneering International, Inc.",Producer Manufacturing,Industrial Machinery,44.09,0.05,42.0,-4.74,110654,0.11,4388262141,97909157,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,19.1,-19.58,18.105,-5.21,648587,0.43,2432067443,85501308,
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:ROL,ROL,"Rollins, Inc.",Commercial Services,Miscellaneous Commercial Services,33.45,0.33,30.8123,-7.89,1402235,0.23,16094314248,307885166,amc
+2026-10-21,2026-10-21T23:52:44+00:00,false,NYSE:SON,SON,Sonoco Products Company,Process Industries,Containers/Packaging,50.96,0.26,45.5,-10.71,284524,0.25,5038670181,97587252,amc
