@@ -30,3 +30,19 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,14.92,-2.93,15.8404,6.17,423985,0.1,3715641656,234575216,
 2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,42.0,11.46,552103,0.26,3856993748,98483401,amc
 2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.56,14.03,351685,0.2,6632059371,72531891,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:AARD,AARD,"Aardvark Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.95,-10.43,4.6805,18.49,476553,2.16,86445137,12819289,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:DAVI,DAVI,DAVION HEALTHCARE PLC,,,11.65,,10.0,-14.16,166663,,,,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:MRTN,MRTN,"Marten Transport, Ltd.",Transportation,Trucking,12.3,-2.84,11.21,-8.86,307875,0.42,1004438584,57679618,bmo
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,83.5,-6.75,368611,0.22,21011007706,201010400,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:STX,STX,Seagate Technology Holdings PLC,Electronic Technology,Computer Peripherals,642.14,-7.86,611.16,-4.82,355002,0.07,146018157336,226535046,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:TANH,TANH,Tantech Holdings Ltd. Class A,Process Industries,Chemicals: Specialty,24.83,181.84,27.29,9.91,187122,2.47,5882172,667624,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:VRSN,VRSN,"VeriSign, Inc.",Technology Services,Internet Software/Services,304.59,-0.87,288.5,-5.28,217333,0.26,27504477929,89596472,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:WDC,WDC,Western Digital Corporation,Electronic Technology,Computer Peripherals,354.19,-6.43,328.38,-7.29,2415693,0.28,132581563379,372630311,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NASDAQ:ZURA,ZURA,Zura Bio Limited Class A,Health Technology,Biotechnology,3.53,-14.53,3.76,6.52,444382,0.21,338276872,50356871,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,217.77,-8.7,202.0,-7.24,2494175,0.16,64139219320,276906038,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,78.01,-8.52,1510854,0.54,11613588240,134444317,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:KN,KN,Knowles Corp.,Electronic Technology,Electronic Components,33.38,-4.41,35.07,5.06,242128,0.27,2850996723,83612840,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,9.76,-5.33,10.44,6.97,155125,0.19,702695679,54610103,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,14.92,-2.93,15.8404,6.17,423985,0.1,3715641656,234575216,
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,42.0,11.46,552703,0.26,3856993748,98483401,amc
+2026-10-22,2026-10-22T21:07:37+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.09,13.43,376972,0.21,6632059371,72531891,amc
