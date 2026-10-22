@@ -310,3 +310,24 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T23:37:36+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,41.51,10.16,568414,0.27,3856993748,98483401,amc
 2026-10-22,2026-10-22T23:37:36+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.9,14.45,427806,0.24,6632059371,72531891,amc
 2026-10-22,2026-10-22T23:37:36+00:00,false,NYSE:T,T,AT&T Inc,Communications,Wireless Telecommunications,22.74,3.79,21.77,-4.27,7883845,0.14,155823250692,6843845069,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:AARD,AARD,"Aardvark Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.95,-10.43,4.96,25.57,1029931,4.5,86445137,12819289,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:DAVI,DAVI,DAVION HEALTHCARE PLC,,,11.65,,10.49,-9.96,238912,,,,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:GIXI,GIXI,Gix Internet Ltd.,Consumer Services,Publishing: Newspapers,4.05,1.25,4.22,4.2,108848,,10094022,2469151,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:MXL,MXL,"MaxLinear, Inc.",Electronic Technology,Semiconductors,65.28,-13.87,62.55,-4.18,489169,0.15,5920451116,85226485,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,5.28,-5.04,6.25,18.37,870034,0.41,157429383,2213731,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:SBAC,SBAC,SBA Communications Corp. Class A,Finance,Real Estate Investment Trusts,178.39,2.87,190.5,6.79,279569,0.28,18925058677,105342095,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,85.25,-4.79,382800,0.23,21011007706,201010400,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:TANH,TANH,Tantech Holdings Ltd. Class A,Process Industries,Chemicals: Specialty,24.83,181.84,30.6,23.24,388740,4.81,5882172,667624,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:TMUS,TMUS,"T-Mobile US, Inc.",Communications,Wireless Telecommunications,158.79,3.28,152.0,-4.28,999960,0.19,170329528264,476366310,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:VLY,VLY,Valley National Bancorp,Finance,Major Banks,13.81,6.07,13.2147,-4.31,1173627,0.17,7631478419,473300103,bmo
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:WDC,WDC,Western Digital Corporation,Electronic Technology,Computer Peripherals,354.19,-6.43,331.5,-6.41,3338394,0.39,132581563379,372630311,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NASDAQ:XLAB,XLAB,Exascale Labs Holdings Inc. Class A,Finance,Financial Conglomerates,4.71,73.16,4.45,-5.52,3030622,0.74,303016871,14450648,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:AMT,AMT,American Tower Corporation,Finance,Real Estate Investment Trusts,181.57,2.21,189.9661,4.62,1015076,0.34,84604366439,465074676,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,217.77,-8.7,202.55,-6.99,3444093,0.22,64139219320,276906038,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:CCI,CCI,Crown Castle Inc.,Finance,Real Estate Investment Trusts,78.83,0.23,86.04,9.15,937788,0.23,33538653327,425024439,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,79.38,-6.92,1778024,0.64,11613588240,134444317,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:HUN,HUN,Huntsman Corporation,Process Industries,Chemicals: Major Diversified,8.72,5.95,8.2,-5.96,380576,0.09,1529301449,164827497,
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:KN,KN,Knowles Corp.,Electronic Technology,Electronic Components,33.38,-4.41,34.805,4.27,257824,0.29,2850996723,83612840,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:KRC,KRC,Kilroy Realty Corporation,Finance,Real Estate Investment Trusts,35.96,4.44,34.21,-4.87,415595,0.3,4223233950,114972028,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,41.155,9.22,568614,0.27,3856993748,98483401,amc
+2026-10-22,2026-10-22T23:52:40+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.5,13.95,428370,0.24,6632059371,72531891,amc
