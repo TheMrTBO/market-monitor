@@ -66,3 +66,23 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T21:22:41+00:00,false,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,14.92,-2.93,15.8404,6.17,423985,0.1,3715641656,234575216,
 2026-10-22,2026-10-22T21:22:41+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,42.0,11.46,552703,0.26,3856993748,98483401,amc
 2026-10-22,2026-10-22T21:22:41+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.79,14.32,384487,0.22,6632059371,72531891,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:AARD,AARD,"Aardvark Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.95,-10.43,4.78,21.01,710966,3.17,86445137,12819289,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:DAVI,DAVI,DAVION HEALTHCARE PLC,,,11.65,,10.4,-10.73,211572,,,,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:FIVN,FIVN,"Five9, Inc.",Technology Services,Packaged Software,35.1,-0.54,36.55,4.13,202238,0.08,2622796098,71498433,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:MRTN,MRTN,"Marten Transport, Ltd.",Transportation,Trucking,12.3,-2.84,11.21,-8.86,307875,0.42,1004438584,57679618,bmo
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,5.28,-5.04,5.88,11.36,417850,0.2,157429383,2213731,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:SLM,SLM,SLM Corp,Finance,Finance/Rental/Leasing,21.76,-4.69,20.75,-4.64,1303740,0.51,4089725845,183901064,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,83.29,-6.98,369157,0.22,21011007706,201010400,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:TANH,TANH,Tantech Holdings Ltd. Class A,Process Industries,Chemicals: Specialty,24.83,181.84,32.45,30.69,254198,3.29,5882172,667624,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:VLY,VLY,Valley National Bancorp,Finance,Major Banks,13.81,6.07,13.2147,-4.31,1173627,0.17,7631478419,473300103,bmo
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:VRSN,VRSN,"VeriSign, Inc.",Technology Services,Internet Software/Services,304.59,-0.87,288.5,-5.28,217333,0.26,27504477929,89596472,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:WDC,WDC,Western Digital Corporation,Electronic Technology,Computer Peripherals,354.19,-6.43,338.79,-4.35,3006661,0.35,132581563379,372630311,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:XLAB,XLAB,Exascale Labs Holdings Inc. Class A,Finance,Financial Conglomerates,4.71,73.16,4.395,-6.69,2480753,0.61,303016871,14450648,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NASDAQ:ZURA,ZURA,Zura Bio Limited Class A,Health Technology,Biotechnology,3.53,-14.53,3.748,6.18,481174,0.23,338276872,50356871,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:BYD,BYD,Boyd Gaming Corporation,Consumer Services,Casinos/Gaming,72.27,2.35,69.3,-4.11,282194,0.28,5250806581,49337012,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,78.95,-7.42,1663266,0.6,11613588240,134444317,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:KRC,KRC,Kilroy Realty Corporation,Finance,Real Estate Investment Trusts,35.96,4.44,34.21,-4.87,415595,0.3,4223233950,114972028,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,9.76,-5.33,10.44,6.97,155125,0.19,702695679,54610103,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,14.92,-2.93,15.8404,6.17,423985,0.1,3715641656,234575216,
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,41.5,10.14,554894,0.26,3856993748,98483401,amc
+2026-10-22,2026-10-22T21:37:38+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.0199,13.35,397633,0.22,6632059371,72531891,amc
