@@ -17,3 +17,16 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,78.21,-8.29,1242892,0.45,11613588240,134444317,amc
 2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,9.76,-5.33,10.44,6.97,155125,0.19,702695679,54610103,
 2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,89.3619,12.52,306821,0.17,6632059371,72531891,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,AMEX:NG,NG,Novagold Resources Inc,Non-Energy Minerals,Precious Metals,6.24,-4.15,6.5074,4.29,244866,0.05,2738211995,337280105,
+2026-10-22,2026-10-22T20:52:38+00:00,false,NASDAQ:MRTN,MRTN,"Marten Transport, Ltd.",Transportation,Trucking,12.3,-2.84,11.35,-7.72,255373,0.35,1004438584,57679618,bmo
+2026-10-22,2026-10-22T20:52:38+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,85.03,-5.04,363063,0.22,21011007706,201010400,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NASDAQ:VERA,VERA,"Vera Therapeutics, Inc. Class A",Health Technology,Biotechnology,29.05,-6.89,30.2696,4.2,245167,0.11,2093440055,58510427,
+2026-10-22,2026-10-22T20:52:38+00:00,false,NASDAQ:VRSN,VRSN,"VeriSign, Inc.",Technology Services,Internet Software/Services,304.59,-0.87,288.5,-5.28,217333,0.26,27504477929,89596472,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NASDAQ:ZURA,ZURA,Zura Bio Limited Class A,Health Technology,Biotechnology,3.53,-14.53,3.7477,6.17,440310,0.21,338276872,50356871,
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,217.77,-8.7,205.77,-5.51,2239940,0.14,64139219320,276906038,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,78.48,-7.97,1379759,0.5,11613588240,134444317,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:KN,KN,Knowles Corp.,Electronic Technology,Electronic Components,33.38,-4.41,35.07,5.06,242128,0.27,2850996723,83612840,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,9.76,-5.33,10.44,6.97,155125,0.19,702695679,54610103,
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,14.92,-2.93,15.8404,6.17,423985,0.1,3715641656,234575216,
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,42.0,11.46,552103,0.26,3856993748,98483401,amc
+2026-10-22,2026-10-22T20:52:38+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,90.56,14.03,351685,0.2,6632059371,72531891,amc
