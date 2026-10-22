@@ -7,3 +7,13 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T20:22:37+00:00,false,NYSE:KN,KN,Knowles Corp.,Electronic Technology,Electronic Components,33.38,-4.41,34.8,4.25,210280,0.24,2850996723,83612840,amc
 2026-10-22,2026-10-22T20:22:37+00:00,false,NYSE:ORC,ORC,"Orchid Island Capital, Inc.",Finance,Real Estate Investment Trusts,4.9,0.62,4.6377,-5.35,501301,0.09,945661546,192608717,amc
 2026-10-22,2026-10-22T20:22:37+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,83.01,4.52,241216,0.14,6632059371,72531891,amc
+2026-10-22,2026-10-22T20:37:36+00:00,false,AMEX:NG,NG,Novagold Resources Inc,Non-Energy Minerals,Precious Metals,6.24,-4.15,6.65,6.57,244516,0.05,2738211995,337280105,
+2026-10-22,2026-10-22T20:37:36+00:00,false,NASDAQ:MRTN,MRTN,"Marten Transport, Ltd.",Transportation,Trucking,12.3,-2.84,11.3,-8.13,255252,0.35,1004438584,57679618,bmo
+2026-10-22,2026-10-22T20:37:36+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,5.28,-5.04,5.55,5.11,272505,0.13,157429383,2213731,
+2026-10-22,2026-10-22T20:37:36+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,85.03,-5.04,363063,0.22,21011007706,201010400,amc
+2026-10-22,2026-10-22T20:37:36+00:00,false,NASDAQ:VERA,VERA,"Vera Therapeutics, Inc. Class A",Health Technology,Biotechnology,29.05,-6.89,30.2696,4.2,245167,0.11,2093440055,58510427,
+2026-10-22,2026-10-22T20:37:36+00:00,false,NASDAQ:VRSN,VRSN,"VeriSign, Inc.",Technology Services,Internet Software/Services,304.59,-0.87,286.0,-6.1,214887,0.26,27504477929,89596472,amc
+2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,217.77,-8.7,209.04,-4.01,1968586,0.13,64139219320,276906038,amc
+2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,78.21,-8.29,1242892,0.45,11613588240,134444317,amc
+2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,9.76,-5.33,10.44,6.97,155125,0.19,702695679,54610103,
+2026-10-22,2026-10-22T20:37:36+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,89.3619,12.52,306821,0.17,6632059371,72531891,amc
