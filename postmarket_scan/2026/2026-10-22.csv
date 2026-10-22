@@ -132,3 +132,27 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-22,2026-10-22T22:07:38+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,91.05,14.64,405523,0.23,6632059371,72531891,amc
 2026-10-22,2026-10-22T22:07:38+00:00,false,NYSE:T,T,AT&T Inc,Communications,Wireless Telecommunications,22.74,3.79,21.58,-5.1,7312807,0.13,155823250692,6843845069,
 2026-10-22,2026-10-22T22:07:38+00:00,false,NYSE:VZ,VZ,Verizon Communications Inc.,Communications,Wireless Telecommunications,45.2,3.76,43.21,-4.4,4286132,0.16,187795853576,4152557192,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:AARD,AARD,"Aardvark Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.95,-10.43,4.87,23.29,936734,4.12,86445137,12819289,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:DAVI,DAVI,DAVION HEALTHCARE PLC,,,11.65,,10.5,-9.87,224794,,,,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:MRTN,MRTN,"Marten Transport, Ltd.",Transportation,Trucking,12.3,-2.84,11.46,-6.83,311187,0.43,1004438584,57679618,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:MXL,MXL,"MaxLinear, Inc.",Electronic Technology,Semiconductors,65.28,-13.87,62.45,-4.34,443840,0.14,5920451116,85226485,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,5.28,-5.04,6.25,18.37,746893,0.35,157429383,2213731,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:SBAC,SBAC,SBA Communications Corp. Class A,Finance,Real Estate Investment Trusts,178.39,2.87,187.09,4.88,273629,0.27,18925058677,105342095,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:SLM,SLM,SLM Corp,Finance,Finance/Rental/Leasing,21.76,-4.69,20.7,-4.87,1312940,0.51,4089725845,183901064,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:SSNC,SSNC,"SS&C Technologies Holdings, Inc.",Technology Services,Packaged Software,89.54,2.81,85.6,-4.4,380805,0.23,21011007706,201010400,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:TANH,TANH,Tantech Holdings Ltd. Class A,Process Industries,Chemicals: Specialty,24.83,181.84,30.4,22.43,301995,3.84,5882172,667624,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:TMUS,TMUS,"T-Mobile US, Inc.",Communications,Wireless Telecommunications,158.79,3.28,151.8,-4.4,977040,0.18,170329528264,476366310,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:VLY,VLY,Valley National Bancorp,Finance,Major Banks,13.81,6.07,13.2147,-4.31,1173627,0.17,7631478419,473300103,bmo
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:VRSN,VRSN,"VeriSign, Inc.",Technology Services,Internet Software/Services,304.59,-0.87,288.5,-5.28,217333,0.26,27504477929,89596472,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:WDC,WDC,Western Digital Corporation,Electronic Technology,Computer Peripherals,354.19,-6.43,336.63,-4.96,3221584,0.38,132581563379,372630311,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NASDAQ:ZURA,ZURA,Zura Bio Limited Class A,Health Technology,Biotechnology,3.53,-14.53,3.7297,5.66,489488,0.24,338276872,50356871,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:AMT,AMT,American Tower Corporation,Finance,Real Estate Investment Trusts,181.57,2.21,191.11,5.25,1013721,0.34,84604366439,465074676,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,217.77,-8.7,207.0,-4.95,3221118,0.21,64139219320,276906038,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:CCI,CCI,Crown Castle Inc.,Finance,Real Estate Investment Trusts,78.83,0.23,85.69,8.7,927198,0.23,33538653327,425024439,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:CXM,CXM,"Sprinklr, Inc. Class A",Technology Services,Packaged Software,6.69,4.21,6.37,-4.78,295935,0.09,1553226349,101775815,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:DECK,DECK,Deckers Outdoor Corporation,Consumer Non-Durables,Apparel/Footwear,85.28,-0.25,79.04,-7.32,1756454,0.63,11613588240,134444317,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:KRC,KRC,Kilroy Realty Corporation,Finance,Real Estate Investment Trusts,35.96,4.44,34.21,-4.87,415595,0.3,4223233950,114972028,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:RHI,RHI,Robert Half Inc.,Commercial Services,Personnel Services,37.68,8.78,41.5,10.14,566240,0.27,3856993748,98483401,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:RNG,RNG,"RingCentral, Inc. Class A",Technology Services,Packaged Software,79.42,-3.64,91.05,14.64,406523,0.23,6632059371,72531891,amc
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:T,T,AT&T Inc,Communications,Wireless Telecommunications,22.74,3.79,21.66,-4.75,7446034,0.13,155823250692,6843845069,
+2026-10-22,2026-10-22T22:18:54+00:00,false,NYSE:VZ,VZ,Verizon Communications Inc.,Communications,Wireless Telecommunications,45.2,3.76,43.0325,-4.8,4358875,0.17,187795853576,4152557192,
