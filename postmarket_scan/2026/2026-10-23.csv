@@ -10,3 +10,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-23,2026-10-23T20:52:42+00:00,false,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,3.25,69.27,4.0896,25.83,4617778,1.18,8695088,713828,
 2026-10-23,2026-10-23T20:52:42+00:00,false,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,56.15,-16.37,61.0,8.64,172028,0.22,1674535621,28897167,
 2026-10-23,2026-10-23T20:52:42+00:00,false,NYSE:OIS,OIS,"Oil States International, Inc.",Industrial Services,Oilfield Services/Equipment,8.6,6.97,7.889,-8.27,124127,0.17,518774500,55380188,
+2026-10-23,2026-10-23T21:07:36+00:00,false,NASDAQ:AIOK,AIOK,AI OKTO Corp.,Transportation,Marine Shipping,12.02,182.82,11.25,-6.41,977565,,,,
+2026-10-23,2026-10-23T21:07:36+00:00,false,NASDAQ:BL,BL,"BlackLine, Inc.",Technology Services,Packaged Software,34.8,1.25,37.25,7.04,137261,0.13,2022759362,46373119,
+2026-10-23,2026-10-23T21:07:36+00:00,false,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,3.25,69.27,3.63,11.69,5313352,1.36,8695088,713828,
+2026-10-23,2026-10-23T21:07:36+00:00,false,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,56.15,-16.37,61.8,10.06,172348,0.22,1674535621,28897167,
+2026-10-23,2026-10-23T21:07:36+00:00,false,NYSE:OIS,OIS,"Oil States International, Inc.",Industrial Services,Oilfield Services/Equipment,8.6,6.97,7.889,-8.27,124127,0.17,518774500,55380188,
