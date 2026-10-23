@@ -27,3 +27,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-23,2026-10-23T21:37:33+00:00,false,NASDAQ:PHAT,PHAT,"Phathom Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,5.74,-18.12,5.97,4.01,191157,0.14,464371410,51228957,
 2026-10-23,2026-10-23T21:37:33+00:00,false,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,56.15,-16.37,61.24,9.07,174770,0.23,1674535621,28897167,
 2026-10-23,2026-10-23T21:37:33+00:00,false,NYSE:OIS,OIS,"Oil States International, Inc.",Industrial Services,Oilfield Services/Equipment,8.6,6.97,7.889,-8.27,124127,0.17,518774500,55380188,
+2026-10-23,2026-10-23T21:52:42+00:00,false,NASDAQ:AIOK,AIOK,AI OKTO Corp.,Transportation,Marine Shipping,12.02,182.82,9.3207,-22.46,1426743,,,,
+2026-10-23,2026-10-23T21:52:42+00:00,false,NASDAQ:MACI,MACI,Melar Acquisition Corp. I Class A,Finance,Financial Conglomerates,11.0,-3.21,17.92,62.91,116273,5.34,105000989,3923924,
+2026-10-23,2026-10-23T21:52:42+00:00,false,NASDAQ:PHAT,PHAT,"Phathom Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,5.74,-18.12,5.97,4.01,191157,0.14,464371410,51228957,
+2026-10-23,2026-10-23T21:52:42+00:00,false,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,56.15,-16.37,62.0099,10.44,178455,0.23,1674535621,28897167,
+2026-10-23,2026-10-23T21:52:42+00:00,false,NYSE:OIS,OIS,"Oil States International, Inc.",Industrial Services,Oilfield Services/Equipment,8.6,6.97,7.889,-8.27,124127,0.17,518774500,55380188,
