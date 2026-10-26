@@ -66,6 +66,7 @@ def front_config():
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "adr": d["adr"],
+        "phases": d["phases"],
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
                     "short_stale_days": load("short")["stale_days"]},
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
@@ -224,6 +225,30 @@ def check():
         wf = s_.get("separate")
         if wf and (not (WORKFLOWS / wf).exists() or s_["script"] not in (WORKFLOWS / wf).read_text()):
             errors.append(f"sources.{s_['name']} : workflow {wf} introuvable ou ne lance pas {s_['script']}")
+    ph = load("display").get("phases", {})
+    PH_KEYS = ["contraction", "wash", "recovery", "exp_c", "exp_b", "exp_a", "hot", "overheat", "shock"]
+    num = lambda k: isinstance(ph.get(k), (int, float)) and not isinstance(ph.get(k), bool)
+    pos_int = lambda k: isinstance(ph.get(k), int) and not isinstance(ph.get(k), bool) and ph[k] > 0
+    keys = [x.get("key") for x in ph.get("phase", [])]
+    if not (all(num(k) for k in ("choc_pct", "ext_on_r5", "ext_on_t2108", "ext_off_r5", "ext_off_t2108", "hot_r5", "hot_t2108",
+                                  "grade_a_rm", "grade_b_rm", "wash_rm", "rep_r5", "pre_r5"))
+            and all(pos_int(k) for k in ("choc_sessions", "mq_lag", "confirm", "rep_window", "pullback_lag", "record_sessions", "alert_gap"))
+            and 0 < ph["choc_pct"] < 1 and ph["ext_off_r5"] <= ph["ext_on_r5"] <= ph["hot_r5"]
+            and ph["ext_off_t2108"] <= ph["ext_on_t2108"] <= ph["hot_t2108"] and 0 < ph["grade_b_rm"] <= ph["grade_a_rm"]
+            and isinstance(ph.get("pullback_r5"), list) and len(ph["pullback_r5"]) == 2 and ph["pullback_r5"][0] < ph["pullback_r5"][1]
+            and sorted(keys) == sorted(PH_KEYS)
+            and set(ph.get("pre_phases", [])) <= set(PH_KEYS) and set(ph.get("pullback_phases", [])) <= set(PH_KEYS)
+            and all(re.fullmatch(r"#[0-9a-fA-F]{6}", x.get("color", "")) and x.get("name") and x.get("setups")
+                    and isinstance(x.get("detail"), str) and x.get("rule") for x in ph["phase"])
+            and ph.get("setups_label")
+            and isinstance(ph.get("mq_lag_valid"), list) and len(ph["mq_lag_valid"]) == 2
+            and ph["mq_lag_valid"][0] <= ph["mq_lag"] <= ph["mq_lag_valid"][1]
+            and sorted(x.get("key") for x in ph.get("signal", [])) == sorted(["pre", "pullback", "sell_high", "sell_low", "rm_high"])
+            and all(x.get("name") and x.get("tip") for x in ph["signal"])):
+        errors.append("display.phases : seuils numériques (ext_off ≤ ext_on ≤ hot, 0 < grade_b_rm ≤ grade_a_rm, 0 < choc_pct < 1), "
+                      "séances entières > 0, mq_lag dans mq_lag_valid = [min, max] (réglage fragile), pullback_r5 = [bas, haut], une [[phases.phase]] par phase (" + ", ".join(PH_KEYS) +
+                      ") avec name, color #rrggbb, setups, detail (texte, vide permis), rule, setups_label, et une [[phases.signal]] par signal (pre, pullback, sell_high, "
+                      "sell_low, rm_high) avec name et tip attendus")
     site = load("storage").get("site", {})
     listed = set(site.get("required", [])) | set(site.get("optional", [])) | {d + "/" for d in site.get("dirs", [])}
     for s_ in steps():                           # tout fichier produit par une étape est publié

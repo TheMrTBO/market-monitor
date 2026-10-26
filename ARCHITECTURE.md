@@ -35,7 +35,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 21 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 22 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -69,7 +69,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
-| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), carte de rotation (`[sectors.rrg]` : traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`), carte de rotation (`[sectors.rrg]` : traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]`), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique), `[generated]` (publiés sans être commités : fichiers, dossiers, URL du site, préfixe du cache ; `--check` vérifie `.gitignore`, `[site]` et les mêmes chemins de cache dans les trois workflows) | `mm/store/`, `build_site.py`, `generated.py` |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
@@ -134,13 +134,14 @@ Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exceptio
 l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers (short interest Yahoo par lots, accord de l'utilisateur) ;
 le 20/10/2026 : breadth affiché dès que possible depuis nos sources + T2108 TradingView (voir §9, « Sources du breadth »), puis cases en
 tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-market) ; le 21/10/2026 : tableau « Depuis la veille »
-au-dessus de la carte de rotation (même vue TradingView). Détail : proposition privée de l'utilisateur
+au-dessus de la carte de rotation (même vue TradingView) ; le 26/10/2026 : phases de marché en tête de l'onglet MM (bandeau,
+frise, voir §9). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
 - Bornes de valeurs des contrôles (`validate_data.py` : ex. 0-5 000 titres, VIX 5-150) → déclarées par source en phase 2.
 - Liste des fichiers chargés au démarrage par le front (chargeur en tête de `stockbee_dashboard.html`) → phase 3c (`_site` : déjà centralisé, `config/storage.toml [site]`).
-- Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente) dans le front → phase 4.
+- Constantes d'interface du graphique (marges, préréglages 3M…5A, longueur de pente, hauteur de la frise des phases `PH_STRIP`) dans le front → phase 4.
 - Colonnes de la vue TradingView par niveau (`TV_LEVEL`), choix de « Classer par » par niveau (`SORT_OPTS`), largeurs des colonnes (`#secTable`), taille de la miniature (60 × 18)
   → phase 4. `display.toml [postmarket.sector_fr]` sert aussi à l'onglet Secteurs (nom historique, à renommer en phase 4).
 - Défilement : `scrollWithin` (conteneur seul) remplace `scrollIntoView` dans Secteurs, qui faisait descendre la page à chaque
@@ -150,6 +151,31 @@ au-dessus de la carte de rotation (même vue TradingView). Détail : proposition
 - `fetch_data.py` (univers Polygon, âge max du cache), `breadth_own.py` (formules TC2000 : ne pas modifier sans accord).
 
 ## 9. Pièges principaux (détail : `RECAP_PROJET.md` §9)
+- **Phases de marché** (onglet MM, spec du 26/10/2026, `config/display.toml [phases]`) : une phase par séance **publiée par
+  Stockbee** (`STOCKBEE.rows`, jamais le complément maison : seuils réglés sur l'univers Worden, pas d'univers dans le calcul
+  maison), calculée une fois au chargement (`PHASES`). Priorité : choc > surchauffe > expansion chaude > expansion A / B / C >
+  reprise > lessivage > contraction ; état de fond expansion / contraction après `confirm` clôtures de mq de l'autre côté de 1.
+  Surchauffe **sans hystérésis** (décision du 26/10/2026 : mesure faite, gardée pour plus tard). **Reprise sur le ratio 5 j**
+  ≥ `rep_r5` dans les `rep_window` séances après un lessivage (note du 26/10/2026 : le ratio 10 j de Stockbee n'avait jamais été
+  testé ; 21 épisodes au lieu de 5 depuis 2019, reprise ≈ 9,5 % des séances au lieu de 2 %). **mq sur 20 séances = réglage
+  fragile** (choisi sur le journal, valable entre 15 et 20 séances : `mq_lag_valid`, vérifié par `--check`, écrit dans la bulle) ;
+  suivi vers le 26/04/2027 sur les seuls trades nouveaux (journal hors dépôt). **Bandeau** au-dessus des
+  cases (`renderPhase`, suit « Stats du » et le survol comme les cases), trois colonnes : phase (séances dans la phase,
+  précédente, état de fond) · jauge de bascule au milieu (momentum trimestre mq, 0 à 2, trait = 1, compteur de confirmation) ·
+  **setups recommandés** : l'essentiel court (`setups` : EP et / ou breakouts, en-tête `setups_label` « EP = Episodic Pivot »),
+  la précision dessous (`detail`), puis le signal du jour ou le dernier signal (premier jour d'une série). Toujours en positif,
+  sigles en clair ; jamais d'interdit, de nombre de trades ni de taille de position (préférences de l'utilisateur). Bulle ⓘ
+  (`TIPS.phase` : **pourquoi cette phase**, chaque étape de l'arbre avec les chiffres de la séance (`phWhy`), puis les règles
+  des neuf phases dans l'ordre du calcul (`phRules`)) ; bulles dédiées : état de fond et momentum trimestre (`phfond`), setups de
+  toutes les phases et sigles (`phsetups`), signaux (`phsig`), règles (`phrules`, légendes des deux frises). Le ratio mois n'y
+  figure pas (case juste en dessous). Séance
+  pas encore publiée par Stockbee : phase de sa dernière séance, avec la mention. Mobile (≤ 640 px) : compact (phase et setups),
+  un toucher déplie le reste, mémorisé (`mm.phase`). **Frise** au pied du graphique des prix (`drawPhaseStrip`, couleurs de la config) +
+  légende `#phLeg` ; phase de la séance dans la légende du graphique (`.phx`). **Onglet SA** : même bande au pied de tous les graphiques (QQQ, IWM,
+  BTC, T2108, VIX, base 100 ; week-end de BTC = phase de la séance précédente, `phaseKeyAt`), phase dans chaque infobulle
+  (`phTipLine`), légende `#cmpPhLeg` (repliée avec la légende sur mobile). **Onglet Secteurs** : la même bande est fusionnée
+  dans la frise temporelle (sous la courbe des industries TI65 > 1, phase dans le libellé de la séance, légende `#secPhLeg`). Test : `tests/node/22_phases_marche.js` (17 dates
+  de la spec, seuils lus dans la config, séance non publiée, frise, mobile).
 - **Sources du breadth** (décision du 20/10/2026 : « le plus autonome possible, vérifié avec Stockbee ») : chaque case du MM affiche
   le chiffre dès qu'il existe, avec sa **source** en étiquette (Stockbee / maison / TradingView). Priorité : Stockbee (dès sa
   publication, il remplace nos chiffres) > calcul maison Polygon (`breadth_data.js`, toutes les colonnes) > relevé TradingView
@@ -194,7 +220,8 @@ au-dessus de la carte de rotation (même vue TradingView). Détail : proposition
   post-market, actions de Secteurs, onglet Tickers (`copyTickers`). Ratio 10 j : plus affiché nulle part (données gardées).
 - **Ordre de l'onglet Secteurs (TradingView)**, une seule page (choix de l'utilisateur, 20/10/2026 : pas de sous-vues) : cases,
   frise, note, flux par secteur (au toucher de la case Rotation), carte de rotation (toujours ouverte), classement.
-- **Frise temporelle** (Secteurs / TradingView, sous les cases) : Industries TI65 > 1 sur tout l'historique ; survol souris ou
+- **Frise temporelle** (Secteurs / TradingView, sous les cases) : Industries TI65 > 1 sur tout l'historique, bande des phases de
+  marché dessous (fusion du 26/10/2026) ; survol souris ou
   glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la
   séance devient celle de « Stats du » (`showDate`, le classement suit). `touch-action: pan-y` : la page défile toujours à la verticale.
 - **Carte de rotation** (type RRG, Secteurs / TradingView) : chaque secteur (ou industrie du secteur filtré) placé par sa force

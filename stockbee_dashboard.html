@@ -165,7 +165,7 @@
   .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
   .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
   /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
-  .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 56px; display: block; cursor: ew-resize; touch-action: pan-y; }
+  .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 66px; display: block; cursor: ew-resize; touch-action: pan-y; }
   /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
   /* carte de rotation toujours ouverte (une seule page, demande du 20/10/2026) : plus de repli */
   #secRrg .rrghead { cursor: default; } #secRrg .rrghead .car { display: none; }   /* la carte est la vue : plus de repli */
@@ -467,6 +467,41 @@
   .wait { color: var(--warn, #d9a400); font-style: italic; }
   .kpinote { color: var(--faint); font-size: 11px; margin: 0 0 10px; height: 18px; line-height: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kpis.past .kpi { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); }
+  /* bandeau des phases de marché (config/display.toml [phases]) : trois colonnes — phase et état de fond · jauge de bascule
+     (momentum trimestre) · setups recommandés (l'essentiel en gras, la précision dessous) et signal */
+  .phbar { --phc: var(--faint); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1.2fr); gap: 18px; align-items: start;
+    background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--phc); border-radius: var(--r); padding: 10px 14px; margin: 10px 0 0; font-size: 12.5px; }
+  .phbar[hidden] { display: none; }
+  .phbar.past { border-color: color-mix(in srgb, var(--up) 55%, var(--border)); border-left-color: var(--phc); }   /* séance choisie ou survolée, comme les cases */
+  .phlbl { color: var(--muted); font-size: 11.5px; margin-bottom: 3px; } .phlbl .tipbtn { vertical-align: -4px; margin-left: 2px; }
+  .phname { font-size: 20px; font-weight: 650; display: flex; align-items: center; gap: 8px; line-height: 1.2; flex-wrap: wrap; }
+  .phdot { width: 10px; height: 10px; border-radius: 50%; background: var(--phc); flex: none; display: inline-block; }
+  .phrun { font-size: 11.5px; font-weight: 500; color: var(--muted); border: 1px solid var(--phc); border-radius: 10px; padding: 0 7px; white-space: nowrap; }
+  .phsub { color: var(--muted); margin-top: 3px; } .phsub b { color: var(--text); font-weight: 600; }
+  .phgauge { position: relative; height: 8px; background: var(--panel2); border-radius: 4px; margin: 8px 0 4px; }
+  .phgauge .fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--phc); opacity: .65; border-radius: 4px; }
+  .phgauge .mid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--text); }
+  .phdots i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--muted); margin-right: 3px; }
+  .phdots i.on { background: var(--text); border-color: var(--text); }
+  .phset { font-size: 18px; font-weight: 650; line-height: 1.2; }
+  .phsig { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--upbg); color: var(--up); margin: 4px 4px 0 0; }
+  .phcar { display: none; }
+  .phtip .phdot, .phwhy .phdot, .phtree .phdot, #pop .phdot { width: 9px; height: 9px; margin-right: 5px; vertical-align: 0; }
+  ol.phwhy, ol.phtree { margin: 4px 0 8px; padding-left: 20px; } ol.phwhy { list-style: none; padding-left: 2px; } .phwhy li, .phtree li { margin: 3px 0; }
+  .phwhy li > span:first-child { display: inline-block; width: 14px; font-weight: 700; } .phwhy li.y > span:first-child { color: var(--ok); } .phwhy li.n { color: var(--muted); }
+  .phleg .tipbtn { width: 16px; height: 16px; vertical-align: -4px; }
+  .phleg i { border-radius: 2px; }
+  .ohlc .phx { white-space: nowrap; }
+  @media (max-width: 1100px) { .phbar { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .phbar .phset-c { grid-column: 1 / -1; } }
+  /* mobile : bandeau compact (phase et setups) ; un toucher déplie l'état de fond, la jauge, la précision et le signal (mémorisé : mm.phase) */
+  @media (max-width: 640px) {
+    .phbar { grid-template-columns: minmax(0, 1fr); gap: 8px; margin: 8px 12px 0; padding: 9px 12px; cursor: pointer; }
+    .phbar .phset-c { grid-column: auto; }
+    .phbar .phname { font-size: 17px; } .phbar .phset { font-size: 16px; }
+    .phcar { display: inline; margin-left: auto; color: var(--muted); font-size: 13px; font-weight: 500; }
+    .phbar:not(.open) .phmore { display: none; }
+    .phbar.open .phcar { transform: rotate(180deg); }
+  }
   .rec { font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 999px; margin-left: 6px; vertical-align: 4px; letter-spacing: 0; white-space: nowrap; display: inline-block; }
   .rec.ru { background: var(--upbg); color: var(--up); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--up) 45%, transparent); }
   .rec.rd { background: var(--downbg); color: var(--down); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--down) 45%, transparent); }
@@ -653,7 +688,7 @@
     .rtab .rtsec, .rtab td.rtn small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* une ligne chacun : lignes moins hautes */ .rtab th.rtn { width: auto; } .rtab th:not(.rtn) { width: 56px; } .rtab th.rtb { width: 76px; }
     .rtab th { padding: 3px 2px; } .rtmob { display: inline; }
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
-    .secfrise { padding: 0 12px; } #friseCv { height: 52px; }
+    .secfrise { padding: 0 12px; } #friseCv { height: 62px; }
     .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -687,7 +722,7 @@
     .cmpgrid canvas { height: 34vh; min-height: 220px; } #cmpB100 canvas { height: 42vh; min-height: 260px; }
     .cmpbottom canvas { height: 22vh; min-height: 160px; }
     .legbtn { display: inline-block; padding: 5px 10px; }
-    #cmpHead:not(.legopen) #cmpTrend { display: none !important; }
+    #cmpHead:not(.legopen) #cmpTrend, #cmpHead:not(.legopen) #cmpPhLeg { display: none !important; }
     .mini-title { flex-wrap: wrap; row-gap: 0; } .mini-title .px { font-size: 12px; }
   }
 
@@ -759,7 +794,7 @@
   <div id="view-sec" hidden>
     <div id="dslot-sec"></div>
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
-    <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas></div>
+    <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
     <div class="seckpinote" id="secKpiNote" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secrrg" id="secRrg" hidden>
@@ -925,6 +960,7 @@
         <button class="legbtn" id="cmpLegBtn" aria-expanded="false">Légende ▾</button>
       </div>
       <div class="legend" id="cmpTrend"></div>
+      <div class="legend phleg" id="cmpPhLeg" hidden></div>
     </div>
     <div class="cmpgrid" id="cmpGrid"></div>
     <div class="card" id="cmpB100" hidden>
@@ -944,6 +980,7 @@
     <button id="dToday" title="Revenir à la dernière séance">Aujourd'hui</button>
     <span class="dinfo" id="dInfo"></span>
   </div></div>
+  <section class="phbar" id="phaseBar" aria-label="Phase de marché" hidden></section>
   <section class="kpis" id="kpis" aria-label="État du marché"></section>
   <p class="kpinote" id="kpinote"></p>
   <div class="card">
@@ -956,6 +993,7 @@
     <div class="ovl"><span class="ohlc" id="ohlc"></span><span class="mabar" id="maBar"></span></div>
     <div class="menu" id="menu" hidden></div>
     <canvas id="price"></canvas>
+    <div class="legend phleg" id="phLeg" hidden></div>
   </div>
   <div id="hgroup">
   <div class="card hcard" data-card="c4">
@@ -1149,6 +1187,90 @@
   const SRC_TXT = { sb: 'Stockbee (Worden)', own: 'calcul maison (clôtures Polygon / Massive)', tv: `relevé TradingView (screener : clôtures, volumes, SMA ${CFG.breadth.tv_sma})` };
   const T2_ALERT = new Set(CFG.breadth.t2108_alert_sources);                    // sources dont un T2108 extrême déclenche l'alerte
   const TV_FIRST = TVB.size ? [...TVB.keys()].sort()[0] : null;                 // premier relevé TradingView (la série démarre là)
+
+  // ------------------------------------------------------------------ phases de marché (config/display.toml [phases], spec du 26/10/2026)
+  // Une phase par séance publiée par Stockbee (STOCKBEE.rows, sans le complément maison : seuils réglés sur l'univers Worden, et
+  // le calcul maison n'a pas d'univers pour le choc). Elle se lit à la clôture et vaut pour la séance suivante.
+  // Priorité : choc > surchauffe > expansion chaude > expansion A / B / C > reprise > lessivage > contraction.
+  const PHC = CFG.phases, PHK = Object.fromEntries(PHC.phase.map(p => [p.key, p]));
+  const PHASES = (() => {
+    const P = PHC, need = ['down4', 'universe', 'up25q', 'up25m', 'down25m', 'ratio5', 't2108'];
+    const rows = STOCKBEE.rows.filter(r => need.every(k => r[COL[k]] != null)).sort((a, b) => a[COL.date] < b[COL.date] ? -1 : 1);
+    const v = (r, k) => +r[COL[k]], out = [];
+    let base = 'contraction', up = 0, dn = 0, ext = false, lastChoc = -1e9, lastWash = -1e9, rep = false;
+    rows.forEach((r, i) => {
+      if (v(r, 'down4') / v(r, 'universe') >= P.choc_pct) lastChoc = i;
+      let mq = null;                                            // indéfini sur les mq_lag premières séances (amorçage)
+      if (i >= P.mq_lag && v(rows[i - P.mq_lag], 'up25q') > 0) {
+        mq = v(r, 'up25q') / v(rows[i - P.mq_lag], 'up25q'); up = mq > 1 ? up + 1 : 0; dn = mq <= 1 ? dn + 1 : 0;
+      }
+      if (up >= P.confirm) base = 'expansion'; else if (dn >= P.confirm) base = 'contraction';
+      const r5 = v(r, 'ratio5'), t21 = v(r, 't2108');
+      if (r5 > P.ext_on_r5 || t21 > P.ext_on_t2108) ext = true;                 // marché étendu, avec hystérésis
+      else if (r5 < P.ext_off_r5 && t21 < P.ext_off_t2108) ext = false;
+      const hot = r5 > P.hot_r5 || t21 > P.hot_t2108;                            // surchauffe : sans hystérésis (décision du 26/10/2026)
+      const rm = v(r, 'down25m') > 0 ? v(r, 'up25m') / v(r, 'down25m') : Infinity, wash = rm < P.wash_rm;
+      if (wash) lastWash = i;
+      if (v(r, 'ratio5') >= P.rep_r5 && i - lastWash <= P.rep_window) rep = true;      // ratio 5 j (note du 26/10/2026)
+      const choc = i - lastChoc < P.choc_sessions;
+      if (base === 'expansion' || choc) rep = false;
+      const k = choc ? 'shock' : base === 'expansion' ? (ext ? (hot ? 'overheat' : 'hot') : rm >= P.grade_a_rm ? 'exp_a' : rm >= P.grade_b_rm ? 'exp_b' : 'exp_c')
+        : rep ? 'recovery' : wash ? 'wash' : 'contraction';
+      // valeurs gardées pour la bulle « pourquoi cette phase » (chaque étape de l'arbre, avec les chiffres de la séance)
+      const d4p = v(r, 'down4') / v(r, 'universe'), win = out.slice(Math.max(0, i - P.choc_sessions + 1)).map(x => x.d4p).concat(d4p);
+      out.push({ d: r[COL.date], k, base, mq, up, dn, rm, r5, t21, ext, hot, wash, rep, d4p, d4max: Math.max(...win), sinceWash: i - lastWash,
+        sell: v(r, 'down25m') / v(r, 'universe'), sig: [] });
+    });
+    // signaux complémentaires : jours où la condition est vraie, puis une alerte au premier jour de chaque série (une série
+    // continue tant que la condition revient dans les alert_gap séances qui suivent son dernier jour)
+    const raw = Object.fromEntries(PHC.signal.map(x => [x.key, []])), pre = new Set(P.pre_phases), pb = new Set(P.pullback_phases), R = P.record_sessions;
+    const [lo, hi] = P.pullback_r5;
+    out.forEach((o, i) => {
+      if (i >= 1 && pre.has(o.k) && o.r5 > P.pre_r5 && out[i - 1].r5 <= P.pre_r5) raw.pre.push(i);
+      if (i >= P.pullback_lag && pb.has(o.k) && o.r5 >= lo && o.r5 <= hi && o.r5 < out[i - P.pullback_lag].r5) raw.pullback.push(i);
+      if (i < R) return;
+      const w = out.slice(i - R, i);
+      if (o.sell > Math.max(...w.map(x => x.sell))) raw.sell_high.push(i);
+      if (o.sell < Math.min(...w.map(x => x.sell))) raw.sell_low.push(i);
+      if (o.rm > Math.max(...w.map(x => x.rm))) raw.rm_high.push(i);
+    });
+    Object.entries(raw).forEach(([key, a]) => { let last = -1e9; a.forEach(i => { if (i - last > P.alert_gap) out[i].sig.push(key); last = i; }); });
+    return out;
+  })();
+  const PHI = new Map(PHASES.map((o, i) => [o.d, i]));
+  const phaseIdx = d => { if (!d) return -1; if (PHI.has(d)) return PHI.get(d); let i = PHASES.length - 1; while (i >= 0 && PHASES[i].d > d) i--; return i; };
+  const phRun = (i, f) => { let j = i; while (j > 0 && PHASES[j - 1][f] === PHASES[i][f]) j--; return { n: i - j + 1, from: j }; };
+  // libellés de config : {clé} remplacé par la valeur de [phases] (virgule décimale) ; choc_pct_100, pullback_lo / _hi calculés
+  const phFill = t => t.replace(/\{(\w+)\}/g, (m, k) => { const x = k === 'choc_pct_100' ? Math.round(PHC.choc_pct * 1000) / 10 : k === 'pullback_lo' ? PHC.pullback_r5[0] : k === 'pullback_hi' ? PHC.pullback_r5[1] : PHC[k];
+    return x == null ? m : String(x).replace('.', ','); });
+  // bulles des phases : arbre de décision (ordre de priorité du calcul) et « pourquoi cette phase », étape par étape
+  const PH_ORDER = ['shock', 'overheat', 'hot', 'exp_a', 'exp_b', 'exp_c', 'recovery', 'wash', 'contraction'];
+  const phDec = x => String(x).replace('.', ','), phR = x => isFinite(x) ? nf(x, 2) : '∞';
+  const phDot = k => `<span class="phdot" style="background:${PHK[k].color}"></span>`;
+  const phBase = () => `<b>État de fond</b> : expansion après ${PHC.confirm} clôtures de suite avec un momentum trimestre au-dessus de 1, contraction après ${PHC.confirm} clôtures de suite à 1 ou moins, sinon inchangé.`;
+  const phExt = () => `<b>Marché étendu</b> (le marché a monté vite à court terme) : allumé quand le ratio 5 jours dépasse ${phDec(PHC.ext_on_r5)} ou le T2108 ${PHC.ext_on_t2108} % ; éteint seulement quand le ratio 5 jours passe sous ${phDec(PHC.ext_off_r5)} <b>et</b> le T2108 sous ${PHC.ext_off_t2108} % ; inchangé entre les deux.`;
+  const phRules = () => `<p>Chaque soir, à la clôture, les phases sont testées <b>dans cet ordre</b> ; la première condition vraie donne la phase, qui vaut pour la séance suivante.</p>
+    <ol class="phtree">${PH_ORDER.map(k => `<li>${phDot(k)}<b>${PHK[k].name}</b> : ${phFill(PHK[k].rule)}</li>`).join('')}</ol>
+    <p>${phBase()}</p><p>${phExt()}</p><p class="src">Calcul sur les chiffres Stockbee (univers Worden). Seuils : config/display.toml [phases].</p>`;
+  function phWhy(o) {
+    const P = PHC, st = [], yes = (b, t) => `<li class="${b ? 'y' : 'n'}"><span>${b ? '✓' : '✗'}</span> ${t}</li>`, info = t => `<li class="i"><span>•</span> ${t}</li>`;
+    const choc = o.k === 'shock', exp = o.base === 'expansion';
+    st.push(yes(choc, `<b>Choc</b> ? plus forte part de l'univers en baisse de 4 % sur les ${P.choc_sessions} dernières séances : ${nf(100 * o.d4max, 1)} % (seuil ${phFill('{choc_pct_100}')} %)`));
+    if (!choc) {
+      st.push(info(`<b>État de fond</b> : ${o.base} · momentum trimestre ${o.mq == null ? '—' : nf(o.mq, 2)} (seuil 1), ${exp ? o.dn : o.up}/${P.confirm} clôtures ${exp ? 'à 1 ou moins' : 'au-dessus de 1'} pour basculer`));
+      if (exp) {
+        st.push(yes(o.ext, `<b>Marché étendu</b> ? ratio 5 jours ${phR(o.r5)}, T2108 ${nf(o.t21, 1)} % (allumé au-dessus de ${phDec(P.ext_on_r5)} ou ${P.ext_on_t2108} %, éteint sous ${phDec(P.ext_off_r5)} et ${P.ext_off_t2108} %)`));
+        if (o.ext) st.push(yes(o.hot, `<b>Surchauffe</b> ? ratio 5 jours au-dessus de ${phDec(P.hot_r5)} ou T2108 au-dessus de ${P.hot_t2108} %${o.hot ? '' : ' : non, donc expansion chaude'}`));
+        else st.push(info(`<b>Note A / B / C</b> : ratio mois ${phR(o.rm)} (A à ${phDec(P.grade_a_rm)} ou plus, B de ${phDec(P.grade_b_rm)} à ${phDec(P.grade_a_rm)}, C en dessous de ${phDec(P.grade_b_rm)})`));
+      } else {
+        const w = o.sinceWash > 1e6 ? 'aucun lessivage' : o.sinceWash === 0 ? "lessivage aujourd'hui" : `dernier lessivage il y a ${o.sinceWash} séance${o.sinceWash > 1 ? 's' : ''}`;
+        st.push(yes(o.rep, `<b>Reprise</b> ? ratio 5 jours ${phR(o.r5)} (seuil ${phDec(P.rep_r5)}), ${w} (fenêtre de ${P.rep_window} séances ; une reprise déclenchée dure jusqu'à l'expansion ou un choc)`));
+        if (!o.rep) st.push(yes(o.wash, `<b>Lessivage</b> ? ratio mois ${phR(o.rm)} (sous ${phDec(P.wash_rm)})`));
+      }
+    }
+    return `<p><b>Pourquoi ${PHK[o.k].name} à la clôture du ${fmtDate(o.d, { weekday: 'short', day: 'numeric', month: 'short' })}</b> (étapes dans l'ordre du calcul) :</p>
+      <ol class="phwhy">${st.join('')}</ol><p>${phDot(o.k)}<b>${PHK[o.k].name}</b> : ${phFill(PHK[o.k].rule)}.</p>`;
+  }
   // Contrôle croisé avec Stockbee sur les dernières séances communes (config/display.toml compare_sessions) : corrélation,
   // écart moyen (biais) et écart absolu moyen, par indicateur ; calculé une fois, à la demande.
   let _agree = null;
@@ -1641,6 +1763,7 @@
     });
     g.restore();
     if (cv === cvPrice) drawRecLabels(g, vis, X, Y);
+    if (cv === cvPrice) drawPhaseStrip(g, T, X, bw, PAD.t + ph - PH_STRIP, PH_STRIP);
     // dernier cours : ligne pointillée de l'axe (à gauche) jusqu'à la dernière bougie, étiquette colorée sur l'axe
     const lastB = [...bars.values()].pop();
     if (lastB && Y(lastB.c) >= PAD.t && Y(lastB.c) <= PAD.t + ph) {
@@ -1663,6 +1786,18 @@
     g.beginPath(); g.moveTo(tx + 6, ty); g.lineTo(tx - 2, ty - 6); g.lineTo(tx - 2, ty + 6); g.closePath(); g.fill();
     cursor(c);
   }
+
+  // frise des phases de marché au pied de la zone d'un graphique (onglets MM et SA) : une bande par barre, couleur de config ;
+  // ds = date de chaque barre ; un jour sans séance Stockbee (week-end de BTC) prend la phase de la séance précédente
+  const PH_STRIP = 8;
+  const phaseKeyAt = d => { let k = PHI.get(d); if (k == null && PHASES.length && d > PHASES[0].d && d < PHASES[PHASES.length - 1].d) k = phaseIdx(d); return k == null ? null : PHASES[k].k; };
+  function drawPhaseStrip(g, ds, X, bw, y, h) {
+    if (!PHASES.length) return;
+    g.save();
+    ds.forEach((d, i) => { const k = phaseKeyAt(d); if (!k) return; g.fillStyle = PHK[k].color; g.fillRect(Math.floor(X(i) - bw / 2), y, Math.ceil(bw) + 0.5, h); });
+    g.restore();
+  }
+  const phTipLine = d => { const k = phaseKeyAt(d); return k ? `<div style="margin-top:2px"><i class="sw" style="background:${PHK[k].color};margin-right:6px"></i>Phase : ${PHK[k].name}</div>` : ''; };
 
   // fond de tendance : une zone par série de séances au même état (des rectangles translucides accolés créaient des stries)
   function trendBands(g, vis, X, bw, top, ph) {
@@ -2617,23 +2752,29 @@
     const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
     const Ds = IND.dates, i0 = K.ind.findIndex(v => v != null); if (i0 < 0 || Ds.length - i0 < 2) { friseG = null; return; }
-    const P = 4, B = 13, n = Ds.length - i0, X = i => P + (i - i0) / (n - 1) * (W - 2 * P), Y = v => P + (1 - v / 100) * (H - P - B);
+    // bande des phases de marché (fusion des deux frises, demande du 26/10/2026) : PB px sous la courbe, au-dessus des dates
+    const PB = PHASES.length ? 7 : 0, P = 4, B = 13, yb = H - B + 2 - (PB ? PB + 2 : 0), n = Ds.length - i0;
+    const X = i => P + (i - i0) / (n - 1) * (W - 2 * P), Y = v => P + (1 - v / 100) * (yb - P);
     friseG = { i0, n, P, W };
-    g.fillStyle = css('--panel2'); g.fillRect(0, 0, W, H - B + 2);
+    g.fillStyle = css('--panel2'); g.fillRect(0, 0, W, yb);
     g.strokeStyle = css('--faint'); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(P, Y(50)); g.lineTo(W - P, Y(50)); g.stroke(); g.setLineDash([]);
     // repères de mois (fins traits verticaux) pour se situer dans le temps
     g.strokeStyle = css('--border'); g.lineWidth = 1;
-    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, P); g.lineTo(Math.round(X(i)) + .5, H - B + 2); g.stroke(); }
+    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, P); g.lineTo(Math.round(X(i)) + .5, yb); g.stroke(); }
     const pts = []; for (let i = i0; i < Ds.length; i++) { const v = K.ind[i] && K.ind[i].pct; if (v != null) pts.push([X(i), Y(v)]); }
     g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b));
-    g.lineTo(pts[pts.length - 1][0], H - B + 2); g.lineTo(pts[0][0], H - B + 2); g.closePath(); g.fillStyle = css('--upbg'); g.fill();
+    g.lineTo(pts[pts.length - 1][0], yb); g.lineTo(pts[0][0], yb); g.closePath(); g.fillStyle = css('--upbg'); g.fill();
     g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b)); g.strokeStyle = css('--text'); g.globalAlpha = .8; g.lineWidth = 1.4; g.stroke(); g.globalAlpha = 1;
+    if (PB) {                                                   // une bande par séance publiée par Stockbee, couleur de la phase
+      const bw = (W - 2 * P) / Math.max(1, n - 1);
+      for (let i = i0; i < Ds.length; i++) { const k = PHI.get(Ds[i]); if (k == null) continue; g.fillStyle = PHK[PHASES[k].k].color; g.fillRect(Math.floor(X(i) - bw / 2), yb + 2, Math.ceil(bw) + 0.5, PB); }
+    }
     // repère de la séance affichée (survol : couleur du réticule ; sinon : séance de « Stats du »)
     const v = K.ind[e] && K.ind[e].pct, x = X(Math.max(e, i0));
-    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, P); g.lineTo(x, H - B + 2); g.stroke();
+    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, P); g.lineTo(x, yb + 2 + PB); g.stroke();
     if (v != null) { g.fillStyle = css(hovering ? '--ccross' : '--up'); g.beginPath(); g.arc(x, Y(v), 3, 0, 2 * Math.PI); g.fill(); }
     g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.fillStyle = css('--faint'); g.textBaseline = 'bottom';
-    const lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${v != null ? ' · ' + nf(v, 0) + ' % des industries > 1' : ''}`;
+    const pk = PHI.get(Ds[e]), lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${v != null ? ' · ' + nf(v, 0) + ' % des industries > 1' : ''}${pk != null ? ' · ' + PHK[PHASES[pk].k].name : ''}`;
     const lw = g.measureText(lbl).width, lx = Math.max(P + lw / 2, Math.min(W - P - lw / 2, x));   // libellé de la séance, dans la frise
     const d0 = fmtDate(Ds[i0], { day: 'numeric', month: 'short' }), d1 = fmtDate(Ds[Ds.length - 1], { day: 'numeric', month: 'short' });
     if (lx - lw / 2 > P + g.measureText(d0).width + 8) { g.textAlign = 'left'; g.fillText(d0, P, H); }          // dates des bouts : seulement
@@ -4064,6 +4205,7 @@
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
     }
     drawRecLabels(g, vis, X, Y);                                     // records 3 mois ±4 %, comme le graphique de MM
+    drawPhaseStrip(g, vis.map(b => b.d), X, bw, MPAD.t + ph - PH_STRIP, PH_STRIP);   // frise des phases, comme l'onglet MM
     const all = barsFor(m.name), lastB = all[all.length - 1], li = vis.indexOf(lastB);   // dernier cours : pointillé + étiquette sur l'axe
     if (lastB && Y(lastB.c) >= MPAD.t && Y(lastB.c) <= MPAD.t + ph) {
       const y = Math.round(Y(lastB.c)) + 0.5, col = css(lastB.c >= lastB.o ? '--cup' : '--cdown');
@@ -4165,6 +4307,7 @@
       g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
       g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
     });
+    drawPhaseStrip(g, vis.map(b => b.d), X, bw, MPAD.t + ph - PH_STRIP, PH_STRIP);   // frise des phases
     if (hi_ >= 0) {
       g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
       g.beginPath(); g.moveTo(Math.round(X(hi_)) + 0.5, MPAD.t); g.lineTo(Math.round(X(hi_)) + 0.5, MPAD.t + ph); g.stroke(); g.setLineDash([]);
@@ -4178,8 +4321,8 @@
     ? `<b>T2108 · ${fmtDate(b.d)}</b><div>${nf(b.c, 1)} % (veille ${nf(b.o, 1)} %, ${b.c - b.o > 0 ? '+' : ''}${nf(b.c - b.o, 1)} pt)</div>` +
       `<div style="margin-top:2px">Source : ${SRC_TXT[b.src] || '—'}${b.src === 'sb' ? '' : ' (Stockbee pas encore publié)'}</div>` +
       (b.src !== 'own' && own(b.d, 't2108') != null ? `<div>Calcul maison : ${nf(own(b.d, 't2108'), 1)} %</div>` : '') +
-      (b.src !== 'tv' && tvT(b.d) != null ? `<div>TradingView : ${nf(tvT(b.d), 1)} %</div>` : '')
-    : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>`;
+      (b.src !== 'tv' && tvT(b.d) != null ? `<div>TradingView : ${nf(tvT(b.d), 1)} %</div>` : '') + phTipLine(b.d)
+    : `<b>VIX · ${fmtDate(b.d)}</b><div>O ${nf(b.o, 2)} · H ${nf(b.h, 2)}</div><div>B ${nf(b.l, 2)} · C ${nf(b.c, 2)}</div>` + phTipLine(b.d);
   boxes.forEach(bx => wireCmp(bx, bx.cv, boxTip));
   // ---- mode Base 100 : QQQ, IWM et BTC rebasés à 100 sur leur première clôture de la période, sur un même axe des dates
   // Couleurs catégorielles (ni bleu ni rouge, réservés aux hausses / baisses), validées sur le fond noir des graphiques.
@@ -4227,6 +4370,7 @@
       g.stroke();
     });
     g.restore();
+    drawPhaseStrip(g, dates, X, bw, MPAD.t + ph - PH_STRIP, PH_STRIP);    // frise des phases
     const hi_ = idxAtOrBefore(m.vis, cmpSel()), dSel = dates[hi_ >= 0 ? hi_ : n - 1];
     if (hi_ >= 0) {
       g.strokeStyle = css('--ccross'); g.lineWidth = 1; g.setLineDash([3, 3]);
@@ -4240,7 +4384,7 @@
     $('b100px').textContent = `${sinceLbl(dates[0])} → ${fmtDate(dSel)}`;
   }
   const b100Tip = (m, v) => `<b>${fmtDate(v.d)}</b>` + m.ser.map(s => { const b = b100At(s, v.d); if (!b) return '';
-    const x = b.c / s.base * 100; return `<div><i class="sw" style="background:${B100_COL[s.n]};margin-right:6px"></i>${s.n} : ${nf(x, 1)} (${pct(x - 100)})${b.d !== v.d ? ' · clôture du ' + fmtDate(b.d, { day: 'numeric', month: 'short' }) : ''}</div>`; }).join('');
+    const x = b.c / s.base * 100; return `<div><i class="sw" style="background:${B100_COL[s.n]};margin-right:6px"></i>${s.n} : ${nf(x, 1)} (${pct(x - 100)})${b.d !== v.d ? ' · clôture du ' + fmtDate(b.d, { day: 'numeric', month: 'short' }) : ''}</div>`; }).join('') + phTipLine(v.d);
   function renderCmp() {
     const b = cmpMode === 'b100';
     $('cmpGrid').hidden = b; $('cmpB100').hidden = !b; $('cmpHead').classList.toggle('b100', b);   // Base 100 : pas de MM ni de fond
@@ -4263,7 +4407,7 @@
       `<div><i class="sw" style="background:${maColor(j)};margin-right:6px"></i>${mm.type} ${mm.len} : ${nf(b.s[j], pxd(b.s[j]))}</div>`).join('');
     return `<b>${m.name} · ${fmtDate(b.d)}</b><div>O ${nf(b.o, pxd(b.o))} · H ${nf(b.h, pxd(b.h))}</div><div>B ${nf(b.l, pxd(b.l))} · C ${nf(b.c, pxd(b.c))}</div>` +
       `<div>${pct(b.chg)} · vol. ${vol(b.v)}</div>${rows}<div style="margin-top:2px">${trendLong(b.tf)}</div>` +
-      `<div>T2108 : ${nf(sb(b.d, 't2108'), 1)} · VIX : ${nf(VIXMAP.get(b.d), 2)}</div>`;
+      `<div>T2108 : ${nf(sb(b.d, 't2108'), 1)} · VIX : ${nf(VIXMAP.get(b.d), 2)}</div>` + phTipLine(b.d);
   }
   const miniIdx = (m, e) => {
     const r = m.cv.getBoundingClientRect(), i = Math.floor((e.clientX - r.left - MPAD.l) / m.bw);
@@ -4443,7 +4587,8 @@
     $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
       `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
       `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
-      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
+      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>` +
+      (k => k == null ? '' : `<span class="phx" title="Phase de marché à la clôture (bandeau en haut de l'onglet)">· <i class="phdot" style="background:${PHK[PHASES[k].k].color}"></i> ${PHK[PHASES[k].k].name}</span>`)(PHI.get(b.d));
     $('maBar').innerHTML = maChipsHtml(b);
   }
   function renderMtop() {
@@ -4671,9 +4816,56 @@
       `<span style="flex:1;background:var(--up)"></span>${v == null || isNaN(v) ? '' : `<i style="left:calc(${pc(v)}% - 1px)"></i>`}</div>` +
       `<div class="scalel"><span>${f(min)}</span><span>${f(a)}</span><span>${f(b)}</span><span>${f(max)}</span></div>`;
   }
+  // ------------------------------------------------------------------ bandeau des phases (au-dessus des cases ; suit « Stats du » et le survol)
+  let PH_TIP = null;
+  const phLeg = $('phLeg');
+  if (phLeg && PHASES.length) {
+    const lg = `Frise des phases${tipBtn('phrules')} : ` + PHC.phase.map(p => `<span><i style="background:${p.color}"></i>${p.name}</span>`).join('');
+    phLeg.innerHTML = lg; phLeg.hidden = false;
+    ['secPhLeg', 'cmpPhLeg'].forEach(id => { const el = $(id); if (el) { el.innerHTML = lg; el.hidden = false; } });   // Secteurs, SA
+  }
+  function renderPhase(target, past) {
+    const el = $('phaseBar'); if (!el) return;
+    const i = phaseIdx(target);
+    if (i < 0) { el.hidden = true; el.innerHTML = ''; PH_TIP = null; return; }
+    const o = PHASES[i], ph = PHK[o.k], run = phRun(i, 'k'), brun = phRun(i, 'base'), prev = run.from > 0 ? PHK[PHASES[run.from - 1].k] : null;
+    const exp = o.base === 'expansion', cnt = exp ? o.dn : o.up;
+    const day = d => fmtDate(d, { weekday: 'short', day: 'numeric', month: 'short' });
+    // date de la phase écrite seulement si elle diffère de la séance affichée (séance pas encore publiée par Stockbee : la phase
+    // reste celle de sa dernière séance) ; sinon la date est celle de la barre « Stats du »
+    const when = o.d < target ? ` · clôture du ${day(o.d)} (${fmtDate(target, { day: 'numeric', month: 'short' })} : Stockbee pas encore publié)`
+      : i === PHASES.length - 1 && !past ? ' · vaut pour la prochaine séance' : '';
+    let lastSig = -1; for (let j = i; j >= 0 && lastSig < 0; j--) if (PHASES[j].sig.length) lastSig = j;
+    const SN = Object.fromEntries(PHC.signal.map(x => [x.key, x]));
+    const dots = Array.from({ length: PHC.confirm }, (_, k) => `<i class="${k < cnt ? 'on' : ''}"></i>`).join('');
+    el.hidden = false;
+    el.classList.toggle('open', store.get('mm.phase') === '1');
+    el.classList.toggle('past', !!past);
+    el.setAttribute('style', `--phc:${ph.color}`);
+    const sdx = exp ? 'à 1 ou moins' : 'au-dessus de 1', side = exp ? 'la contraction' : "l'expansion";
+    const sig = o.sig.length ? o.sig.map(k => `<span class="phsig" title="${escA(phFill(SN[k].tip))}">Signal du jour : ${SN[k].name}</span>`).join('')
+      : lastSig >= 0 ? (k => `<span title="${escA(phFill(SN[k].tip))}">Dernier signal : ${SN[k].name.toLowerCase()} (${fmtDate(PHASES[lastSig].d, { day: 'numeric', month: 'short' })})</span>`)(PHASES[lastSig].sig[0]) : '';
+    el.innerHTML =
+      `<div class="phmain"><div class="phlbl">Phase${when}${tipBtn('phase')}</div>` +
+      `<div class="phname"><span class="phdot"></span>${ph.name}<span class="phrun">${run.n} séance${run.n > 1 ? 's' : ''}</span><span class="phcar" aria-hidden="true">▾</span></div>` +
+      `<div class="phsub phmore">${prev ? `Précédente : ${prev.name} · ` : ''}état de fond ${o.base} depuis ${brun.n} séance${brun.n > 1 ? 's' : ''} (${fmtDate(PHASES[brun.from].d, { day: 'numeric', month: 'short' })})</div></div>` +
+      `<div class="phmq phmore"><div class="phlbl">Bascule vers ${side} : momentum trimestre (mq)${tipBtn('phfond')}</div>` +
+      `<div class="phgauge" title="Momentum trimestre (mq) = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt ; jauge de 0 à 2, trait = 1"><span class="fill" style="width:${o.mq == null ? 0 : Math.max(0, Math.min(1, o.mq / 2)) * 100}%"></span><span class="mid"></span></div>` +
+      `<div class="phsub"><b>${o.mq == null ? '—' : nf(o.mq, 2)}</b> (seuil 1) · <span class="phdots">${dots}</span> ${cnt}/${PHC.confirm} clôtures ${sdx}</div></div>` +
+      `<div class="phset-c"><div class="phlbl">${PHC.setups_label}${tipBtn('phsetups')}</div><div class="phset">${ph.setups}</div>` +
+      (ph.detail ? `<div class="phsub phmore">${ph.detail}</div>` : '') + (sig ? `<div class="phsub phmore">${sig}${tipBtn('phsig')}</div>` : '') + '</div>';
+    PH_TIP = ['Phase de marché', phWhy(o) + '<p><b>Les règles des neuf phases</b></p>' + phRules()];
+  }
+  $('phaseBar').addEventListener('click', e => {        // mobile : un toucher déplie ou replie le bandeau (sans effet visible sur bureau)
+    if (e.target && e.target.closest && e.target.closest('.tipbtn')) return;
+    const el = $('phaseBar'), open = !el.classList.contains('open');
+    el.classList.toggle('open', open); store.set('mm.phase', open ? '1' : '0');
+  });
+
   function renderKpis() {
     const box = $('kpis'); if (!box) return;
     const latest = DATES().slice(-1)[0], sel = selDate(), at = sel && sel < latest ? sel : null;   // null = dernière séance
+    renderPhase(at || latest, !!at);
     const D = DATES().filter(d => !at || d <= at), d4 = lastWith('up4', at), dq = lastWith('up25q', at), dt = lastWith('t2108', at);
     if (!d4 || !dq) { box.innerHTML = ''; return; }
     box.classList.toggle('past', !!at);
@@ -4792,6 +4984,7 @@
         <p>BTC cote aussi le week-end : les séances manquantes de QQQ et IWM sont reliées. La légende donne les valeurs à la séance survolée ou figée (sinon la dernière).</p>`],
       c25q: ['Trimestre : +25 % / −25 %', `<p>Même lecture sur un trimestre : c'est la tendance de fond du marché (ratio de breadth primaire de Stockbee).</p>
         <p>Pointillé <b>expérimental</b> : notre calcul (clôture ÷ plus bas ou plus haut des 63 séances précédentes, prix ≥ 1 $). Écart moyen de 1 à 3 % avec Stockbee, mais mesuré sur 9 séances seulement : réglage à confirmer sur une période plus longue.</p><p class="src">Source : Stockbee ; pointillé : calcul maison expérimental (Polygon / Massive).</p>`] };
+    if (PH_TIP) TIPS.phase = PH_TIP;
   }
   $('dPick').addEventListener('change', e => { if (e.target.value) showDate(e.target.value); });
   $('dPrev').addEventListener('click', () => stepDate(-1));
@@ -4805,6 +4998,17 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
+    phrules: ['Comment chaque phase est établie', phRules()],
+    phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>
+      <p>${phBase()} La jauge place le momentum trimestre entre 0 et 2 (trait = 1) ; les points comptent les clôtures déjà faites du côté opposé.</p>
+      <p>L'état de fond sépare les phases d'expansion (C, B, A, chaude, surchauffe) des phases défensives (contraction, lessivage, reprise) ; le choc passe avant les deux.</p>
+      <p class="src">Réglage <b>fragile</b> : ${PHC.mq_lag} séances, choisi sur le journal de trades, ne vaut qu'entre ${PHC.mq_lag_valid[0]} et ${PHC.mq_lag_valid[1]} séances ; suivi sur les nouveaux trades.</p>`],
+    phsetups: [PHC.setups_label, `<p>L'essentiel en gras (EP et / ou breakouts), la précision dessous. Les setups suivent la phase de la <b>veille</b> de l'entrée.</p>
+      <p class="phtip">${PHC.phase.map(p => `${phDot(p.key)}<b>${p.name}</b> : ${p.setups}${p.detail ? ` (${p.detail})` : ''}`).join('<br>')}</p>
+      <p>Sigles : <b>EP</b> = Episodic Pivot · <b>SMA 10</b> = moyenne mobile simple 10 jours · <b>1R</b> = gain égal au risque initial · <b>A+</b> / <b>Proba 3</b> = ta notation de la qualité du setup.</p>`],
+    phsig: ['Signaux', `<p>Une pastille s'affiche le <b>premier jour</b> d'une série : pas de nouvelle alerte du même signal tant qu'il revient dans les ${PHC.alert_gap} séances suivantes.</p>
+      <p>${PHC.signal.map(x => `<b>${x.name}</b> : ${phFill(x.tip)}`).join('<br>')}</p>
+      <p class="src">Ratio 5 jours = hausses ÷ baisses de 4 % sur 5 séances · ratio mois = actions à +25 % ÷ actions à −25 % sur un mois · records 3 mois = au-delà du plus haut / plus bas des ${PHC.record_sessions} séances précédentes.</p>`],
     pmscan: ['Scan post-market', `<p>Actions US qui bougent après la clôture (post-market : 16 h – 20 h, heure de New York), d'après le screener de TradingView : <b>prix &gt; ${CFG.postmarket.min_price} $</b>, <b>volume post-market &gt; ${nf(CFG.postmarket.min_volume)}</b> et <b>variation post-market &gt; +${CFG.postmarket.min_change} %</b> (Hausses) ou <b>&lt; −${CFG.postmarket.min_change} %</b> (Baisses).</p>
       <p><b>Vol AH $</b> = volume post-market en dollars ≈ actions échangées × cours post-market relevé (TradingView ne publie pas le montant exact) ; tri par défaut sur cette colonne. <b>Vol AH</b> = nombre d'actions échangées.</p>
       <p><b>RVol</b> = volume post-market ÷ volume journalier moyen sur 90 jours. Filtre <b>Résultats</b> : titres qui ont publié leurs résultats trimestriels ce soir après la clôture (AMC) ou ce matin avant l'ouverture (BMO), indiqué aussi dans la fiche. <b>Lendemain</b> : variation de la séance suivante, clôture à clôture, dès qu'elle est jouée.</p>
