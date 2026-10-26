@@ -1,0 +1,5 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-26,2026-10-26T20:22:40+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,7.48,3.53,7.96,6.42,185930,0.08,627161641,34443661,
+2026-10-26,2026-10-26T20:22:40+00:00,false,NASDAQ:RMBS,RMBS,Rambus Inc.,Electronic Technology,Semiconductors,90.32,5.45,95.0,5.18,363973,0.14,9796251999,107442348,amc
+2026-10-26,2026-10-26T20:22:40+00:00,false,NASDAQ:SATL,SATL,Satellogic Inc. Class A,Electronic Technology,Aerospace & Defense,3.71,-3.13,3.88,4.58,254952,0.05,570375070,113105625,
+2026-10-26,2026-10-26T20:22:40+00:00,false,NYSE:WHR,WHR,Whirlpool Corporation,Consumer Durables,Electronics/Appliances,26.45,-5.91,25.0,-5.48,953875,0.34,1724523611,62284986,amc
