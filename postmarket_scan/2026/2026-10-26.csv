@@ -3,3 +3,12 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-26,2026-10-26T20:22:40+00:00,false,NASDAQ:RMBS,RMBS,Rambus Inc.,Electronic Technology,Semiconductors,90.32,5.45,95.0,5.18,363973,0.14,9796251999,107442348,amc
 2026-10-26,2026-10-26T20:22:40+00:00,false,NASDAQ:SATL,SATL,Satellogic Inc. Class A,Electronic Technology,Aerospace & Defense,3.71,-3.13,3.88,4.58,254952,0.05,570375070,113105625,
 2026-10-26,2026-10-26T20:22:40+00:00,false,NYSE:WHR,WHR,Whirlpool Corporation,Consumer Durables,Electronics/Appliances,26.45,-5.91,25.0,-5.48,953875,0.34,1724523611,62284986,amc
+2026-10-26,2026-10-26T20:37:36+00:00,false,NASDAQ:AMKR,AMKR,"Amkor Technology, Inc.",Electronic Technology,Semiconductors,36.81,-6.34,38.83,5.49,2789616,0.57,9145535201,60364394,amc
+2026-10-26,2026-10-26T20:37:36+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,7.48,3.53,7.86,5.08,190690,0.08,627161641,34443661,
+2026-10-26,2026-10-26T20:37:36+00:00,false,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,4.97,52.92,4.761,-4.21,426712,0.09,13296799,713828,
+2026-10-26,2026-10-26T20:37:36+00:00,false,NASDAQ:NNBR,NNBR,"NN, Inc.",Producer Manufacturing,Metal Fabrication,3.36,1.82,3.4995,4.15,111825,0.03,314980538,80930305,
+2026-10-26,2026-10-26T20:37:36+00:00,false,NYSE:CLS,CLS,Celestica Inc.,Electronic Technology,Electronic Components,246.65,-5.14,269.0,9.06,478344,0.2,31105305871,125246004,amc
+2026-10-26,2026-10-26T20:37:36+00:00,false,NYSE:CTOS,CTOS,Custom Truck One Source Inc,Finance,Finance/Rental/Leasing,9.01,-0.55,8.2453,-8.49,190398,0.19,2049824863,60072049,amc
+2026-10-26,2026-10-26T20:37:36+00:00,false,NYSE:GBX,GBX,"Greenbrier Companies, Inc.",Producer Manufacturing,Trucks/Construction/Farm Machinery,38.3,0.55,40.2,4.96,145990,0.33,1184989972,29300638,amc
+2026-10-26,2026-10-26T20:37:36+00:00,false,NYSE:KVYO,KVYO,"Klaviyo, Inc. Class A",Technology Services,Packaged Software,20.71,-1.89,19.8431,-4.19,904356,0.15,5896705271,116024065,
+2026-10-26,2026-10-26T20:37:36+00:00,false,NYSE:WHR,WHR,Whirlpool Corporation,Consumer Durables,Electronics/Appliances,26.45,-5.91,24.17,-8.62,1578371,0.57,1724523611,62284986,amc
