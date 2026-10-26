@@ -100,6 +100,141 @@ emerging_min_delta = 5
 max_tickers = 300          # tickers analysés au plus par liste
 example = "NVDA, MU, AMD, PENG, MXL, SMCI, RKLB, OKLO, IONQ, PLTR"   # texte d'exemple du champ de saisie
 
+[phases]
+# Phases de marché, bandeau en tête de l'onglet MM et frise sous le graphique des prix (spec du 26/10/2026 ; exception au gel
+# de la refonte accordée le 26/10/2026). Calcul sur les chiffres Stockbee seulement (seuils réglés sur l'univers Worden), une
+# phase par séance publiée ; elle vaut pour la séance suivante. Setups recommandés, en positif : ni interdit, ni nombre de trades,
+# ni taille de position (préférences de l'utilisateur).
+# Priorité : choc > surchauffe > expansion chaude > expansion A / B / C > reprise > lessivage > contraction.
+choc_pct = 0.15            # choc : au moins 15 % de l'univers à −4 % sur une séance…
+choc_sessions = 5          # …parmi les 5 dernières (séance du jour comprise)
+mq_lag = 20                # mq = actions à +25 % sur un trimestre ÷ le même chiffre 20 séances plus tôt
+mq_lag_valid = [15, 20]    # réglage FRAGILE (choisi sur le journal de trades, hors dépôt ; note du 26/10/2026) : valable
+                           # entre 15 et 20 séances seulement ; mq_lag doit rester dans cette zone (--check).
+                           # Suivi vers le 26/04/2027 sur les seuls trades nouveaux (hors dépôt).
+confirm = 3                # état de fond : expansion après 3 clôtures de suite avec mq > 1, contraction après 3 avec mq ≤ 1
+ext_on_r5 = 1.8            # marché étendu : ratio 5 j > 1,8 ou T2108 > 65 %…
+ext_on_t2108 = 65
+ext_off_r5 = 1.5           # …jusqu'à ratio 5 j < 1,5 et T2108 < 60 %
+ext_off_t2108 = 60
+hot_r5 = 2.7               # surchauffe : étendu avec ratio 5 j > 2,7 ou T2108 > 65 % (sans hystérésis, décision du 26/10/2026)
+hot_t2108 = 65
+grade_a_rm = 2.0           # expansion A : ratio mois (+25 % ÷ −25 % sur un mois) ≥ 2 ; B : ≥ 1 ; C : en dessous
+grade_b_rm = 1.0
+wash_rm = 0.3              # lessivage : ratio mois < 0,3 (en contraction)
+rep_r5 = 2.0               # reprise : ratio 5 j ≥ 2… (au lieu du ratio 10 j de Stockbee, jamais testé : note du 26/10/2026)
+rep_window = 15            # …dans les 15 séances après un lessivage
+# signaux complémentaires (pastilles du bandeau)
+pre_r5 = 1.5               # pré-expansion : ratio 5 j qui passe au-dessus (veille ≤), dans une phase de pre_phases
+pre_phases = ["contraction", "wash", "recovery", "shock"]
+pullback_r5 = [1.25, 1.5]  # repli d'entrée : ratio 5 j dans la zone et plus bas que pullback_lag séances avant, dans pullback_phases
+pullback_lag = 5
+pullback_phases = ["exp_a", "exp_b", "exp_c"]
+record_sessions = 63       # records 3 mois : au-delà du plus haut / plus bas des 63 séances précédentes
+alert_gap = 10             # une alerte = premier jour d'une série : pas de nouvelle alerte dans les 10 séances suivantes
+setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
+
+# une entrée par phase, dans l'ordre du cycle (légende de la frise) ; key = identifiant du calcul (ne pas changer).
+# setups = l'essentiel, court (EP et / ou breakouts) ; detail = la précision, en plus petit dessous (vide si rien à ajouter).
+# Toujours en positif (jamais d'interdit, ni nombre de trades ni taille de position) ; sigles en clair dans detail
+# (SMA 10 = moyenne mobile simple 10 jours, 1R…) ; EP = Episodic Pivot est écrit dans l'en-tête du bandeau (setups_label).
+[[phases.phase]]
+key = "contraction"
+name = "Contraction"
+color = "#98a2b3"
+setups = "EP"
+detail = ""
+rule = "état de fond en contraction : momentum trimestre (mq) à 1 ou moins sur {confirm} clôtures de suite"
+
+[[phases.phase]]
+key = "wash"
+name = "Lessivage"
+color = "#d99a2b"
+setups = "EP"
+detail = "noter les titres qui tiennent"
+rule = "en contraction, ratio mois (actions à +25 % ÷ actions à −25 % sur un mois) sous {wash_rm}"
+
+[[phases.phase]]
+key = "recovery"
+name = "Reprise"
+color = "#3fbf74"
+setups = "EP"
+detail = "préparer la liste des leaders"
+rule = "en contraction, ratio 5 jours (hausses ÷ baisses de 4 % sur 5 séances) à {rep_r5} ou plus dans les {rep_window} séances après un lessivage ; dure jusqu'à l'expansion ou un choc"
+
+[[phases.phase]]
+key = "exp_c"
+name = "Expansion C"
+color = "#9cc3f0"
+setups = "Breakouts + EP"
+detail = "breakouts de leaders · EP Proba 3"
+rule = "état de fond en expansion (momentum trimestre au-dessus de 1 sur {confirm} clôtures de suite), marché non étendu, ratio mois sous {grade_b_rm}"
+
+[[phases.phase]]
+key = "exp_b"
+name = "Expansion B"
+color = "#5b9be6"
+setups = "Breakouts + EP"
+detail = "breakouts de leaders · EP Proba 3"
+rule = "état de fond en expansion, marché non étendu, ratio mois entre {grade_b_rm} et {grade_a_rm}"
+
+[[phases.phase]]
+key = "exp_a"
+name = "Expansion A"
+color = "#2f6fc4"
+setups = "Breakouts + EP"
+detail = "breakouts de leaders en priorité · EP Proba 3"
+rule = "état de fond en expansion, marché non étendu, ratio mois à {grade_a_rm} ou plus"
+
+[[phases.phase]]
+key = "hot"
+name = "Expansion chaude"
+color = "#8b7ae6"
+setups = "Breakouts + EP"
+detail = "breakouts de leaders, de préférence quand le momentum trimestre monte sur 5 séances · EP de qualité A+"
+rule = "état de fond en expansion, marché étendu (ratio 5 jours au-dessus de {ext_on_r5} ou T2108 au-dessus de {ext_on_t2108} % ; fin quand le ratio 5 jours passe sous {ext_off_r5} et le T2108 sous {ext_off_t2108} %), sans surchauffe"
+
+[[phases.phase]]
+key = "overheat"
+name = "Surchauffe"
+color = "#cf5fa6"
+setups = "EP + Breakouts A+"
+detail = "EP Proba 3 · breakouts de qualité A+ · partiels sur ce qui est loin de sa moyenne mobile 10 jours (SMA 10)"
+rule = "marché étendu avec un ratio 5 jours au-dessus de {hot_r5} ou un T2108 au-dessus de {hot_t2108} %"
+
+[[phases.phase]]
+key = "shock"
+name = "Choc"
+color = "#e5534b"
+setups = "EP"
+detail = "EP de qualité A+ · protection des gains : vendre 1/3 des gagnants, stop au point mort dès 1R (gain égal au risque initial), suivi sur la moyenne mobile 10 jours (SMA 10)"
+rule = "au moins {choc_pct_100} % de l'univers en baisse de 4 % sur une des {choc_sessions} dernières séances"
+
+[[phases.signal]]
+key = "pre"
+name = "Pré-expansion"
+tip = "ratio 5 jours repassé au-dessus de {pre_r5} hors expansion : préparer la liste"
+
+[[phases.signal]]
+key = "pullback"
+name = "Repli d'entrée"
+tip = "expansion A, B ou C, ratio 5 jours entre {pullback_lo} et {pullback_hi} et plus bas qu'il y a {pullback_lag} séances : entrée breakout prioritaire (hypothèse)"
+
+[[phases.signal]]
+key = "sell_high"
+name = "Ventes du mois : plus haut 3 mois"
+tip = "part de l'univers en baisse de 25 % sur un mois au plus haut des {record_sessions} séances : rebond fragile, attendre la confirmation"
+
+[[phases.signal]]
+key = "sell_low"
+name = "Ventes du mois : plus bas 3 mois"
+tip = "part de l'univers en baisse de 25 % sur un mois au plus bas des {record_sessions} séances : la vente s'épuise, préparer la liste"
+
+[[phases.signal]]
+key = "rm_high"
+name = "Ratio mois : plus haut 3 mois"
+tip = "ratio mois (actions à +25 % ÷ actions à −25 % sur un mois) au plus haut des {record_sessions} séances : poussée confirmée"
+
 [postmarket.sector_fr]
 # traduction des secteurs TradingView (anglais) affichés sous chaque ticker
 "Commercial Services" = "Services aux entreprises"
