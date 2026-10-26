@@ -55,3 +55,18 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-26,2026-10-26T21:37:39+00:00,false,NYSE:IQV,IQV,IQVIA Holdings Inc,Health Technology,Biotechnology,273.6,-2.06,260.01,-4.97,324404,0.22,45034559308,162954658,
 2026-10-26,2026-10-26T21:37:39+00:00,false,NYSE:NE,NE,Noble Corporation PLC Class A,Industrial Services,Contract Drilling,47.81,0.23,45.4,-5.04,319678,0.22,7632494273,127594666,amc
 2026-10-26,2026-10-26T21:37:39+00:00,false,NYSE:WHR,WHR,Whirlpool Corporation,Consumer Durables,Electronics/Appliances,26.45,-5.91,24.1172,-8.82,1983945,0.71,1724523611,62284986,amc
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:ACRS,ACRS,"Aclaris Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.79,1.07,3.6,-5.01,198905,0.08,557883766,111055463,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:AGYS,AGYS,"Agilysys, Inc.",Technology Services,Packaged Software,123.45,2.29,115.28,-6.62,106361,0.35,3482004556,25973451,amc
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:AHCO,AHCO,AdaptHealth Corp.,Health Services,Medical/Nursing Services,5.93,-1.5,5.65,-4.72,350709,0.13,808521149,86356608,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,7.48,3.53,7.98,6.68,226463,0.09,627161641,34443661,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:CPIX,CPIX,Cumberland Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,4.35,-48.76,4.6,5.75,103533,1.24,127206580,8750190,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:CRDO,CRDO,Credo Technology Group Holding Ltd.,Technology Services,Information Technology Services,151.15,2.62,157.85,4.43,1050770,0.14,28408931345,169379451,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:ICHR,ICHR,"Ichor Holdings, Ltd.",Producer Manufacturing,Industrial Machinery,38.06,0.32,40.0,5.1,162630,0.17,1425507990,36692831,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NASDAQ:NNBR,NNBR,"NN, Inc.",Producer Manufacturing,Metal Fabrication,3.36,1.82,3.4995,4.15,111825,0.03,314980538,80930305,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:CLS,CLS,Celestica Inc.,Electronic Technology,Electronic Components,246.65,-5.14,287.75,16.66,916447,0.38,31105305871,125246004,amc
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:CTOS,CTOS,Custom Truck One Source Inc,Finance,Finance/Rental/Leasing,9.01,-0.55,8.2453,-8.49,190398,0.19,2049824863,60072049,amc
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.3,0.49,10.96,6.41,146582,0.15,932511702,26541431,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:IQV,IQV,IQVIA Holdings Inc,Health Technology,Biotechnology,273.6,-2.06,260.01,-4.97,324404,0.22,45034559308,162954658,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:NE,NE,Noble Corporation PLC Class A,Industrial Services,Contract Drilling,47.81,0.23,45.25,-5.35,319950,0.22,7632494273,127594666,amc
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:RCUS,RCUS,"Arcus Biosciences, Inc.",Health Technology,Biotechnology,17.76,-4.21,16.8812,-4.95,387998,0.23,2261440834,85501308,
+2026-10-26,2026-10-26T21:52:43+00:00,false,NYSE:WHR,WHR,Whirlpool Corporation,Consumer Durables,Electronics/Appliances,26.45,-5.91,24.1566,-8.67,2008788,0.72,1724523611,62284986,amc
