@@ -92,11 +92,12 @@ assert(!('rep_r10' in PH)&&PH.mq_lag>=PH.mq_lag_valid[0]&&PH.mq_lag<=PH.mq_lag_v
 // état de fond, setups, signaux ; frise : bulle des règles dans sa légende (MM et Secteurs)
 const tipOf=(X,id)=>{const btn={dataset:{tip:id},setAttribute(){},getBoundingClientRect:()=>({left:0,bottom:0})};
   X.DL.click.forEach(f=>f({target:{closest:q=>q==='.tipbtn'?btn:null},stopPropagation(){},preventDefault(){}}));return strip(X.$('pop')._h);};
-const F=boot(), hf=F.$('phaseBar')._h;
+// séance fixée (23/10/2026 : contraction, ratio mois 0,30) : le test ne doit pas dépendre de la dernière séance publiée par le robot
+const F=boot(); F.L.dPick.change({target:{value:'2026-10-23'}}); const hf=F.$('phaseBar')._h;
 for(const id of ['phase','phfond','phsetups'])assert(hf.includes(`data-tip="${id}"`),'bouton ⓘ '+id+' attendu dans le bandeau');
 assert(F.$('phLeg')._h.includes('data-tip="phrules"')&&!F.$('secPhLeg').hidden&&F.$('secPhLeg')._h.includes('data-tip="phrules"'),'légendes des frises (MM, Secteurs) avec bulle des règles attendues');
 const why=tipOf(F,'phase');
-assert(/Pourquoi Contraction à la clôture/.test(why),'bulle : pourquoi la phase du jour attendu : '+why.slice(0,200));
+assert(/Pourquoi Contraction à la clôture du ven\. 23 oct\./.test(why),'bulle : pourquoi la phase du jour attendu : '+why.slice(0,200));
 assert(/✗ Choc \? plus forte part de l'univers en baisse de 4 % sur les 5 dernières séances : \d+,\d %/.test(why),'étape choc chiffrée attendue : '+why.slice(0,400));
 assert(/État de fond : contraction · momentum trimestre 0,\d\d/.test(why)&&/✗ Reprise \? ratio 5 jours/.test(why)&&/✗ Lessivage \? ratio mois 0,30/.test(why),'étapes fond, reprise, lessivage chiffrées attendues : '+why);
 const pos=['Choc','Surchauffe','Expansion chaude','Expansion A','Expansion B','Expansion C','Reprise','Lessivage','Contraction'].map(n=>tipOf(F,'phrules').indexOf(n+' :'));
