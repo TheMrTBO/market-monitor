@@ -97,7 +97,7 @@
   .secfilt .crumb { color: var(--faint); align-self: center; font-size: 13px; }
   .secfilt .crumbs { display: contents; }
   .sechead .seg { align-self: center; }
-  .sechead .viewbox { display: inline-flex; align-items: center; gap: 4px; }
+  .sechead .viewbox { display: inline-flex; align-items: center; gap: 4px; } .sechead .viewbox[hidden] { display: none; }   /* bascule ETF / TradingView retirée le 27/10/2026 : l'ETF est un niveau du fil */
   .sechead .seg button { padding: 3px 10px; font-size: 12px; }
   .sechead .seg button:disabled { opacity: .45; cursor: not-allowed; }
   .rk td.open { width: 34px; padding-left: 0; padding-right: 4px; text-align: center; }
@@ -150,26 +150,83 @@
   .secnote { color: var(--muted); font-size: 12px; margin: 0 0 10px; }
   .tablewrap.secscroll { max-height: none; height: calc(100vh - 230px); margin-top: 0; }   /* hauteur exacte : fitSecLayout() ; .tablewrap seul limitait à 380 px */
   #dslot-sec { margin-bottom: 10px; }                     /* même écart sous « Stats du » que MM et SA */
+  /* rythme vertical de l'onglet (retour UX du 27/10/2026 : « respecter les espaces entre les composants ») : un seul écart entre
+     blocs (--blk), un seul écart dans un bloc (8 px) ; chaque bloc a un titre avec chevron et se replie (résumé d'une ligne) */
+  #view-sec { --blk: 16px; }
+  #view-sec > .secact, #view-sec > .secsplit, #view-sec > .secflow { margin: 0 0 var(--blk); }
+  #view-sec > .secrrg { margin: 0 0 var(--blk); }
+  .foldh { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text); padding: 2px 0; font: inherit; font-size: 13px; cursor: pointer; text-align: left; min-height: 28px; }
+  .foldh b { font-weight: 600; }
+  /* chevron dessiné (le glyphe ▾ était trop petit) : vers le bas = ouvert, vers la droite = replié ; le texte ▾ / ▸ reste pour les lecteurs */
+  .foldh .car, .rrghead .car, .rttog .car { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; font-size: 0; flex: none; }
+  .foldh .car::before, .rrghead .car::before, .rttog .car::before { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
+  .foldh[aria-expanded="false"] .car::before, .rrghead[aria-expanded="false"] .car::before, .rttog[aria-expanded="false"] .car::before { transform: translateX(-2px) rotate(-45deg); }
+  .foldh:hover .car::before, .rrghead:hover .car::before { border-color: var(--text); }
+  .fsum { color: var(--muted); font-size: 12px; min-width: 0; }
+  .fsum .w { color: var(--warn); }
+  .secsplit.folded { grid-template-columns: minmax(0, 1fr); } .secsplit.folded .seccol, .secsplit.folded .seclist > :not(.sechead) { display: none; }
+  .secsplit.folded .seclist .sechead { margin-bottom: 0; }
+  .sechead .foldh { min-height: 0; padding: 0 2px 0 0; }
   .seclist .sechead { margin-bottom: 8px; min-height: 32px; align-items: center; }   /* titres des deux cartes sur la même ligne */
   .sechead .tipbtn { align-self: center; }
   .secfilt { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
   .secfilt button { border: 1px solid var(--border); background: none; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12px; cursor: pointer; }
   .secfilt button span { color: var(--faint); margin-left: 4px; font-variant-numeric: tabular-nums; }
   /* cases en tête de la vue TradingView (Secteurs) : mêmes cases que le MM ; un toucher = raccourci, case active encadrée */
-  .kpis.secstrip { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 12px 0 4px; }   /* une colonne par case */
+  .kpis.secstrip { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); margin: 0 0 var(--blk); }   /* une colonne par case */
   @media (max-width: 1100px) { .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(3, minmax(0, 1fr)); } }   /* comme le MM ; 2 colonnes sous 640 px */
   .secstrip .kpi { cursor: pointer; } .secstrip .kpi:hover { border-color: var(--faint); }
   .secstrip .kpi.on { box-shadow: inset 0 0 0 1.5px var(--up); border-color: var(--up); }
   .secstrip .kden { color: var(--muted); font-weight: 500; font-size: .7em; }
   .secstrip .gflow { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
   .secstrip .kw { display: none; }   /* sous-titres courts partout, comme le MM (« +14 / −6 », « 15 % ») : le détail est dans la bulle ⓘ et au survol */
-  .seckpinote { font-size: 11.5px; color: var(--muted); margin: 0 0 10px; }
+  .seckpinote { font-size: 12px; color: var(--muted); margin: 0; }
   /* frise temporelle (Industries TI65 > 1) : glisser la souris ou le doigt = cases, flux et carte à cette séance ; clic / lâcher = « Stats du » */
-  .secfrise { margin: 2px 0 4px; } #friseCv { width: 100%; height: 66px; display: block; cursor: ew-resize; touch-action: pan-y; }
+  /* frise : séparateur entre le contexte (cases, au-dessus) et ce qui en découle ; la phase du jour en titre */
+  .secfrise { margin: 0 0 var(--blk); padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+  .secfrise .frh { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-bottom: 8px; }
+  .secfrise .frph { font-size: 15px; } .secfrise .frph b { font-weight: 700; } .secfrise .frph .note { color: var(--muted); font-size: 12.5px; }
+  .secfrise .frph i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 8px; }
+  .secfrise .frst { font-size: 12.5px; color: var(--muted); } .secfrise .frst b { color: var(--text); }
+  .secfrise .seckpinote { margin-left: auto; }
+  #secPhLeg { font-size: 11px; gap: 2px 10px; margin-top: 6px; } #friseCv { width: 100%; height: 48px; display: block; cursor: ew-resize; touch-action: pan-y; }   /* bande des phases seule (27/10/2026) */
   /* flux par secteur (toucher la case Rotation) : d'où part et où arrive l'argent, au sens des industries qui franchissent 1 */
-  /* carte de rotation toujours ouverte (une seule page, demande du 20/10/2026) : plus de repli */
-  #secRrg .rrghead { cursor: default; } #secRrg .rrghead .car { display: none; }   /* la carte est la vue : plus de repli */
-  .secflow { padding: 10px 12px; margin-bottom: 10px; }
+  /* carte de rotation : repliable, repliée par défaut (refonte du 27/10/2026 : description seulement, tests 13-14 ; config [sectors.rrg] folded) */
+  /* groupes actifs (refonte du 27/10/2026) : phase du jour, alerte, groupes neufs et chauds (un toucher = leurs leaders), pionniers */
+  .secact { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .secact.folded { padding-bottom: 10px; }
+  .secact .ahead { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-height: 34px; }
+  .secact .ahead .asp { flex: 1 1 auto; }
+  .secact .phl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 12.5px; }
+  .secact .phl i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: -1px; margin-right: 6px; }
+  .secact .alrt { display: inline-flex; align-items: center; border: 1px solid var(--warn); background: var(--warnbg); color: var(--warn); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; cursor: help; }
+  .secact .atrend { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; font-size: 12px; color: var(--muted); }
+  .secact .atrend b { color: var(--text); font-variant-numeric: tabular-nums; } .secact .atrend .dn, .secact .atrend .dn b { color: var(--warn); } .secact .atrend .upc b { color: var(--up); }
+  .secact .go { border: 1px solid var(--up); background: var(--upbg); color: var(--up); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; min-height: 34px; }
+  .secact .asec { display: flex; align-items: baseline; gap: 8px; margin-top: 4px; font-size: 12px; }
+  .secact .agrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; }
+  /* carte d'une ligne : nom, signes (thème, ⚑ s'essouffle, ◆ refuge), nombre de leaders ; détail au survol (title) */
+  .secact .acard { display: grid; grid-template-columns: minmax(0, 1fr) auto 2.2em; align-items: center; gap: 8px; text-align: left; border: 1px solid var(--border);
+                   background: var(--panel); color: var(--text); border-radius: 8px; padding: 6px 10px; cursor: pointer; font: inherit; min-height: 38px; }
+  .secact .acard.neuf { border-left: 3px solid var(--up); }
+  .secact .acard:hover { border-color: var(--faint); } .secact .acard.on { border-color: var(--up); box-shadow: inset 0 0 0 1px var(--up); }
+  .secact .acard .an { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .secact .acard .ai { display: inline-flex; gap: 6px; align-items: baseline; font-size: 12px; }
+  .secact .acard .al { text-align: right; font-size: 16px; font-variant-numeric: tabular-nums; }
+  .secact .old { color: var(--warn); } .secact .ref { color: var(--ok); } .secact .th { color: var(--muted); font-size: 10.5px; border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+  .secact .acard.zero .al { color: var(--faint); }
+  .secact .aleg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--muted); }
+  .secact .amore { border: 0; background: none; color: var(--up); font-size: 12px; cursor: pointer; padding: 4px 0; text-align: left; align-self: flex-start; }   /* pas « .more » : feuille « Plus » du mobile */
+  .etat.neuf { background: var(--upbg); color: var(--up); } .etat.chaud { background: var(--warnbg); color: var(--warn); }
+  .secact .note { font-size: 11.5px; color: var(--muted); }
+  .etat { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 5px; white-space: nowrap; }
+  /* Leaders actifs : symbole toujours lisible, gain et écart au plus haut à droite ; écrans moyens (liste à côté du graphique) :
+     capitalisation et miniature masquées (fiche et graphique les donnent) */
+  #secTable.act th.c-sym { width: 74px; } #secTable.act th.c-grp { width: auto; } #secTable.act th.c-g21 { width: 66px; } #secTable.act th.c-hi20 { width: 84px; }
+  #secTable.act td.c-g21, #secTable.act td.c-hi20 { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  @media (max-width: 1400px) { #secTable.act .c-cap, #secTable.act .c-spark { display: none; } }
+  #secRows tr.more td { text-align: left; padding: 8px; } #secRows tr.more button { border: 1px solid var(--border); background: var(--panel2); color: var(--text); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
+  .secflow { padding: 10px 12px; margin: 0; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
   .secflow button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%; text-align: left; border: 0; background: none;
                     color: var(--text); padding: 6px 4px; border-top: 1px solid var(--border); font-size: 12.5px; cursor: pointer; }
@@ -177,10 +234,11 @@
   .secflow .fn { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); }
   .secflow .fc { font-variant-numeric: tabular-nums; }
   /* carte de rotation : relative au marché ; repliable (repliée par défaut sur mobile) */
-  .secrrg { padding: 8px 12px 10px; margin-bottom: 10px; position: relative; }
+  .secrrg { padding: 8px 12px 10px; position: relative; }
   .rrghead { display: flex; align-items: baseline; gap: 6px; width: calc(100% - 28px); border: 0; background: none; color: var(--text); padding: 2px 0; font-size: 13px; cursor: pointer; text-align: left; }
-  .rrghead span { color: var(--muted); font-size: 11.5px; } .rrghead .car { margin-left: auto; }
+  .rrghead span { color: var(--muted); font-size: 12px; } .rrghead { align-items: center; }
   .secrrg > .tipbtn { position: absolute; right: 10px; top: 8px; }
+  .rrgact { border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 999px; padding: 1px 8px 1px 2px; font-size: 12px; cursor: pointer; margin: 2px 0; }
   /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
   #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
   .rrginfo { font-size: 11.5px; color: var(--muted); min-height: 16px; margin-top: 4px; }
@@ -688,8 +746,9 @@
     .rtab .rtsec, .rtab td.rtn small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* une ligne chacun : lignes moins hautes */ .rtab th.rtn { width: auto; } .rtab th:not(.rtn) { width: 56px; } .rtab th.rtb { width: 76px; }
     .rtab th { padding: 3px 2px; } .rtmob { display: inline; }
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
-    .secfrise { padding: 0 12px; } #friseCv { height: 62px; }
-    .seckpinote { padding: 0 12px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .secfrise { padding: 12px; } #friseCv { height: 44px; } #secPhLeg { display: none; }   /* mobile : nom de la phase au toucher (étiquette de la frise) */
+    #view-sec { --blk: 12px; } .secfrise .seckpinote { margin-left: 0; } .secact .acard { min-height: 44px; }
+    .seckpinote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
     .kpis.secstrip { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -793,25 +852,19 @@
 
   <div id="view-sec" hidden>
     <div id="dslot-sec"></div>
+    <!-- haut de page (retour UX du 27/10/2026) : les cases, point d'ancrage, toujours visibles ; puis la frise des phases en
+         séparateur net (titre de la phase, séance, bande) entre le contexte et ce qui en découle ; les blocs dessous se replient -->
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
-    <div class="secfrise" id="secFrise" hidden><canvas id="friseCv" aria-label="Frise temporelle : glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
-    <div class="seckpinote" id="secKpiNote" hidden></div>
+    <div class="secfrise" id="secFrise" hidden>
+      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
+      <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
     <div class="card secflow" id="secFlow" hidden></div>
-    <div class="card secrrg" id="secRrg" hidden>
-      <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><b>Carte de rotation</b> <span id="rrgWhat"></span><span class="car">▾</span></button>
-      <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
-      <div id="rrgBody">
-        <div class="rrgtab" id="rrgTab"></div>
-        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
-          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
-        <div class="rrgchips" id="rrgChips"></div>
-        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgleg" id="rrgLeg"></div></div>
-    </div>
-    <div class="secsplit">
+    <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
+    <div class="secsplit" id="secSplit">
       <div class="card seclist">
         <div class="sechead">
-          <b>Classement · <span id="secTiName">TI65</span></b><button class="tipbtn" data-tip="secrank" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
-          <span class="viewbox"><span class="seg sm" id="secView" role="group" aria-label="Liste classée"></span><button class="tipbtn" data-tip="secview" aria-label="Explication : ETF ou TradingView" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button></span>
+          <button class="foldh" id="listFold" type="button" aria-expanded="true" aria-label="Replier le classement"><span class="car">▾</span></button><b>Classement · <span id="secTiName">TI65</span></b><button class="tipbtn" data-tip="secrank" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <span class="viewbox" hidden><span class="seg sm" id="secView" role="group" aria-label="Liste classée"></span><button class="tipbtn" data-tip="secview" aria-label="Explication : ETF ou TradingView" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button></span>
           <span class="secmeta" id="secMeta"></span>
         </div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
@@ -859,6 +912,16 @@
       </div>
       <nav class="detnav" id="secNav" aria-label="Navigation dans la liste"><button id="secPrev" type="button">‹</button><span class="dpos" id="secPos"></span><button id="secNext" type="button">›</button></nav>
       </div>
+    </div>
+    <div class="card secrrg" id="secRrg" hidden>   <!-- en fin d'onglet depuis le 27/10/2026 (description seulement) -->
+      <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><span class="car">▾</span><b>Carte de rotation</b> <span id="rrgWhat"></span></button>
+      <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
+      <div id="rrgBody">
+        <div class="rrgtab" id="rrgTab"></div>
+        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
+          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
+        <div class="rrgchips" id="rrgChips"></div>
+        <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgleg" id="rrgLeg"></div></div>
     </div>
   </div>
 
@@ -2165,13 +2228,18 @@
 
   // --- liste affichée : ETF, ou niveau courant de la vue TradingView : secteurs → industries (toutes, rang global, filtre
   //     par secteur) → actions d'une industrie. Navigation mémorisée : {lvl: sec | ind | stk, sec: secteur filtré | 'all', ind}
-  let secView = store.get('mm.secview') === 'tv' ? 'tv' : 'etf';   // vue TradingView : données chargées à l'ouverture de l'onglet
+  // refonte du 27/10/2026 : à la première ouverture après la mise à jour, l'onglet passe une fois sur la vue TradingView, niveau
+  // Leaders actifs (cases, groupes actifs, leaders et graphique) ; le choix suivant (ETF compris) reste mémorisé
+  if (store.get('mm.secrefonte') !== '1') {
+    store.set('mm.secview', 'tv'); store.set('mm.tvnav', JSON.stringify({ lvl: 'act', sec: 'all', ind: null })); store.set('mm.secrefonte', '1');
+  }
+  let secView = store.get('mm.secview') === 'etf' ? 'etf' : 'tv';   // vue TradingView par défaut (données chargées à l'ouverture de l'onglet)
   let tvNav = (() => {
     try {
       const a = JSON.parse(store.get('mm.tvnav') || 'null');
-      if (a && ['sec', 'ind', 'stk'].includes(a.lvl)) return { lvl: a.lvl, sec: typeof a.sec === 'string' ? a.sec : 'all', ind: typeof a.ind === 'string' ? a.ind : null };
-    } catch (e) { /* illisible : niveau secteurs */ }
-    return { lvl: 'sec', sec: 'all', ind: null };
+      if (a && ['sec', 'ind', 'stk', 'act'].includes(a.lvl)) return { lvl: a.lvl, sec: typeof a.sec === 'string' ? a.sec : 'all', ind: typeof a.ind === 'string' ? a.ind : null };
+    } catch (e) { /* illisible : niveau par défaut */ }
+    return { lvl: 'act', sec: 'all', ind: null };   // première visite : Leaders actifs (refonte du 27/10/2026)
   })();
   let tvAbove = store.get('mm.tvabove') === '1';       // filtre « TI65 > 1 » (masque des lignes, rangs inchangés)
   const tvSecLabel = k => CFG.sector_fr[k] || k;      // secteurs TradingView traduits : config/display.toml
@@ -2180,12 +2248,14 @@
   function tvFix() {                                 // navigation mémorisée encore valide (secteur filtré, industrie ouverte)
     if (tvNav.sec !== 'all' && !IND.sectors.some(s => s.k === tvNav.sec)) tvNav.sec = 'all';
     if (tvNav.lvl === 'stk' && !IND.industries.some(i => i.k === tvNav.ind)) tvNav = { lvl: 'ind', sec: tvNav.sec, ind: null };
+    if (tvNav.lvl === 'act' && !actData()) tvNav = { lvl: 'sec', sec: tvNav.sec, ind: null };   // ancien fichier sans groupes actifs
   }
   // {kind (etf | sec | ind | stk), key, dates, items} ; un élément : {s (identifiant), n (nom), lbl, sub, c (clôtures), …}
   function secData() {
     if (secView === 'etf') return SEC ? { kind: 'etf', key: 'etf', dates: SEC.dates, items: SEC.symbols } : null;
     if (!IND) return null;
     tvFix();
+    if (tvNav.lvl === 'act') return actLevel();
     if (tvNav.lvl === 'sec') return { kind: 'sec', key: 'sec', dates: IND.dates, items: tvItems('sec', () => IND.sectors.map(x =>
       ({ s: x.k, n: x.k, lbl: tvSecLabel(x.k), sub: `${x.k} · ${x.n} titres`, cnt: x.n, c: x.c, b: x.b }))) };   // groupe : courbe de tendance (pas de bougie)
     if (tvNav.lvl === 'ind') return { kind: 'ind', key: 'ind', dates: IND.dates, items: tvItems('ind', () => IND.industries.map(x =>
@@ -2226,13 +2296,13 @@
   }
   function tvUp(lvl) {                               // remonte au niveau lvl (0 = secteurs, 1 = industries) ; l'élément quitté reste sélectionné
     const cur = { sec: 0, ind: 1, stk: 2 }[tvNav.lvl];
-    if (secView !== 'tv' || lvl < 0 || lvl >= cur) return false;
+    if (secView !== 'tv' || cur == null || lvl < 0 || lvl >= cur) return false;   // Leaders actifs : pas de niveau au-dessus
     secSel = lvl === 0 ? (tvNav.sec !== 'all' ? tvNav.sec : secSel) : tvNav.ind;
     tvNav = lvl === 0 ? { lvl: 'sec', sec: tvNav.sec, ind: null } : { lvl: 'ind', sec: tvNav.sec, ind: null }; tvSave();
     renderSectors(); return true;
   }
 
-  const rankable = (D, x) => D.kind === 'etf' || D.kind === 'stk' || x.cnt >= TIC.min_members;   // trop peu de titres : sans rang
+  const rankable = (D, x) => D.kind === 'etf' || D.kind === 'stk' || D.kind === 'act' || x.cnt >= TIC.min_members;   // trop peu de titres : sans rang
   function secRanks(D, end) {                       // Map identifiant -> {rank, score} pour les éléments classables à l'index `end`
     const rows = D.items.filter(x => rankable(D, x)).map(x => ({ s: x.s, score: secScore(x.c, end) })).filter(r => r.score != null);
     rows.sort((a, b) => b.score - a.score || (a.s < b.s ? -1 : 1));
@@ -2251,15 +2321,17 @@
   }
   function secBuild(D) {
     const end = secEnd(D); secBuiltEnd = end; secD = D; secBuiltKey = D.key + '|' + end;
-    const now = end >= 0 ? secRanks(D, end) : new Map(), before = end >= TI.delta ? secRanks(D, end - TI.delta) : new Map();
+    const act = D.kind === 'act';                     // Leaders actifs : rang = ordre du gain sur 21 séances (pas de Δ du rang)
+    const now = act ? new Map(D.items.slice().sort((a, b) => b.g21 - a.g21 || (a.s < b.s ? -1 : 1)).map((x, i) => [x.s, { rank: i + 1, score: secScore(x.c, end) }]))
+      : end >= 0 ? secRanks(D, end) : new Map(), before = !act && end >= TI.delta ? secRanks(D, end - TI.delta) : new Map();
     const idx = D.kind === 'sec' || D.kind === 'ind';
     secRows = D.items.map(x => {
       const n = now.get(x.s), b = before.get(x.s);
-      return { x, rank: n ? n.rank : null, score: n ? n.score : null, dev: n ? (n.score - 1) * 100 : null,
+      return { x, rank: n ? n.rank : null, score: n ? n.score : null, dev: n && n.score != null ? (n.score - 1) * 100 : null,
                delta: n && b ? b.rank - n.rank : null, isNew: !!n && !b, count: x.c.filter(v => v != null).length,
                brd: x.b && end >= 0 ? x.b[end] : null, few: idx && x.cnt < TIC.few_members, tooFew: !rankable(D, x),
                sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null),
-               adr: D.kind === 'stk' ? adrAt(x, end) : null };
+               adr: D.kind === 'stk' || act ? adrAt(x, end) : null, hi20: act ? hiAt(x, end) : null };
     });
   }
   // ADR d'une action à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1) ; null sans OHLC ou si
@@ -2268,6 +2340,11 @@
     if (!x.h || !x.l || end < n - 1) return null;
     let s = 0; for (let k = end - n + 1; k <= end; k++) { const h = x.h[k], l = x.l[k]; if (h == null || l == null || !(l > 0)) return null; s += h / l; }
     return 100 * (s / n - 1);
+  }
+  function hiAt(x, end, n = AC.high_sessions) {    // écart au plus haut des n dernières clôtures, en % (0 = au plus haut)
+    if (end < 0 || x.c[end] == null) return null; let hi = 0;
+    for (let k = Math.max(0, end - n + 1); k <= end; k++) if (x.c[k] != null && x.c[k] > hi) hi = x.c[k];
+    return hi > 0 ? 100 * (x.c[end] / hi - 1) : null;
   }
   function sparkSvg(vals) {                          // TI65 des dernières séances (miniature) : ligne pointillée à 1,00, couleur selon la dernière valeur
     const have = vals.filter(v => v != null); if (have.length < 2) return '<span class="tag">—</span>';
@@ -2301,15 +2378,18 @@
     spark: SPARK_DEF,
     dev:   DEV_DEF,
     delta: DELTA_DEF,
+    g21:   { label: `Gain ${CFG.industries.leaders.sessions} j`, k: 'g21', dir: -1, title: `Hausse sur ${CFG.industries.leaders.sessions} séances (leader : au moins +${CFG.industries.leaders.gain_pct} %)` },
+    hi20:  { label: `/ haut ${CFG.sectors.actifs.high_sessions} j`, k: 'hi20', dir: -1, title: `Écart au plus haut des ${CFG.sectors.actifs.high_sessions} dernières séances : « au plus haut » = déjà parti, plus bas = encore en base ou en repli` },
     open:  { label: '', k: '', fixed: true, title: 'Ouvrir le niveau suivant' },
   };
   // vue TradingView : nom TradingView / secteur / nom de la société et nombre de titres sous le nom (sous-titre) ; au survol : nom complet
   const TV_LEVEL = { sec: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
                      ind: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
-                     stk: ['rank', 'sym', 'cap', 'adr', 'spark', 'dev', 'delta'] };
-  const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' } };
-  const SEC_VAL = { rank: r => r.rank, sym: r => r.x.lbl || r.x.s, nm: r => r.x.n, grp: r => secView === 'etf' ? theme(r.x) : r.x.sub,
-                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr };
+                     stk: ['rank', 'sym', 'cap', 'adr', 'spark', 'dev', 'delta'],
+                     act: ['rank', 'sym', 'grp', 'cap', 'adr', 'spark', 'g21', 'hi20'] };   // Leaders actifs (refonte du 27/10/2026)
+  const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' }, act: { sym: 'Symbole', grp: 'Groupe' } };
+  const SEC_VAL = { rank: r => r.rank, sym: r => r.x.lbl || r.x.s, nm: r => r.x.n, grp: r => secView === 'etf' ? theme(r.x) : r.x.grp ? r.x.grp.join(', ') : r.x.sub,
+                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr, g21: r => r.x.g21, hi20: r => r.hi20 };
   function loadCols(key, order0) {
     try {
       const a = JSON.parse(store.get(key) || 'null');
@@ -2349,7 +2429,7 @@
   }
   function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
-  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'] };
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'], act: ['rank', 'hi20', 'adr', 'cap'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
   let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
   let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
@@ -2361,7 +2441,8 @@
       const K = secKpiData(), ro = K && (skEntries === 'rr' ? K.rr : K.rot)[secBuiltEnd], keep = ro && (skEntries === 'rr' ? ro.still : ro.ent);
       if (!keep || !keep.includes(r.x.s)) return false;
     }
-    if (secD && secD.kind === 'stk' && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
+    if (secD && (secD.kind === 'stk' || secD.kind === 'act') && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
+    if (secD && secD.kind === 'act') return !tvAbove || (r.score != null && r.score > 1);
     return !tvAbove || (r.score != null && r.score > 1);
   }
   function secSorted() {
@@ -2430,6 +2511,12 @@
     const scoreH = ((sc && sc.offsetHeight) || 200) + (bc && !bc.hidden ? (bc.offsetHeight || 160) + 8 : 0)   // + carte « % > 1 » (groupes)
       + (fc && !fc.hidden ? (fc.offsetHeight || 200) + 8 : 0);                                                    // + fiche (actions)
     cv.style.height = Math.max(300, free(cv) - scoreH - 8 - 6 - navH) + 'px';   // la carte du score (et l'écart de 8 px) tient dans la fenêtre, au-dessus de la barre ‹ ›
+    // côte à côte : le classement finit à la même hauteur que la colonne de droite (graphique, score, fiche) — retour UX du 27/10/2026
+    const col = $('secSplit').querySelector('.seccol'), lst = $('secSplit').querySelector('.seclist');
+    if (listOpen && col && lst && col.getBoundingClientRect && lst.getBoundingClientRect) {
+      const extra = col.getBoundingClientRect().bottom - lst.getBoundingClientRect().bottom, h = parseFloat(wrap.style.height);
+      if (isFinite(extra) && isFinite(h)) wrap.style.height = Math.max(260, Math.round(h + extra)) + 'px';
+    }
   }
 
   function renderSecView() {                             // bascule ETF / TradingView et nom de l'indicateur (config/display.toml)
@@ -2456,16 +2543,21 @@
     const f = $('secFilt'), chips = $('secChips');
     if (secView === 'etf') {
       f.setAttribute('aria-label', 'Filtrer par groupe'); chips.innerHTML = ''; chips.hidden = true;
-      f.innerHTML = GRP.map(([k, l]) => `<button data-g="${k}" class="${secGroup === k ? 'on' : ''}" aria-pressed="${secGroup === k}">${l}<span>${k === 'all' ? secRows.length : secRows.filter(r => r.x.g === k).length}</span>${tipI('grp:' + k, l)}</button>`).join('');
+      const back = indState === 'absent' ? '' : `<button data-tvback="1" title="Revenir au classement TradingView">‹ ${escH(actData() ? AC.leaders_label : 'Secteurs')}</button><span class="fsep" aria-hidden="true"></span>`;
+      f.innerHTML = back + GRP.map(([k, l]) => `<button data-g="${k}" class="${secGroup === k ? 'on' : ''}" aria-pressed="${secGroup === k}">${l}<span>${k === 'all' ? secRows.length : secRows.filter(r => r.x.g === k).length}</span>${tipI('grp:' + k, l)}</button>`).join('');
       return;
     }
     f.setAttribute('aria-label', 'Niveau');
     const cur = { sec: 0, ind: 1, stk: 2 }[tvNav.lvl];
     const crumb = (lvl, label, n, tip) => { const on = lvl === cur;
       return `<button data-lvl="${lvl}" class="${on ? 'on' : ''}" aria-pressed="${on}"${on ? ' aria-current="page"' : ''}>${escH(label)}${n != null ? `<span>${n}</span>` : ''}${tipI(tip, label)}</button>`; };
-    const parts = [crumb(0, 'Secteurs', IND.sectors.length, 'lvl:sec')];
+    const AT = actAt(actEnd()), onA = tvNav.lvl === 'act';
+    const parts = (AT ? [`<button data-act="1" class="${onA ? 'on' : ''}" aria-pressed="${onA}"${onA ? ' aria-current="page"' : ''}>${escH(AC.leaders_label)}<span>${AT.leaders.length}</span>${tipI('lvl:act', AC.leaders_label)}</button>`,
+      '<span class="fsep" aria-hidden="true"></span>'] : []).concat([crumb(0, 'Secteurs', IND.sectors.length, 'lvl:sec')]);
     if (cur >= 1) parts.push('<span class="crumb" aria-hidden="true">›</span>', crumb(1, 'Industries', IND.industries.length, 'lvl:ind'));
     if (cur >= 2) parts.push('<span class="crumb" aria-hidden="true">›</span>', crumb(2, tvNav.ind, (IND.industries.find(i => i.k === tvNav.ind) || {}).n, 'lvl:stk'));
+    // ETF (retour UX du 27/10/2026 : plus de bascule ETF / TradingView) : un niveau du fil, en dernier ; ta liste TC2000 et les bougies
+    if (SEC) parts.push('<span class="fsep" aria-hidden="true"></span>', `<button data-etf="1">ETF<span>${SEC.symbols.length}</span>${tipI('secview', 'ETF')}</button>`);
     f.innerHTML = parts.join('');
     f.scrollLeft = f.scrollWidth || 0;                 // mobile : le fil défile, le niveau courant reste visible
     // pastilles : secteur (niveau industries), puis « TI65 > 1 » (tous les niveaux)
@@ -2477,6 +2569,10 @@
       secChips = [['all', 'Tous']].concat(order.map(k => [k, tvSecLabel(k)])).map(([k, l]) =>
         `<button data-sec="${escA(k)}" class="${tvNav.sec === k ? 'on' : ''}" aria-pressed="${tvNav.sec === k}">${escH(l)}<span>${n(k)}</span>${tipI('tvsec:' + k, l)}</button>`).join('') +
         '<span class="fsep" aria-hidden="true"></span>';
+    }
+    if (tvNav.lvl === 'act' && actGrp) {              // groupe choisi dans « Groupes actifs » : pastille pour revenir à tous les leaders
+      const g = AT && AT.groups.find(q => q.g.key === actGrp);
+      secChips = `<button data-actg="" class="on" aria-pressed="true" title="Revenir à tous les leaders actifs">${escH(g ? g.g.k : actGrp.slice(2))} ✕</button><span class="fsep" aria-hidden="true"></span>`;
     }
     chips.hidden = false; chips.innerHTML = above + (secChips ? '<span class="fsep" aria-hidden="true"></span>' + secChips.replace(/<span class="fsep" aria-hidden="true"><\/span>$/, '') : '');
     chips.setAttribute('aria-label', 'Filtres');
@@ -2499,6 +2595,18 @@
       const m = a => a.length ? `${pct(a.reduce((s, x) => s + x, 0) / a.length)} (${a.length} séances)` : '—';
       return `<li>ratio ${W} j → ${escH(SKP.benchmark)} ${W} séances plus tard, en moyenne : sous ${thr(SKP.rotation_ratio[0])} <b>${m(z[0])}</b> · entre les deux ${m(z[1])} · à partir de ${thr(SKP.rotation_ratio[1])} <b>${m(z[2])}</b></li>`;
     };
+    if (kind === 'act' && key === 'ctx') return ['Frise des phases', `<p>Une couleur par séance : la phase de marché de l'onglet MM (règles : bulle de la légende). En titre, la phase de la séance affichée, depuis combien de séances, et ses setups recommandés (détail au survol).</p>
+      <p><b>Survoler ou glisser sur la frise</b> : toute la page passe à cette séance (cases, groupes actifs) ; un clic la fixe dans « Stats du ». <b>Toucher une case</b> : raccourci vers la liste correspondante.</p>`];
+    if (kind === 'act') return ['Groupes actifs', `<p>Industries TradingView et thèmes suivis (config/themes.toml) <b>neufs</b> ou <b>chauds</b> à la séance des cases ; le nombre = leaders du groupe (actions à +${CFG.industries.leaders.gain_pct} % sur ${CFG.industries.leaders.sessions} séances).</p>
+      <p><b>Neuf</b> : ${escH(AC.neuf_tip)}</p><p><b>Chaud</b> : règle de l'onglet Tickers (top ${CFG.tickers.hot_top_pct} % du ${TIN}, seuil des industries, ${TIN} &gt; 1, au moins ${CFG.tickers.hot_min_breadth} % des actions au-dessus de 1).</p>
+      <p><b>Pionniers</b> : ${escH(AC.pioneer_tip)}</p><p><b>S'essouffle</b> : chaud depuis au moins ${AC.old_sessions} séances ; information seulement (aucune règle de sortie n'a fait mieux que garder, test 9). L'alerte « phase avec groupes chauds » est le seul signal net de fin (test 9).</p>
+      <p class="src">Tests sur 2019-2026 : document d'analyse de la refonte (27/10/2026). Information, pas un conseil.</p>`];
+    if (kind === 'skpi' && key === 'th') return ['Thèmes suivis chauds', `<p><b>Nombre de thèmes suivis chauds / nombre de thèmes suivis.</b> Un thème = un panier d'actions de config/themes.toml (${actData() ? actData().G.filter(g => g.kind === 'th' && g.n >= TIC.min_members).length : ''} paniers d'au moins ${TIC.min_members} actions retenues), suivi comme une industrie : indice équipondéré, ${TIN}, part de ses actions au ${TIN} > 1.</p>
+      <p><b>Chaud</b> : ${TIN} du panier dans le top ${CFG.tickers.hot_top_pct} % (seuil calculé sur les industries seules), au-dessus de 1, et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <b>Neuf</b> (dessous) : au moins la moitié du panier à +${CFG.industries.leaders.gain_pct} % sur ${CFG.industries.leaders.sessions} séances depuis au plus ${AC.neuf_window} séances, sans signal dans les ${AC.fresh_sessions} séances d'avant.</p>
+      <p><b>Limite</b> : la case ne voit que les thèmes de la liste, jamais un thème nouveau (celui-là apparaît dans Groupes actifs par sa grappe de leaders, ou dans les pionniers). Liste de départ choisie après coup sur 2024-2026 : à valider. Toucher la case : les leaders actifs.</p>`];
+    if (kind === 'lvl' && key === 'act') return [AC.leaders_label, `<p>Les leaders (actions à +${CFG.industries.leaders.gain_pct} % sur ${CFG.industries.leaders.sessions} séances) des industries et thèmes <b>neufs</b> ou <b>chauds</b>, triés par gain : 46 à 59 % des futurs gros gagnants étaient dans les ${AC.list_limit} premiers sur 2019-2026, mais aussi plus de gros perdants (tests 11 et 14). Colonne « / haut » : qui est encore en base, qui est déjà parti.</p><p>Toucher une ligne : son graphique ; « Copier » : les tickers affichés.</p>`];
+    if (kind === 'col' && key === 'g21') return [TV_DEFS.g21.label, `<p>Hausse de l'action sur les ${CFG.industries.leaders.sessions} dernières séances (clôtures ajustées des splits), à la séance du classement ; un leader fait au moins +${CFG.industries.leaders.gain_pct} %.</p>`];
+    if (kind === 'col' && key === 'hi20') return [TV_DEFS.hi20.label, `<p>Écart de la clôture au plus haut des ${AC.high_sessions} dernières séances : « au plus haut » = déjà parti ; un écart plus grand = en repli ou encore en base.</p>`];
     if (kind === 'skpi') return {
       ...Object.fromEntries(Object.entries(rrgNotes).map(([k, v]) => ['rt' + k, v])),   // bulles du tableau « Depuis la veille »
       rrg: ['Carte de rotation', `<p>Chaque point est un secteur (ou, quand un secteur est filtré, une de ses industries), placé par rapport au <b>marché</b> (toutes les actions retenues, équipondérées) :</p>
@@ -2535,7 +2643,7 @@
       pct: ['% shorté', '<p>Actions vendues à découvert ÷ flottant (Yahoo). Grisé : relevé ancien.</p>'],
       dtc: ['Days to cover', '<p>Jours de volume moyen nécessaires pour racheter toutes les positions à découvert (Yahoo, « short ratio »). Relevé publié deux fois par mois ; date au survol.</p>'],
     }[key] || null;
-    if (kind === 'secview') return ['ETF ou TradingView', `<p><b>ETF</b> : ${SEC ? SEC.symbols.length : ''} ETF sectoriels et thématiques (liste de config/sectors.toml), bougies Yahoo Finance.</p>
+    if (kind === 'secview') return ['ETF', `<p><b>ETF</b> : ${SEC ? SEC.symbols.length : ''} ETF sectoriels et thématiques (liste de config/sectors.toml, dont ta liste TC2000), bougies Yahoo Finance, classés par ${TIN}. Ils servent de <b>confirmation</b> : un ETF voit un thème 1 à 32 séances après son panier d'actions (test 7). « ‹ » en tête du fil : retour au classement TradingView.</p>
       <p><b>TradingView</b> : la classification de TradingView en trois niveaux. <b>Secteurs</b> (${IND ? IND.sectors.length : ''}) → <b>Industries</b> (${IND ? IND.industries.length : ''}, rang global, filtrables par secteur) → <b>actions</b> d'une industrie. Un secteur ou une industrie = indice équipondéré de ses actions retenues (${filt}).</p><p>Les deux listes sont classées par le même ${TIN}.</p>`];
     if (kind === 'grp') {
       const l = (GRP.find(g => g[0] === key) || [key, key])[1], list = SEC ? SEC.symbols.filter(x => key === 'all' || x.g === key) : [];
@@ -2628,7 +2736,171 @@
         .sort((a, b) => b.net - a.net || b.ent.length - a.ent.length || (a.sec < b.sec ? -1 : 1)); };
     return (SKD = { src: IND, ind: above(I), sec: above(S), iser: I, rot, flow, rr, stk: st ? st.b : null, stkN: st ? st.n : null });
   }
-  const skVal = (K, id, e) => { const v = id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
+  // ------------------------------------------------------------------ groupes actifs et leaders actifs (refonte du 27/10/2026)
+  // Signaux du robot (fetch_industries.py, config/industries.toml [leaders]) : industries[].g (grappe de leaders, « 1 » / « 0 »
+  // par séance) et .l (leaders), themes[] (config/themes.toml : panier suivi comme une industrie ; h = moitié du panier leader),
+  // leaders.days (leaders des list_sessions dernières séances : [symbole, index de l'industrie, gain %]). Ici, à une séance :
+  //   chaud = règle de l'onglet Tickers (top hot_top_pct % du TI65, seuil calculé sur les industries seules, TI65 > 1, largeur ≥
+  //           hot_min_breadth %) ; un thème est comparé au seuil des industries (test 10) ;
+  //   neuf  = signal parti depuis au plus neuf_window séances, sans signal ni état chaud dans les fresh_sessions d'avant ;
+  //   leaders actifs = leaders des groupes neufs ou chauds ; pionnier = leader seul à +pioneer_gain_pct %, parti depuis au plus
+  //           pioneer_window séances (pas leader dans les fresh_sessions d'avant), son industrie ni chaude ni en grappe.
+  // Information, pas un signal d'achat : le document d'analyse (tests 5 à 16) dit ce que chaque état a valu sur 2019-2026.
+  const AC = CFG.sectors.actifs;
+  let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [];   // actZero : groupes chauds sans leader dépliés
+  function actData() {
+    if (!IND || !IND.leaders || !Array.isArray(IND.themes) || !IND.industries.every(x => Array.isArray(x.l) && typeof x.g === 'string')) return null;
+    if (ACD && ACD.src === IND) return ACD;
+    const refOf = new Map(); Object.entries(AC.refuges).forEach(([f, ks]) => ks.forEach(k => refOf.set(k, f)));
+    const G = IND.industries.map((x, i) => ({ key: 'i:' + x.k, k: x.k, kind: 'ind', i, n: x.n, c: x.c, b: x.b, l: x.l, sig: x.g, fam: refOf.get(x.k) || null, sec: x.sec }))
+      .concat(IND.themes.map(t => ({ key: 't:' + t.k, k: t.k, kind: 'th', n: t.n, c: t.c, b: t.b, l: t.l, sig: t.h, m: new Set(t.m), etf: t.etf, fam: null })));
+    const min = TIC.min_members, hot = new Map();
+    const hotAt = e => {                               // clés des groupes chauds à la séance e (mémorisé)
+      if (hot.has(e)) return hot.get(e);
+      const sc = G.map(g => g.n >= min && g.c.length ? secScore(g.c, e) : null);
+      const inds = sc.filter((v, j) => v != null && G[j].kind === 'ind').sort((a, b) => b - a);
+      const thr = inds.length ? inds[Math.max(1, Math.ceil(inds.length * CFG.tickers.hot_top_pct / 100)) - 1] : Infinity;
+      const set = new Set(G.filter((g, j) => sc[j] != null && sc[j] > 1 && sc[j] >= thr && g.b && g.b[e] != null && g.b[e] >= CFG.tickers.hot_min_breadth).map(g => g.key));
+      hot.set(e, set); return set;
+    };
+    return (ACD = { src: IND, G, hotAt, at: new Map() });
+  }
+  const actEnd = () => { const Ds = IND.dates; let i = Ds.length - 1; if (pinned) while (i > 0 && Ds[i] > pinned) i--; return i; };
+  function actAt(e) {                                  // état des groupes, leaders actifs et pionniers à la séance e (mémorisé)
+    const A = actData(); if (!A || e < 0) return null;
+    if (A.at.has(e)) return A.at.get(e);
+    const F = AC.fresh_sessions, W = AC.neuf_window, L0 = IND.leaders.start, D = IND.leaders.days;
+    const sigAt = (g, k) => k >= 0 && g.sig[k] === '1';
+    const H = A.hotAt(e);
+    const groups = A.G.filter(g => g.n >= TIC.min_members).map(g => {
+      const hot = H.has(g.key); let neuf = false, since = null, age = null;
+      if (sigAt(g, e)) {
+        let s0 = e; while (s0 > 0 && sigAt(g, s0 - 1)) s0--; since = e - s0;
+        if (since <= W && s0 - F >= 0) { neuf = true; for (let k = s0 - F; k < s0 && neuf; k++) if (sigAt(g, k) || A.hotAt(k).has(g.key)) neuf = false; }
+      }
+      if (hot) { let s0 = e; while (s0 > 0 && e - s0 < 400 && A.hotAt(s0 - 1).has(g.key)) s0--; age = e - s0; }
+      return { g, hot, neuf, since, age, sig: sigAt(g, e), lead: g.l[e] || 0 };
+    });
+    const day = e >= L0 && e - L0 < D.length ? D[e - L0] : null;
+    const active = groups.filter(x => x.neuf || x.hot), byKey = new Map(active.map(x => [x.g.key, x]));
+    const leaders = [];
+    if (day) for (const [sym, ii, g21] of day) {
+      const keys = [];
+      const ik = 'i:' + IND.industries[ii].k; if (byKey.has(ik)) keys.push(ik);
+      active.forEach(x => { if (x.g.kind === 'th' && x.g.m.has(sym)) keys.push(x.g.key); });
+      if (!keys.length) continue;
+      const neuf = keys.some(k => byKey.get(k).neuf);
+      leaders.push({ s: sym, ii, g21, keys, groups: keys.map(k => byKey.get(k).g.k), etat: neuf ? 'Neuf' : 'Chaud',
+                     fam: keys.map(k => byKey.get(k).g.fam).find(Boolean) || null });
+    }
+    const pioneers = [];                               // pionniers : besoin des listes des fresh_sessions + pioneer_window séances d'avant
+    if (day) for (const [sym, ii, g21] of day) {
+      if (g21 < AC.pioneer_gain_pct) continue;
+      const g = groups.find(x => x.g.key === 'i:' + IND.industries[ii].k);
+      if (g && (g.hot || g.sig)) continue;
+      const isL = k => k >= L0 && k - L0 < D.length && D[k - L0].some(r => r[0] === sym);
+      let s0 = e; while (s0 > L0 && isL(s0 - 1)) s0--;
+      if (e - s0 > AC.pioneer_window || s0 - F < L0) continue;
+      let fresh = true; for (let k = s0 - F; k < s0 && fresh; k++) if (isL(k)) fresh = false;
+      if (fresh) pioneers.push({ s: sym, g21, ind: IND.industries[ii].k, since: e - s0 });
+    }
+    const th = groups.filter(x => x.g.kind === 'th');
+    const res = { e, day: !!day, groups, active, leaders, pioneers, neufs: active.filter(x => x.neuf), chauds: active.filter(x => !x.neuf && x.hot),
+                  old: active.filter(x => x.hot && x.age >= AC.old_sessions).sort((a, b) => b.age - a.age),
+                  thHot: th.filter(x => x.hot).length, thN: th.length };
+    A.at.set(e, res); return res;
+  }
+  const actThAt = e => { const A = actData(); if (!A || e < 0) return null; const H = A.hotAt(e); return A.G.filter(g => g.kind === 'th' && g.n >= TIC.min_members && H.has(g.key)).length; };
+  function actLevel() {                                // niveau « Leaders actifs » : actions de plusieurs industries (fichiers chargés à la demande)
+    const e = actEnd(), at = actAt(e), base = { kind: 'act', dates: [], items: [], act: at };
+    if (!at || !at.day) return Object.assign(base, { key: 'act|vide|' + e, none: true });
+    const list = actGrp ? at.leaders.filter(r => r.keys.includes(actGrp)) : at.leaders;
+    const files = [...new Set(list.map(r => IND.industries[r.ii].f))];
+    const wait = files.filter(f => !(window.TV_STOCKS && window.TV_STOCKS[f]) && !tvFailed.has(f));
+    wait.forEach(f => tvLoad(IND.industries.find(i => i.f === f)));
+    if (wait.length) return Object.assign(base, { key: 'act|attente|' + e, wait: true });
+    const key = 'act|' + IND.dates[e] + '|' + (actGrp || '');
+    const items = tvItems(key, () => list.map(r => {
+      const ind = IND.industries[r.ii], F = window.TV_STOCKS && window.TV_STOCKS[ind.f], row = F && F.rows.find(q => q[0] === r.s); if (!row) return null;
+      const [s, n, cap, c, v, o, h, l] = row;
+      return { s, n, lbl: s, sub: n, cap, c, v, ...(o ? { op: o, h, l } : {}), g21: r.g21, grp: r.groups, keys: r.keys, etat: r.etat, fam: r.fam, ind };
+    }).filter(Boolean));
+    const F0 = files.map(f => window.TV_STOCKS && window.TV_STOCKS[f]).find(Boolean);
+    return { kind: 'act', key, dates: F0 ? F0.dates : [], vu: F0 ? F0.vu || 1 : 1, items, act: at };
+  }
+  function goAct(key) {                                // ouvre Leaders actifs (tous, ou ceux d'un groupe), sélection remise à zéro
+    actGrp = key || null; actAll = false; secSel = null;
+    if (secView !== 'tv') { secView = 'tv'; store.set('mm.secview', 'tv'); }
+    tvNav = { lvl: 'act', sec: tvNav.sec, ind: null }; tvSave(); $('view-sec').classList.remove('detail');
+    renderSectors();
+    const t = $('secTable'); if (t && t.scrollIntoView && typeof window.scrollTo === 'function' && t.getBoundingClientRect && t.getBoundingClientRect().top > window.innerHeight) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+  // blocs repliables de l'onglet (retour UX du 27/10/2026) : choix mémorisés ; la carte de rotation garde sa clé mm.rrgopen
+  const foldGet = id => store.get('mm.fold.' + id) !== '1', foldSet = (id, open) => store.set('mm.fold.' + id, open ? '0' : '1');
+  let actOpen = foldGet('act'), listOpen = foldGet('list');   // les cases ne se replient pas : point d'ancrage (27/10/2026)
+  function applyFolds() {                              // classement (Groupes actifs : rendu par renderSecAct)
+    const set = (btn, open) => { const b = $(btn); if (!b) return; b.setAttribute('aria-expanded', String(open)); const c = b.querySelector('.car'); if (c) c.textContent = open ? '▾' : '▸'; };
+    $('secSplit').classList.toggle('folded', !listOpen); set('listFold', listOpen);
+    $('listFold').setAttribute('aria-label', (listOpen ? 'Replier' : 'Déplier') + ' le classement');
+  }
+  function renderSecAct(e) {                           // bloc « Groupes actifs » : même séance que les cases (survol de la frise compris)
+    // retour UX du 27/10/2026 (NN/g : divulgation progressive, design minimaliste ; biais visés : statu quo et cécité au changement,
+    // « je vois trop tard que je dois lever le pied ») : une ligne d'état, une ligne « Sur N s » qui montre ce qui se dégrade, des
+    // cartes d'une ligne (nom, signes, leaders) ; définitions et détails dans les bulles ⓘ et au survol
+    const box = $('secAct'); if (!box) return;
+    const at = IND ? actAt(e) : null; box.hidden = !at; if (!at) return;   // aussi au niveau ETF : le haut de page ne bouge pas
+    const d = IND.dates[e], pi = phaseIdx(d), P = pi >= 0 ? PHASES[pi] : null, ph = P ? PHK[P.k] : null;
+    const nHot = at.active.filter(x => x.hot).length, alert = ph && AC.alert_phases.includes(P.k) && nHot;
+    const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
+    // ce qui change sur trend_sessions séances : moins de groupes chauds ou de leaders = le flux se retire (faits, pas de consigne)
+    const T = AC.trend_sessions, pv = e - T >= 0 ? actAt(e - T) : null, P0 = pv ? phaseIdx(IND.dates[e - T]) : -1;
+    const cnt = a => ({ hot: a.active.filter(x => x.hot).length, neuf: a.neufs.length, lead: a.day ? a.leaders.length : null });
+    const now = cnt(at), was = pv ? cnt(pv) : null;
+    const mv = (lbl, a, b, tip) => { if (a == null || b == null) return ''; const c = a < b ? 'dn' : a > b ? 'upc' : '';
+      return `<span class="${c}" title="${escA(tip)}">${lbl} ${b} → <b>${a}</b>${a < b ? ' ↓' : a > b ? ' ↑' : ''}</span>`; };
+    const trend = was ? [P0 >= 0 && P && PHASES[P0].k !== P.k ? `<span class="dn" title="Phase de marché ${T} séances avant → aujourd'hui">${escH(PHK[PHASES[P0].k].name)} → <b>${escH(ph.name)}</b></span>` : '',
+      mv('chauds', now.hot, was.hot, `Groupes chauds ${T} séances avant → à cette séance`), mv('neufs', now.neuf, was.neuf, `Groupes neufs ${T} séances avant → à cette séance`),
+      mv('leaders', now.lead, was.lead, `Leaders actifs ${T} séances avant → à cette séance`),
+      at.old.length ? `<span class="dn" title="Groupes chauds depuis au moins ${AC.old_sessions} séances (information, pas une règle de sortie : test 9)">⚑ ${at.old.length} s'essouffle${at.old.length > 1 ? 'nt' : ''}</span>` : ''].filter(Boolean) : [];
+    // replié : seulement ce qui baisse (groupes chauds, leaders), pour le voir sans ouvrir le bloc
+    const worse = !was ? [] : [now.hot < was.hot ? `chauds ${was.hot} → ${now.hot}` : null, now.lead != null && was.lead != null && now.lead < was.lead ? `leaders ${was.lead} → ${now.lead}` : null].filter(Boolean);
+    const dt = fmtDate(d, { day: 'numeric', month: 'short' });
+    const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
+      (!actOpen && alert ? ` · <span class="w">⚠ ${escH(ph.name)}</span>` : '') + (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
+    const head = `<div class="ahead"><button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
+      `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
+      (at.leaders.length ? `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+    if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
+    box.classList.remove('folded');
+    // la phase et ses setups sont dans le titre de la frise (une seule source) ; ici, seulement l'alerte qui concerne les groupes
+    const phl = alert ? `<div class="phl"><span class="alrt" title="${escA(AC.alert_text)}" tabindex="0">⚠ ${escH(ph.name)} avec ${pl(nHot, 'groupe')} chaud${nHot > 1 ? 's' : ''}</span></div>` : '';
+    const trl = trend.length ? `<div class="atrend"><span class="note">Sur ${T} s</span>${trend.join('')}</div>` : '';
+    const ago = n => n === 0 ? 'cette séance' : `${n} séance${n > 1 ? 's' : ''}`;
+    const card = x => {
+      const g = x.g, on = tvNav.lvl === 'act' && actGrp === g.key, v = secScore(g.c, e), b = g.b && g.b[e] != null ? g.b[e] : null, old = x.hot && x.age >= AC.old_sessions;
+      const tip = [`${g.k}${g.kind === 'th' ? ' (thème suivi)' : g.sec ? ' · ' + tvSecLabel(g.sec) : ''}`, `${pl(x.lead, 'leader')}`, v != null ? `${TIN} ${nf(v, 2)}` : null,
+        b != null ? `${nf(b, 0)} % des actions > 1` : null, x.neuf ? `signal depuis ${ago(x.since)}` : x.age != null ? `chaud depuis ${ago(x.age)}` : null,
+        old ? "s'essouffle (information, pas une règle de sortie : test 9)" : null, g.fam ? `famille refuge : ${g.fam} (étiquette : test 12)` : null,
+        g.etf ? `ETF de confirmation : ${g.etf}` : null, 'toucher : ses leaders'].filter(Boolean).join(' · ');
+      const ic = (g.kind === 'th' ? '<span class="th">thème</span>' : '') + (old ? '<span class="old">⚑</span>' : '') + (g.fam ? '<span class="ref">◆</span>' : '');
+      return `<button type="button" data-actg="${escA(g.key)}" class="acard${x.neuf ? ' neuf' : ''}${on ? ' on' : ''}${x.lead ? '' : ' zero'}" aria-pressed="${on}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
+        `<span class="an">${escH(g.k)}</span><span class="ai">${ic}</span><b class="al">${x.lead}</b></button>`;
+    };
+    const byLead = (a, b) => b.lead - a.lead || (a.g.k < b.g.k ? -1 : 1);
+    const N = at.neufs.slice().sort(byLead), C = at.chauds.slice().sort(byLead), Cw = C.filter(x => x.lead > 0).slice(0, AC.chauds_shown), rest = C.length - Cw.length;
+    const shown = N.concat(actZero ? C : Cw);
+    const sec = (cls, lbl, arr, list) => arr.length ? `<div class="asec"><span class="etat ${cls}">${lbl} ${arr.length}</span></div><div class="agrid">${list.map(card).join('')}</div>` : '';
+    const more = rest ? `<button type="button" class="amore" data-actzero="1" aria-expanded="${actZero}">${actZero ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
+    const pion = at.pioneers.length ? `<div class="asec"><span class="etat" style="background:var(--neutralbg);color:var(--muted)" title="${escA(AC.pioneer_tip)}">Pionniers ${at.pioneers.length}</span><span class="note">` +
+      at.pioneers.map(p => `<b title="${escA(p.ind + ' · leader depuis ' + ago(p.since))}">${escH(p.s)}</b> +${nf(p.g21, 0)} %`).join(' · ') + '</span></div>' : '';
+    const leg = [shown.some(x => x.hot && x.age >= AC.old_sessions) ? `<span><span class="old">⚑</span> s'essouffle (chaud ≥ ${AC.old_sessions} s)</span>` : '',
+      shown.some(x => x.g.fam) ? '<span><span class="ref">◆</span> famille refuge</span>' : '', 'nombre = leaders · survol : détail'].filter(Boolean).join('');
+    box.innerHTML = head + phl + trl +
+      (at.day ? sec('neuf', 'Neufs', N, N) + sec('chaud', 'Chauds', C, actZero ? C : Cw) + more + pion + (shown.length ? `<div class="aleg">${leg}</div>` : '')
+        : `<div class="note">Leaders disponibles sur les ${CFG.industries.leaders.list_sessions} dernières séances seulement.</div>`) +
+      (at.day && !at.active.length ? '<div class="note">Aucun groupe neuf ou chaud à cette séance.</div>' : '');
+  }
+  const skVal = (K, id, e) => { const v = id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
   function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
     const W = SKP.record_sessions, v = skVal(K, id, e); if (v == null || e < W) return { html: '', rec: 0 };
@@ -2652,9 +2924,10 @@
     ind: { state: () => tvNav.lvl === 'ind' && tvNav.sec === 'all' && tvAbove, set: () => { goLevel('ind'); setAbove(true); }, unset: () => setAbove(false) },
     sec: { state: () => tvNav.lvl === 'sec' && tvAbove, set: () => { goLevel('sec'); setAbove(true); }, unset: () => setAbove(false) },
     rot: { state: () => skFlow, set: () => { skFlow = true; }, unset: () => { skFlow = false; } },   // panneau « flux par secteur »
+    th: { state: () => tvNav.lvl === 'act' && !actGrp, set: () => { goAct(null); }, unset: () => {} },   // thèmes chauds : leaders actifs
     rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
     stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
-           set: () => { skStkLvl = tvNav.lvl === 'stk' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
+           set: () => { skStkLvl = tvNav.lvl === 'stk' || tvNav.lvl === 'act' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
            unset: () => sortLevel(skStkLvl, RANK) },
   };
   Object.values(SK_ACT).forEach(a => { a.on = () => skMode != null && SK_ACT[skMode] === a && a.state(); });
@@ -2664,11 +2937,12 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
-    const K = secView === 'tv' ? secKpiData() : null;
-    box.hidden = note.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = true; return; }
+    const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
+    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = true; return; }
+    applyFolds();
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
     const f0 = x => nf(x, 0) + ' %', f1 = x => (x > 0 ? '+' : '') + nf(x, 0), past = e - TI.delta;
@@ -2702,6 +2976,13 @@
         return [lbl, show(r), `<span title="Industries entrées / sorties au-dessus de 1, cumulées sur ${n} séances">${r.en}<span class="kw"> entrées</span> / ${r.ou}<span class="kw"> sorties</span></span>`,
           spark(series('rr'), { ref: 1 }, c), skGauge(K, 'rr', e, f2)];
       },
+      th: () => {                                    // thèmes chauds (config/themes.toml) : même lecture que les autres cases
+        const at = actAt(e), lbl = 'Thèmes suivis chauds';
+        if (!at) return [lbl, '—', 'disponible au prochain passage du robot', '', { html: '', rec: 0 }];
+        const b = past >= 0 ? actThAt(past) : null;
+        return [lbl, `${at.thHot}<span class="kden"> / ${at.thN}</span>`, `${at.neufs.filter(x => x.g.kind === 'th').length} neuf${b != null ? `<span class="kw"> · il y a ${TI.delta} j : ${b}</span>` : ''}`,
+          spark(series('th'), { ref: 0 }, css(at.thHot ? '--up' : '--muted')), skGauge(K, 'th', e, x => String(x))];
+      },
       stk: () => {
         const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;
         if (v == null) return [`Actions ${TIN} > 1`, '—', K.stk ? 'historique trop court' : 'disponible au prochain passage du robot', '', { html: '', rec: 0 }];
@@ -2710,15 +2991,21 @@
       },
     };
     // « Actions TI65 > 1 » : série publiée par le robot ; tant qu'elle manque (ancien fichier), la case n'est pas affichée
-    box.innerHTML = SKP.tiles.filter(id => id !== 'stk' || K.stk).map(id => {
+    box.innerHTML = SKP.tiles.filter(id => (id !== 'stk' || K.stk) && (id !== 'th' || actData())).map(id => {
       const [lbl, val, sub, sp, g] = T_[id](), on = SK_ACT[id].on();
       const ban = g.rec ? `<div class="kban" title="Indicateur retardé : information, pas un signal">${g.rec > 0 ? '▲ Plus haut' : '▼ Plus bas'} 3 mois</div>` : '';
       return `<div class="kpi ${g.rec ? 'hot-warn' : ''}${on ? ' on' : ''}" data-sk="${id}" role="button" tabindex="0" aria-pressed="${on}" title="${escA(on ? 'Revenir au classement' : SK_GO[id])}">${ban}` +
         `<div class="top"><span class="lbl">${lbl}</span>${tipI('skpi:' + id, lbl)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>${g.html}</div>`;
     }).join('');
-    note.textContent = (dHover ? 'Survol : ' : pinned ? 'Séance choisie : ' : 'Séance du ') + fmtDate(Ds[e], { weekday: 'short', day: 'numeric', month: 'short' }) +
-      ' · glisser sur la frise = remonter le temps · toucher une case = raccourci';
+    // titre de la frise : phase de la séance (survol compris), depuis combien de séances, setups recommandés (détail au survol) ;
+    // consignes (glisser, toucher) dans la bulle ⓘ
+    note.textContent = (dHover ? 'Survol : ' : pinned ? 'Séance choisie : ' : 'Séance du ') + fmtDate(Ds[e], { weekday: 'short', day: 'numeric', month: 'short' });
+    const pi = phaseIdx(Ds[e]), P = pi >= 0 ? PHASES[pi] : null, ph = P ? PHK[P.k] : null;
+    let run = 0; if (P) for (let j = pi; j >= 0 && PHASES[j].k === P.k; j--) run++;
+    $('frisePh').innerHTML = ph ? `<span><i style="background:${escA(ph.color)}"></i><b>${escH(ph.name)}</b> <span class="note">depuis ${run} séance${run > 1 ? 's' : ''}</span></span>` +
+      ` <span class="frst"${ph.detail ? ` title="${escA(ph.detail)}"` : ''}>· ${escH(PHC.setups_label)} : <b>${escH(ph.setups)}</b></span>` : '<span class="note">Phase de marché non publiée pour cette séance</span>';
     drawFrise(K, e, !!dHover);
+    renderSecAct(e);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
       fp.hidden = !skFlow;
@@ -2747,38 +3034,28 @@
   // Industries TI65 > 1 (%) sur tout l'historique ; glisser la souris ou le doigt = cases, flux et carte de rotation à la séance
   // survolée (aperçu) ; clic ou doigt levé = cette séance devient celle de « Stats du » (le classement suit).
   let friseG = null;
-  function drawFrise(K, e, hovering) {
+  function drawFrise(K, e, hovering) {               // bande des phases de marché seule (demande du 27/10/2026) : une couleur par séance
     const cv = $('friseCv'); if (!cv) return; const W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
     const dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr;
     const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-    const Ds = IND.dates, i0 = K.ind.findIndex(v => v != null); if (i0 < 0 || Ds.length - i0 < 2) { friseG = null; return; }
-    // bande des phases de marché (fusion des deux frises, demande du 26/10/2026) : PB px sous la courbe, au-dessus des dates
-    const PB = PHASES.length ? 7 : 0, P = 4, B = 13, yb = H - B + 2 - (PB ? PB + 2 : 0), n = Ds.length - i0;
-    const X = i => P + (i - i0) / (n - 1) * (W - 2 * P), Y = v => P + (1 - v / 100) * (yb - P);
+    const Ds = IND.dates, i0 = Math.max(0, Ds.findIndex(d => PHI.has(d))); if (!PHASES.length || Ds.length - i0 < 2) { friseG = null; return; }
+    const P = 4, B = 14, yt = 2, yb = H - B, n = Ds.length - i0;
+    const X = i => P + (i - i0) / (n - 1) * (W - 2 * P), bw = (W - 2 * P) / Math.max(1, n - 1);
     friseG = { i0, n, P, W };
-    g.fillStyle = css('--panel2'); g.fillRect(0, 0, W, yb);
-    g.strokeStyle = css('--faint'); g.setLineDash([2, 3]); g.beginPath(); g.moveTo(P, Y(50)); g.lineTo(W - P, Y(50)); g.stroke(); g.setLineDash([]);
-    // repères de mois (fins traits verticaux) pour se situer dans le temps
-    g.strokeStyle = css('--border'); g.lineWidth = 1;
-    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, P); g.lineTo(Math.round(X(i)) + .5, yb); g.stroke(); }
-    const pts = []; for (let i = i0; i < Ds.length; i++) { const v = K.ind[i] && K.ind[i].pct; if (v != null) pts.push([X(i), Y(v)]); }
-    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b));
-    g.lineTo(pts[pts.length - 1][0], yb); g.lineTo(pts[0][0], yb); g.closePath(); g.fillStyle = css('--upbg'); g.fill();
-    g.beginPath(); pts.forEach(([a, b], j) => j ? g.lineTo(a, b) : g.moveTo(a, b)); g.strokeStyle = css('--text'); g.globalAlpha = .8; g.lineWidth = 1.4; g.stroke(); g.globalAlpha = 1;
-    if (PB) {                                                   // une bande par séance publiée par Stockbee, couleur de la phase
-      const bw = (W - 2 * P) / Math.max(1, n - 1);
-      for (let i = i0; i < Ds.length; i++) { const k = PHI.get(Ds[i]); if (k == null) continue; g.fillStyle = PHK[PHASES[k].k].color; g.fillRect(Math.floor(X(i) - bw / 2), yb + 2, Math.ceil(bw) + 0.5, PB); }
-    }
-    // repère de la séance affichée (survol : couleur du réticule ; sinon : séance de « Stats du »)
-    const v = K.ind[e] && K.ind[e].pct, x = X(Math.max(e, i0));
-    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, P); g.lineTo(x, yb + 2 + PB); g.stroke();
-    if (v != null) { g.fillStyle = css(hovering ? '--ccross' : '--up'); g.beginPath(); g.arc(x, Y(v), 3, 0, 2 * Math.PI); g.fill(); }
-    g.font = '10px -apple-system, "Segoe UI", sans-serif'; g.fillStyle = css('--faint'); g.textBaseline = 'bottom';
-    const pk = PHI.get(Ds[e]), lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${v != null ? ' · ' + nf(v, 0) + ' % des industries > 1' : ''}${pk != null ? ' · ' + PHK[PHASES[pk].k].name : ''}`;
-    const lw = g.measureText(lbl).width, lx = Math.max(P + lw / 2, Math.min(W - P - lw / 2, x));   // libellé de la séance, dans la frise
+    g.fillStyle = css('--panel2'); g.fillRect(P, yt, W - 2 * P, yb - yt);
+    for (let i = i0; i < Ds.length; i++) { const k = PHI.get(Ds[i]); if (k == null) continue; g.fillStyle = PHK[PHASES[k].k].color; g.fillRect(Math.floor(X(i) - bw / 2), yt, Math.ceil(bw) + 0.5, yb - yt); }
+    g.strokeStyle = css('--bg'); g.globalAlpha = .45; g.lineWidth = 1;   // repères de mois, fins, sur la bande
+    for (let i = i0 + 1; i < Ds.length; i++) if (Ds[i].slice(5, 7) !== Ds[i - 1].slice(5, 7)) { g.beginPath(); g.moveTo(Math.round(X(i)) + .5, yt); g.lineTo(Math.round(X(i)) + .5, yb); g.stroke(); }
+    g.globalAlpha = 1;
+    const x = X(Math.max(e, i0));                      // repère de la séance (survol : couleur du réticule ; sinon : séance de « Stats du »)
+    g.strokeStyle = css('--text'); g.lineWidth = 3; g.beginPath(); g.moveTo(x, yt - 2); g.lineTo(x, yb + 2); g.stroke();
+    g.strokeStyle = css(hovering ? '--ccross' : '--up'); g.lineWidth = 1.5; g.beginPath(); g.moveTo(x, yt - 2); g.lineTo(x, yb + 2); g.stroke();
+    g.font = '10.5px -apple-system, "Segoe UI", sans-serif'; g.fillStyle = css('--faint'); g.textBaseline = 'bottom';
+    const pk = PHI.get(Ds[e]), lbl = `${fmtDate(Ds[e], { day: 'numeric', month: 'short' })}${pk != null ? ' · ' + PHK[PHASES[pk].k].name : ''}`;
+    const lw = g.measureText(lbl).width, lx = Math.max(P + lw / 2, Math.min(W - P - lw / 2, x));
     const d0 = fmtDate(Ds[i0], { day: 'numeric', month: 'short' }), d1 = fmtDate(Ds[Ds.length - 1], { day: 'numeric', month: 'short' });
-    if (lx - lw / 2 > P + g.measureText(d0).width + 8) { g.textAlign = 'left'; g.fillText(d0, P, H); }          // dates des bouts : seulement
-    if (lx + lw / 2 < W - P - g.measureText(d1).width - 8) { g.textAlign = 'right'; g.fillText(d1, W - P, H); }  // si le libellé ne les couvre pas
+    if (lx - lw / 2 > P + g.measureText(d0).width + 8) { g.textAlign = 'left'; g.fillText(d0, P, H); }
+    if (lx + lw / 2 < W - P - g.measureText(d1).width - 8) { g.textAlign = 'right'; g.fillText(d1, W - P, H); }
     g.textAlign = 'center'; g.fillStyle = css('--text'); g.fillText(lbl, lx, H);
   }
   const friseDate = ev => { if (!friseG || !IND) return null; const r = $('friseCv').getBoundingClientRect(), f = (ev.clientX - r.left - friseG.P) / (friseG.W - 2 * friseG.P);
@@ -2801,7 +3078,8 @@
   // séances) ; traînée sur `trail` séances ; taille = volume en dollars relatif au marché. Paramètres : config/display.toml [sectors.rrg].
   const RRG = CFG.sectors.rrg;
   let RRD = null, rrgHits = [], rrgHot = null, rrgE = -1, rrgNotes = {};   // rrgNotes : bulles du tableau, clé → [titre, texte] (suivent le niveau affiché)
-  const rrgOpen = true;                              // la carte a sa propre sous-vue : plus de repli (ancienne préférence mm.rrg ignorée)
+  // repliée par défaut depuis la refonte du 27/10/2026 (config [sectors.rrg] folded : description seulement, tests 13-14) ; choix mémorisé
+  let rrgOpen = (() => { const v = store.get('mm.rrgopen'); return v == null ? !CFG.sectors.rrg.folded : v === '1'; })();
   const rrgQ = (x, y) => x >= 100 ? (y >= 100 ? 'lead' : 'weak') : (y >= 100 ? 'impr' : 'lag');
   function rrgData() {
     if (!IND) return null; if (RRD && RRD.src === IND) return RRD;
@@ -2918,7 +3196,7 @@
     return { list: syms.map(s => { const r = tkRow(s); return { s, r }; }) };
   }
   function drawRrg(e) {
-    const card = $('secRrg'), D = secView === 'tv' ? rrgData() : null; if (!card) return;
+    const card = $('secRrg'), D = secView === 'tv' && RRG.shown ? rrgData() : null; if (!card) return;   // retirée de la page le 27/10/2026 (config shown)
     card.hidden = !D; if (!D) return;
     rrgE = e; $('rrgBody').hidden = !rrgOpen; $('rrgHead').setAttribute('aria-expanded', String(rrgOpen)); $('rrgHead').querySelector('.car').textContent = rrgOpen ? '▾' : '▸';
     // arbre de la carte (demande du 20/10/2026) : suit le niveau de la liste — secteurs, industries d'un secteur, actions d'une industrie
@@ -3022,14 +3300,32 @@
         placed.push(at(y - p.y)); g.fillStyle = css(p.emph ? '--ccross' : '--ctext'); g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillText(s, x0, y);
         g.font = '11px -apple-system, "Segoe UI", sans-serif';
       });
+    // lien avec les groupes actifs (retour UX du 27/10/2026) : secteurs = pastille du nombre d'industries neuves ou chaudes (verte s'il
+    // y a un neuf) ; industries = anneau (couleur Neuf ou Chaud) ; la carte dit où est le flux, les groupes actifs disent lesquels
+    const AT = actData() ? actAt(e) : null, actInd = new Map(), actSec = new Map();
+    if (AT) AT.active.filter(x => x.g.kind === 'ind').forEach(x => { actInd.set(x.g.k, x); const v = actSec.get(x.g.sec) || { n: 0, neuf: 0, list: [] }; v.n++; if (x.neuf) v.neuf++; v.list.push(x); actSec.set(x.g.sec, v); });
+    if (lvl !== 'stk') rrgHits.forEach(p => {
+      if (lvl === 'sec') { const v = actSec.get(p.k); if (!v) return;
+        const t = String(v.n), w = Math.max(16, g.measureText(t).width + 8), x0 = p.x + p.r - 2, y0 = p.y - p.r - 14;
+        g.globalAlpha = p.dim ? .35 : 1; g.fillStyle = css(v.neuf ? '--up' : '--warn'); g.beginPath();
+        if (g.roundRect) g.roundRect(x0, y0, w, 14, 7); else g.rect(x0, y0, w, 14); g.fill();
+        g.fillStyle = css('--cbg'); g.font = '600 10px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, x0 + w / 2, y0 + 7.5);
+        g.font = '11px -apple-system, "Segoe UI", sans-serif'; g.globalAlpha = 1; return; }
+      const x = actInd.get(p.k); if (!x) return;
+      g.globalAlpha = p.dim ? .35 : 1; g.strokeStyle = css(x.neuf ? '--up' : '--warn'); g.lineWidth = 2; g.beginPath(); g.arc(p.x, p.y, p.r + 4, 0, 2 * Math.PI); g.stroke(); g.globalAlpha = 1;
+    });
+    const actOf = (k, ind) => { const L = lvl === 'sec' && !ind ? (actSec.get(k) || { list: [] }).list : actInd.has(k) ? [actInd.get(k)] : []; if (!L.length) return '';
+      return ' · ' + L.slice().sort((a, b) => b.neuf - a.neuf || b.lead - a.lead).map(x => `<button type="button" class="rrgact" data-actg="${escA(x.g.key)}" title="Ses leaders">` +
+        `<span class="etat ${x.neuf ? 'neuf' : 'chaud'}">${x.neuf ? 'Neuf' : 'Chaud'}</span>${escH(x.g.k)} ${x.lead}</button>`).join(' '); };
+    const actLeg = AT && AT.active.length && lvl !== 'stk' ? ` · ${lvl === 'sec' ? 'pastille' : 'anneau'} = groupes actifs du ${lvl === 'sec' ? 'secteur' : 'jour'} (couleurs Neuf / Chaud du bloc Groupes actifs)` : '';
     const h = rrgHits.find(p => p.k === rrgHot), cnt = q => rrgHits.filter(p => p.q === q).length, nm = k => escH(lvl === 'sec' ? tvSecLabel(k) : k);
     const tkLine = tkFocus.size ? 'En avant : ' + rrgHits.filter(p => tkFocus.has(p.k)).map(p => `<b>${nm(p.k)}</b> (${escH(RRG.labels[p.q])})`).join(' · ') + ' · ' : '';
     const tr0 = tabInd && rrgTabHot ? dv.find(r => r.k === rrgTabHot) : null;
     $('rrgInfo').innerHTML = tr0 ? `<b>${escH(tr0.k)}</b> · ${escH(tvSecLabel(tr0.sec))} (en avant sur la carte) · ${escH(RRG.labels[tr0.to])} · force relative ${nf(tr0.a, 1)}` +
-        ` <button type="button" class="rrgopen" data-openind="1">Ouvrir ›</button>`
+        ` <button type="button" class="rrgopen" data-openind="1">Ouvrir ›</button>` + actOf(tr0.k, true)
       : h ? `<b>${nm(h.k)}</b> · ${escH(RRG.labels[h.q])} · force relative ${nf(h.a, 1)} · accélération ${nf(h.b, 1)}` +
-        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` <button type="button" class="rrgopen" data-openhot="1">${lvl === 'stk' ? 'Fiche' : 'Ouvrir'} ›</button>`
-      : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
+        (h.rv != null ? ` · volume ${nf(h.rv, 2)} × celui du marché` : '') + ` <button type="button" class="rrgopen" data-openhot="1">${lvl === 'stk' ? 'Fiche' : 'Ouvrir'} ›</button>` + actOf(h.k)
+      : tkLine + ['lead', 'impr', 'weak', 'lag'].map(q => `${escH(RRG.labels[q])} ${cnt(q)}`).join(' · ') + ' · toucher un point : détail' + actLeg + (D.hasRv ? '' : ' · taille des points : au prochain passage du robot');
     // légende de la taille des points (volume en dollars relatif au marché ; rayon = 2 + 4 × volume relatif, borné 3 à 10 px)
     const dot = v => `<i style="width:${2 * Math.max(3, Math.min(10, 2 + 4 * v))}px;height:${2 * Math.max(3, Math.min(10, 2 + 4 * v))}px"></i>`;
     $('rrgLeg').innerHTML = rrgHits.some(p => p.rv != null) ? `Taille : argent échangé par rapport à son habitude, comparé au marché · ${dot(.8)} ×0,8 ${dot(1)} ×1 ${dot(1.3)} ×1,3` : '';
@@ -3053,7 +3349,7 @@
     const depc = r => { const n = ns(r); return n ? `${n >= RRG.streak_max ? RRG.streak_max + '+' : n} j` : '—'; };
     const tn = k => escH(tLvl === 'sec' ? tvSecLabel(k) : k);
     const tr = r => `<tr data-mv="${escA(r.k)}" tabindex="0" class="${(tabInd ? rrgTabHot : rrgHot) === r.k ? 'on' : ''}${(r.weak && VW === 'chg') || (r.watch && VW === 'pist') ? ' rtweak' : ''}">` +
-      `<td class="rtn"><i style="background:var(${zc(r.to)})"></i>${tn(r.k)}${tags(r)}${tabInd ? `<span class="rtsec">${escH(tvSecLabel(r.sec))} · ${r.n} titres</span>` : ''}` +
+      `<td class="rtn"><i style="background:var(${zc(r.to)})"></i>${tLvl === 'ind' && actInd.has(r.k) ? `<span class="etat ${actInd.get(r.k).neuf ? 'neuf' : 'chaud'}">${actInd.get(r.k).neuf ? 'Neuf' : 'Chaud'}</span>` : ''}${tn(r.k)}${tags(r)}${tabInd ? `<span class="rtsec">${escH(tvSecLabel(r.sec))} · ${r.n} titres</span>` : ''}` +
       `<small>${dep && ns(r) ? `depuis ${depc(r)} · ` : ''}${zone(r)} · ${escH(TIN)} ${t65c(r)}</small></td>` +   // mobile : la persistance d'abord (ligne coupée à droite)
       `<td class="rtz">${zone(r)}</td>${dep ? `<td class="rts">${depc(r)}</td>` : ''}<td class="rtf">${spark(r.sp)}${nf(r.a, 1)}</td><td class="rtt rtv${r.t65 != null && r.t65 > RRG.confirm_ti65 ? ' hi' : ''}">${t65c(r)}</td>` +
       `<td class="rd1">${sg(r.d1)}</td><td class="rd2">${sg(r.d2)}</td><td class="rtb rtv${r.br && r.br.share >= RRG.confirm_breadth ? ' hi' : ''}">${brc(r)}</td>` +
@@ -3146,6 +3442,7 @@
     renderSectors(); const sc = $('secScroll'); if (sc) sc.scrollTop = 0;
   }
   $('rrgInfo').addEventListener('click', ev => {     // « Ouvrir › » / « Fiche › » du point mis en avant (le double toucher reste possible)
+    const ag = ev.target.closest('[data-actg]'); if (ag) { goAct(ag.dataset.actg); return; }   // groupe actif du point : ses leaders
     if (ev.target.closest('[data-openind]') && rrgTabHot) { rrgOpenInd(rrgTabHot); return; }
     if (!ev.target.closest('[data-openhot]')) return; const p = rrgHits.find(h => h.k === rrgHot); if (p) rrgOpenPoint(p);
   });
@@ -3193,21 +3490,25 @@
         : '<tr><td style="text-align:left;padding:16px">Données introuvables : lance <code>python fetch_industries.py</code> (fichier <code>industries_data.js</code> à côté de ce HTML).</td></tr>';
       return;
     }
-    if (!D.items.length) {                               // actions d'une industrie : fichier en cours de chargement ou introuvable
+    if (!D.items.length) {                               // actions d'une industrie ou leaders actifs : fichiers en cours de chargement, introuvables ou liste vide
       secRows = []; secD = D; secBuiltKey = '';
       renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = ''; $('secSortBar').hidden = true;
-      body.innerHTML = `<tr class="loading"><td>${D.wait ? `Chargement des actions de ${escH(D.ind.k)}…`
+      body.innerHTML = `<tr class="loading"><td>${D.kind === 'act' ? (D.wait ? 'Chargement des leaders actifs…'
+          : D.none ? `Liste des leaders disponible sur les ${CFG.industries.leaders.list_sessions} dernières séances : choisis une séance plus récente dans « Stats du ».`
+          : 'Aucun leader dans les groupes neufs ou chauds à cette séance.')
+        : D.wait ? `Chargement des actions de ${escH(D.ind.k)}…`
         : `Actions de ${escH(D.ind.k)} introuvables (fichier <code>${escH(TIC.folder)}/${escH(D.ind.f)}.js</code>).`}</td></tr>`;
+      $('secAdr').hidden = true;
       return;
     }
     if (secBuiltKey !== D.key + '|' + secEnd(D)) secBuild(D);
     if (!GRP.some(([k]) => k === secGroup)) secGroup = 'all';
     syncSort(D);
     renderSecFilt();
-    $('secTable').classList.toggle('tv', secView === 'tv');
+    $('secTable').classList.toggle('tv', secView === 'tv'); $('secTable').classList.toggle('act', secView === 'tv' && D.kind === 'act');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
     // niveau actions : filtre « ADR > x % » et copie des tickers affichés
-    const stk = secView === 'tv' && D.kind === 'stk', ab = $('secAdr'); ab.hidden = !stk;
+    const stk = secView === 'tv' && (D.kind === 'stk' || D.kind === 'act'), ab = $('secAdr'); ab.hidden = !stk;
     if (stk) {
       $('adrN').textContent = CFG.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.adr.step;
       if (document.activeElement !== inp) inp.value = adrMin > 0 ? String(adrMin) : '';
@@ -3226,7 +3527,7 @@
     const bar = $('secSortBar'), opts = secView === 'tv' ? SORT_OPTS[D.kind] || [] : [];
     bar.hidden = !opts.length;
     bar.innerHTML = opts.length ? '<span class="slbl">Classer par</span>' + opts.map(k => {
-      const on = secSort.k === k, lbl = k === 'rank' ? TIN : defs[k].label;
+      const on = secSort.k === k, lbl = k === 'rank' ? (D.kind === 'act' ? defs.g21.label : TIN) : defs[k].label;
       return `<button data-sort="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}" title="${escA(defs[k].title || 'Trier par ' + lbl)}${on ? ' · toucher à nouveau : sens inverse' : ''}">` +
         `${escH(lbl)}${on ? `<span class="arr">${secSort.dir > 0 ? '▲' : '▼'}</span>` : ''}</button>`;
     }).join('') : '';
@@ -3244,7 +3545,10 @@
       rank: r => `<td class="rank">${r.rank ?? '—'}</td>`,
       sym: r => `<td class="sym l" title="${escA(r.x.n)}">${escH(r.x.lbl || r.x.s)}<span class="tsub">${sub(r)}</span></td>`,
       grp: r => secView === 'etf' ? `<td class="grp l c-grp" title="${escA(r.x.d || r.x.n)}">${escH(theme(r.x))}</td>`
+        : r.x.grp ? `<td class="grp l c-grp" title="${escA(r.x.etat + ' · ' + r.x.grp.join(', ') + ' · ' + r.x.ind.k)}"><span class="etat ${r.x.etat === 'Neuf' ? 'neuf' : 'chaud'}">${escH(r.x.etat)}</span>${escH(r.x.grp.join(' · '))}${r.x.fam ? ` <span class="tag" title="Famille refuge (étiquette, pas une liste fixe : test 12)">${escH(r.x.fam)}</span>` : ''}</td>`
         : `<td class="grp l c-grp" title="${escA(r.x.sub)}">${escH(r.x.sub)}</td>`,
+      g21: r => `<td class="c-g21"><span class="pos">${r.x.g21 > 0 ? '+' : ''}${nf(r.x.g21, 0)} %</span></td>`,
+      hi20: r => `<td class="c-hi20">${r.hi20 == null ? '<span class="tag">—</span>' : r.hi20 >= -0.5 ? '<span class="pos">au plus haut</span>' : `<span style="color:var(--muted)">${nf(r.hi20, 0)} %</span>`}</td>`,
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
       brd: r => `<td class="brd c-brd">${r.brd == null ? '—' : nf(r.brd, 0) + ' %'}</td>`,
       cap: r => `<td class="cap c-cap">${capFmt(r.x.cap)}</td>`,
@@ -3259,20 +3563,22 @@
     const dmax = Math.max(1e-9, ...secRows.filter(r => r.dev != null).map(r => Math.abs(r.dev)));   // échelle commune à tous les filtres
     const dbar = v => `<i class="${v >= 0 ? 'u' : 'd'}" style="width:${Math.max(2, Math.abs(v) / dmax * 100)}%"></i>`;
     let seenShort = false;
-    body.innerHTML = sorted.map(r => {
+    const lim = AC.list_limit, cut = D.kind === 'act' && !actAll && sorted.length > lim;   // Leaders actifs : list_limit lignes, puis « + N autres »
+    secShownSyms = (cut ? sorted.slice(0, lim) : sorted).map(r => r.x.s);
+    body.innerHTML = (cut ? sorted.slice(0, lim) : sorted).map(r => {
       const cl = [r.x.s === secSel ? 'sel' : '', r.rank == null ? 'short' : '', r.rank == null && !seenShort ? 'sep' : ''].filter(Boolean).join(' ');
       if (r.rank == null) seenShort = true;
       return `<tr data-s="${escA(r.x.s)}" class="${cl}">${cols.map(id => cell[id](r)).join('')}</tr>`;
-    }).join('');
+    }).join('') + (D.kind === 'act' && sorted.length > lim ? `<tr class="more"><td colspan="${cols.length}"><button type="button" data-actall="1">${actAll ? `Revenir aux ${lim} premiers` : `+ ${sorted.length - lim} autres`}</button></td></tr>` : '');
     const nRanked = secRows.filter(r => r.rank != null).length, short = secRows.length - nRanked;
-    const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées' }[D.kind];
+    const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées', act: 'leaders actifs' }[D.kind];
     $('secMeta').textContent = `${fmtDate(D.dates[secBuiltEnd])} · ${nRanked} ${unit}${short ? ` · ${short} sans rang` : ''}`;
     const late = secView === 'tv' && !pinned && SEC && IND && IND.asof < SEC.asof;   // séance des ETF plus récente que celle de TradingView
     $('secMeta').classList.toggle('late', !!late);
     if (late) $('secMeta').innerHTML = `<span class="neg" title="Les actions viennent de l'historique Polygon (plan gratuit), publié le lendemain matin de la séance">⚠ séance du ${fmtDate(SEC.asof, { day: 'numeric', month: 'short' })} pas encore publiée</span> · ` + escH($('secMeta').textContent);
     const sel = body.querySelector && body.querySelector('tr.sel');
     const lblOf = new Map(sorted.map(r => [r.x.s, r.x.lbl || r.x.s]));
-    detNavSync('sec', sorted.map(r => r.x.s), secSel, { etf: 'ETF', sec: 'Secteur', ind: 'Industrie', stk: 'Titre' }[D.kind], s => lblOf.get(s) || s);
+    detNavSync('sec', sorted.map(r => r.x.s), secSel, { etf: 'ETF', sec: 'Secteur', ind: 'Industrie', stk: 'Titre', act: 'Titre' }[D.kind], s => lblOf.get(s) || s);
     renderSecKpis();                                 // après syncSort : état actif des raccourcis (tri, filtre) à jour
     fitSecLayout();
     if (sel) scrollWithin($('secScroll'), sel, 'y');   // ligne choisie visible dans la liste, sans faire défiler la page (changement de date)
@@ -3318,6 +3624,7 @@
   $('secHead').addEventListener('dragend', () => { secDragCol = null; secClearDrop(); });
 
   $('secRows').addEventListener('click', e => {
+    if (e.target.closest('[data-actall]')) { actAll = !actAll; renderSectors(); return; }   // Leaders actifs : « + N autres »
     const o = e.target.closest('[data-open]');
     if (o && o.dataset && o.dataset.open != null) { tvOpen(o.dataset.open); return; }   // « › » : niveau suivant
     const tr = e.target.closest('tr'); if (!tr || !tr.dataset.s) return;
@@ -3346,11 +3653,28 @@
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.above != null) { tvAbove = !tvAbove; store.set('mm.tvabove', tvAbove ? '1' : '0'); }
     else if (b.dataset.sec != null) { tvNav.sec = b.dataset.sec; tvSave(); }
+    else if (b.dataset.actg != null) { actGrp = b.dataset.actg || null; actAll = false; secSel = null; }
     else return;
     renderSectors();
   });
+  $('secAct').addEventListener('click', e => {        // groupes actifs : un groupe = ses leaders ; « Leaders actifs › » = tous
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act', actOpen); renderSecKpis(); return; }
+    if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
+    if (b.dataset.actg != null) goAct(tvNav.lvl === 'act' && actGrp === b.dataset.actg ? null : b.dataset.actg);
+    else if (b.dataset.actgo != null) goAct(null);
+  });
+  $('listFold').addEventListener('click', () => { listOpen = !listOpen; foldSet('list', listOpen); applyFolds(); fitSecLayout(); });
+  $('rrgHead').addEventListener('click', () => {       // carte de rotation : repli mémorisé (refonte du 27/10/2026)
+    rrgOpen = !rrgOpen; store.set('mm.rrgopen', rrgOpen ? '1' : '0'); renderSecKpis();
+  });
   $('secFilt').addEventListener('click', e => {        // ETF : filtre par groupe (masque des lignes, rangs inchangés) · TradingView : remonter
     const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.act != null) { goAct(null); return; }
+    if (b.dataset.etf != null || b.dataset.tvback != null) {             // ETF ⇄ TradingView : chaque vue garde sa sélection
+      store.set(selKey(), secSel || ''); secView = b.dataset.etf != null ? 'etf' : 'tv'; store.set('mm.secview', secView); secSel = store.get(selKey());
+      secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail'); renderSectors(); return; }
+    if (b.dataset.lvl != null && tvNav.lvl === 'act') { tvNav = { lvl: +b.dataset.lvl === 1 ? 'ind' : 'sec', sec: 'all', ind: null }; tvSave(); secSel = null; renderSectors(); return; }
     if (b.dataset.lvl != null) { tvUp(+b.dataset.lvl); return; }
     if (!b.dataset.g) return;
     secGroup = b.dataset.g; store.set('mm.secgrp', secGroup); renderSectors();
@@ -3431,13 +3755,16 @@
     } else if (D.kind === 'ind') {
       $('secTitle').textContent = x.s;
       $('secInfo').textContent = `Industrie TradingView (${tvSecLabel(x.sec)}) · indice équipondéré de ${x.cnt} action${x.cnt > 1 ? 's' : ''}${row.few ? ' (peu de titres)' : ''}${brd}`;
+    } else if (D.kind === 'act') {
+      $('secTitle').textContent = `${x.s} · ${x.n}`;
+      $('secInfo').innerHTML = `<span class="etat ${x.etat === 'Neuf' ? 'neuf' : 'chaud'}">${escH(x.etat)}</span>${escH(x.grp.join(' · '))} · ${escH(x.ind.k)} (${escH(tvSecLabel(x.ind.sec))}) · capitalisation ${capFmt(x.cap)} $`;
     } else {
       $('secTitle').textContent = `${x.s} · ${x.n}`;
       $('secInfo').innerHTML = `${escH(D.ind.k)} (${escH(tvSecLabel(D.ind.sec))}) · capitalisation ${capFmt(x.cap)} $`;
     }
     $('secBrdNow').innerHTML = row.brd == null ? '' : `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.brd, 0)} %</b> de ${x.cnt} actions`;
     $('secBrdName').innerHTML = `% des actions avec un ${TIN} &gt; 1`;
-    const card = $('secCard'), isStk = D.kind === 'stk';  // action : fiche standard (même contenu que Tickers et Post-market)
+    const card = $('secCard'), isStk = D.kind === 'stk' || D.kind === 'act';  // action : fiche standard (même contenu que Tickers et Post-market)
     if (card.hidden === isStk) { card.hidden = !isStk; fitSecLayout(); }
     if (isStk) {
       const last = secCtx.bars.size ? [...secCtx.bars.values()].pop() : null;
@@ -3475,7 +3802,7 @@
     const b = bars.get(d); if (!b || b.r == null) return `<b>${fmtDate(d)}</b>Score indisponible (moins de ${TI.long} séances)`;
     return `<b>${fmtDate(d)}</b><div>${TIN} : ${nf(b.r, 3)}</div><div>écart <span class="${cls((b.r - 1) * 100)}">${pct((b.r - 1) * 100)}</span></div>`;
   }
-  function drawSecScore() { drawScore(cvScore, secD.dates[secBuiltEnd]); }
+  function drawSecScore() { if (secD) drawScore(cvScore, secD.dates[secBuiltEnd]); }   // survol pendant le chargement : rien à dessiner
   function drawScore(cv, dotDate) {                      // TI65 dans le temps, même fenêtre de dates que le prix (Secteurs, Tickers)
     if (!cv.clientWidth) return;
     const c = setup(cv); if (!c.n) return;
@@ -4013,7 +4340,10 @@
   }
   $('pmCopy').addEventListener('click', () => copyTickers($('pmCopy'), pmShown.map(r => r.s)));
   $('tkCopy').addEventListener('click', () => copyTickers($('tkCopy'), tkShown.map(r => r.s)));
-  $('secCopy').addEventListener('click', () => { if (secD && secD.kind === 'stk') copyTickers($('secCopy'), secSorted().map(r => r.x.s)); });
+  $('secCopy').addEventListener('click', () => {      // tickers affichés (ordre, filtres ; Leaders actifs : lignes visibles)
+    if (secD && secD.kind === 'stk') copyTickers($('secCopy'), secSorted().map(r => r.x.s));
+    else if (secD && secD.kind === 'act') copyTickers($('secCopy'), secShownSyms);
+  });
   let adrTimer = 0;
   const adrApply = v => { clearTimeout(adrTimer); const x = Math.max(0, parseFloat(String(v).replace(',', '.')) || 0); if (x === adrMin) return;
     adrMin = x; store.set('mm.adrmin', String(adrMin)); renderSectors(); };

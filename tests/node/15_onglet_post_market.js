@@ -5,6 +5,9 @@ const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 const SS={};
 function boot(ls,pm,status){
+  // antérieur à la refonte du 27/10/2026 : vue ETF par défaut, bascule unique vers TradingView déjà faite (nouveau comportement : test 23)
+  if(!('mm.secrefonte' in ls))ls['mm.secrefonte']='1';
+  if(!('mm.secview' in ls))ls['mm.secview']='etf';
   const L={},els={},DL={};let fillC='',strokeC='';const R={},Sx={},M={};
   const mkCtx=id=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):
     k==='fillRect'?(x,y,w,h)=>{(R[id]=R[id]||[]).push([fillC,x,y,w,h]);}:

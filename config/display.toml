@@ -31,7 +31,8 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 # ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (industries qui passent au-dessus / en dessous
 # de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
-tiles = ["sec", "ind", "rot", "rr", "stk"]   # secteurs d'abord, puis industries (demande du 20/10/2026)
+tiles = ["sec", "ind", "rot", "rr", "stk", "th"]   # secteurs d'abord, puis industries (demande du 20/10/2026) ;
+# th : thèmes chauds (config/themes.toml), ajoutée le 27/10/2026 (refonte de l'onglet, mêmes visuels que les autres cases)
 rotation_window = 5           # « Rotation » : entrées / sorties au-dessus de 1 comptées sur ce nombre de séances
 # rr : ratio de rotation = entrées ÷ sorties de chaque séance, cumulées sur rotation_ratio_sessions séances, lu comme « Ratio 5 j »
 # du MM ; dessous : les deux totaux (entrées / sorties). Plus de fenêtre 10 j (demande du 20/10/2026 : ratio 10 j non utilisé).
@@ -70,6 +71,33 @@ measure_streak = 3            # repère : Pistes présentes depuis au moins ce n
 streak_max = 20               # colonne « Depuis » : séances consécutives comptées au plus (affiché « 20+ j »)
 default_view = "pist"         # vue du tableau à la première visite (mesure du 21/10/2026 : Confirmés arrive tard)
 default_view_in = "all"       # vue dans un secteur ou une industrie (peu de membres : Pistes y filtre presque tout)
+# refonte du 27/10/2026 : la carte et son tableau ne prédisent rien sur 2019-2026 (tests 13 et 14 du document d'analyse) ;
+# gardés comme description, repliés par défaut (un toucher sur le titre les ouvre ; choix mémorisé)
+folded = true
+shown = false                 # retirée de la page le 27/10/2026 (aucune avance mesurée, tests 13-14 ; choix de l'utilisateur) : true = la remettre en fin d'onglet
+
+[sectors.actifs]
+# Bloc « Groupes actifs » et niveau « Leaders actifs » de la vue TradingView (refonte du 27/10/2026, exception au gel accordée le
+# 27/10/2026 à la demande de l'utilisateur). Leaders et signaux calculés par fetch_industries.py (config/industries.toml [leaders]).
+# Chaud = règle de l'onglet Tickers ([tickers] : top hot_top_pct % des industries, TI65 > 1, largeur ≥ hot_min_breadth %) ; un thème
+# est comparé au seuil des industries (le top 20 % se calcule sur les industries seules : test 10).
+fresh_sessions = 42           # neuf = signal (grappe d'industrie ou panier de thème) sans signal ni état chaud dans les 42 séances d'avant…
+neuf_window = 10              # …et parti depuis au plus ce nombre de séances
+old_sessions = 42             # « s'essouffle » (information, pas une règle de sortie : test 9) : chaud depuis au moins ce nombre de séances
+list_limit = 30               # Leaders actifs : lignes affichées avant « + N autres » (tri par gain sur 21 séances : test 11)
+high_sessions = 20            # colonne « / plus haut » : écart au plus haut de ce nombre de séances (0 = au plus haut : encore en base ou déjà parti)
+alert_phases = ["wash", "shock"]   # alerte « phase avec groupes chauds » : clés de [[phases.phase]] (test 9 : seul signal net)
+pioneer_gain_pct = 50         # pionnier : leader à +50 % ou plus sur 21 séances, devenu leader depuis au plus pioneer_window séances
+pioneer_window = 10           # (et pas leader dans les fresh_sessions d'avant), son industrie ni chaude ni en grappe (test 8)
+chauds_shown = 6              # groupes chauds affichés (ceux qui ont le plus de leaders) avant « + N autres » (retour UX du 27/10/2026)
+trend_sessions = 5            # ligne « Sur N s » : groupes chauds, neufs et leaders comparés à N séances avant (voir à temps qu'il faut lever le pied)
+label = "Groupes actifs"
+leaders_label = "Leaders actifs"
+alert_text = "Repère 2019-2026 : le premier jour de lessivage ou de choc, les thèmes chauds n'ont battu le marché que 28 à 41 % du temps sur les 42 séances suivantes."
+neuf_tip = "Grappe de leaders (au moins 3 actions à +25 % sur 21 séances, 2 fois plus que le marché) ou moitié d'un panier de thème leader, sans signal dans les 42 séances d'avant. Signal le plus solide des tests (53 % devant le marché à 42 séances sur 2019-2026) : il dit où et quand, pas si le thème va marcher."
+pioneer_tip = "Action seule à +50 % sur 21 séances, partie depuis au plus 10 séances, dans une industrie ni chaude ni en grappe : amorce de thème à valider (environ 2 par mois ; en moyenne, pas d'avance mesurée, seulement plus de très gros mouvements : test 8)."
+# familles refuges (étiquette sur les groupes et les tickers) : pas de liste fixe qui tienne d'une contraction à l'autre (test 12)
+refuges = { "Énergie" = ["Integrated Oil", "Oil & Gas Production", "Oil Refining/Marketing", "Oilfield Services/Equipment", "Contract Drilling", "Oil & Gas Pipelines", "Coal", "Marine Shipping"], "Métaux" = ["Precious Metals", "Other Metals/Minerals", "Steel", "Aluminum"], "Services publics" = ["Electric Utilities", "Gas Distributors", "Water Utilities", "Alternative Power Generation"], "Conso. de base" = ["Food: Major Diversified", "Food: Specialty/Candy", "Food: Meat/Fish/Dairy", "Beverages: Non-Alcoholic", "Beverages: Alcoholic", "Household/Personal Care", "Tobacco", "Food Retail", "Discount Stores", "Food Distributors"], "Santé défensive" = ["Pharmaceuticals: Major", "Managed Health Care", "Medical Distributors", "Hospital/Nursing Management"], "Assurance" = ["Property/Casualty Insurance", "Multi-Line Insurance", "Life/Health Insurance", "Specialty Insurance", "Insurance Brokers/Services"], "Défense" = ["Aerospace & Defense"] }
 
 [adr]
 # ADR (average daily range) des actions, sur toutes les listes de tickers (Secteurs, Tickers, Post-market, fiche) — décision du

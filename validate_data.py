@@ -251,6 +251,20 @@ def check_industries(data, today, folder=None):
               or any(v is not None and not 0 <= v < 100 for v in x["rv"]))]   # volume relatif (ajouté le 20/10/2026)
     if bad_rv:
         errors.append(f"industries : volume en dollars relatif incohérent ({', '.join(str(k) for k in bad_rv[:3])})")
+    # groupes actifs (refonte du 27/10/2026) : leaders et grappe par industrie, univers, thèmes, liste des leaders ; absents des anciens fichiers
+    if "leaders" in data:
+        lead, th = data["leaders"], data.get("themes", [])
+        bad_l = [x["k"] for x in inds if len(x.get("l", [])) != len(dates) or len(x.get("g", "")) != len(dates)
+                 or set(x["g"]) - {"0", "1"} or any(not 0 <= v <= x["n"] for v in x["l"])]
+        bad_t = [t.get("k") for t in th if t.get("n") != len(t.get("m", [])) or len(t.get("l", [])) != len(dates)
+                 or len(t.get("h", "")) != len(dates) or (t["n"] and (len(t.get("c", [])) != len(dates) or len(t.get("b", [])) != len(dates)))]
+        days, start = lead.get("days", []), lead.get("start", -1)
+        if bad_l or bad_t or not st or len(st.get("l", [])) != len(dates) or len(st.get("v", [])) != len(dates) \
+                or start < 0 or start + len(days) != len(dates) \
+                or any(not 0 <= r[1] < len(inds) for day in days for r in day) \
+                or (days and len(days[-1]) != st["l"][-1]):
+            errors.append(f"industries : groupes actifs incohérents (industries {', '.join(bad_l[:3]) or 'ok'}, "
+                          f"thèmes {', '.join(str(k) for k in bad_t[:3]) or 'ok'}, liste des leaders ou séries de l'univers)")
     if folder is not None:
         missing = []
         for i in inds:

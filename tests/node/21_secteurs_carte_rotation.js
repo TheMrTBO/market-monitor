@@ -6,6 +6,9 @@ require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){
+  // antérieur à la refonte du 27/10/2026 : vue TradingView sur Secteurs, carte ouverte (défauts actuels : Leaders actifs, carte repliée ; test 23)
+  if(!('mm.tvnav' in ls))ls['mm.tvnav']=JSON.stringify({lvl:'sec',sec:'all',ind:null});
+  if(!('mm.rrgopen' in ls))ls['mm.rrgopen']='1';
   const L={},els={},DL={};let fillC='',strokeC='';const R={},Sx={},M={};
   const mkCtx=id=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):
     k==='fillRect'?(x,y,w,h)=>{(R[id]=R[id]||[]).push([fillC,x,y,w,h]);}:
@@ -26,6 +29,7 @@ function boot(ls,opts={}){
     getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+  vm.runInContext('MM_CONFIG.sectors.rrg.shown=true;',sb);   // carte retirée de la page le 27/10/2026 (config shown = false) : testée réactivée
   if(opts.after)vm.runInContext(opts.after,sb);
   vm.runInContext(main,sb);
   return {L,els,DL,R,Sx,M,sb,$,document};
@@ -89,9 +93,9 @@ const lab=(CFG.sector_fr||{})[far.k]||far.k;
 ok('premier toucher sur un point : détail (nom, zone, force relative)',strip(A.$('rrgInfo')._h).startsWith(lab)&&/force relative/.test(strip(A.$('rrgInfo')._h)),strip(A.$('rrgInfo')._h).slice(0,100));
 tapAt(A,X(far.p[0]),Y(far.p[1]));
 ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre ses industries',crumbs(A).length===2&&chips(A).some(c=>c.on&&c.k===far.k)&&/industries · /.test(A.$('rrgWhat')._t),A.$('rrgWhat')._t);
-// une seule page, dans l'ordre (demande du 20/10/2026) : cases, frise, note, flux, carte de rotation, classement
+// une seule page, dans l'ordre (demande du 20/10/2026 ; refonte du 27/10/2026 : groupes actifs avant le classement, carte en fin d'onglet)
 { const H=fs.readFileSync('stockbee_dashboard.html','utf8'), at=id=>H.indexOf('id="'+id+'"');
-  const ids=['secKpis','secFrise','secKpiNote','secFlow','secRrg','secTable'];
+  const ids=['secKpis','secFrise','frisePh','secKpiNote','secFlow','secAct','listFold','secTable','secRrg','view-pm'];   // 27/10 : cases fixes, frise en séparateur
   ok('ordre de la page : '+ids.join(' → '),ids.every((id,i)=>at(id)>0&&(!i||at(id)>at(ids[i-1])))&&!/id="secSub"/.test(H)); }
 // tableau « Depuis la veille » (21/10/2026) : au niveau secteurs de la carte, il liste les industries de tout le marché (secteur
 // sous le nom) ; vues Pistes (par défaut) / Confirmés / Changements, Tous en lien ; lignes recalculées indépendamment (marché
@@ -114,7 +118,7 @@ ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre 
       chg:L.filter(r=>r.fort||r.bas).sort((p,r)=>p.weak-r.weak||r.m-p.m),all:L.slice().sort((p,r)=>r.a-p.a)};};
   const cl=(h,c)=>{const m=h.match(new RegExp('<td class="[^"]*\\b'+c+'\\b[^"]*">(.*?)</td>'));return m?strip(m[1]).replace(/&amp;/g,'&'):null;};
   const trs=X=>[...X.$('rrgTab')._h.matchAll(/<tr data-mv="([^"]+)"[^>]*>(.*?)<\/tr>/g)].map(m=>({k:m[1].replace(/&amp;/g,'&'),h:m[2],on:/class="on/.test(m[0])}));
-  const name=r=>strip(r.h.match(/<td class="rtn">(.*?)<small>/)[1].replace(/<span class="rttag[^>]*>.*?<\/span>/g,'').replace(/<span class="rtsec">.*?<\/span>/,'')).replace(/&amp;/g,'&');
+  const name=r=>strip(r.h.match(/<td class="rtn">(.*?)<small>/)[1].replace(/<span class="(rttag|etat)[^>]*>.*?<\/span>/g,'').replace(/<span class="rtsec">.*?<\/span>/,'')).replace(/&amp;/g,'&');
   const rv=(X,v)=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-rv]'?{dataset:{rv:v}}:null}});
   const tapRow=(X,k)=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-mv]'?{dataset:{mv:k}}:null}});
   const rall=X=>X.L.rrgTab.click({target:{closest:sel=>sel==='[data-rall]'?{dataset:{rall:'1'}}:null}});
@@ -213,7 +217,8 @@ ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre 
 // frise temporelle : survol souris = aperçu (cases, carte) ; clic = « Stats du » ; doigt : glisser = aperçu, lever = « Stats du »
 const C=boot({}); tab(C); view(C,'tv');
 C.$('friseCv').getBoundingClientRect=()=>({left:0,top:0,width:900,height:56});
-const i0=IND.dates.findIndex((d,e)=>IND.industries.some(x=>x.n>=min&&sc(x.c,e)!=null)), at=f=>IND.dates[Math.round(i0+(f*900-4)/(900-8)*(N-1-i0))];
+// frise = bande des phases seule depuis le 27/10/2026 : elle commence à la première séance qui a une phase (séances Stockbee publiées)
+const sbD=new Set(C.sb.STOCKBEE.rows.map(r=>r[0])), i0=Math.max(0,IND.dates.findIndex(d=>sbD.has(d))), at=f=>IND.dates[Math.round(i0+(f*900-4)/(900-8)*(N-1-i0))];
 C.L.friseCv.pointermove({pointerType:'mouse',clientX:0.5*900,clientY:20});
 const dh=at(0.5);
 ok('frise : survol = aperçu à la séance survolée (cases et carte), « Stats du » inchangé',/^Survol : /.test(C.$('secKpiNote')._t)&&C.$('dPick').value===C.$('dPick').max&&!(C.$('rrgWhat')._t||'').includes(' 19 oct.'),C.$('secKpiNote')._t+' | '+C.$('rrgWhat')._t);

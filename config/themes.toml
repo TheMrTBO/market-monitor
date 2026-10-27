@@ -1,0 +1,90 @@
+# Thèmes suivis par l'onglet Secteurs (refonte du 27/10/2026) : un panier d'actions par thème, suivi comme une industrie
+# (indice équipondéré, TI65, largeur, leaders). Sert surtout aux thèmes dilués dans une grande industrie TradingView (espace,
+# drones, crypto, logiciel IA…), que la grappe d'industrie ne voit pas à temps (test 7 du document d'analyse).
+# Principe : le dashboard propose, l'utilisateur valide. Liste de départ = les paniers des tests 2024-2026, choisis après coup :
+# À VALIDER par l'utilisateur (ajouter, retirer, renommer). Seules les actions retenues de la vue TradingView (filtres de
+# config/industries.toml [universe]) comptent ; un thème de moins de [index] min_members actions retenues est affiché sans rang.
+# name = libellé affiché · tickers = symboles (majuscules) · etf = ETF de confirmation (config/sectors.toml), facultatif
+
+[[theme]]
+name = "Espace"
+tickers = ["ASTS", "RKLB", "LUNR", "RDW", "PL", "BKSY"]
+etf = "UFO"
+
+[[theme]]
+name = "Drones / défense"
+tickers = ["KTOS", "AVAV", "RCAT", "UMAC", "ONDS"]
+etf = "XAR"
+
+[[theme]]
+name = "Quantique"
+tickers = ["QUBT", "IONQ", "RGTI", "QBTS"]
+etf = "QTUM"
+
+[[theme]]
+name = "Nucléaire SMR"
+tickers = ["OKLO", "SMR", "NNE", "LEU", "BWXT"]
+etf = "URA"
+
+[[theme]]
+name = "Uranium"
+tickers = ["CCJ", "UEC", "UUUU", "NXE"]
+etf = "URA"
+
+[[theme]]
+name = "Neocloud / mineurs IA"
+tickers = ["IREN", "CIFR", "WULF", "CRWV", "APLD", "CORZ", "NBIS"]
+etf = "BKCH"
+
+[[theme]]
+name = "Data center énergie"
+tickers = ["VRT", "ETN", "POWL", "GEV", "CEG", "VST", "TLN", "BE"]
+
+[[theme]]
+name = "Optique / réseau IA"
+tickers = ["LITE", "CIEN", "COHR", "AAOI", "FN", "CRDO", "ALAB"]
+etf = "SMH"
+
+[[theme]]
+name = "Mémoire / stockage"
+tickers = ["MU", "WDC", "STX", "SNDK"]
+etf = "DRAM"
+
+[[theme]]
+name = "Terres rares"
+tickers = ["MP", "USAR", "CRML", "NB"]
+etf = "REMX"
+
+[[theme]]
+name = "eVTOL"
+tickers = ["JOBY", "ACHR", "EVEX"]
+
+[[theme]]
+name = "Crypto trésorerie"
+tickers = ["MSTR", "SBET", "BMNR"]
+etf = "BKCH"
+
+[[theme]]
+name = "Crypto courtiers / fintech"
+tickers = ["COIN", "HOOD", "CRCL", "GLXY", "SOFI"]
+etf = "FINX"
+
+[[theme]]
+name = "Mineurs or / argent"
+tickers = ["NEM", "AEM", "KGC", "PAAS", "HL", "CDE", "AG"]
+etf = "GDX"
+
+[[theme]]
+name = "Solaire"
+tickers = ["FSLR", "NXT", "ARRY", "SEDG", "ENPH", "RUN"]
+etf = "TAN"
+
+[[theme]]
+name = "Cybersécurité"
+tickers = ["CRWD", "ZS", "NET", "PANW", "OKTA"]
+etf = "CIBR"
+
+[[theme]]
+name = "Logiciel IA"
+tickers = ["PLTR", "APP", "AI", "SOUN"]
+etf = "IGV"
