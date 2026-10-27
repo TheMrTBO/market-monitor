@@ -58,7 +58,7 @@ A.L.dPick.change({target:{value:last}});
 h=strip(A.$('secBo')._h);
 ok('séance choisie : sa liste, de la plus forte hausse à la plus faible',JSON.stringify(chips(A))===JSON.stringify([leader,'ZZZ'])&&!h.includes('Relevé TradingView du soir'),chips(A).join(','));
 ok('★ absent pour un titre qui n\'est pas leader',!/class="bochip lead" data-bos="ZZZ"/.test(A.$('secBo')._h));
-ok('titre : % du jour, volume en millions, multiple de la veille',h.includes('+12,5 %')&&h.includes('20,0 M · ×2,0 veille'));
+ok('titre : % du jour, volume en millions, multiple de la veille',h.includes('+12,5 %')&&h.includes('20,0 M · ×2,0')&&!h.includes('×2,0 veille'));
 A.L.dPick.change({target:{value:prev}});
 ok('séance sans relevé : message (pas d\'historique TradingView)',strip(A.$('secBo')._h).includes('Pas de relevé pour cette séance'));
 A.L.dPick.change({target:{value:last}});

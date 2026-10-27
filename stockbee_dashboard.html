@@ -324,6 +324,7 @@
   #view-tk:not(.stack) #tkTable .c-sec, #view-tk:not(.stack) #tkTable .c-cap, #view-tk:not(.stack) #tkTable .c-flt { display: none; }
   #view-tk:not(.stack) #tkTable { table-layout: fixed; width: 100%; }
   #view-tk:not(.stack) #tkTable th.c-sym { width: 24%; } #view-tk:not(.stack) #tkTable th.c-ti { width: 120px; }
+  #view-tk:not(.stack) #tkTable th.c-dv { width: 84px; } #tkTable td.c-dv { white-space: nowrap; }
   #view-tk:not(.stack) #tkTable th.c-pct { width: 78px; } #view-tk:not(.stack) #tkTable th.c-dtc { width: 96px; } #view-tk:not(.stack) #tkTable th.c-open { width: 38px; }
   #view-tk:not(.stack) #tkTable td { overflow: hidden; } #view-tk:not(.stack) #tkTable td.l { white-space: normal; }
   #view-tk:not(.stack) #tkTable .tsub { max-width: 100%; }
@@ -745,7 +746,8 @@
     #tkThemes .tktheme { flex: none; width: 250px; }
     #tkTable .c-sec, #tkTable .c-cap, #tkTable .c-flt, #tkTable .c-pct, #tkTable .c-adr { display: none; }   /* ADR : sous le TI65 */
     #tkTable { table-layout: fixed; width: 100%; }
-    #tkTable th.c-ti { width: 80px; } #tkTable th.c-dtc { width: 54px; } #tkTable th.c-open { width: 32px; } #tkTable th.c-sym { width: 74px; }
+    #tkTable th.c-ti { width: 80px; } #tkTable th.c-dv { width: 72px; } #tkTable th.c-dtc { width: 54px; }
+    #view-tk.dvon #tkTable .c-dtc { display: none; }   /* liste du scan 9M : Vol $ à la place (Days to cover : dans la fiche) */ #tkTable th.c-open { width: 32px; } #tkTable th.c-sym { width: 74px; }
     .rk .dsk { display: none; }
     #tkTable td { overflow: hidden; } #tkTable td.l { white-space: normal; }
     #tkTable .tsub { max-width: 100%; }
@@ -998,6 +1000,8 @@
           <textarea id="tkInput" rows="2" spellcheck="false" autocapitalize="characters" aria-label="Tickers à analyser"></textarea>
           <div class="tkbtns"><button id="tkGo" type="button" class="tkgo">Analyser</button><button id="tkClear" type="button">Effacer</button></div>
         </div>
+        <div class="secadr" id="tkDv" hidden><label>Vol $ &gt; <input id="tkDvMin" type="number" min="0" inputmode="decimal" placeholder="0" aria-label="Volume en dollars minimal, en millions"> M$</label>
+          <span class="adrinfo" id="tkDvInfo"></span></div>
         <div id="tkThemes"></div>
         <div class="tablewrap secscroll tkscroll" id="tkScroll">
           <table id="tkTable" class="rk">
@@ -2657,6 +2661,7 @@
       sec: ['Secteur', `<p>Secteur TradingView ; rang du ${TIN} de son indice parmi les secteurs, à la dernière séance.</p>`],
       ind: ['Industrie', `<p>Industrie TradingView ; rang du ${TIN} de son indice parmi les industries classées, part de ses actions au ${TIN} &gt; 1, étiquette chaud / émergent (voir la bulle de l'onglet).</p>`],
       ti: [TIN, `<p>${TIN} de l'action − 1, en % (flèche : sens depuis ${TI.delta} séances) ; dessous, son rang dans son industrie.</p>`],
+      dv: ['Volume en dollars', `<p>Volume en dollars de la séance du scan ${escH(CFG.sectors.breakouts.label)} : clôture × volume, relevé TradingView du soir (M = millions, Md = milliards). Colonne et filtre « Vol $ &gt; x M$ » affichés quand la liste vient de ce scan (bouton « Tickers » ou un titre du bloc, onglet Secteurs) ; « — » : ticker absent de la liste. « Effacer » les retire.</p>`],
       adr: ['ADR', ADR_TIP],
       cap: ['Capitalisation', '<p>Capitalisation boursière (TradingView).</p>'],
       flt: ['Flottant', '<p>Actions librement échangeables (Yahoo, sinon TradingView).</p>'],
@@ -2938,7 +2943,12 @@
   // (tv_breadth_data.js, clé breakouts, fetch_tv_breadth.py). Séance des cases si elle est choisie ou survolée, sinon le
   // dernier relevé : le soir même, avant que Polygon publie la séance (les cases montrent encore la veille)
   const BOC = CFG.sectors.breakouts;
-  let boOpen = foldGet('bo'), boAll = false, boShown = [];
+  let boOpen = foldGet('bo'), boAll = false, boShown = [], boDay = null;
+  const usdFmt = v => v == null ? '—' : capFmt(v) + ' $';   // volume en dollars : « 166 M $ », « 1,2 Md $ »
+  // ordre de la liste (config sort, choix de l'utilisateur du 27/10/2026) : volume en dollars du jour, du plus haut au plus bas
+  // (listes d'avant cette colonne : hausse du jour), ou hausse du jour
+  const boSort = items => items.sort((a, b) => BOC.sort === 'dvol' && (a.dv != null || b.dv != null)
+    ? (b.dv ?? -1) - (a.dv ?? -1) || b.p - a.p : b.p - a.p || (a.s < b.s ? -1 : 1));
   const boRule = () => `clôture ≥ ${nf((100 + BOC.pct) / 100, 2)} × celle de la veille, volume &gt; ${nf(BOC.min_volume)}` +
     (BOC.volume_up ? ' et supérieur à celui de la veille' : '') + (BOC.min_price > 0 ? `, clôture > ${nf(BOC.min_price, 2)} $` : '');
   function renderSecBo(e, latest) {
@@ -2949,8 +2959,9 @@
     const last = IND.dates.length - 1, d = latest ? ds[ds.length - 1] : IND.dates[e], rows = L[d] || null;
     let k = last; while (k > 0 && IND.dates[k] > d) k--;   // leaders actifs de la séance (ou de la veille si Polygon ne l'a pas encore)
     const at = actAt(k), lead = at && at.day ? new Map(at.leaders.map(r => [r.s, r])) : null;
-    const items = (rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio], l: lead ? lead.get(r[C.ticker]) : null }));
-    boShown = items.map(r => r.s);
+    const items = boSort((rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio],
+      dv: C.dvol != null ? r[C.dvol] ?? null : null, l: lead ? lead.get(r[C.ticker]) : null })));
+    boShown = items.map(r => r.s); boDay = rows ? d : null;
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`, nl = items.filter(r => r.l).length, dt = fmtDate(d, { day: 'numeric', month: 'short' });
     const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
       (!boOpen && items.length ? ` · ${items.slice(0, 5).map(r => escH(r.s)).join(', ')}${items.length > 5 ? '…' : ''}` : '') : 'pas de relevé');
@@ -2962,11 +2973,11 @@
     box.classList.remove('folded');
     const x1 = x => nf(x, x >= 10 ? 0 : 1);
     const chip = r => {
-      const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, `volume ${nf(r.v / 1e6, 1)} M`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
+      const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
         r.l ? `leader actif (${r.l.etat}) : ${r.l.groups.join(', ')}` : null, "toucher : sa fiche dans l'onglet Tickers"].filter(Boolean).join(' · ');
       return `<button type="button" class="bochip${r.l ? ' lead' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
         `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
-        `<span class="bv">${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) + ' veille' : ''}</span></button>`;
+        `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span></button>`;   // ×veille : détail au survol
     };
     const shown = boAll ? items : items.slice(0, BOC.list_limit), rest = items.length - shown.length;
     const more = items.length > BOC.list_limit ? `<button type="button" class="amore" data-boall="1" aria-expanded="${boAll}">${boAll ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
@@ -3748,6 +3759,8 @@
     if ((b.dataset.botk == null && b.dataset.bos == null) || !boShown.length) return;
     $('tkInput').value = boShown.join(', '); store.set('mm.tklist', $('tkInput').value);
     tkSel = b.dataset.bos || boShown[0];
+    tkBo = boDay; store.set('mm.tkbo', tkBo || ''); tkBoMemo = null;   // colonne et filtre « Vol $ » ; tri par défaut de la config
+    if (BOC.sort === 'dvol') tkSort = { k: 'dv', dir: -1 };
     $('view-tk').classList.toggle('detail', !!b.dataset.bos && isStacked()); setTab('tk');
   });
   $('listFold').addEventListener('click', () => { listOpen = !listOpen; foldSet('list', listOpen); applyFolds(); fitSecLayout(); });
@@ -3982,6 +3995,16 @@
   const TKC = CFG.tickers;
   let tkLoaded = { tickers: !!window.TICKERS, short: !!window.SHORT }, tkLoading = false, tkSort = { k: 'ind', dir: 1 }, tkRendered = false;
   let tkSel = store.get('mm.tksel'), tkShown = [];
+  // liste venue du scan 9M +4 % (exception au gel du 27/10/2026) : séance du relevé → colonne « Vol $ » (volume en dollars du
+  // jour, relevé TradingView) et filtre « Vol $ > x M$ » ; effacée par « Effacer »
+  let tkBo = store.get('mm.tkbo') || null, tkBoMemo = null, tkDvMin = Math.max(0, parseFloat(store.get('mm.tkdvmin')) || 0), tkDvTimer = 0;
+  if (tkBo && BOC.sort === 'dvol') tkSort = { k: 'dv', dir: -1 };   // tri par défaut d'une liste du scan 9M, aussi au chargement
+  function tkBoMap() {                                   // ticker → volume en dollars de la liste 9M de la séance tkBo (null sans liste)
+    if (tkBoMemo && tkBoMemo.d === tkBo) return tkBoMemo.m;
+    const X = window.TV_BREADTH || {}, cols = X.bo_columns || [], i = cols.indexOf('dvol'), j = cols.indexOf('ticker'), L = tkBo && X.breakouts ? X.breakouts[tkBo] : null;
+    const m = L && i >= 0 ? new Map(L.filter(r => r[i] != null).map(r => [r[j], r[i]])) : null;
+    tkBoMemo = { d: tkBo, m: m && m.size ? m : null }; return tkBoMemo.m;
+  }
   const tkWaiters = new Set();
   function tkLoad(after = renderTickers) {               // index des tickers + short interest : chargés une fois, à la demande
     const need = [['tickers', TKC.file, 'TICKERS'], ['short', TKC.short_file, 'SHORT']].filter(([k]) => !tkLoaded[k]);
@@ -4051,7 +4074,8 @@
     const [indName, secIx] = T.inds[c.ind], secName = T.secs[secIx], R = tkRanks();
     const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
     const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
-    return { s: c.s, n: c.n, c: c.c, cap: c.cap, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr,
+    const bm = tkBoMap();
+    return { s: c.s, n: c.n, c: c.c, cap: c.cap, dv: bm ? bm.get(c.s) ?? bm.get(sym) ?? null : null, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr,
              secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
   }
   const TK_DEFS = {
@@ -4059,6 +4083,7 @@
     sec:  { label: 'Secteur', k: 'sec', dir: 1, left: true },
     ind:  { label: 'Industrie', k: 'ind', dir: 1, left: true },
     ti:   { label: TIN, k: 'ti', dir: -1 },
+    dv:   { label: 'Vol $', k: 'dv', dir: -1 },
     adr:  { label: 'ADR', k: 'adr', dir: -1 },
     cap:  { label: 'Cap.', k: 'cap', dir: -1 },
     flt:  { label: 'Flottant', k: 'flt', dir: -1 },
@@ -4066,7 +4091,7 @@
     dtc:  { label: '<span class="dsk">Days to cover</span><span class="mob">DTC</span>', k: 'dtc', dir: -1 },
     open: { label: '', k: '', fixed: true },
   };
-  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, adr: r => r.adr, cap: r => r.cap,
+  const TK_VAL = { sym: r => r.s, sec: r => r.sec && r.sec.rank, ind: r => r.ind && r.ind.rank, ti: r => r.ti, dv: r => r.dv, adr: r => r.adr, cap: r => r.cap,
                    flt: r => r.flt, pct: r => r.sh && r.sh.pct, dtc: r => r.sh && r.sh.dtc };
   const shares = v => v == null ? '—' : v >= 1e9 ? nf(v / 1e9, 2) + ' Md' : v >= 1e6 ? nf(v / 1e6, 1) + ' M' : nf(v / 1e3, 0) + ' k';
   function renderTickers() {
@@ -4080,9 +4105,18 @@
       if (!tkLoaded.tickers) { $('tkRows').innerHTML = '<tr class="loading"><td>Chargement de l\'index des tickers…</td></tr>'; $('tkThemes').innerHTML = ''; return; }
     }
     if (tkLoaded.tickers === 'absent') { $('tkRows').innerHTML = `<tr><td class="empty">Index introuvable (<code>${escH(TKC.file)}</code>).</td></tr>`; return; }
-    const syms = tkParse(ta.value), rows = [], unknown = [];
+    const syms = tkParse(ta.value), unknown = [];
+    let rows = [];
     for (const s of syms) { const r = tkRow(s); r ? rows.push(r) : unknown.push(s); }
     const T = window.TICKERS, S = window.SHORT, R = tkRanks();
+    // « Vol $ » : seulement pour une liste venue du scan 9M (au moins un ticker de la liste de la séance tkBo)
+    const dvOn = rows.some(r => r.dv != null), nAll = rows.length;
+    if (dvOn && tkDvMin > 0) rows = rows.filter(r => r.dv != null && r.dv > tkDvMin * 1e6);   // « Vol $ > x M$ » (strictement)
+    const db = $('tkDv'); db.hidden = !dvOn; $('view-tk').classList.toggle('dvon', dvOn);
+    if (dvOn) {
+      const inp = $('tkDvMin'); inp.step = TKC.dvol_step; if (document.activeElement !== inp) inp.value = tkDvMin > 0 ? String(tkDvMin) : '';
+      $('tkDvInfo').textContent = `${BOC.label} du ${fmtDate(tkBo, { day: 'numeric', month: 'short' })}` + (tkDvMin > 0 ? ` · ${rows.length} / ${nAll} tickers` : '');
+    }
     $('tkMeta').textContent = `${fmtDate(T.asof)} · ${rows.length} ticker${rows.length > 1 ? 's' : ''}` +
       (S ? ` · short interest : ${Object.keys(S.rows).length} / ${T.rows.length} actions` : ' · short interest pas encore publié');
     // thèmes : industries présentes dans la liste, de la mieux classée à la moins bien classée
@@ -4099,12 +4133,12 @@
         `<div class="tk">${g.syms.length} ticker${g.syms.length > 1 ? 's' : ''} : ${g.syms.map(escH).join(', ')}</div></button>`;
     }).join('');
     // tableau
-    const val = TK_VAL[tkSort.k], dir = tkSort.dir;
+    const srt = tkSort.k === 'dv' && !dvOn ? { k: 'ind', dir: 1 } : tkSort, val = TK_VAL[srt.k], dir = srt.dir;   // sans « Vol $ » : par industrie
     rows.sort((a, b) => { const va = val(a), vb = val(b);
       if (va == null || vb == null) return va == null && vb == null ? a.s.localeCompare(b.s) : va == null ? 1 : -1;
       return (typeof va === 'string' ? va.localeCompare(vb) : va - vb) * dir || a.s.localeCompare(b.s); });
-    $('tkHead').innerHTML = Object.entries(TK_DEFS).map(([id, d]) => d.fixed ? `<th class="c-open"></th>` :
-      `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" data-k="${d.k}">${d.label}${tipI('tk:' + id, id === 'dtc' ? 'Days to cover' : d.label)}<span class="arr">${tkSort.k === d.k ? (tkSort.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
+    $('tkHead').innerHTML = Object.entries(TK_DEFS).filter(([id]) => id !== 'dv' || dvOn).map(([id, d]) => d.fixed ? `<th class="c-open"></th>` :
+      `<th class="${d.k ? 'sortable ' : ''}c-${id}${d.left ? ' l' : ''}" data-k="${d.k}">${d.label}${tipI('tk:' + id, id === 'dtc' ? 'Days to cover' : d.label)}<span class="arr">${srt.k === d.k ? (srt.dir > 0 ? '▲' : '▼') : ''}</span></th>`).join('');
     const rk = (x, total) => x && x.rank != null ? `${x.rank}/${total}` : '—';
     tkShown = rows;
     if (!tkSel || !rows.some(r => r.s === tkSel)) tkSel = rows.length ? rows[0].s : null;
@@ -4117,6 +4151,7 @@
         `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
         `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
         `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}${r.adr != null ? `<span class="mob"> · ADR ${nf(r.adr, 1)} %</span>` : ''}</span></td>` +
+        (dvOn ? `<td class="c-dv">${usdFmt(r.dv)}</td>` : '') +
         `<td class="c-adr">${adrTxt(r.adr)}</td>` +
         `<td class="c-cap">${capFmt(r.cap)}</td><td class="c-flt">${shares(r.flt)}</td>` +
         `<td class="c-pct${r.old ? ' old' : ''}"${oldT}>${sh && sh.pct != null ? nf(sh.pct * 100, 1) + ' %' : '—'}</td>` +
@@ -4136,7 +4171,11 @@
   }
   function tkRun() { store.set('mm.tklist', $('tkInput').value); renderTickers(); }
   $('tkGo').addEventListener('click', tkRun);
-  $('tkClear').addEventListener('click', () => { $('tkInput').value = ''; tkRun(); });
+  $('tkClear').addEventListener('click', () => { $('tkInput').value = ''; tkBo = null; store.set('mm.tkbo', ''); tkBoMemo = null; tkRun(); });
+  const tkDvApply = v => { clearTimeout(tkDvTimer); const x = Math.max(0, parseFloat(String(v).replace(',', '.')) || 0); if (x === tkDvMin) return;
+    tkDvMin = x; store.set('mm.tkdvmin', String(tkDvMin)); renderTickers(); };
+  $('tkDvMin').addEventListener('input', ev => { clearTimeout(tkDvTimer); const v = ev.target.value; tkDvTimer = setTimeout(() => tkDvApply(v), 250); });
+  $('tkDvMin').addEventListener('change', ev => tkDvApply(ev.target.value));
   $('tkInput').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey || !e.shiftKey)) { e.preventDefault(); tkRun(); } });
   $('tkHead').addEventListener('click', e => {
     const th = e.target.closest('th'); if (!th || !th.dataset.k) return;
@@ -5439,7 +5478,8 @@
   const SEC_TIPS = () => ({
     bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux actions ordinaires NYSE / Nasdaq / AMEX du screener TradingView : ${boRule()}.</p>
       <p>Disponible vers 16 h 20 à New York (données différées de 15 min), avant la séance des cases (Polygon publie le lendemain matin) : sans séance choisie, le bloc montre le dernier relevé ; une séance choisie ou survolée sur la frise montre sa liste. ★ = leader actif (groupe neuf ou chaud) à cette séance.</p>
-      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste, « Copier » la copie (« A, B, C »).</p>
+      <p>Classement : ${BOC.sort === 'dvol' ? '<b>volume en dollars</b> du jour (clôture × volume), du plus haut au plus bas' : 'hausse du jour, de la plus forte à la plus faible'} ; sur chaque titre : ${BOC.sort === 'dvol' ? 'volume en dollars, ' : ''}volume en millions d'actions (M), multiple du volume de la veille (×).</p>
+      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste (avec la colonne et le filtre « Vol $ »), « Copier » la copie (« A, B, C »).</p>
       <p class="src">Volumes TradingView : la liste peut différer un peu de celle de TC2000. TradingView ne garde pas d'historique de ce scan : la liste commence au premier relevé et garde ${BOC.keep_sessions} séances.${BOC.min_price > 0 ? '' : ' Condition TC2000 « Price History > 0,8 » pas encore appliquée (sens à confirmer).'}</p>`],
     phrules: ['Comment chaque phase est établie', phRules()],
     phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>

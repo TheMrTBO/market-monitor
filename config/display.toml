@@ -127,6 +127,7 @@ hot_min_breadth = 50
 emerging_min_delta = 5
 max_tickers = 300          # tickers analysés au plus par liste
 example = "NVDA, MU, AMD, PENG, MXL, SMCI, RKLB, OKLO, IONQ, PLTR"   # texte d'exemple du champ de saisie
+dvol_step = 10            # filtre « Vol $ > x M$ » (liste venue du scan 9M +4 %, exception au gel du 27/10/2026) : pas du champ, en M$
 
 [phases]
 # Phases de marché, bandeau en tête de l'onglet MM et frise sous le graphique des prix (spec du 26/10/2026 ; exception au gel

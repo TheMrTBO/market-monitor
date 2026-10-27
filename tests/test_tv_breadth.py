@@ -117,7 +117,15 @@ bo_items = [[10.4, 10, "common", BAR_1019, P, 10.0, 9_000_000, 5_000_000, "AAA"]
 bo = tb.breakouts(bo_items)
 check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires)",
       [x[0] for x in bo] == ["EEE", "AAA"])
-check("9M +4 % : % du jour, volume, volume ÷ veille", bo[0] == ["EEE", 20.0, 20_000_000, 2.0] and bo[1] == ["AAA", 4.0, 9_000_000, 1.8])
+check("9M +4 % : % du jour, volume, volume ÷ veille, volume en dollars", bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000]
+      and bo[1] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000])
+# ordre : volume en dollars du plus haut au plus bas (sort = "dvol", choix de l'utilisateur) ; "pct" : plus forte hausse d'abord
+two = [[10.5, 10, "common", BAR_1019, P, 10.0, 30_000_000, 5_000_000, "BIG"],    # +5 %, 315 M$
+       [6.0, 10, "common", BAR_1019, P, 5.0, 10_000_000, 5_000_000, "HOT"]]      # +20 %, 60 M$
+check("9M +4 % : classée par volume en dollars (config)", B["sort"] == "dvol" and [x[0] for x in tb.breakouts(two)] == ["BIG", "HOT"])
+B["sort"] = "pct"
+check("9M +4 % : sort = pct, classée par hausse du jour", [x[0] for x in tb.breakouts(two)] == ["HOT", "BIG"])
+B["sort"] = "dvol"
 check("9M +4 % : ancien format sans ticker : liste vide", tb.breakouts(rows(half, half)) == [])
 items[:] = [{"d": r[:4] + ["out_of_session"] + r[5:]} for r in rows(half, half) + bo_items]
 with tempfile.TemporaryDirectory() as tmp:
@@ -137,6 +145,10 @@ with tempfile.TemporaryDirectory() as tmp:
     check("9M +4 % : relevé identique, fichier inchangé", tb.OUT.read_text() == first)
     tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", -3.0, 9_000_000, 1.2]]})
     check("contrôle : liste 9M +4 % avec une baisse refusée", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2, -5]]})
+    check("contrôle : volume en dollars négatif refusé", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2]]})
+    check("contrôle : liste d'avant le volume en dollars (4 colonnes) acceptée", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) == [])
 
 for label, ok in checks.items():
     print(("ok     " if ok else "ECHEC  ") + label)
