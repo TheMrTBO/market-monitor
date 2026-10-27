@@ -63,8 +63,11 @@ for(const p of PH.phase){
   assert(/\b(EP|Breakouts?)\b/.test(p.setups)&&p.setups.length<=20,p.name+' : setups courts (EP et / ou breakouts) attendus : '+p.setups);
 }
 for(const x of PH.signal)assert(!/ne pas|\bpas de\b|interdit/i.test(x.tip),x.name+' : signal formulé en positif attendu : '+x.tip);
-// 5. dernière séance publiée : « vaut pour la prochaine séance » ; frise sous le graphique (couleurs de la config) ; légende
-const B=boot(), hb=B.$('phaseBar')._h;
+// 5. dernière séance publiée : « vaut pour la prochaine séance » ; frise sous le graphique (couleurs de la config) ; légende.
+// Calcul maison et cours coupés à la dernière séance Stockbee : le soir, le calcul maison et la bougie du QQQ (séance « en
+// attente ») ont déjà la séance que Stockbee publie le lendemain (cas 6) ; le test ne dépend ni de l'heure ni des données du robot
+const B=boot(`window.BREADTH_OWN.rows=window.BREADTH_OWN.rows.filter(r=>r[0]<='${LAST}');`+
+  `for(const k in window.PRICES)if(Array.isArray(window.PRICES[k]))window.PRICES[k]=window.PRICES[k].filter(r=>r[0]<='${LAST}');`), hb=B.$('phaseBar')._h;
 assert(/vaut pour la prochaine séance/.test(strip(hb)),'dernière séance : la phase vaut pour la séance suivante');
 const cols=new Set(PH.phase.map(p=>p.color)), bands=(B.R.price||[]).filter(r=>cols.has(r[0]));
 assert(bands.length>20,'frise des phases attendue sur le graphique des prix ('+bands.length+' bandes)');
