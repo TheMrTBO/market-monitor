@@ -243,6 +243,12 @@
   #secTable.act th.c-sym { width: 74px; } #secTable.act th.c-grp { width: auto; } #secTable.act th.c-g21 { width: 66px; } #secTable.act th.c-hi20 { width: 84px; }
   #secTable.act td.c-g21, #secTable.act td.c-hi20 { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   @media (max-width: 1400px) { #secTable.act .c-cap, #secTable.act .c-spark { display: none; } }
+  /* Breakouts 9M du Classement (27/10/2026) : mêmes largeurs que Leaders actifs ; montants à droite */
+  #secTable.bo th.c-sym { width: 74px; } #secTable.bo th.c-grp { width: auto; } #secTable.bo th.c-dv { width: 84px; }
+  #secTable.bo th.c-pbo { width: 62px; } #secTable.bo th.c-bvol { width: 84px; }
+  #secTable.bo td.c-dv, #secTable.bo td.c-pbo, #secTable.bo td.c-bvol { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  #secTable.bo td.c-bvol .tsub { display: block; font-size: 11px; color: var(--muted); }
+  @media (max-width: 1400px) { #secTable.bo .c-spark, #secTable.bo .c-adr { display: none; } }
   #secRows tr.more td { text-align: left; padding: 8px; } #secRows tr.more button { border: 1px solid var(--border); background: var(--panel2); color: var(--text); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
   .secflow { padding: 10px 12px; margin: 0; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
@@ -775,7 +781,8 @@
     .secstrip .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
    /* vue TradingView : tri par TI65, Δ 5 j, % > 1 (Cap. au niveau des actions) */
     #secTable.tv td.sym .tsub { max-width: 100%; }
-    #secTable.tv .c-brd, #secTable.tv .c-adr, #secTable.tv td.dev .trk { display: none; }   /* ADR : sous l'écart quand on trie dessus */
+    #secTable.tv .c-brd, #secTable.tv .c-adr, #secTable.tv td.dev .trk { display: none; }
+    #secTable.bo .c-grp, #secTable.bo .c-bvol { display: none; } #secTable.bo th.c-dv { width: 74px; }   /* 9M : industrie et volume dans la fiche */   /* ADR : sous l'écart quand on trie dessus */
     #secTable.tv td.sym { white-space: normal; line-height: 1.25; }
     #secTable.tv td.sym .tsub { white-space: nowrap; }
     .sechead .viewbox { order: 3; }
@@ -2261,7 +2268,7 @@
   let tvNav = (() => {
     try {
       const a = JSON.parse(store.get('mm.tvnav') || 'null');
-      if (a && ['sec', 'ind', 'stk', 'act'].includes(a.lvl)) return { lvl: a.lvl, sec: typeof a.sec === 'string' ? a.sec : 'all', ind: typeof a.ind === 'string' ? a.ind : null };
+      if (a && ['sec', 'ind', 'stk', 'act', 'bo'].includes(a.lvl)) return { lvl: a.lvl, sec: typeof a.sec === 'string' ? a.sec : 'all', ind: typeof a.ind === 'string' ? a.ind : null };
     } catch (e) { /* illisible : niveau par défaut */ }
     return { lvl: 'act', sec: 'all', ind: null };   // première visite : Leaders actifs (refonte du 27/10/2026)
   })();
@@ -2280,6 +2287,7 @@
     if (!IND) return null;
     tvFix();
     if (tvNav.lvl === 'act') return actLevel();
+    if (tvNav.lvl === 'bo') return boLevel();
     if (tvNav.lvl === 'sec') return { kind: 'sec', key: 'sec', dates: IND.dates, items: tvItems('sec', () => IND.sectors.map(x =>
       ({ s: x.k, n: x.k, lbl: tvSecLabel(x.k), sub: `${x.k} · ${x.n} titres`, cnt: x.n, c: x.c, b: x.b }))) };   // groupe : courbe de tendance (pas de bougie)
     if (tvNav.lvl === 'ind') return { kind: 'ind', key: 'ind', dates: IND.dates, items: tvItems('ind', () => IND.industries.map(x =>
@@ -2326,7 +2334,7 @@
     renderSectors(); return true;
   }
 
-  const rankable = (D, x) => D.kind === 'etf' || D.kind === 'stk' || D.kind === 'act' || x.cnt >= TIC.min_members;   // trop peu de titres : sans rang
+  const rankable = (D, x) => D.kind === 'etf' || D.kind === 'stk' || D.kind === 'act' || D.kind === 'bo' || x.cnt >= TIC.min_members;   // trop peu de titres : sans rang
   function secRanks(D, end) {                       // Map identifiant -> {rank, score} pour les éléments classables à l'index `end`
     const rows = D.items.filter(x => rankable(D, x)).map(x => ({ s: x.s, score: secScore(x.c, end) })).filter(r => r.score != null);
     rows.sort((a, b) => b.score - a.score || (a.s < b.s ? -1 : 1));
@@ -2345,9 +2353,10 @@
   }
   function secBuild(D) {
     const end = secEnd(D); secBuiltEnd = end; secD = D; secBuiltKey = D.key + '|' + end;
-    const act = D.kind === 'act';                     // Leaders actifs : rang = ordre du gain sur 21 séances (pas de Δ du rang)
-    const now = act ? new Map(D.items.slice().sort((a, b) => b.g21 - a.g21 || (a.s < b.s ? -1 : 1)).map((x, i) => [x.s, { rank: i + 1, score: secScore(x.c, end) }]))
-      : end >= 0 ? secRanks(D, end) : new Map(), before = !act && end >= TI.delta ? secRanks(D, end - TI.delta) : new Map();
+    const act = D.kind === 'act', bo = D.kind === 'bo';   // Leaders actifs : rang = ordre du gain sur 21 séances ; 9M : ordre de la liste (volume en dollars)
+    const ord = act ? (a, b) => b.g21 - a.g21 || (a.s < b.s ? -1 : 1) : bo ? (a, b) => a.ord - b.ord : null;
+    const now = ord ? new Map(D.items.slice().sort(ord).map((x, i) => [x.s, { rank: i + 1, score: secScore(x.c, end) }]))
+      : end >= 0 ? secRanks(D, end) : new Map(), before = !ord && end >= TI.delta ? secRanks(D, end - TI.delta) : new Map();
     const idx = D.kind === 'sec' || D.kind === 'ind';
     secRows = D.items.map(x => {
       const n = now.get(x.s), b = before.get(x.s);
@@ -2355,7 +2364,7 @@
                delta: n && b ? b.rank - n.rank : null, isNew: !!n && !b, count: x.c.filter(v => v != null).length,
                brd: x.b && end >= 0 ? x.b[end] : null, few: idx && x.cnt < TIC.few_members, tooFew: !rankable(D, x),
                sp: Array.from({ length: TI.spark }, (_, j) => end - TI.spark + 1 + j >= 0 ? secScore(x.c, end - TI.spark + 1 + j) : null),
-               adr: D.kind === 'stk' || act ? adrAt(x, end) : null, hi20: act ? hiAt(x, end) : null };
+               adr: D.kind === 'stk' || act || bo ? adrAt(x, end) : null, hi20: act ? hiAt(x, end) : null };
     });
   }
   // ADR d'une action à l'index end : 100 × (moyenne des n dernières séances de plus haut ÷ plus bas − 1) ; null sans OHLC ou si
@@ -2394,6 +2403,9 @@
   const TV_DEFS = {
     rank:  { label: 'Rang', k: 'rank', dir: 1 },
     sym:   { label: 'Nom', k: 'sym', dir: 1, left: true },
+    dv:    { label: 'Vol $', k: 'dv', dir: -1, title: 'Volume en dollars de la séance du scan 9M : clôture × volume (relevé TradingView du soir)' },
+    pbo:   { label: '% jour', k: 'pbo', dir: -1, title: 'Hausse du jour du scan 9M sur la clôture de la veille' },
+    bvol:  { label: 'Volume', k: 'bvol', dir: -1, title: 'Volume du jour du scan 9M (millions d\'actions) et multiple du volume de la veille' },
     grp:   { label: 'Nom complet', k: 'grp', dir: 1, left: true },
     cnt:   { label: 'Titres', k: 'cnt', dir: -1, title: `Actions retenues : prix ≥ ${nf(TIC.min_price)} $, volume moyen ${TIC.avg_volume_sessions} j ≥ ${nf(TIC.min_avg_volume)}, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $` },
     brd:   { label: '% > 1', k: 'brd', dir: -1, title: `Part des actions retenues dont le ${TIN} dépasse 1` },
@@ -2410,10 +2422,12 @@
   const TV_LEVEL = { sec: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
                      ind: ['rank', 'sym', 'brd', 'spark', 'dev', 'delta', 'open'],
                      stk: ['rank', 'sym', 'cap', 'adr', 'spark', 'dev', 'delta'],
-                     act: ['rank', 'sym', 'grp', 'cap', 'adr', 'spark', 'g21', 'hi20'] };   // Leaders actifs (refonte du 27/10/2026)
-  const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' }, act: { sym: 'Symbole', grp: 'Groupe' } };
+                     act: ['rank', 'sym', 'grp', 'cap', 'adr', 'spark', 'g21', 'hi20'],   // Leaders actifs (refonte du 27/10/2026)
+                     bo: ['rank', 'sym', 'dv', 'pbo', 'bvol', 'grp', 'adr', 'spark'] };      // Breakouts 9M (27/10/2026)
+  const TV_HEAD = { sec: { sym: 'Secteur' }, ind: { sym: 'Industrie' }, stk: { sym: 'Symbole' }, act: { sym: 'Symbole', grp: 'Groupe' }, bo: { sym: 'Symbole', grp: 'Industrie' } };
   const SEC_VAL = { rank: r => r.rank, sym: r => r.x.lbl || r.x.s, nm: r => r.x.n, grp: r => secView === 'etf' ? theme(r.x) : r.x.grp ? r.x.grp.join(', ') : r.x.sub,
-                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr, g21: r => r.x.g21, hi20: r => r.hi20 };
+                    dev: r => r.dev, delta: r => r.delta, cnt: r => r.x.cnt, brd: r => r.brd, cap: r => r.x.cap, adr: r => r.adr, g21: r => r.x.g21, hi20: r => r.hi20,
+                    dv: r => r.x.dv, pbo: r => r.x.pbo, bvol: r => r.x.bvol };
   function loadCols(key, order0) {
     try {
       const a = JSON.parse(store.get(key) || 'null');
@@ -2453,7 +2467,7 @@
   }
   function setSort(s) { secSort = s; if (secView === 'tv' && secSortLvl) store.set(sortStoreKey(secSortLvl), JSON.stringify(s)); }
   // « Classer par » (mobile) : le TI65 (= rang), le Δ du rang et la mesure propre au niveau ; les tris Écart et 3 mois ne changent pas l'ordre du rang
-  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'], act: ['rank', 'hi20', 'adr', 'cap'] };
+  const SORT_OPTS = { sec: ['rank', 'delta', 'brd'], ind: ['rank', 'delta', 'brd'], stk: ['rank', 'delta', 'adr', 'cap'], act: ['rank', 'hi20', 'adr', 'cap'], bo: ['rank', 'pbo', 'bvol', 'adr'] };
   let secSel = store.get(selKey());                 // élément sélectionné, mémorisé (continuité après « Actualiser »)
   let skFlow = false;                                // panneau « flux par secteur » ouvert (case Rotation)
   let skEntries = false;                             // raccourci « Rotation » ('rot') ou « Ratio rotation » ('rr') : seulement les industries entrées au-dessus de 1
@@ -2465,7 +2479,7 @@
       const K = secKpiData(), ro = K && (skEntries === 'rr' ? K.rr : K.rot)[secBuiltEnd], keep = ro && (skEntries === 'rr' ? ro.still : ro.ent);
       if (!keep || !keep.includes(r.x.s)) return false;
     }
-    if (secD && (secD.kind === 'stk' || secD.kind === 'act') && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
+    if (secD && (secD.kind === 'stk' || secD.kind === 'act' || secD.kind === 'bo') && adrMin > 0 && !(r.adr != null && r.adr > adrMin)) return false;   // « ADR > x % » (strictement)
     if (secD && secD.kind === 'act') return !tvAbove || (r.score != null && r.score > 1);
     return !tvAbove || (r.score != null && r.score > 1);
   }
@@ -2575,9 +2589,10 @@
     const cur = { sec: 0, ind: 1, stk: 2 }[tvNav.lvl];
     const crumb = (lvl, label, n, tip) => { const on = lvl === cur;
       return `<button data-lvl="${lvl}" class="${on ? 'on' : ''}" aria-pressed="${on}"${on ? ' aria-current="page"' : ''}>${escH(label)}${n != null ? `<span>${n}</span>` : ''}${tipI(tip, label)}</button>`; };
-    const AT = actAt(actEnd()), onA = tvNav.lvl === 'act';
-    const parts = (AT ? [`<button data-act="1" class="${onA ? 'on' : ''}" aria-pressed="${onA}"${onA ? ' aria-current="page"' : ''}>${escH(AC.leaders_label)}<span>${AT.leaders.length}</span>${tipI('lvl:act', AC.leaders_label)}</button>`,
-      '<span class="fsep" aria-hidden="true"></span>'] : []).concat([crumb(0, 'Secteurs', IND.sectors.length, 'lvl:sec')]);
+    const AT = actAt(actEnd()), onA = tvNav.lvl === 'act', BL = boList(), onB = tvNav.lvl === 'bo';
+    const parts = (AT ? [`<button data-act="1" class="${onA ? 'on' : ''}" aria-pressed="${onA}"${onA ? ' aria-current="page"' : ''}>${escH(AC.leaders_label)}<span>${AT.leaders.length}</span>${tipI('lvl:act', AC.leaders_label)}</button>`] : [])
+      .concat(BL.days.length ? [`<button data-bo="1" class="${onB ? 'on' : ''}" aria-pressed="${onB}"${onB ? ' aria-current="page"' : ''}>${escH(BOC.short_label)}<span>${BL.rows ? BL.rows.length : 0}</span>${tipI('bo', BOC.label)}</button>`] : [])
+      .concat(AT || BL.days.length ? ['<span class="fsep" aria-hidden="true"></span>'] : []).concat([crumb(0, 'Secteurs', IND.sectors.length, 'lvl:sec')]);
     if (cur >= 1) parts.push('<span class="crumb" aria-hidden="true">›</span>', crumb(1, 'Industries', IND.industries.length, 'lvl:ind'));
     if (cur >= 2) parts.push('<span class="crumb" aria-hidden="true">›</span>', crumb(2, tvNav.ind, (IND.industries.find(i => i.k === tvNav.ind) || {}).n, 'lvl:stk'));
     // ETF (retour UX du 27/10/2026 : plus de bascule ETF / TradingView) : un niveau du fil, en dernier ; ta liste TC2000 et les bougies
@@ -2860,6 +2875,56 @@
     renderSectors();
     const t = $('secTable'); if (t && t.scrollIntoView && typeof window.scrollTo === 'function' && t.getBoundingClientRect && t.getBoundingClientRect().top > window.innerHeight) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
+  // niveau « Breakouts 9M » du Classement (demande du 27/10/2026, comme Leaders actifs) : liste du relevé TradingView du soir
+  // (dernier relevé, ou séance choisie dans « Stats du »), classée comme le bloc ; graphique et fiche : fichier de l'industrie de
+  // chaque action (index Tickers chargé à la demande). ETF, ADR et titres hors classification : dans la liste, sans graphique
+  function boList() {
+    const X = window.TV_BREADTH || {}, L = X.breakouts || {}, days = Object.keys(L).sort();
+    const C = Object.fromEntries((X.bo_columns || ['ticker', 'pct', 'volume', 'vol_ratio']).map((c, i) => [c, i]));
+    const day = !days.length ? null : pinned ? (L[pinned] ? pinned : null) : days[days.length - 1];
+    return { days, day, C, rows: day ? L[day] : null };
+  }
+  function boLevel() {
+    const B = boList(), base = { kind: 'bo', dates: [], items: [], day: B.day, first: B.days[0] };
+    if (!B.rows || !B.rows.length) return Object.assign(base, { key: 'bo|vide|' + B.day, none: true });
+    if (!tkLoaded.tickers) { tkLoad(renderSectors); return Object.assign(base, { key: 'bo|attente', wait: true }); }
+    const T = window.TICKERS || null, C = B.C;
+    const src = r => {                                 // fichier des cours : industrie (action retenue) ou « hors filtres »
+      if (!r || r.c == null) return null;
+      if (r.kept) return IND.industries.find(i => i.k === r.indName) || null;
+      const ix = T.inds.findIndex(i => i[0] === r.indName);
+      return ix >= 0 && T.inds[ix][2] ? { k: r.indName + ' (hors filtres)', f: T.inds[ix][2] } : null;
+    };
+    const list = boSort(B.rows.map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio], dv: C.dvol != null ? r[C.dvol] ?? null : null })))
+      .map((q, i) => { const tr = T && tkLookup(q.s) ? tkRow(q.s) : null; return { ...q, ord: i, tr, I: src(tr) }; });
+    const files = [...new Map(list.filter(q => q.I).map(q => [q.I.f, q.I])).values()];
+    const wait = files.filter(I => !(window.TV_STOCKS && window.TV_STOCKS[I.f]) && !tvFailed.has(I.f));
+    wait.forEach(I => tvLoad(I));
+    if (wait.length) return Object.assign(base, { key: 'bo|attente|' + B.day, wait: true });
+    const F0 = files.map(I => window.TV_STOCKS && window.TV_STOCKS[I.f]).find(Boolean), dates = F0 ? F0.dates : IND.dates;
+    const align = (Fd, a) => !a ? null : Fd === dates || (Fd.length === dates.length && Fd[Fd.length - 1] === dates[dates.length - 1]) ? a
+      : (m => dates.map(d => m.has(d) ? m.get(d) : null))(new Map(Fd.map((d, i) => [d, a[i]])));   // fichier publié à une autre séance
+    let k = IND.dates.length - 1; while (k > 0 && IND.dates[k] > B.day) k--;
+    const at = actAt(k), lead = at && at.day ? new Set(at.leaders.map(r => r.s)) : new Set();
+    const key = 'bo|' + B.day + '|' + dates[dates.length - 1];
+    const items = tvItems(key, () => list.map(q => {
+      const F = q.I && window.TV_STOCKS && window.TV_STOCKS[q.I.f], row = F && F.rows.find(z => z[0] === q.tr.s);
+      const [, , , c, v, o, h, l] = row || [];
+      return { s: q.s, n: q.tr ? q.tr.n : '', lbl: q.s, sub: q.tr ? q.tr.n : 'ETF, ADR ou hors classification', cap: q.tr ? q.tr.cap : null,
+               c: align(F ? F.dates : dates, c) || dates.map(() => null), v: align(F ? F.dates : dates, v),
+               ...(o ? { op: align(F.dates, o), h: align(F.dates, h), l: align(F.dates, l) } : {}),
+               ord: q.ord, dv: q.dv, pbo: q.p, bvol: q.v, xr: q.x, indName: q.tr ? q.tr.indName : null, lead: lead.has(q.s) };
+    }));
+    return { kind: 'bo', key, dates, vu: F0 ? F0.vu || 1 : 1, items, day: B.day, first: B.days[0] };
+  }
+  function goBo(sym) {                                 // ouvre la liste 9M dans le Classement (sur un titre, ou le premier)
+    secSel = sym || null; actGrp = null;
+    if (secView !== 'tv') { secView = 'tv'; store.set('mm.secview', 'tv'); }
+    tvNav = { lvl: 'bo', sec: tvNav.sec, ind: null }; tvSave();
+    $('view-sec').classList.toggle('detail', !!sym && isStacked());
+    renderSectors();
+    const t = $('secTable'); if (!sym && t && t.scrollIntoView && typeof window.scrollTo === 'function' && t.getBoundingClientRect && t.getBoundingClientRect().top > window.innerHeight) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
   // blocs repliables de l'onglet (retour UX du 27/10/2026) : choix mémorisés ; la carte de rotation garde sa clé mm.rrgopen
   const foldGet = id => store.get('mm.fold.' + id) !== '1', foldSet = (id, open) => store.set('mm.fold.' + id, open ? '0' : '1');
   let actOpen = foldGet('act'), listOpen = foldGet('list');   // les cases ne se replient pas : point d'ancrage (27/10/2026)
@@ -2966,7 +3031,8 @@
     const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
       (!boOpen && items.length ? ` · ${items.slice(0, 5).map(r => escH(r.s)).join(', ')}${items.length > 5 ? '…' : ''}` : '') : 'pas de relevé');
     const btns = items.length ? `<button type="button" class="copybtn" data-bocopy="1" title="Copier les tickers de la liste, séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
-      `<button type="button" class="copybtn" data-botk="1" title="Analyser ces tickers dans l'onglet Tickers (secteur, industrie, tendance, short interest)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>` : '';
+      `<button type="button" class="copybtn" data-botk="1" title="Analyser ces tickers dans l'onglet Tickers (secteur, industrie, tendance, short interest)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>` +
+      `<button type="button" class="go" data-bogo="1" title="Ouvrir la liste dans le Classement : tableau, graphique et fiche">${escH(BOC.short_label)} (${items.length}) ›</button>` : '';
     const head = `<div class="ahead">${dragH('bo')}<button type="button" class="foldh" data-bofold="1" aria-expanded="${boOpen}"><span class="car">${boOpen ? '▾' : '▸'}</span><b>${escH(BOC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('bo', BOC.label)}<span class="asp"></span>${btns}</div>`;
     if (!boOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
@@ -2974,7 +3040,7 @@
     const x1 = x => nf(x, x >= 10 ? 0 : 1);
     const chip = r => {
       const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
-        r.l ? `leader actif (${r.l.etat}) : ${r.l.groups.join(', ')}` : null, "toucher : sa fiche dans l'onglet Tickers"].filter(Boolean).join(' · ');
+        r.l ? `leader actif (${r.l.etat}) : ${r.l.groups.join(', ')}` : null, "toucher : son graphique et sa fiche (Classement)"].filter(Boolean).join(' · ');
       return `<button type="button" class="bochip${r.l ? ' lead' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
         `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
         `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span></button>`;   // ×veille : détail au survol
@@ -3580,7 +3646,9 @@
     if (!D.items.length) {                               // actions d'une industrie ou leaders actifs : fichiers en cours de chargement, introuvables ou liste vide
       secRows = []; secD = D; secBuiltKey = '';
       renderSecFilt(); $('secHead').innerHTML = ''; $('secMeta').textContent = ''; $('secSortBar').hidden = true;
-      body.innerHTML = `<tr class="loading"><td>${D.kind === 'act' ? (D.wait ? 'Chargement des leaders actifs…'
+      body.innerHTML = `<tr class="loading"><td>${D.kind === 'bo' ? (D.wait ? `Chargement de la liste ${escH(BOC.short_label)}…`
+          : `Pas de relevé ${escH(BOC.short_label)} pour cette séance : la liste commence le ${D.first ? fmtDate(D.first, { day: 'numeric', month: 'short', year: 'numeric' }) : '—'} (TradingView ne garde pas d'historique de ce scan).`)
+        : D.kind === 'act' ? (D.wait ? 'Chargement des leaders actifs…'
           : D.none ? `Liste des leaders disponible sur les ${CFG.industries.leaders.list_sessions} dernières séances : choisis une séance plus récente dans « Stats du ».`
           : 'Aucun leader dans les groupes neufs ou chauds à cette séance.')
         : D.wait ? `Chargement des actions de ${escH(D.ind.k)}…`
@@ -3593,9 +3661,10 @@
     syncSort(D);
     renderSecFilt();
     $('secTable').classList.toggle('tv', secView === 'tv'); $('secTable').classList.toggle('act', secView === 'tv' && D.kind === 'act');
+    $('secTable').classList.toggle('bo', secView === 'tv' && D.kind === 'bo');
     const sorted = secSorted(), cols = shownCols(), defs = curDefs(), lvHead = secView === 'tv' ? TV_HEAD[D.kind] : {};
     // niveau actions : filtre « ADR > x % » et copie des tickers affichés
-    const stk = secView === 'tv' && (D.kind === 'stk' || D.kind === 'act'), ab = $('secAdr'); ab.hidden = !stk;
+    const stk = secView === 'tv' && (D.kind === 'stk' || D.kind === 'act' || D.kind === 'bo'), ab = $('secAdr'); ab.hidden = !stk;
     if (stk) {
       $('adrN').textContent = CFG.adr.sessions + ' j'; const inp = $('adrMin'); inp.step = CFG.adr.step;
       if (document.activeElement !== inp) inp.value = adrMin > 0 ? String(adrMin) : '';
@@ -3614,7 +3683,7 @@
     const bar = $('secSortBar'), opts = secView === 'tv' ? SORT_OPTS[D.kind] || [] : [];
     bar.hidden = !opts.length;
     bar.innerHTML = opts.length ? '<span class="slbl">Classer par</span>' + opts.map(k => {
-      const on = secSort.k === k, lbl = k === 'rank' ? (D.kind === 'act' ? defs.g21.label : TIN) : defs[k].label;
+      const on = secSort.k === k, lbl = k === 'rank' ? (D.kind === 'act' ? defs.g21.label : D.kind === 'bo' ? defs.dv.label : TIN) : defs[k].label;
       return `<button data-sort="${k}" class="${on ? 'on' : ''}" aria-pressed="${on}" title="${escA(defs[k].title || 'Trier par ' + lbl)}${on ? ' · toucher à nouveau : sens inverse' : ''}">` +
         `${escH(lbl)}${on ? `<span class="arr">${secSort.dir > 0 ? '▲' : '▼'}</span>` : ''}</button>`;
     }).join('') : '';
@@ -3633,7 +3702,11 @@
       sym: r => `<td class="sym l" title="${escA(r.x.n)}">${escH(r.x.lbl || r.x.s)}<span class="tsub">${sub(r)}</span></td>`,
       grp: r => secView === 'etf' ? `<td class="grp l c-grp" title="${escA(r.x.d || r.x.n)}">${escH(theme(r.x))}</td>`
         : r.x.grp ? `<td class="grp l c-grp" title="${escA(r.x.etat + ' · ' + r.x.grp.join(', ') + ' · ' + r.x.ind.k)}"><span class="etat ${r.x.etat === 'Neuf' ? 'neuf' : 'chaud'}">${escH(r.x.etat)}</span>${escH(r.x.grp.join(' · '))}${r.x.fam ? ` <span class="tag" title="Famille refuge (étiquette, pas une liste fixe : test 12)">${escH(r.x.fam)}</span>` : ''}</td>`
+        : D.kind === 'bo' ? `<td class="grp l c-grp" title="${escA(r.x.indName || r.x.sub)}">${escH(r.x.indName || '—')}${r.x.lead ? ' <span class="tag" title="Leader actif (groupe neuf ou chaud)">★</span>' : ''}</td>`
         : `<td class="grp l c-grp" title="${escA(r.x.sub)}">${escH(r.x.sub)}</td>`,
+      dv: r => `<td class="c-dv">${r.x.dv == null ? '<span class="tag">—</span>' : usdFmt(r.x.dv)}</td>`,
+      pbo: r => `<td class="c-pbo"><span class="pos">+${nf(r.x.pbo, 1)} %</span></td>`,
+      bvol: r => `<td class="c-bvol">${nf(r.x.bvol / 1e6, 1)} M${r.x.xr != null ? `<span class="tsub">×${nf(r.x.xr, r.x.xr >= 10 ? 0 : 1)} veille</span>` : ''}</td>`,
       g21: r => `<td class="c-g21"><span class="pos">${r.x.g21 > 0 ? '+' : ''}${nf(r.x.g21, 0)} %</span></td>`,
       hi20: r => `<td class="c-hi20">${r.hi20 == null ? '<span class="tag">—</span>' : r.hi20 >= -0.5 ? '<span class="pos">au plus haut</span>' : `<span style="color:var(--muted)">${nf(r.hi20, 0)} %</span>`}</td>`,
       cnt: r => `<td class="cnt c-cnt">${r.x.cnt}${r.few && !r.tooFew ? ' <span class="tag" title="Moins de ' + TIC.few_members + ' titres retenus">peu</span>' : ''}</td>`,
@@ -3658,8 +3731,9 @@
       return `<tr data-s="${escA(r.x.s)}" class="${cl}">${cols.map(id => cell[id](r)).join('')}</tr>`;
     }).join('') + (D.kind === 'act' && sorted.length > lim ? `<tr class="more"><td colspan="${cols.length}"><button type="button" data-actall="1">${actAll ? `Revenir aux ${lim} premiers` : `+ ${sorted.length - lim} autres`}</button></td></tr>` : '');
     const nRanked = secRows.filter(r => r.rank != null).length, short = secRows.length - nRanked;
-    const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées', act: 'leaders actifs' }[D.kind];
-    $('secMeta').textContent = `${fmtDate(D.dates[secBuiltEnd])} · ${nRanked} ${unit}${short ? ` · ${short} sans rang` : ''}`;
+    const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées', act: 'leaders actifs', bo: 'titres' }[D.kind];
+    $('secMeta').textContent = D.kind === 'bo' ? `${BOC.short_label} du ${fmtDate(D.day)} · ${secRows.length} ${unit} · graphiques jusqu'au ${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })}`
+      : `${fmtDate(D.dates[secBuiltEnd])} · ${nRanked} ${unit}${short ? ` · ${short} sans rang` : ''}`;
     const late = secView === 'tv' && !pinned && SEC && IND && IND.asof < SEC.asof;   // séance des ETF plus récente que celle de TradingView
     $('secMeta').classList.toggle('late', !!late);
     if (late) $('secMeta').innerHTML = `<span class="neg" title="Les actions viennent de l'historique Polygon (plan gratuit), publié le lendemain matin de la séance">⚠ séance du ${fmtDate(SEC.asof, { day: 'numeric', month: 'short' })} pas encore publiée</span> · ` + escH($('secMeta').textContent);
@@ -3756,12 +3830,13 @@
     if (b.dataset.bofold != null) { boOpen = !boOpen; foldSet('bo', boOpen); renderSecKpis(); return; }
     if (b.dataset.boall != null) { boAll = !boAll; renderSecKpis(); return; }
     if (b.dataset.bocopy != null) { copyTickers(b, boShown); return; }
-    if ((b.dataset.botk == null && b.dataset.bos == null) || !boShown.length) return;
+    if (b.dataset.bos != null || b.dataset.bogo != null) { goBo(b.dataset.bos || null); return; }   // Classement : liste, graphique, fiche
+    if (b.dataset.botk == null || !boShown.length) return;
     $('tkInput').value = boShown.join(', '); store.set('mm.tklist', $('tkInput').value);
-    tkSel = b.dataset.bos || boShown[0];
+    tkSel = boShown[0];
     tkBo = boDay; store.set('mm.tkbo', tkBo || ''); tkBoMemo = null;   // colonne et filtre « Vol $ » ; tri par défaut de la config
     if (BOC.sort === 'dvol') tkSort = { k: 'dv', dir: -1 };
-    $('view-tk').classList.toggle('detail', !!b.dataset.bos && isStacked()); setTab('tk');
+    $('view-tk').classList.remove('detail'); setTab('tk');
   });
   $('listFold').addEventListener('click', () => { listOpen = !listOpen; foldSet('list', listOpen); applyFolds(); fitSecLayout(); });
   // glisser-déposer des blocs (pointeur : souris et doigt) ; le bloc prend la place désignée par le milieu des blocs visibles
@@ -3793,10 +3868,11 @@
   $('secFilt').addEventListener('click', e => {        // ETF : filtre par groupe (masque des lignes, rangs inchangés) · TradingView : remonter
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.act != null) { goAct(null); return; }
+    if (b.dataset.bo != null) { goBo(null); return; }
     if (b.dataset.etf != null || b.dataset.tvback != null) {             // ETF ⇄ TradingView : chaque vue garde sa sélection
       store.set(selKey(), secSel || ''); secView = b.dataset.etf != null ? 'etf' : 'tv'; store.set('mm.secview', secView); secSel = store.get(selKey());
       secBuiltKey = ''; secSortLvl = null; $('view-sec').classList.remove('detail'); renderSectors(); return; }
-    if (b.dataset.lvl != null && tvNav.lvl === 'act') { tvNav = { lvl: +b.dataset.lvl === 1 ? 'ind' : 'sec', sec: 'all', ind: null }; tvSave(); secSel = null; renderSectors(); return; }
+    if (b.dataset.lvl != null && (tvNav.lvl === 'act' || tvNav.lvl === 'bo')) { tvNav = { lvl: +b.dataset.lvl === 1 ? 'ind' : 'sec', sec: 'all', ind: null }; tvSave(); secSel = null; renderSectors(); return; }
     if (b.dataset.lvl != null) { tvUp(+b.dataset.lvl); return; }
     if (!b.dataset.g) return;
     secGroup = b.dataset.g; store.set('mm.secgrp', secGroup); renderSectors();
@@ -3877,6 +3953,14 @@
     } else if (D.kind === 'ind') {
       $('secTitle').textContent = x.s;
       $('secInfo').textContent = `Industrie TradingView (${tvSecLabel(x.sec)}) · indice équipondéré de ${x.cnt} action${x.cnt > 1 ? 's' : ''}${row.few ? ' (peu de titres)' : ''}${brd}`;
+    } else if (D.kind === 'bo') {
+      $('secTitle').textContent = x.n ? `${x.s} · ${x.n}` : x.s;
+      $('secInfo').innerHTML = `${escH(BOC.short_label)} du ${fmtDate(D.day, { day: 'numeric', month: 'short' })} : <span class="pos">+${nf(x.pbo, 1)} %</span>` +
+        `${x.dv != null ? ' · ' + usdFmt(x.dv) : ''} · ${nf(x.bvol / 1e6, 1)} M actions${x.xr != null ? ` (×${nf(x.xr, x.xr >= 10 ? 0 : 1)} la veille)` : ''}` +
+        (x.indName ? ` · ${escH(x.indName)}${x.lead ? ' · <span class="pos">★ leader actif</span>' : ''}` : '') +
+        (x.c.some(v => v != null) ? (D.dates[D.dates.length - 1] < D.day ? ` · <span class="muted">bougie du ${fmtDate(D.day, { day: 'numeric', month: 'short' })} : le lendemain matin (Polygon)</span>` : '')
+          : x.indName ? ' · <span class="muted">graphique indisponible (cours de l\'industrie introuvables)</span>'
+          : ' · <span class="muted">pas de graphique (ETF, ADR ou titre hors de la classification TradingView des actions)</span>');
     } else if (D.kind === 'act') {
       $('secTitle').textContent = `${x.s} · ${x.n}`;
       $('secInfo').innerHTML = `<span class="etat ${x.etat === 'Neuf' ? 'neuf' : 'chaud'}">${escH(x.etat)}</span>${escH(x.grp.join(' · '))} · ${escH(x.ind.k)} (${escH(tvSecLabel(x.ind.sec))}) · capitalisation ${capFmt(x.cap)} $`;
@@ -3886,7 +3970,7 @@
     }
     $('secBrdNow').innerHTML = row.brd == null ? '' : `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.brd, 0)} %</b> de ${x.cnt} actions`;
     $('secBrdName').innerHTML = `% des actions avec un ${TIN} &gt; 1`;
-    const card = $('secCard'), isStk = D.kind === 'stk' || D.kind === 'act';  // action : fiche standard (même contenu que Tickers et Post-market)
+    const card = $('secCard'), isStk = D.kind === 'stk' || D.kind === 'act' || D.kind === 'bo';  // action : fiche standard (même contenu que Tickers et Post-market)
     if (card.hidden === isStk) { card.hidden = !isStk; fitSecLayout(); }
     if (isStk) {
       const last = secCtx.bars.size ? [...secCtx.bars.values()].pop() : null;
@@ -3898,7 +3982,9 @@
     const open = $('secOpen'), canOpen = D.kind === 'sec' || D.kind === 'ind';
     open.hidden = !canOpen;
     if (canOpen) open.textContent = D.kind === 'sec' ? `Industries (${IND.industries.filter(i => i.sec === x.s).length}) ›` : `Actions (${x.cnt}) ›`;
-    $('secScoreNow').innerHTML = row.rank != null
+    $('secScoreNow').innerHTML = D.kind === 'bo' ? (row.score != null ? `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.score, 3)}</b> · écart <span class="${cls(row.dev)}">${pct(row.dev)}</span>`
+        : `indisponible (historique ${row.count}/${TI.long} séances)`)   // 9M : le rang est l'ordre de la liste (pas un rang TI65)
+      : row.rank != null
       ? `${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })} : <b>${nf(row.score, 3)}</b> · écart <span class="${cls(row.dev)}">${pct(row.dev)}</span> · rang <b>${row.rank}</b>/${nR}` +
         ` · Δ ${TI.delta} j ${row.isNew ? 'nouveau' : row.delta > 0 ? '<span class="pos">▲ ' + row.delta + '</span>' : row.delta < 0 ? '<span class="neg">▼ ' + (-row.delta) + '</span>' : '='}`
       : row.tooFew ? `sans rang (moins de ${TIC.min_members} titres retenus)` : `sans rang (historique ${row.count}/${TI.long} séances)`;
@@ -3913,7 +3999,8 @@
   }
   const cvScore = $('secScoreCv'), cvBrd = $('secBrdCv');
   function secOverlay() {                                // légende posée sur le graphique : OHLC (ou clôture) + valeur de chaque MM
-    const d = hover >= 0 ? T[hover] : pinned && bars.get(pinned) ? pinned : null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) return;
+    const d = hover >= 0 ? T[hover] : pinned && bars.get(pinned) ? pinned : null, b = (d && bars.get(d)) || [...bars.values()].pop();
+    if (!b) { $('secOhlc').innerHTML = ''; $('secMa').innerHTML = ''; return; }   // sans cours (ETF de la liste 9M) : pas de légende d'un autre titre
     const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
     $('secOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
       `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
@@ -4490,7 +4577,7 @@
   $('tkCopy').addEventListener('click', () => copyTickers($('tkCopy'), tkShown.map(r => r.s)));
   $('secCopy').addEventListener('click', () => {      // tickers affichés (ordre, filtres ; Leaders actifs : lignes visibles)
     if (secD && secD.kind === 'stk') copyTickers($('secCopy'), secSorted().map(r => r.x.s));
-    else if (secD && secD.kind === 'act') copyTickers($('secCopy'), secShownSyms);
+    else if (secD && (secD.kind === 'act' || secD.kind === 'bo')) copyTickers($('secCopy'), secShownSyms);
   });
   let adrTimer = 0;
   const adrApply = v => { clearTimeout(adrTimer); const x = Math.max(0, parseFloat(String(v).replace(',', '.')) || 0); if (x === adrMin) return;
@@ -5479,7 +5566,7 @@
     bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux ${escH(BOC.universe_label)} du screener TradingView : ${boRule()}.</p>
       <p>Disponible vers 16 h 20 à New York (données différées de 15 min), avant la séance des cases (Polygon publie le lendemain matin) : sans séance choisie, le bloc montre le dernier relevé ; une séance choisie ou survolée sur la frise montre sa liste. ★ = leader actif (groupe neuf ou chaud) à cette séance.</p>
       <p>Classement : ${BOC.sort === 'dvol' ? '<b>volume en dollars</b> du jour (clôture × volume), du plus haut au plus bas' : 'hausse du jour, de la plus forte à la plus faible'} ; sur chaque titre : ${BOC.sort === 'dvol' ? 'volume en dollars, ' : ''}volume en millions d'actions (M), multiple du volume de la veille (×).</p>
-      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste (avec la colonne et le filtre « Vol $ »), « Copier » la copie (« A, B, C »). ADR et ETF n'ont ni ★ ni fiche dans Tickers (hors de la classification TradingView des actions).</p>
+      <p>« ${escH(BOC.short_label)} › » (ou le fil du Classement) : la liste dans le Classement, tableau à gauche (tri par colonne), graphique et fiche à droite ; toucher un titre l'ouvre directement. La bougie du jour du scan arrive le lendemain matin (Polygon). « Tickers » envoie toute la liste dans l'onglet Tickers (colonne et filtre « Vol $ »), « Copier » la copie (« A, B, C »). ADR et ETF n'ont ni ★ ni graphique (hors de la classification TradingView des actions).</p>
       <p class="src">Volumes TradingView : la liste peut différer un peu de celle de TC2000. TradingView ne garde pas d'historique de ce scan : la liste commence au premier relevé et garde ${BOC.keep_sessions} séances.${BOC.min_price > 0 ? '' : ' Condition TC2000 « Price History > 0,8 » pas encore appliquée (sens à confirmer).'}</p>`],
     phrules: ['Comment chaque phase est établie', phRules()],
     phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>

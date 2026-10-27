@@ -37,7 +37,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 26 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 27 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -143,7 +143,7 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
-colonne, tri, filtre ; §9, « Breakouts 9M +4 % »). Détail : proposition privée de l'utilisateur
+colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
@@ -278,6 +278,13 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »). Détail : proposition priv
   aussi au chargement), filtre « Vol $ > x M$ » (`mm.tkdvmin`, pas `display.toml [tickers] dvol_step` ; un ticker hors de la
   liste est masqué quand le filtre est actif) ; sur mobile, Vol $ remplace Days to cover (dans la fiche). « Effacer » retire
   colonne et filtre ; une liste tapée sans ticker du scan n'en a pas. Test : `tests/node/26_tickers_volume_dollars.js`.
+  **Niveau « Breakouts 9M » du Classement** (demande du 27/10/2026, sur le modèle de Leaders actifs) : bouton du fil
+  (`data-bo`, `short_label`) et du bloc (« Breakouts 9M (N) › », `data-bogo`) ; toucher un titre du bloc l'ouvre dans ce niveau.
+  `boLevel()` : liste du dernier relevé (ou de la séance de « Stats du »), même ordre que le bloc (rang = cet ordre), colonnes
+  Vol $ / % jour / Volume (`dv`, `pbo`, `bvol`) / Industrie / ADR, tri mémorisé (`mm.tvsort.bo`) ; graphique et fiche à droite :
+  cours du fichier de l'industrie de chaque action (index Tickers chargé à la demande, `tkRow`, fichier « hors filtres » si
+  besoin). La bougie de la séance du scan arrive le lendemain matin (Polygon) ; ETF et ADR : dans la liste, sans graphique.
+  Test : `tests/node/27_secteurs_classement_9m.js`.
 - **Frise temporelle** (Secteurs / TradingView, sous les cases) : bande des phases de marché seule (demande du 27/10/2026 ; la
   courbe Industries TI65 > 1 est retirée, la case du même nom la donne) ; survol souris ou
   glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la
