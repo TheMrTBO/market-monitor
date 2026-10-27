@@ -51,7 +51,7 @@ ok('pastilles : du plus fort volume en dollars au plus faible',chips(A).join()==
 ok('pastille : volume en dollars, puis volume en actions',strip(A.$('secBo')._h).includes('5,0 Md $ · 30,0 M · ×1,5')&&strip(A.$('secBo')._h).includes('1,5 Md $ · 10,0 M'));
 A.L.dPick.change({target:{value:prev}});
 ok('liste d\'avant le volume en dollars : par hausse du jour, sans montant',chips(A).join()==='AMD,NVDA'&&!strip(A.$('secBo')._h).includes(' $ ·'),chips(A).join());
-ok('bulle : classement par volume en dollars expliqué',/volume en dollars/.test(tip(A,'bo')));
+ok('bulle : classement par volume en dollars, univers lu dans la config (ADR, ETF)',/volume en dollars/.test(tip(A,'bo'))&&tip(A,'bo').includes(BOC.universe_label));
 
 // --- envoi vers Tickers : colonne, tri par défaut, filtre
 A.L.dPick.change({target:{value:last}});

@@ -199,6 +199,11 @@ def check():
         errors.append("display.tickers : 0 < hot_top_pct ≤ 100, 0 ≤ hot_min_breadth ≤ 100, emerging_min_delta ≥ 1, max_tickers ≥ 1 attendus")
     if not tk.get("dvol_step", 0) > 0:
         errors.append("display.tickers : dvol_step > 0 attendu (pas du filtre « Vol $ », en M$)")
+    bo = load("sources")["tv_breadth"]["breakouts"]
+    ex, xe = bo.get("extra"), bo.get("extra_exchanges")
+    if not (isinstance(ex, list) and all(isinstance(t, str) and re.fullmatch(r"[a-z]+(/[a-z]+)?", t) for t in ex)
+            and isinstance(xe, list) and all(isinstance(t, str) and t for t in xe) and bo.get("universe_label")):
+        errors.append("sources.tv_breadth.breakouts : extra (« type » ou « type/sous-type ») et extra_exchanges (bourses) en listes attendus")
     if load("sources")["tv_breadth"]["breakouts"].get("sort") not in ("dvol", "pct"):
         errors.append("sources.tv_breadth.breakouts : sort = \"dvol\" ou \"pct\" attendu")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):

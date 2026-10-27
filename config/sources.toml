@@ -39,6 +39,12 @@ volume_up = true              # volume du jour > volume de la veille (TC2000 : v
 min_price = 0.8               # clôture strictement supérieure (TC2000 : Price History > 0,8)
 keep_sessions = 63            # séances gardées dans tv_breadth_data.js (≈ 3 mois ; la liste commence au premier relevé)
 list_limit = 30               # onglet Secteurs : titres affichés avant « + N autres »
+# extra / extra_exchanges : ajoutés à cette liste seulement (T2108 et ±4 % : actions ordinaires des bourses de [tv_breadth]),
+# comme TC2000 (choix de l'utilisateur du 27/10/2026) : "type" ou "type/sous-type" TradingView ; "dr" = ADR (STM, ASX…),
+# "fund/etf" = ETF (DRAM, KORU…), cotés aussi sur CBOE (DRAM, SNXX, CBRG)
+extra = ["dr", "fund/etf"]
+extra_exchanges = ["CBOE"]
+universe_label = "actions ordinaires, ADR et ETF de NYSE, Nasdaq, AMEX et CBOE"   # bulle ⓘ du bloc
 sort = "dvol"                 # ordre de la liste (Secteurs et Tickers) : "dvol" = volume en dollars du jour (clôture × volume,
                               # choix de l'utilisateur du 27/10/2026), du plus haut au plus bas ; "pct" = hausse du jour
 
