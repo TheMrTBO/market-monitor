@@ -167,6 +167,16 @@
   .secsplit.folded { grid-template-columns: minmax(0, 1fr); } .secsplit.folded .seccol, .secsplit.folded .seclist > :not(.sechead) { display: none; }
   .secsplit.folded .seclist .sechead { margin-bottom: 0; }
   .sechead .foldh { min-height: 0; padding: 0 2px 0 0; }
+  /* ordre des blocs sous la frise (exception au gel du 27/10/2026) : poignée à glisser (souris, doigt) ou flèches ↑ ↓ au clavier */
+  .dragh { display: inline-flex; align-items: center; justify-content: center; width: 22px; min-height: 28px; margin: 0 0 0 -6px; padding: 0; border: 0;
+           border-radius: 4px; background: none; color: var(--muted); cursor: grab; touch-action: none; flex: none; vertical-align: middle; }
+  .dragh .i { width: 16px; height: 16px; }
+  .dragh:hover, .dragh:focus-visible { color: var(--text); background: var(--hover); }
+  .sechead .dragh { min-height: 0; align-self: center; }
+  .secflow h4 .dragh { min-height: 22px; margin-right: 2px; }
+  #view-sec > .dragging { outline: 2px dashed var(--muted); outline-offset: 3px; }
+  body.secdrag, body.secdrag * { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+  @media (pointer: coarse) { .dragh { width: 32px; min-height: 36px; } .sechead .dragh { min-height: 32px; } }
   .seclist .sechead { margin-bottom: 8px; min-height: 32px; align-items: center; }   /* titres des deux cartes sur la même ligne */
   .sechead .tipbtn { align-self: center; }
   .secfilt { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
@@ -826,6 +836,7 @@
     <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.2"/><circle cx="15" cy="6" r="1.2"/><circle cx="9" cy="12" r="1.2"/><circle cx="15" cy="12" r="1.2"/><circle cx="9" cy="18" r="1.2"/><circle cx="15" cy="18" r="1.2"/></symbol>
     <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
     <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 0 1 4.9.7c0 1.7-2.4 2.1-2.4 3.6M12 17h.01"/></symbol>
     <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></symbol>
@@ -872,7 +883,7 @@
     <div class="secsplit" id="secSplit">
       <div class="card seclist">
         <div class="sechead">
-          <button class="foldh" id="listFold" type="button" aria-expanded="true" aria-label="Replier le classement"><span class="car">▾</span></button><b>Classement · <span id="secTiName">TI65</span></b><button class="tipbtn" data-tip="secrank" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
+          <button class="dragh" type="button" data-drag="list" aria-label="Déplacer le bloc Classement (glisser, ou flèches haut et bas)" title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button><button class="foldh" id="listFold" type="button" aria-expanded="true" aria-label="Replier le classement"><span class="car">▾</span></button><b>Classement · <span id="secTiName">TI65</span></b><button class="tipbtn" data-tip="secrank" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button>
           <span class="viewbox" hidden><span class="seg sm" id="secView" role="group" aria-label="Liste classée"></span><button class="tipbtn" data-tip="secview" aria-label="Explication : ETF ou TradingView" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button></span>
           <span class="secmeta" id="secMeta"></span>
         </div>
@@ -2847,6 +2858,20 @@
   // blocs repliables de l'onglet (retour UX du 27/10/2026) : choix mémorisés ; la carte de rotation garde sa clé mm.rrgopen
   const foldGet = id => store.get('mm.fold.' + id) !== '1', foldSet = (id, open) => store.set('mm.fold.' + id, open ? '0' : '1');
   let actOpen = foldGet('act'), listOpen = foldGet('list');   // les cases ne se replient pas : point d'ancrage (27/10/2026)
+  // ordre des blocs sous la frise (exception au gel du 27/10/2026) : choisi par glisser-déposer, mémorisé (mm.secorder) ; par
+  // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
+  const SEC_BLK = { flow: 'secFlow', act: 'secAct', bo: 'secBo', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);
+  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Groupes actifs', bo: 'Breakouts 9M +4 %', list: 'Classement' };
+  let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
+  const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
+    `title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button>`;
+  function applySecOrder() { const p = $('view-sec'), end = $('secRrg'); secOrder.forEach(k => p.insertBefore($(SEC_BLK[k]), end)); }
+  function moveSec(k, to) {                            // to : place parmi les autres blocs ; faux si l'ordre ne change pas
+    const o = secOrder.filter(x => x !== k); o.splice(Math.max(0, Math.min(to, o.length)), 0, k);
+    if (o.join() === secOrder.join()) return false;
+    secOrder = o; applySecOrder(); store.set('mm.secorder', o.join()); return true;
+  }
+  if (secOrder.join() !== SEC_DEF.join()) applySecOrder();
   function applyFolds() {                              // classement (Groupes actifs : rendu par renderSecAct)
     const set = (btn, open) => { const b = $(btn); if (!b) return; b.setAttribute('aria-expanded', String(open)); const c = b.querySelector('.car'); if (c) c.textContent = open ? '▾' : '▸'; };
     $('secSplit').classList.toggle('folded', !listOpen); set('listFold', listOpen);
@@ -2876,7 +2901,7 @@
     const dt = fmtDate(d, { day: 'numeric', month: 'short' });
     const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
       (!actOpen && alert ? ` · <span class="w">⚠ ${escH(ph.name)}</span>` : '') + (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
-    const head = `<div class="ahead"><button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
+    const head = `<div class="ahead">${dragH('act')}<button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
       (at.leaders.length ? `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
     if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
@@ -2931,7 +2956,7 @@
       (!boOpen && items.length ? ` · ${items.slice(0, 5).map(r => escH(r.s)).join(', ')}${items.length > 5 ? '…' : ''}` : '') : 'pas de relevé');
     const btns = items.length ? `<button type="button" class="copybtn" data-bocopy="1" title="Copier les tickers de la liste, séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
       `<button type="button" class="copybtn" data-botk="1" title="Analyser ces tickers dans l'onglet Tickers (secteur, industrie, tendance, short interest)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>` : '';
-    const head = `<div class="ahead"><button type="button" class="foldh" data-bofold="1" aria-expanded="${boOpen}"><span class="car">${boOpen ? '▾' : '▸'}</span><b>${escH(BOC.label)}</b></button>` +
+    const head = `<div class="ahead">${dragH('bo')}<button type="button" class="foldh" data-bofold="1" aria-expanded="${boOpen}"><span class="car">${boOpen ? '▾' : '▸'}</span><b>${escH(BOC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('bo', BOC.label)}<span class="asp"></span>${btns}</div>`;
     if (!boOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
@@ -3068,7 +3093,7 @@
         const row = f => `<button type="button" data-flsec="${escA(f.sec)}" title="Ouvrir les industries de ce secteur"><b>${escH(tvSecLabel(f.sec))}</b>` +
           `<span class="fc">${cnt(f)}${vrel(f.sec)}</span><span class="fn">${[nm(f.ent, 'pos'), nm(f.out, 'neg')].filter(Boolean).join(' · ')}</span></button>`;
         const L = fl || [], blk = (t, a) => a.length ? `<div class="fgrp">${t}</div>` + a.map(row).join('') : '';
-        fp.innerHTML = `<h4>Flux ${SKP.rotation_window} j par secteur <span>· ${fmtDate(Ds[e], { day: 'numeric', month: 'short' })} · industries passées au-dessus de 1 (+) ou repassées dessous (−)</span></h4>` +
+        fp.innerHTML = `<h4>${dragH('flow')}Flux ${SKP.rotation_window} j par secteur <span>· ${fmtDate(Ds[e], { day: 'numeric', month: 'short' })} · industries passées au-dessus de 1 (+) ou repassées dessous (−)</span></h4>` +
           (L.length ? (() => {                       // résumé en tête : les 3 plus forts de chaque sens (le détail suit)
             const up = L.filter(f => f.net > 0).slice(0, 3), dn = L.filter(f => f.net < 0).sort((a, b) => a.net - b.net).slice(0, 3);
             const s = (a, c) => a.map(f => `${escH(tvSecLabel(f.sec))} <span class="${c}">${signed(f.net)}</span>`).join(', ');
@@ -3726,6 +3751,29 @@
     $('view-tk').classList.toggle('detail', !!b.dataset.bos && isStacked()); setTab('tk');
   });
   $('listFold').addEventListener('click', () => { listOpen = !listOpen; foldSet('list', listOpen); applyFolds(); fitSecLayout(); });
+  // glisser-déposer des blocs (pointeur : souris et doigt) ; le bloc prend la place désignée par le milieu des blocs visibles
+  $('view-sec').addEventListener('pointerdown', ev => {
+    const h = ev.target.closest('.dragh'); if (!h || ev.button > 0) return;
+    ev.preventDefault(); secDrag = h.dataset.drag; $(SEC_BLK[secDrag]).classList.add('dragging'); document.body.classList.add('secdrag');
+  });
+  document.addEventListener('pointermove', ev => {
+    if (!secDrag) return;
+    const vis = secOrder.filter(x => x !== secDrag && !$(SEC_BLK[x]).hidden); if (!vis.length) return;
+    const n = vis.filter(x => { const r = $(SEC_BLK[x]).getBoundingClientRect(); return r.top + r.height / 2 < ev.clientY; }).length;
+    const rest = secOrder.filter(x => x !== secDrag);
+    moveSec(secDrag, n < vis.length ? rest.indexOf(vis[n]) : rest.indexOf(vis[vis.length - 1]) + 1);
+    const m = 48;                                      // bord de la fenêtre : défilement pour atteindre un bloc hors de l'écran
+    if (ev.clientY < m) window.scrollBy(0, -16); else if (ev.clientY > window.innerHeight - m) window.scrollBy(0, 16);
+  });
+  const endSecDrag = () => { if (!secDrag) return; $(SEC_BLK[secDrag]).classList.remove('dragging'); document.body.classList.remove('secdrag'); secDrag = null; fitSecLayout(); };
+  document.addEventListener('pointerup', endSecDrag); document.addEventListener('pointercancel', endSecDrag);
+  $('view-sec').addEventListener('keydown', ev => {    // clavier : flèches haut et bas sur la poignée
+    const h = ev.target.closest('.dragh'); if (!h || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return;
+    ev.preventDefault();
+    const k = h.dataset.drag, vis = secOrder.filter(x => x === k || !$(SEC_BLK[x]).hidden), i = vis.indexOf(k), rest = secOrder.filter(x => x !== k);
+    const moved = ev.key === 'ArrowUp' ? i > 0 && moveSec(k, rest.indexOf(vis[i - 1])) : i < vis.length - 1 && moveSec(k, rest.indexOf(vis[i + 1]) + 1);
+    if (moved) { const nh = $(SEC_BLK[k]).querySelector('.dragh'); if (nh) nh.focus(); fitSecLayout(); }
+  });
   $('rrgHead').addEventListener('click', () => {       // carte de rotation : repli mémorisé (refonte du 27/10/2026)
     rrgOpen = !rrgOpen; store.set('mm.rrgopen', rrgOpen ? '1' : '0'); renderSecKpis();
   });
