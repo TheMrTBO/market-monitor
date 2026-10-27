@@ -48,6 +48,12 @@ check("jour férié : la séance relevée reste celle de la bougie", day == "202
 pref = [[50, 10, "preferred", BAR_1019, "post_market"]] * 500
 day, res = tb.measure(rows(half, half, extra=pref), utc(2026, 10, 19, 21, 0))
 check("actions privilégiées exclues du calcul", res[:2] == (50.0, 2 * half))
+# ADR, ETF et CBOE (relevés pour la liste 9M) : hors du T2108 et du ±4 % (actions ordinaires des bourses de [tv_breadth])
+others = ([[50, 10, "", BAR_1019, "post_market", None, None, None, "D", "dr", "NYSE"]] * 300
+          + [[50, 10, "etf", BAR_1019, "post_market", None, None, None, "E", "fund", "CBOE"]] * 300
+          + [[50, 10, "common", BAR_1019, "post_market", None, None, None, "C", "stock", "CBOE"]] * 300)
+day, res = tb.measure(rows(half, half, extra=others), utc(2026, 10, 19, 21, 0))
+check("ADR, ETF et actions cotées sur CBOE exclus du T2108", res[:2] == (50.0, 2 * half))
 day, res = tb.measure(rows(10, 10), utc(2026, 10, 19, 21, 0))
 check("réponse trop courte : refusée", day is None and "minimum" in res)
 nulls = [[None, 10, "common", BAR_1019, "post_market"], [11, None, "common", BAR_1019, "post_market"]] * 50
@@ -113,12 +119,15 @@ bo_items = [[10.4, 10, "common", BAR_1019, P, 10.0, 9_000_000, 5_000_000, "AAA"]
             [9.6, 10, "common", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "GGG"],    # −4 % : non
             [12.0, 10, "common", BAR_1019, P, None, 20_000_000, 10_000_000, "HHH"],   # pas de clôture de la veille : ignoré
             [0.75, 10, "common", BAR_1019, P, 0.70, 20_000_000, 10_000_000, "III"],   # +7 % mais clôture < 0,80 $ : non
-            [0.8, 10, "common", BAR_1019, P, 0.70, 20_000_000, 10_000_000, "JJJ"]]    # clôture = 0,80 $ (pas strictement au-dessus) : non
+            [0.8, 10, "common", BAR_1019, P, 0.70, 20_000_000, 10_000_000, "JJJ"],    # clôture = 0,80 $ (pas strictement au-dessus) : non
+            [11.0, 10, "", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "DRX", "dr", "NYSE"],          # ADR (comme TC2000) : retenu
+            [10.5, 10, "etf", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "ETX", "fund", "CBOE"],     # ETF coté sur CBOE : retenu
+            [10.5, 10, "closedend", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "CEF", "fund", "NYSE"]]  # fonds fermé : non
 bo = tb.breakouts(bo_items)
-check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires)",
-      [x[0] for x in bo] == ["EEE", "AAA"])
+check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires, ADR et ETF, sans autre fonds)",
+      [x[0] for x in bo] == ["EEE", "DRX", "ETX", "AAA"])
 check("9M +4 % : % du jour, volume, volume ÷ veille, volume en dollars", bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000]
-      and bo[1] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000])
+      and bo[3] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000])
 # ordre : volume en dollars du plus haut au plus bas (sort = "dvol", choix de l'utilisateur) ; "pct" : plus forte hausse d'abord
 two = [[10.5, 10, "common", BAR_1019, P, 10.0, 30_000_000, 5_000_000, "BIG"],    # +5 %, 315 M$
        [6.0, 10, "common", BAR_1019, P, 5.0, 10_000_000, 5_000_000, "HOT"]]      # +20 %, 60 M$
@@ -136,7 +145,7 @@ with tempfile.TemporaryDirectory() as tmp:
     tb.write_js([["2026-10-16", 30.1, 5120]], None, tb.OUT, old)
     tb.main()
     lists = tb.load_breakouts(tb.OUT)
-    check("9M +4 % : liste de la séance écrite", [x[0] for x in lists.get("2026-10-19", [])] == ["EEE", "AAA"])
+    check("9M +4 % : liste de la séance écrite", [x[0] for x in lists.get("2026-10-19", [])] == ["EEE", "DRX", "ETX", "AAA"])
     check("9M +4 % : seulement keep_sessions séances gardées (les plus récentes)",
           len(lists) == B["keep_sessions"] and "2026-07-01" not in lists and "2026-10-19" in lists)
     check("9M +4 % : contrôle accepté", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) == [])

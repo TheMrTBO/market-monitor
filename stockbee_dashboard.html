@@ -5476,10 +5476,10 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
-    bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux actions ordinaires NYSE / Nasdaq / AMEX du screener TradingView : ${boRule()}.</p>
+    bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux ${escH(BOC.universe_label)} du screener TradingView : ${boRule()}.</p>
       <p>Disponible vers 16 h 20 à New York (données différées de 15 min), avant la séance des cases (Polygon publie le lendemain matin) : sans séance choisie, le bloc montre le dernier relevé ; une séance choisie ou survolée sur la frise montre sa liste. ★ = leader actif (groupe neuf ou chaud) à cette séance.</p>
       <p>Classement : ${BOC.sort === 'dvol' ? '<b>volume en dollars</b> du jour (clôture × volume), du plus haut au plus bas' : 'hausse du jour, de la plus forte à la plus faible'} ; sur chaque titre : ${BOC.sort === 'dvol' ? 'volume en dollars, ' : ''}volume en millions d'actions (M), multiple du volume de la veille (×).</p>
-      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste (avec la colonne et le filtre « Vol $ »), « Copier » la copie (« A, B, C »).</p>
+      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste (avec la colonne et le filtre « Vol $ »), « Copier » la copie (« A, B, C »). ADR et ETF n'ont ni ★ ni fiche dans Tickers (hors de la classification TradingView des actions).</p>
       <p class="src">Volumes TradingView : la liste peut différer un peu de celle de TC2000. TradingView ne garde pas d'historique de ce scan : la liste commence au premier relevé et garde ${BOC.keep_sessions} séances.${BOC.min_price > 0 ? '' : ' Condition TC2000 « Price History > 0,8 » pas encore appliquée (sens à confirmer).'}</p>`],
     phrules: ['Comment chaque phase est établie', phRules()],
     phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>

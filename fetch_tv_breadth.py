@@ -39,7 +39,7 @@ NY = ZoneInfo(MARKET["timezone"])
 BO = CFG["breakouts"]
 COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture et SMA40 ; up4 / down4 : ±4 % du jour (TC2000)
 BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol"]   # liste 9M +4 % : % du jour, volume, volume ÷ veille, clôture × volume ($)
-SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name"]
+SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name", "type", "exchange"]
 
 
 def load_existing(path):
@@ -66,10 +66,21 @@ def write_js(rows, scanned, path, breakouts=None):
     Path(path).write_text("window.TV_BREADTH = " + json.dumps(payload, separators=(",", ":")) + ";\n")
 
 
+def common(r):
+    """Action ordinaire des bourses de [tv_breadth] (T2108, ±4 %) ; colonnes absentes (réponse d'avant) : sous-type seul."""
+    return (r.get("subtype") == CFG["subtype"] and r.get("type") in (None, CFG["type"])
+            and r.get("exchange") in (None, *CFG["exchanges"]))
+
+
+def extra(r):
+    """ADR, ETF… ajoutés à la liste 9M seulement ([tv_breadth.breakouts] extra : "type" ou "type/sous-type")."""
+    return r.get("type") in BO["extra"] or f"{r.get('type')}/{r.get('subtype')}" in BO["extra"]
+
+
 def measure(items, now_utc):
     """(séance, t2108, n) du relevé, ou (None, raison) s'il ne doit pas être retenu. items = lignes `d` du screener."""
     rows = [dict(zip(SCAN_COLS, d)) for d in items]                         # champs absents d'une réponse : None
-    rows = [r for r in rows if r["subtype"] == CFG["subtype"]]
+    rows = [r for r in rows if common(r)]                                   # ADR, ETF, CBOE (liste 9M seulement) : exclus
     if len(rows) < CFG["min_stocks"]:
         return None, f"{len(rows)} actions seulement (minimum {CFG['min_stocks']})"
     status = Counter(r["current_session"] for r in rows).most_common(1)[0][0]
@@ -98,7 +109,7 @@ def breakouts(items):
     for d in items:
         r = dict(zip(SCAN_COLS, d))
         c, c1, v, v1, sym = (r.get(k) for k in ("close", "close[1]", "volume", "volume[1]", "name"))
-        if r.get("subtype") != CFG["subtype"] or None in (c, c1, v, v1, sym) or c1 <= 0:
+        if not (common(r) or extra(r)) or None in (c, c1, v, v1, sym) or c1 <= 0:
             continue
         if (c / c1 >= (100 + BO["pct"]) / 100 and v > BO["min_volume"] and (v > v1 or not BO["volume_up"])
                 and c > BO["min_price"]):
@@ -112,8 +123,8 @@ def main():
     existing = load_existing(OUT)          # OUT lu à l'appel (les tests le redirigent vers un dossier temporaire)
     lists = load_breakouts(OUT)
     raw = scan({"columns": SCAN_COLS, "markets": [CFG["market"]], "range": [0, CFG["scan_limit"]],
-                "filter": [{"left": "type", "operation": "equal", "right": CFG["type"]},
-                           {"left": "exchange", "operation": "in_range", "right": CFG["exchanges"]}]})
+                "filter": [{"left": "type", "operation": "in_range", "right": [CFG["type"], *{t.split("/")[0] for t in BO["extra"]}]},
+                           {"left": "exchange", "operation": "in_range", "right": [*CFG["exchanges"], *BO["extra_exchanges"]]}]})
     if len(raw) >= CFG["scan_limit"]:
         sys.exit(f"TradingView : {len(raw)} lignes = limite scan_limit atteinte (config/sources.toml) ; fichier non modifié.")
     day, res = measure([x["d"] for x in raw], now)

@@ -267,8 +267,10 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »). Détail : proposition priv
   le bloc montre le **dernier relevé** (le soir, avant la séance Polygon des cases, avec la mention) ; séance choisie ou survolée :
   sa liste. ★ = leader actif (groupe neuf ou chaud) de la séance ; toucher un titre = sa fiche dans Tickers (liste envoyée),
   « Tickers » / « Copier » = toute la liste. Condition TC2000 « Price History > 0,8 » = clôture > 0,80 $
-  (`min_price = 0.8`, sens confirmé le 27/10/2026) ; volumes TradingView ≠ TC2000 : la liste peut différer un peu ; ETF exclus
-  (choix de l'utilisateur du 27/10/2026 : actions ordinaires seules). Test : `tests/node/24_secteurs_breakouts_9m.js`,
+  (`min_price = 0.8`, sens confirmé le 27/10/2026) ; volumes TradingView ≠ TC2000 : la liste peut différer un peu. Comme TC2000
+  (choix de l'utilisateur du 27/10/2026), la liste ajoute les ADR (`dr`) et les ETF (`fund/etf`), CBOE compris (`extra`,
+  `extra_exchanges`) : le relevé les demande au screener, mais T2108 et ±4 % restent sur les actions ordinaires des bourses de
+  `[tv_breadth]` (`common()`). Contrôle du 27/10/2026 : 62 titres sur 62 de la liste TC2000 finale, même ordre, ON en plus. Test : `tests/node/24_secteurs_breakouts_9m.js`,
   `tests/test_tv_breadth.py`.
   **Volume en dollars** (exception au gel du 27/10/2026) : colonne `dvol` (clôture × volume du jour, 5e de `bo_columns` ; absente
   des listes d'avant) ; ordre de la liste = `sort` (`"dvol"` : du plus haut au plus bas, choix de l'utilisateur ; `"pct"` : hausse),
