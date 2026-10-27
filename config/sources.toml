@@ -28,6 +28,18 @@ min_stocks = 3000             # en dessous : réponse incomplète, relevé refus
 delay_minutes = 20            # après la clôture : données différées de 15 min sans compte (+5 min de marge)
 sessions_ok = ["post_market", "out_of_session"]   # états du screener où la bougie du jour est close (pas en séance ni pre-market)
 
+[tv_breadth.breakouts]
+# Liste « 9M +4 % » de l'onglet Secteurs (exception au gel accordée le 27/10/2026) : scan TC2000 de l'utilisateur, appliqué
+# au même relevé du screener (aucune requête de plus) : C / C1 >= 1 + pct / 100, V > min_volume, V > V1 si volume_up.
+# min_price : condition TC2000 « Price History > 0,8 » = clôture supérieure à 0,80 $ (confirmé par l'utilisateur le 27/10/2026).
+label = "Breakouts 9M +4 %"
+pct = 4                       # hausse minimale sur la clôture de la veille (%)
+min_volume = 8_900_000        # volume du jour strictement supérieur (TC2000 : v >= 8900000 et v > 8900000)
+volume_up = true              # volume du jour > volume de la veille (TC2000 : v > v1)
+min_price = 0.8               # clôture strictement supérieure (TC2000 : Price History > 0,8)
+keep_sessions = 63            # séances gardées dans tv_breadth_data.js (≈ 3 mois ; la liste commence au premier relevé)
+list_limit = 30               # onglet Secteurs : titres affichés avant « + N autres »
+
 [[step]]
 name = "stockbee"
 label = "Stockbee"

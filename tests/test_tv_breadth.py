@@ -101,6 +101,43 @@ with tempfile.TemporaryDirectory() as tmp:
     tb.main()
     check("relevé différent : fichier réécrit", tb.OUT.read_text() != first)
 
+# liste 9M +4 % (scan TC2000 de l'utilisateur, [tv_breadth.breakouts]) : C / C1 >= 1,04, V > 8,9 M, V > V1, C > 0,80 $
+B = tb.BO
+assert (B["pct"], B["min_volume"], B["volume_up"], B["min_price"]) == (4, 8_900_000, True, 0.8), "seuils du test = ceux du scan TC2000"
+bo_items = [[10.4, 10, "common", BAR_1019, P, 10.0, 9_000_000, 5_000_000, "AAA"],     # +4 % pile, 9 M > veille : retenu
+            [10.39, 10, "common", BAR_1019, P, 10.0, 9_000_000, 5_000_000, "BBB"],    # +3,9 % : non
+            [11.0, 10, "common", BAR_1019, P, 10.0, 8_900_000, 5_000_000, "CCC"],     # volume = 8,9 M (pas strictement au-dessus) : non
+            [11.0, 10, "common", BAR_1019, P, 10.0, 9_000_000, 9_500_000, "DDD"],     # volume en baisse sur la veille : non
+            [12.0, 10, "common", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "EEE"],   # +20 % : retenu, en tête
+            [12.0, 10, "preferred", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "FFF"],  # action privilégiée : non
+            [9.6, 10, "common", BAR_1019, P, 10.0, 20_000_000, 10_000_000, "GGG"],    # −4 % : non
+            [12.0, 10, "common", BAR_1019, P, None, 20_000_000, 10_000_000, "HHH"],   # pas de clôture de la veille : ignoré
+            [0.75, 10, "common", BAR_1019, P, 0.70, 20_000_000, 10_000_000, "III"],   # +7 % mais clôture < 0,80 $ : non
+            [0.8, 10, "common", BAR_1019, P, 0.70, 20_000_000, 10_000_000, "JJJ"]]    # clôture = 0,80 $ (pas strictement au-dessus) : non
+bo = tb.breakouts(bo_items)
+check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires)",
+      [x[0] for x in bo] == ["EEE", "AAA"])
+check("9M +4 % : % du jour, volume, volume ÷ veille", bo[0] == ["EEE", 20.0, 20_000_000, 2.0] and bo[1] == ["AAA", 4.0, 9_000_000, 1.8])
+check("9M +4 % : ancien format sans ticker : liste vide", tb.breakouts(rows(half, half)) == [])
+items[:] = [{"d": r[:4] + ["out_of_session"] + r[5:]} for r in rows(half, half) + bo_items]
+with tempfile.TemporaryDirectory() as tmp:
+    tb.OUT = Path(tmp) / "tv_breadth_data.js"
+    old = {f"2026-07-{d:02d}": [["OLD", 5.0, 9_000_000, 1.5]] for d in range(1, 31)}
+    old.update({f"2026-08-{d:02d}": [] for d in range(1, 31)})
+    old.update({f"2026-09-{d:02d}": [] for d in range(1, 21)})
+    tb.write_js([["2026-10-16", 30.1, 5120]], None, tb.OUT, old)
+    tb.main()
+    lists = tb.load_breakouts(tb.OUT)
+    check("9M +4 % : liste de la séance écrite", [x[0] for x in lists.get("2026-10-19", [])] == ["EEE", "AAA"])
+    check("9M +4 % : seulement keep_sessions séances gardées (les plus récentes)",
+          len(lists) == B["keep_sessions"] and "2026-07-01" not in lists and "2026-10-19" in lists)
+    check("9M +4 % : contrôle accepté", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) == [])
+    first = tb.OUT.read_text()
+    tb.main()
+    check("9M +4 % : relevé identique, fichier inchangé", tb.OUT.read_text() == first)
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", -3.0, 9_000_000, 1.2]]})
+    check("contrôle : liste 9M +4 % avec une baisse refusée", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
+
 for label, ok in checks.items():
     print(("ok     " if ok else "ECHEC  ") + label)
 sys.exit(0 if all(checks.values()) else 1)
