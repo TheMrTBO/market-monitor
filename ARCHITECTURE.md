@@ -7,7 +7,7 @@
 
 ## 1. En une phrase
 Tableau de bord statique (GitHub Pages, https://themrtbo.github.io/market-monitor/) du marché US : breadth (Stockbee + calcul
-maison), QQQ / IWM / BTC, T2108, VIX, classement TI65 de 55 ETF sectoriels et des secteurs → industries → actions TradingView,
+maison), QQQ / IWM / BTC, T2108, VIX, classement TI65 de 54 ETF sectoriels et des secteurs → industries → actions TradingView,
 scan post-market TradingView, onglet Tickers (une liste → secteur, industrie, tendance, short interest, thèmes chauds). Les données sont
 récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**, contrôlées, commitées, puis publiées.
 

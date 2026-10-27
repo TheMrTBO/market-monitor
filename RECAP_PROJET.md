@@ -36,7 +36,7 @@ GitHub Actions (cron 22:17 et 05:43 UTC, ou « Run workflow »)
         ├─ breadth_own.py    → breadth_data.js                                  (calcul maison +4 %/−4 %, ratios 5/10 j)
         ├─ fetch_vix.py      → vix_data.js                                      (CSV public du CBOE)
         ├─ fetch_prices.py   → prices_data.js                                   (QQQ, IWM : Yahoo ; BTC : Coinbase)
-        ├─ fetch_sectors.py  → sectors_data.js                                  (55 ETF : Yahoo)
+        ├─ fetch_sectors.py  → sectors_data.js                                  (54 ETF : Yahoo)
         └─ fetch_postmarket.py → postmarket_data.js                             (scan post-market : TradingView ; graphiques : Yahoo)
 GitHub Actions « Scan post-market » (postmarket.yml, toutes les 15 min de 20:07 à 01:22 UTC en semaine)
    └─ fetch_postmarket.py seul → commit de postmarket_data.js si changé → déploiement
@@ -77,7 +77,7 @@ Fichiers locaux **non versionnés** (dans `.gitignore`) : `.env`, `.venv/`, `.cl
 | `tv_breadth_data.js` | `window.TV_BREADTH` | `{columns:[date, t2108, n], rows, asof, scanned}` ; T2108 du screener TradingView, un relevé par séance depuis le 2026-10-19 |
 | `prices_data.js` | `window.PRICES` | `{QQQ, IWM, BTC}` = listes `[date, open, high, low, close, volume]` depuis 2019-01-01 |
 | `vix_data.js` | `window.VIX` | `[[date, open, high, low, close], …]` depuis 2018-01-02 |
-| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 55 ETF, 618 séances |
+| `sectors_data.js` | `window.SECTORS` | `{asof, dates, symbols:[{s, n, g, o, d, c, op, h, l, v}]}` ; 54 ETF (NLR retiré le 26/10/2026, doublon d'URA), 618 séances |
 | `postmarket_data.js` | `window.POSTMARKET` | `{cols, filters, snaps:[{d, at, closed, nextd?, rows:[[t, s, n, sec, ind, c, ch, pc, pch, pv, rv, cap, flt, er, nx, ng]]}], hist:{dates, bars:{symbole:[i0, [o,h,l,c,v]…]}}}` ; `er` = `amc` / `bmo` / vide ; `nx`, `ng` = variation et gap du lendemain |
 | `status_data.js` | `window.STATUS` | `{updated, pm, sources:{stockbee, breadth, vix, prices, sectors, postmarket:{ok, attempts, last, error?}}}` ; `pm` = heure du dernier scan post-market (écrite aussi par le workflow du soir) : le bouton « Actualiser » signale un nouveau scan même sans passage quotidien |
 
@@ -217,8 +217,8 @@ graphique principal, contexte propre `secCtx`), carte individuelle **Score avgC7
 - Mobile (≤ 640 px) : liste plein écran (Rang · Symbole + groupe dessous · Écart · Δ 5 j) ; toucher un ticker ouvre le détail
   (graphique + carte Score), « ‹ Classement » pour revenir.
 - Les ETF avec moins de 65 séances (ex. NCLD) restent listés **sans rang**, toujours en bas.
-- 55 ETF : les 31 symboles TC2000 de l'utilisateur (YINN, ETF à levier ×3, **retiré**) + 24 ajouts (SPDR manquants,
-  industries, mines, thèmes). Liste et descriptions dans `fetch_sectors.py`.
+- 54 ETF : les 31 symboles TC2000 de l'utilisateur (YINN, ETF à levier ×3, **retiré**) + 23 ajouts (SPDR manquants,
+  industries, mines, thèmes ; NLR retiré le 26/10/2026 : corrélation quotidienne 0,98 avec URA, même côté du TI65 96 % du temps). Liste et descriptions dans `fetch_sectors.py`.
 
 ### Onglet « Post-market » (13/10/2026)
 Même mise en page que Secteurs : « Stats du » en haut, liste à gauche, graphique + fiche à droite ; mobile = liste plein écran,

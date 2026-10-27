@@ -396,14 +396,6 @@ label = "Énergie propre"
 description = "Énergie propre : solaire, éolien et hydraulique mondial"
 
 [[etf]]
-symbol = "NLR"
-name = "VanEck Uranium+Nuclear Energy"
-group = "Thème"
-origin = "ajout"
-label = "Nucléaire"
-description = "Nucléaire : uranium et énergie nucléaire"
-
-[[etf]]
 symbol = "BOTZ"
 name = "Global X Robotics & Artificial Intelligence"
 group = "Thème"
