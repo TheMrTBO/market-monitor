@@ -37,7 +37,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 24 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 25 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -141,7 +141,8 @@ tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-mar
 au-dessus de la carte de rotation (même vue TradingView) ; le 26/10/2026 : phases de marché en tête de l'onglet MM (bandeau,
 frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs, Leaders actifs, thèmes suivis, carte repliée ; voir
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
-« Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9). Détail : proposition privée de l'utilisateur
+« Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
+changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
@@ -227,7 +228,10 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 - **Ordre de l'onglet Secteurs**, une seule page (choix de l'utilisateur, 20/10/2026 : pas de sous-vues) : **cases** (point
   d'ancrage, jamais repliées), **frise des phases** en séparateur (bordures haut et bas ; titre = phase de la séance, depuis
   combien de séances, setups recommandés ; `#secKpiNote` = séance ; survol = aperçu, clic = « Stats du »), flux par secteur (au
-  toucher de la case Rotation), **Groupes actifs**, **Breakouts 9M +4 %** (`mm.fold.bo`), **Classement** (liste et graphique). Retours UX du 27/10/2026 (règles NN/g :
+  toucher de la case Rotation), **Groupes actifs**, **Breakouts 9M +4 %** (`mm.fold.bo`), **Classement** (liste et graphique) :
+  ordre par défaut, que l'utilisateur change par glisser-déposer (exception au gel du 27/10/2026) : poignée ⠿ (`.dragh`,
+  `data-drag`) en tête de ces 4 blocs, au pointeur (souris, doigt) ou aux flèches ↑ ↓ ; ordre mémorisé (`mm.secorder`,
+  `SEC_BLK` / `applySecOrder` / `moveSec`), carte de rotation toujours en fin d'onglet ; test `tests/node/25_secteurs_ordre_blocs.js`. Retours UX du 27/10/2026 (règles NN/g :
   divulgation progressive, design minimaliste) : Groupes actifs et Classement se replient (titre à chevron, résumé d'une ligne ;
   `mm.fold.act`, `mm.fold.list`) ; un seul écart entre blocs (`--blk` : 16 px, 12 px sur mobile), 8 px dans un bloc ; consignes
   dans les bulles ⓘ. Côte à côte, la liste finit à la hauteur de la colonne de droite (`fitSecLayout`).
