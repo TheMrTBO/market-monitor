@@ -130,11 +130,13 @@ def check_tv_breadth(data, today):
     rows = data["rows"]
     if len(rows) < f["min_rows"]:
         errors.append(f"tv_breadth : seulement {len(rows)} seances (minimum {f['min_rows']})")
-    # liste 9M +4 % (cle absente avant le 27/10/2026) : [ticker, % du jour >= 0, volume, volume / veille] par seance
+    # liste 9M +4 % (cle absente avant le 27/10/2026) : [ticker, % du jour >= 0, volume, volume / veille, volume en dollars] par
+    # seance (volume en dollars : 5e colonne depuis le 27/10/2026 au soir, absente des listes d'avant)
     bo = data.get("breakouts") or {}
     bad_bo = [d for d, lst in bo.items() if not isinstance(lst, list) or any(
         not isinstance(x, list) or len(x) < 3 or not isinstance(x[0], str) or not x[0]
-        or not isinstance(x[1], (int, float)) or x[1] < 0 or not isinstance(x[2], int) or x[2] < 0 for x in lst)]
+        or not isinstance(x[1], (int, float)) or x[1] < 0 or not isinstance(x[2], int) or x[2] < 0
+        or (len(x) > 4 and x[4] is not None and (not isinstance(x[4], int) or x[4] < 0)) for x in lst)]
     if bad_bo:
         errors.append(f"tv_breadth : liste {len(bad_bo)} seance(s) incoherente(s) ({', '.join(sorted(bad_bo)[:3])})")
     if not rows:

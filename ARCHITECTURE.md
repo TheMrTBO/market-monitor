@@ -37,7 +37,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 25 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 26 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -142,7 +142,8 @@ au-dessus de la carte de rotation (même vue TradingView) ; le 26/10/2026 : phas
 frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs, Leaders actifs, thèmes suivis, carte repliée ; voir
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
-changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »). Détail : proposition privée de l'utilisateur
+changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
+colonne, tri, filtre ; §9, « Breakouts 9M +4 % »). Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
@@ -266,8 +267,15 @@ changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »). Détail : 
   le bloc montre le **dernier relevé** (le soir, avant la séance Polygon des cases, avec la mention) ; séance choisie ou survolée :
   sa liste. ★ = leader actif (groupe neuf ou chaud) de la séance ; toucher un titre = sa fiche dans Tickers (liste envoyée),
   « Tickers » / « Copier » = toute la liste. Condition TC2000 « Price History > 0,8 » = clôture > 0,80 $
-  (`min_price = 0.8`, sens confirmé le 27/10/2026) ; volumes TradingView ≠ TC2000 : la liste peut différer un peu. Test : `tests/node/24_secteurs_breakouts_9m.js`,
+  (`min_price = 0.8`, sens confirmé le 27/10/2026) ; volumes TradingView ≠ TC2000 : la liste peut différer un peu ; ETF exclus
+  (choix de l'utilisateur du 27/10/2026 : actions ordinaires seules). Test : `tests/node/24_secteurs_breakouts_9m.js`,
   `tests/test_tv_breadth.py`.
+  **Volume en dollars** (exception au gel du 27/10/2026) : colonne `dvol` (clôture × volume du jour, 5e de `bo_columns` ; absente
+  des listes d'avant) ; ordre de la liste = `sort` (`"dvol"` : du plus haut au plus bas, choix de l'utilisateur ; `"pct"` : hausse),
+  montant sur chaque pastille. Envoyée vers Tickers, la liste garde sa séance (`mm.tkbo`) : colonne **Vol $** (tri par défaut,
+  aussi au chargement), filtre « Vol $ > x M$ » (`mm.tkdvmin`, pas `display.toml [tickers] dvol_step` ; un ticker hors de la
+  liste est masqué quand le filtre est actif) ; sur mobile, Vol $ remplace Days to cover (dans la fiche). « Effacer » retire
+  colonne et filtre ; une liste tapée sans ticker du scan n'en a pas. Test : `tests/node/26_tickers_volume_dollars.js`.
 - **Frise temporelle** (Secteurs / TradingView, sous les cases) : bande des phases de marché seule (demande du 27/10/2026 ; la
   courbe Industries TI65 > 1 est retirée, la case du même nom la donne) ; survol souris ou
   glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la

@@ -197,6 +197,10 @@ def check():
     if not (0 < tk.get("hot_top_pct", 0) <= 100 and 0 <= tk.get("hot_min_breadth", -1) <= 100
             and tk.get("emerging_min_delta", 0) >= 1 and tk.get("max_tickers", 0) >= 1):
         errors.append("display.tickers : 0 < hot_top_pct ≤ 100, 0 ≤ hot_min_breadth ≤ 100, emerging_min_delta ≥ 1, max_tickers ≥ 1 attendus")
+    if not tk.get("dvol_step", 0) > 0:
+        errors.append("display.tickers : dvol_step > 0 attendu (pas du filtre « Vol $ », en M$)")
+    if load("sources")["tv_breadth"]["breakouts"].get("sort") not in ("dvol", "pct"):
+        errors.append("sources.tv_breadth.breakouts : sort = \"dvol\" ou \"pct\" attendu")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0

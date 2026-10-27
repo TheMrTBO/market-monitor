@@ -38,7 +38,7 @@ CFG = mmconfig.load("sources")["tv_breadth"]
 NY = ZoneInfo(MARKET["timezone"])
 BO = CFG["breakouts"]
 COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture et SMA40 ; up4 / down4 : ±4 % du jour (TC2000)
-BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio"]   # liste 9M +4 % : % du jour, volume, volume ÷ veille
+BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol"]   # liste 9M +4 % : % du jour, volume, volume ÷ veille, clôture × volume ($)
 SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name"]
 
 
@@ -92,7 +92,8 @@ def measure(items, now_utc):
 
 def breakouts(items):
     """Liste 9M +4 % d'un relevé (formule TC2000 de l'utilisateur, seuils dans [tv_breadth.breakouts]) : lignes BO_COLUMNS,
-    de la plus forte hausse à la plus faible. Titres sans clôture, volume ou ticker de la veille ignorés (comme le ±4 %)."""
+    du plus fort volume en dollars au plus faible (sort = "dvol") ou de la plus forte hausse (sort = "pct"). Titres sans clôture,
+    volume ou ticker de la veille ignorés (comme le ±4 %)."""
     out = []
     for d in items:
         r = dict(zip(SCAN_COLS, d))
@@ -101,8 +102,8 @@ def breakouts(items):
             continue
         if (c / c1 >= (100 + BO["pct"]) / 100 and v > BO["min_volume"] and (v > v1 or not BO["volume_up"])
                 and c > BO["min_price"]):
-            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None])
-    return sorted(out, key=lambda x: (-x[1], x[0]))
+            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None, int(round(c * v))])
+    return sorted(out, key=lambda x: (-x[4], x[0]) if BO["sort"] == "dvol" else (-x[1], x[0]))
 
 
 def main():
