@@ -1,0 +1,5 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-27,2026-10-27T20:17:16+00:00,false,NASDAQ:BRAI,BRAI,Braiin Limited,Technology Services,Packaged Software,3.31,56.13,3.47,4.83,142832,0.19,682152043,206088228,
+2026-10-27,2026-10-27T20:17:16+00:00,false,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,4.99,0.4,4.7591,-4.63,153621,0.03,13350306,713828,
+2026-10-27,2026-10-27T20:17:16+00:00,false,NASDAQ:EXLS,EXLS,"ExlService Holdings, Inc.",Technology Services,Data Processing Services,40.93,-2.01,42.9,4.81,703417,0.29,6205499818,146629632,amc
+2026-10-27,2026-10-27T20:17:16+00:00,false,NYSE:MOH,MOH,"Molina Healthcare, Inc.",Health Services,Managed Health Care,199.46,-2.6,210.0,5.28,146496,0.15,10411811811,51446336,
