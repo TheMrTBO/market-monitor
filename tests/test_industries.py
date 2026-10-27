@@ -113,6 +113,29 @@ check("volume en dollars relatif : 5 dernières séances ÷ 50 dernières (None 
 check("marché de la carte de rotation : indice équipondéré de toutes les actions retenues",
       payload["stocks"]["c"] == [None if v is None else round(v, 3) for v in fi.build_index([m["s"] for m in members], close, len(dates))])
 check("indices : courbe seulement (pas de bougie d'indice)", all("o" not in x for x in payload["sectors"] + payload["industries"]))
+# --- groupes actifs (refonte du 27/10/2026) : leaders (+25 % sur 21 séances), grappe, thèmes, liste des leaders
+fl = fi.leader_flags(close["JMP"])
+check("leader : +25 % sur 21 séances (JMP ×4 à la séance 50, plus leader 21 séances après) ; AAA +23 % : non ; avant 21 séances : None",
+      fl[50] == 1 and fl[70] == 1 and fl[71] == 0 and fl[49] == 0 and fl[10] is None and set(fi.leader_flags(close["AAA"])[21:]) == {0})
+chips = inds["Chips & Co"]
+check("leaders par industrie et de l'univers, une valeur par séance",
+      chips["l"][50] == 1 and chips["l"][49] == 0 and len(chips["l"]) == len(dates) and payload["stocks"]["l"][60] == 1
+      and payload["stocks"]["v"][60] == len(members) and payload["stocks"]["v"][5] == 0)
+check("grappe : au moins grappe_min leaders et part ≥ grappe_ratio × celle de l'univers (« 1 » / « 0 » par séance)",
+      fi.grappe([3, 3, 2], [10, 10, 2], [6, 3, 2], [100, 10, 100]) == "100" and fi.grappe([3], [10], [0], [0]) == "0"
+      and set(chips["g"]) == {"0"} and len(chips["g"]) == len(dates))
+lead = payload["leaders"]
+ix_chips = [i["k"] for i in payload["industries"]].index("Chips & Co")
+check("liste des leaders : list_sessions dernières séances (pas avant `sessions`), [symbole, industrie, gain %]",
+      lead["start"] == max(fi.LD["sessions"], len(dates) - fi.LD["list_sessions"]) and lead["start"] + len(lead["days"]) == len(dates)
+      and lead["days"][60 - lead["start"]] == [["JMP", ix_chips, 300]] and lead["days"][-1] == [])
+_, th, _ = fi.leaders(dates, close, members, [dict(x) for x in payload["industries"]],
+                      themes=[{"name": "Thème", "tickers": ["AAA", "JMP", "ZZZ", "PNY"], "etf": "XLK"}])
+t0 = th[0]
+check("thème : actions retenues seulement, indice et leaders comme une industrie, signal = moitié du panier leader",
+      t0["m"] == ["AAA", "JMP"] and t0["n"] == 2 and t0["etf"] == "XLK" and len(t0["c"]) == len(dates) and t0["c"][0] == 100
+      and t0["h"][60] == "1" and t0["h"][75] == "0" and t0["l"][60] == 1 and all(v is None for v in t0["b"]))
+check("thèmes de la config : un par entrée de config/themes.toml", [t["k"] for t in payload["themes"]] == [t["name"] for t in fi.mmconfig.themes()])
 _, f2 = fi.compute(dates, close, vol, members, keep=70)
 check("sans OHLC en cache : pas de colonnes OHLC pour les actions", len(f2[inds["Soft"]["f"]]["rows"][0]) == 5)
 
@@ -177,6 +200,9 @@ with tempfile.TemporaryDirectory() as tmp:
     check("contrôle : fichier d'industrie manquant refusé", any("fichier(s) d'industrie" in e for e in errs))
     data["sectors"][0]["c"][3] = None
     check("contrôle : indice incomplet refusé", any("incomplet" in e for e in validate_data.check_industries(data, today)))
+    data["leaders"]["days"][-11] = [["JMP", 99, 300]]
+    check("contrôle : liste des leaders incohérente (industrie inconnue) refusée",
+          any("groupes actifs" in e for e in validate_data.check_industries(data, today)))
 
 # --- scanner TradingView : paramètres de la config ; liste qui atteint scan_limit (tronquée) refusée
 import types

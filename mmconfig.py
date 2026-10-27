@@ -2,7 +2,7 @@
 """Configuration centralisée du Market Monitor (dossier config/, format TOML, lu par la bibliothèque standard).
 
 Source unique des paramètres métier : horaires, heures de marché, étapes du robot et contrôles de fraîcheur, filtres du scan
-post-market, univers des ETF, vue TradingView (secteurs → industries → actions), seuils et libellés d'affichage, modèle logique des données, stockage.
+post-market, univers des ETF, vue TradingView (secteurs → industries → actions), thèmes suivis, seuils et libellés d'affichage, modèle logique des données, stockage.
   - le robot Python lit la config avec load("<fichier>") ;
   - le dashboard lit config_data.js (window.MM_CONFIG), GÉNÉRÉ par ce module : ne jamais l'éditer à la main ;
   - les créneaux `schedule` des workflows GitHub ne peuvent pas lire la config : check() vérifie qu'ils lui correspondent.
@@ -22,7 +22,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "short", "datasets", "storage")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -45,6 +45,11 @@ def step(name):
     return next(s for s in steps() if s["name"] == name)
 
 
+def themes():
+    """Thèmes suivis de l'onglet Secteurs (config/themes.toml), dans l'ordre : [{name, tickers, etf?}]."""
+    return load("themes").get("theme", [])
+
+
 def sectors():
     """Univers de l'onglet Secteurs (config/sectors.toml), dans l'ordre."""
     return load("sectors")["etf"]
@@ -62,7 +67,7 @@ def front_config():
         "vix": d["vix"],
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "adr": d["adr"],
@@ -70,8 +75,9 @@ def front_config():
         "tickers": {**d["tickers"], "file": ind["output"]["tickers_file"], "short_file": step("short")["output"],
                     "short_stale_days": load("short")["stale_days"]},
         "industries": {**{k: ind["index"][k] for k in ("min_members", "few_members")}, "folder": ind["output"]["folder"],
-                       "volume": ind["volume"],
+                       "volume": ind["volume"], "leaders": ind["leaders"],
                        **{k: ind["universe"][k] for k in ("min_price", "min_avg_volume", "avg_volume_sessions", "min_market_cap")}},
+        "themes": [{"name": t["name"], "etf": t.get("etf")} for t in themes()],
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
     }
@@ -142,11 +148,11 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
     kp = load("display")["sectors"]["kpis"]
     rr = kp.get("rotation_ratio", [])
-    if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
+    if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk", "th"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
             or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
             or not (isinstance(kp.get("rotation_ratio_sessions"), int) and kp["rotation_ratio_sessions"] > 0) \
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]) or not 0 < kp.get("breadth_mid", -1) < 100 or not kp.get("benchmark"):
-        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk (sans doublon), rotation_window, record_sessions, "
+        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk, th (sans doublon), rotation_window, record_sessions, "
                       "rotation_ratio_sessions entier > 0, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
     ad = load("display")["adr"]
     if not (isinstance(ad.get("sessions"), int) and ad["sessions"] > 1 and ad.get("step", 0) > 0):
@@ -159,6 +165,7 @@ def check():
             and rg["delta_windows"][0] < rg["delta_windows"][1]
             and isinstance(rg.get("major_factor"), (int, float)) and rg["major_factor"] > 0 and isinstance(rg.get("zone_margin"), (int, float)) and rg["zone_margin"] >= 0
             and isinstance(rg.get("table_rows"), int) and rg["table_rows"] > 0
+            and isinstance(rg.get("shown"), bool)
             and all(isinstance(rg.get(k), (int, float)) for k in ("confirm_ti65", "confirm_breadth", "pistes_max_rs"))
             and 0 <= rg["confirm_breadth"] <= 1 and rg["confirm_ti65"] > 0 and rg["pistes_max_rs"] > 0
             and set(rg.get("views", {})) == {"conf", "pist", "chg", "all"} and set(rg.get("tags", {})) == {"strong", "edge", "fade", "watch"}
@@ -205,6 +212,37 @@ def check():
         errors.append("industries.index : base > 0, plafond > 0 et 1 ≤ min_members ≤ few_members attendus")
     if not (ind["output"]["stock_sessions"] > ti["long"] and re.fullmatch(r"[a-z0-9_-]+", ind["output"]["folder"])):
         errors.append("industries.output : stock_sessions > ti65.long et dossier en minuscules sans / attendus")
+    ld = ind.get("leaders", {})
+    if not (all(isinstance(ld.get(k), int) and not isinstance(ld.get(k), bool) and ld[k] > 0
+                for k in ("gain_pct", "sessions", "grappe_min", "list_sessions"))
+            and isinstance(ld.get("grappe_ratio"), (int, float)) and ld["grappe_ratio"] >= 1
+            and isinstance(ld.get("theme_share_pct"), (int, float)) and 0 < ld["theme_share_pct"] <= 100
+            and ld["list_sessions"] < ind["output"]["stock_sessions"]):
+        errors.append("industries.leaders : gain_pct, sessions, grappe_min, list_sessions entiers > 0, grappe_ratio ≥ 1, "
+                      "0 < theme_share_pct ≤ 100 et list_sessions < output.stock_sessions attendus")
+    etfs = {e["symbol"] for e in sectors()}
+    names = [t.get("name") for t in themes()]
+    for t in themes():
+        tk = t.get("tickers", [])
+        if not (t.get("name") and isinstance(tk, list) and len(tk) >= ix["min_members"] and len(set(tk)) == len(tk)
+                and all(isinstance(x, str) and re.fullmatch(r"[A-Z][A-Z0-9.\-]*", x) for x in tk)
+                and (t.get("etf") is None or t["etf"] in etfs)):
+            errors.append(f"themes : « {t.get('name')} » : nom, au moins {ix['min_members']} symboles distincts en majuscules et etf de config/sectors.toml (facultatif) attendus")
+    if len(set(names)) != len(names):
+        errors.append("themes : noms en double")
+    ac = load("display")["sectors"].get("actifs", {})
+    phase_keys = {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
+    if not (all(isinstance(ac.get(k), int) and not isinstance(ac.get(k), bool) and ac[k] > 0
+                for k in ("fresh_sessions", "neuf_window", "old_sessions", "list_limit", "pioneer_window", "high_sessions", "chauds_shown", "trend_sessions"))
+            and isinstance(ac.get("pioneer_gain_pct"), (int, float)) and ac["pioneer_gain_pct"] > ld.get("gain_pct", 0)
+            and set(ac.get("alert_phases", [])) <= phase_keys
+            and ac["fresh_sessions"] + ac["neuf_window"] <= ld.get("list_sessions", 0)
+            and all(ac.get(k) for k in ("label", "leaders_label", "alert_text", "neuf_tip", "pioneer_tip"))
+            and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
+        errors.append("display.sectors.actifs : séances entières > 0, pioneer_gain_pct > leaders.gain_pct, alert_phases parmi les "
+                      "phases, fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
+    if "th" in load("display")["sectors"]["kpis"]["tiles"] and not themes():
+        errors.append("display.sectors.kpis : case « th » sans thème dans config/themes.toml")
     for key, ds in load("datasets")["datasets"].items():
         bad = [c for c, t in ds["columns"].items() if t.rstrip("?") not in TYPES]
         if bad:

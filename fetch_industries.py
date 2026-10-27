@@ -14,6 +14,12 @@ Sorties :
                              k = nom TradingView, n = titres retenus, c = indice (aligné sur dates ; affiché en courbe de
                              tendance, pas en bougies), b = % des titres dont le
                              TI65 dépasse 1 (null si moins de min_members titres ont un TI65), f = fichier de l'industrie.
+                             Groupes actifs (refonte du 27/10/2026, config/industries.toml [leaders]) : industries[].l = leaders
+                             par séance (actions à +gain_pct % sur `sessions` séances), industries[].g = grappe par séance
+                             (« 1 » / « 0 ») ; stocks.l / stocks.v = leaders / actions mesurables de tout l'univers retenu ;
+                             themes:[{k, etf, m (actions retenues), n, c, b, l, h (moitié du panier leader : « 1 » / « 0 »)}]
+                             (config/themes.toml) ; leaders = {start, days:[[[symbole, index de l'industrie, gain % sur
+                             `sessions` séances]]]} pour les list_sessions dernières séances (days[i] = séance dates[start + i]).
   industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, vu (unité des volumes), rows:[[symbole, nom, cap, [clôtures], [volumes / vu],
                              [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
@@ -38,6 +44,7 @@ HERE = Path(__file__).resolve().parent
 OUT = HERE / "industries_data.js"
 CFG = mmconfig.load("industries")
 TI = mmconfig.load("display")["ti65"]
+LD = CFG["leaders"]
 FOLDER = HERE / CFG["output"]["folder"]
 TICKERS_OUT = HERE / CFG["output"]["tickers_file"]
 TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av", "adr"]
@@ -169,6 +176,52 @@ def breadth(members, scores, n, min_members=CFG["index"]["min_members"]):
     return out
 
 
+def leader_flags(c, gain=LD["gain_pct"], k_=LD["sessions"]):
+    """Par séance : 1 si la clôture dépasse d'au moins gain % celle d'il y a k_ séances, 0 sinon, None si l'une manque."""
+    g = 1 + gain / 100
+    return [None if k < k_ or c[k] is None or c[k - k_] is None or not c[k - k_] > 0 else int(c[k] / c[k - k_] >= g)
+            for k in range(len(c))]
+
+
+def grappe(l, v, l_all, v_all, at_least=LD["grappe_min"], ratio=LD["grappe_ratio"]):
+    """« 1 » / « 0 » par séance : au moins `at_least` leaders et une part de leaders ≥ ratio × celle de tout l'univers."""
+    return "".join("1" if a >= at_least and b and A and (a / b) / (A / B) >= ratio else "0"
+                   for a, b, A, B in zip(l, v, l_all, v_all))
+
+
+def leaders(dates, close, members, industries, themes=None, keep=LD["list_sessions"]):
+    """Compléments « groupes actifs » de industries_data.js : ajoute l et g à chaque industrie (liste `industries` du payload,
+    modifiée en place), renvoie ({l, v} de l'univers, [thèmes], {start, days}). Leader = leader_flags ; grappe = grappe() ;
+    thème : actions retenues de son panier, indice, largeur et leaders comme une industrie, h = au moins theme_share_pct %
+    de ses actions mesurables leaders (et au moins 2 mesurables)."""
+    n, k_ = len(dates), LD["sessions"]
+    flags = {m["s"]: leader_flags(close[m["s"]]) for m in members}
+    count = lambda ts: ([sum(1 for t in ts if flags[t][k] == 1) for k in range(n)],
+                        [sum(1 for t in ts if flags[t][k] is not None) for k in range(n)])
+    l_all, v_all = count(list(flags))
+    by_ind = defaultdict(list)
+    for m in members:
+        by_ind[m["ind"]].append(m["s"])
+    for x in industries:
+        l, v = count(by_ind[x["k"]])
+        x["l"], x["g"] = l, grappe(l, v, l_all, v_all)
+    out_th, kept, scores, share = [], set(flags), {}, LD["theme_share_pct"] / 100
+    for t in themes if themes is not None else mmconfig.themes():
+        ts = [s for s in t["tickers"] if s in kept]
+        l, v = count(ts)
+        scores.update({s: ti65_series(close[s]) for s in ts if s not in scores})
+        out_th.append({"k": t["name"], "etf": t.get("etf"), "m": ts, "n": len(ts),
+                       "c": [None if x is None else round(x, 3) for x in build_index(ts, close, n)] if ts else [],
+                       "b": breadth(ts, scores, n), "l": l,
+                       "h": "".join("1" if b_ >= 2 and a / b_ >= share else "0" for a, b_ in zip(l, v))})
+    ix = {x["k"]: i for i, x in enumerate(industries)}
+    ind_of = {m["s"]: ix[m["ind"]] for m in members}
+    start = max(k_, n - keep)
+    days = [sorted(([s, ind_of[s], round(100 * (close[s][k] / close[s][k - k_] - 1))] for s in flags if flags[s][k] == 1),
+                   key=lambda r: (-r[2], r[0])) for k in range(start, n)]
+    return {"l": l_all, "v": v_all}, out_th, {"start": start, "days": days}
+
+
 def slug(name, taken):
     """Nom de fichier d'une industrie : minuscules, chiffres, tirets ; unique."""
     base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "industrie"
@@ -211,7 +264,7 @@ def extras(dates, close, vol, ohlc, tv_rows, members, keep=CFG["output"]["stock_
     return files, names
 
 
-def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], ohlc=None):
+def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], ohlc=None, themes=None):
     """(payload de industries_data.js, {fichier: payload de industries/<fichier>.js}). Un indice : c (courbe de tendance :
     pas de bougie, un indice équipondéré n'a pas de vrai plus haut / plus bas) ; une action : [symbole, nom, cap, clôtures,
     volumes k, ouvertures, plus hauts, plus bas] (bougies ; OHLC seulement s'il est en cache)."""
@@ -240,7 +293,10 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     every = [m["s"] for m in members]
     stocks = {"n": len(members), "b": breadth(every, scores, n), "c": rnd(build_index(every, close, n)),
               "rv": dollar_volume_rel(every, close, vol, n)}
-    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries, "stocks": stocks}, files
+    lv, themes, lead = leaders(dates, close, members, industries, themes)   # groupes actifs (refonte du 27/10/2026)
+    stocks.update(lv)
+    return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries, "stocks": stocks,
+            "themes": themes, "leaders": lead}, files
 
 
 def universe_rows(tv_rows, cfg=CFG["universe"]):

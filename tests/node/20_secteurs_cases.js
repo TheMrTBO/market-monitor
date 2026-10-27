@@ -6,6 +6,11 @@ require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
 function boot(ls,opts={}){
+  // antérieur à la refonte du 27/10/2026 : vue ETF par défaut, bascule unique vers TradingView déjà faite (nouveau comportement : test 23)
+  if(!('mm.secrefonte' in ls))ls['mm.secrefonte']='1';
+  if(!('mm.secview' in ls))ls['mm.secview']='etf';
+  // antérieur à la refonte du 27/10/2026 : vue TradingView ouverte sur Secteurs (défaut actuel : Leaders actifs, test 23)
+  if(!('mm.tvnav' in ls))ls['mm.tvnav']=JSON.stringify({lvl:'sec',sec:'all',ind:null});
   const L={},els={},DL={};let fillC='',strokeC='';const R={},Sx={},M={};
   const mkCtx=id=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):
     k==='fillRect'?(x,y,w,h)=>{(R[id]=R[id]||[]).push([fillC,x,y,w,h]);}:
@@ -56,7 +61,7 @@ const ls={};
 let A=boot(ls);
 const IND=A.sb.INDUSTRIES, CFG=A.sb.MM_CONFIG, K=CFG.sectors.kpis, N=IND.dates.length, min=CFG.industries.min_members, dl=CFG.ti65.delta;
 tab(A);
-ok('vue ETF : pas de cases',A.$('secKpis').hidden===true);
+ok('niveau ETF : les cases restent (point d\'ancrage du haut de page, 27/10/2026)',A.$('secKpis').hidden===false);
 view(A,'tv');
 let c=kp(A);
 const tilesNow=K.tiles.filter(k=>k!=='stk'||(IND.stocks&&IND.stocks.b));

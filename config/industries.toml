@@ -28,6 +28,18 @@ few_members = 5               # en dessous : étiquette « peu de titres »
 short = 5
 long = 50
 
+[leaders]
+# Leaders et groupes actifs de l'onglet Secteurs (refonte du 27/10/2026, tests 5 à 16 du document d'analyse ; exception au gel
+# accordée le 27/10/2026 à la demande de l'utilisateur). Leader = action retenue en hausse d'au moins gain_pct % sur `sessions` séances.
+gain_pct = 25
+sessions = 21
+# grappe d'une industrie (son signal « neuf ») : au moins grappe_min leaders, et une part de leaders au moins grappe_ratio fois
+# celle de toutes les actions retenues. Signal le plus solide des tests : 53 % devant le marché à 42 séances, sur 2019-2023 et 2024-2026.
+grappe_min = 3
+grappe_ratio = 2.0
+theme_share_pct = 50          # signal d'un thème (config/themes.toml) : au moins cette part de son panier est leader
+list_sessions = 63            # séances dont la liste des leaders est écrite dans industries_data.js (clé « leaders »)
+
 [output]
 stock_sessions = 190          # séances par action dans industries/<industrie>.js (fiche action : graphique, TI65 sur ~6 mois)
 folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie
