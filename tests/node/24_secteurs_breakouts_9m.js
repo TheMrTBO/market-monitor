@@ -71,7 +71,9 @@ ok('★ = leaders actifs de la séance (même compte que le bloc Groupes actifs)
 
 // --- envoi vers Tickers (fiche d'un titre), repli mémorisé, bulle
 boClick(A,{bos:'ZZZ'});
-ok('toucher un titre : la liste part dans Tickers, le titre est sélectionné',A.$('tkInput').value===`${leader}, ZZZ`&&ls['mm.tklist']===`${leader}, ZZZ`);
+ok('toucher un titre : la liste 9M s\'ouvre dans le Classement (tableau, graphique, fiche)',JSON.parse(ls['mm.tvnav']).lvl==='bo');
+boClick(A,{botk:'1'});
+ok('« Tickers » : la liste part dans Tickers',A.$('tkInput').value===`${leader}, ZZZ`&&ls['mm.tklist']===`${leader}, ZZZ`);
 tab(A); A.L.dPick.change({target:{value:last}});
 boClick(A,{bofold:'1'});
 h=strip(A.$('secBo')._h);
