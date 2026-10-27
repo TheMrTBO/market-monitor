@@ -14,6 +14,9 @@ même un jour férié. Le relevé n'est retenu que hors séance régulière (cha
 `delay_minutes` après la clôture (données différées de 15 min sans compte) ; sinon le script ne touche à rien.
 Un nouveau relevé de la même séance remplace le précédent ; les séances déjà relevées sont toutes conservées.
 
+Même relevé, liste « 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, config/sources.toml
+[tv_breadth.breakouts], exception au gel du 27/10/2026) : tickers par séance (clé `breakouts`), `keep_sessions` séances gardées.
+
 Lancé par update_all.py (update.yml) et, pour l'avoir dès la fin de séance, par postmarket.yml.
 Usage : python fetch_tv_breadth.py
 """
@@ -33,8 +36,10 @@ OUT = HERE / "tv_breadth_data.js"
 MARKET = mmconfig.load("market")
 CFG = mmconfig.load("sources")["tv_breadth"]
 NY = ZoneInfo(MARKET["timezone"])
+BO = CFG["breakouts"]
 COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture et SMA40 ; up4 / down4 : ±4 % du jour (TC2000)
-SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]"]
+BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio"]   # liste 9M +4 % : % du jour, volume, volume ÷ veille
+SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name"]
 
 
 def load_existing(path):
@@ -45,9 +50,19 @@ def load_existing(path):
         return {}
 
 
-def write_js(rows, scanned, path):
+def load_breakouts(path):
+    """{séance: [[ticker, pct, volume, vol_ratio], ...]} déjà publiés (fichier d'avant la liste : {})."""
+    try:
+        text = Path(path).read_text()
+        return json.loads(text[text.index("=") + 1:].strip().rstrip(";")).get("breakouts", {})
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+def write_js(rows, scanned, path, breakouts=None):
     rows = [list(r) + [None] * (len(COLUMNS) - len(r)) for r in rows]   # lignes d'avant le ±4 % (3 colonnes) : complétées
-    payload = {"columns": COLUMNS, "rows": rows, "asof": rows[-1][0] if rows else None, "scanned": scanned}
+    payload = {"columns": COLUMNS, "rows": rows, "asof": rows[-1][0] if rows else None, "scanned": scanned,
+               "bo_columns": BO_COLUMNS, "breakouts": breakouts or {}}
     Path(path).write_text("window.TV_BREADTH = " + json.dumps(payload, separators=(",", ":")) + ";\n")
 
 
@@ -75,10 +90,26 @@ def measure(items, now_utc):
     return day.isoformat(), (round(100 * above / len(valid), 2), len(valid), up4, down4)
 
 
+def breakouts(items):
+    """Liste 9M +4 % d'un relevé (formule TC2000 de l'utilisateur, seuils dans [tv_breadth.breakouts]) : lignes BO_COLUMNS,
+    de la plus forte hausse à la plus faible. Titres sans clôture, volume ou ticker de la veille ignorés (comme le ±4 %)."""
+    out = []
+    for d in items:
+        r = dict(zip(SCAN_COLS, d))
+        c, c1, v, v1, sym = (r.get(k) for k in ("close", "close[1]", "volume", "volume[1]", "name"))
+        if r.get("subtype") != CFG["subtype"] or None in (c, c1, v, v1, sym) or c1 <= 0:
+            continue
+        if (c / c1 >= (100 + BO["pct"]) / 100 and v > BO["min_volume"] and (v > v1 or not BO["volume_up"])
+                and c > BO["min_price"]):
+            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None])
+    return sorted(out, key=lambda x: (-x[1], x[0]))
+
+
 def main():
     from fetch_postmarket import scan            # même client (en-têtes, essais) que le scan post-market
     now = datetime.now(timezone.utc)
     existing = load_existing(OUT)          # OUT lu à l'appel (les tests le redirigent vers un dossier temporaire)
+    lists = load_breakouts(OUT)
     raw = scan({"columns": SCAN_COLS, "markets": [CFG["market"]], "range": [0, CFG["scan_limit"]],
                 "filter": [{"left": "type", "operation": "equal", "right": CFG["type"]},
                            {"left": "exchange", "operation": "in_range", "right": CFG["exchanges"]}]})
@@ -90,13 +121,15 @@ def main():
         if not OUT.exists():                     # premier passage hors fenêtre : fichier vide, pour que le site le charge
             write_js([], None, OUT)
         return
-    row = [day, *res]
-    if existing.get(day) == row:                 # relevé identique : fichier inchangé (pas de commit ni de déploiement à chaque passage)
+    row, bo = [day, *res], breakouts([x["d"] for x in raw])
+    if existing.get(day) == row and lists.get(day) == bo:   # relevé identique : fichier inchangé (pas de commit à chaque passage)
         print(f"T2108 TradingView : séance {day} déjà relevée à l'identique ({res[0]} %).")
         return
-    existing[day] = row
-    write_js([existing[d] for d in sorted(existing)], now.isoformat(timespec="seconds"), OUT)
-    print(f"Ecrit : {OUT.name} | séance {day} : T2108 {res[0]} % sur {res[1]} actions, ±4 % +{res[2]} / -{res[3]} ({len(existing)} séances)")
+    existing[day], lists[day] = row, bo
+    lists = {d: lists[d] for d in sorted(lists)[-BO["keep_sessions"]:]}
+    write_js([existing[d] for d in sorted(existing)], now.isoformat(timespec="seconds"), OUT, lists)
+    print(f"Ecrit : {OUT.name} | séance {day} : T2108 {res[0]} % sur {res[1]} actions, ±4 % +{res[2]} / -{res[3]} ({len(existing)} séances)"
+          f" | {BO['label']} : {len(bo)} ({', '.join(x[0] for x in bo[:10])}{' …' if len(bo) > 10 else ''})")
 
 
 if __name__ == "__main__":

@@ -219,6 +219,14 @@
   .secact .amore { border: 0; background: none; color: var(--up); font-size: 12px; cursor: pointer; padding: 4px 0; text-align: left; align-self: flex-start; }   /* pas « .more » : feuille « Plus » du mobile */
   .etat.neuf { background: var(--upbg); color: var(--up); } .etat.chaud { background: var(--warnbg); color: var(--warn); }
   .secact .note { font-size: 11.5px; color: var(--muted); }
+  .secbo .bogrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+  .secbo .bochip { display: grid; grid-template-columns: auto auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 6px; align-items: baseline; text-align: left;
+                   border: 1px solid var(--border); background: none; color: var(--text); border-radius: 8px; padding: 6px 9px; cursor: pointer; font: inherit; }
+  .secbo .bochip:hover { border-color: var(--faint); } .secbo .bochip.lead { border-left: 3px solid var(--up); }
+  .secbo .bochip b { font-size: 13px; } .secbo .bochip .star { color: var(--up); font-size: 11px; }
+  .secbo .bochip .pos { grid-column: 3; text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  .secbo .bochip .bv { grid-column: 1 / -1; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .secbo .ahead .copybtn { align-self: center; }
   .etat { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 5px; white-space: nowrap; }
   /* Leaders actifs : symbole toujours lisible, gain et écart au plus haut à droite ; écrans moyens (liste à côté du graphique) :
      capitalisation et miniature masquées (fiche et graphique les donnent) */
@@ -860,6 +868,7 @@
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
+    <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
     <div class="secsplit" id="secSplit">
       <div class="card seclist">
         <div class="sechead">
@@ -2900,6 +2909,47 @@
         : `<div class="note">Leaders disponibles sur les ${CFG.industries.leaders.list_sessions} dernières séances seulement.</div>`) +
       (at.day && !at.active.length ? '<div class="note">Aucun groupe neuf ou chaud à cette séance.</div>' : '');
   }
+  // bloc « Breakouts 9M +4 % » (scan TC2000 de l'utilisateur, exception au gel du 27/10/2026) : relevé TradingView du soir
+  // (tv_breadth_data.js, clé breakouts, fetch_tv_breadth.py). Séance des cases si elle est choisie ou survolée, sinon le
+  // dernier relevé : le soir même, avant que Polygon publie la séance (les cases montrent encore la veille)
+  const BOC = CFG.sectors.breakouts;
+  let boOpen = foldGet('bo'), boAll = false, boShown = [];
+  const boRule = () => `clôture ≥ ${nf((100 + BOC.pct) / 100, 2)} × celle de la veille, volume &gt; ${nf(BOC.min_volume)}` +
+    (BOC.volume_up ? ' et supérieur à celui de la veille' : '') + (BOC.min_price > 0 ? `, clôture > ${nf(BOC.min_price, 2)} $` : '');
+  function renderSecBo(e, latest) {
+    const box = $('secBo'); if (!box) return;
+    const X = window.TV_BREADTH || {}, L = X.breakouts || {}, ds = Object.keys(L).sort();
+    const C = Object.fromEntries((X.bo_columns || ['ticker', 'pct', 'volume', 'vol_ratio']).map((c, i) => [c, i]));
+    box.hidden = !ds.length || !IND; if (box.hidden) { boShown = []; return; }
+    const last = IND.dates.length - 1, d = latest ? ds[ds.length - 1] : IND.dates[e], rows = L[d] || null;
+    let k = last; while (k > 0 && IND.dates[k] > d) k--;   // leaders actifs de la séance (ou de la veille si Polygon ne l'a pas encore)
+    const at = actAt(k), lead = at && at.day ? new Map(at.leaders.map(r => [r.s, r])) : null;
+    const items = (rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio], l: lead ? lead.get(r[C.ticker]) : null }));
+    boShown = items.map(r => r.s);
+    const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`, nl = items.filter(r => r.l).length, dt = fmtDate(d, { day: 'numeric', month: 'short' });
+    const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
+      (!boOpen && items.length ? ` · ${items.slice(0, 5).map(r => escH(r.s)).join(', ')}${items.length > 5 ? '…' : ''}` : '') : 'pas de relevé');
+    const btns = items.length ? `<button type="button" class="copybtn" data-bocopy="1" title="Copier les tickers de la liste, séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
+      `<button type="button" class="copybtn" data-botk="1" title="Analyser ces tickers dans l'onglet Tickers (secteur, industrie, tendance, short interest)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>` : '';
+    const head = `<div class="ahead"><button type="button" class="foldh" data-bofold="1" aria-expanded="${boOpen}"><span class="car">${boOpen ? '▾' : '▸'}</span><b>${escH(BOC.label)}</b></button>` +
+      `<span class="fsum">${sum}</span>${tipI('bo', BOC.label)}<span class="asp"></span>${btns}</div>`;
+    if (!boOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
+    box.classList.remove('folded');
+    const x1 = x => nf(x, x >= 10 ? 0 : 1);
+    const chip = r => {
+      const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, `volume ${nf(r.v / 1e6, 1)} M`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
+        r.l ? `leader actif (${r.l.etat}) : ${r.l.groups.join(', ')}` : null, "toucher : sa fiche dans l'onglet Tickers"].filter(Boolean).join(' · ');
+      return `<button type="button" class="bochip${r.l ? ' lead' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
+        `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
+        `<span class="bv">${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) + ' veille' : ''}</span></button>`;
+    };
+    const shown = boAll ? items : items.slice(0, BOC.list_limit), rest = items.length - shown.length;
+    const more = items.length > BOC.list_limit ? `<button type="button" class="amore" data-boall="1" aria-expanded="${boAll}">${boAll ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
+    const ahead = latest && d > IND.dates[last] ? `<div class="note">Relevé TradingView du soir : la séance du ${dt} n'est pas encore dans les cases (Polygon la publie le lendemain matin)${lead ? ` ; ★ : leaders actifs du ${fmtDate(IND.dates[k], { day: 'numeric', month: 'short' })}` : ''}</div>` : '';
+    box.innerHTML = head + ahead + (!rows ? `<div class="note">Pas de relevé pour cette séance : la liste commence le ${fmtDate(ds[0], { day: 'numeric', month: 'short', year: 'numeric' })} (TradingView ne garde pas d'historique de ce scan).</div>`
+      : items.length ? `<div class="bogrid">${shown.map(chip).join('')}</div>${more}` + (nl ? '<div class="aleg"><span><span class="star" style="color:var(--up)">★</span> leader actif (groupe neuf ou chaud)</span><span>survol : détail</span></div>' : '')
+      : '<div class="note">Aucun titre à cette séance.</div>');
+  }
   const skVal = (K, id, e) => { const v = id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
   function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
@@ -2941,7 +2991,7 @@
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
-    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = true; return; }
+    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = true; return; }
     applyFolds();
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
@@ -3006,6 +3056,7 @@
       ` <span class="frst"${ph.detail ? ` title="${escA(ph.detail)}"` : ''}>· ${escH(PHC.setups_label)} : <b>${escH(ph.setups)}</b></span>` : '<span class="note">Phase de marché non publiée pour cette séance</span>';
     drawFrise(K, e, !!dHover);
     renderSecAct(e);
+    renderSecBo(e, !dHover && !pinned);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
       fp.hidden = !skFlow;
@@ -3663,6 +3714,16 @@
     if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
     if (b.dataset.actg != null) goAct(tvNav.lvl === 'act' && actGrp === b.dataset.actg ? null : b.dataset.actg);
     else if (b.dataset.actgo != null) goAct(null);
+  });
+  $('secBo').addEventListener('click', e => {         // 9M +4 % : repli, liste complète, copie, onglet Tickers (liste, ou fiche d'un titre)
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.bofold != null) { boOpen = !boOpen; foldSet('bo', boOpen); renderSecKpis(); return; }
+    if (b.dataset.boall != null) { boAll = !boAll; renderSecKpis(); return; }
+    if (b.dataset.bocopy != null) { copyTickers(b, boShown); return; }
+    if ((b.dataset.botk == null && b.dataset.bos == null) || !boShown.length) return;
+    $('tkInput').value = boShown.join(', '); store.set('mm.tklist', $('tkInput').value);
+    tkSel = b.dataset.bos || boShown[0];
+    $('view-tk').classList.toggle('detail', !!b.dataset.bos && isStacked()); setTab('tk');
   });
   $('listFold').addEventListener('click', () => { listOpen = !listOpen; foldSet('list', listOpen); applyFolds(); fitSecLayout(); });
   $('rrgHead').addEventListener('click', () => {       // carte de rotation : repli mémorisé (refonte du 27/10/2026)
@@ -5328,6 +5389,10 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
+    bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux actions ordinaires NYSE / Nasdaq / AMEX du screener TradingView : ${boRule()}.</p>
+      <p>Disponible vers 16 h 20 à New York (données différées de 15 min), avant la séance des cases (Polygon publie le lendemain matin) : sans séance choisie, le bloc montre le dernier relevé ; une séance choisie ou survolée sur la frise montre sa liste. ★ = leader actif (groupe neuf ou chaud) à cette séance.</p>
+      <p>Toucher un titre : sa fiche dans l'onglet Tickers ; « Tickers » envoie toute la liste, « Copier » la copie (« A, B, C »).</p>
+      <p class="src">Volumes TradingView : la liste peut différer un peu de celle de TC2000. TradingView ne garde pas d'historique de ce scan : la liste commence au premier relevé et garde ${BOC.keep_sessions} séances.${BOC.min_price > 0 ? '' : ' Condition TC2000 « Price History > 0,8 » pas encore appliquée (sens à confirmer).'}</p>`],
     phrules: ['Comment chaque phase est établie', phRules()],
     phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>
       <p>${phBase()} La jauge place le momentum trimestre entre 0 et 2 (trait = 1) ; les points comptent les clôtures déjà faites du côté opposé.</p>

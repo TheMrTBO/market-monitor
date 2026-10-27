@@ -68,6 +68,7 @@ def front_config():
         "colors": d["colors"],
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
                     "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"],
+                    "breakouts": load("sources")["tv_breadth"]["breakouts"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
         "adr": d["adr"],
