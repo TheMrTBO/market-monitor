@@ -1,6 +1,8 @@
 // Phases de marché (spec du 26/10/2026, config/display.toml [phases]) : bandeau en tête de l'onglet MM, frise sous le graphique
 // des prix, phase dans la légende du graphique. Cas de test de la spec (17 dates, paramètres par défaut), seuils lus dans la
-// config, séance pas encore publiée par Stockbee, aucun nombre de trades ni taille de position.
+// config, séance pas encore calculée, aucun nombre de trades ni taille de position. Série maison (décision du 28/10/2026 : phases
+// sur breadth_data.js, Stockbee en contrôle) : cas 9. Les cas de la spec tournent sur Stockbee seul (SBONLY : calcul maison vidé),
+// pour ne pas dépendre de la longueur de l'historique maison publié par le robot.
 const fs=require('fs'),vm=require('vm'),assert=require('assert');
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
@@ -37,7 +39,8 @@ const CASES={'2020-03-12':'shock','2020-03-23':'shock','2021-05-26':'recovery','
   '2025-06-02':'hot','2025-06-13':'exp_b','2025-08-22':'contraction','2025-09-09':'exp_a','2025-09-19':'hot','2025-10-10':'shock',
   '2026-02-04':'exp_c','2026-02-27':'contraction','2026-06-05':'shock','2026-10-16':'wash','2026-10-23':'contraction'};
 const SBJ=fs.readFileSync('stockbee_data.js','utf8'), LAST=JSON.parse(SBJ.slice(SBJ.indexOf('=')+1).trim().replace(/;$/,'')).rows.map(r=>r[0]).sort().pop();
-const A=boot();
+const SBONLY='window.BREADTH_OWN.rows=[];';
+const A=boot(SBONLY);
 assert(!A.$('phaseBar').hidden,'bandeau des phases attendu');
 for(const [d,k] of Object.entries(CASES)){
   A.L.dPick.change({target:{value:d}});
@@ -73,21 +76,21 @@ const cols=new Set(PH.phase.map(p=>p.color)), bands=(B.R.price||[]).filter(r=>co
 assert(bands.length>20,'frise des phases attendue sur le graphique des prix ('+bands.length+' bandes)');
 assert(PH.phase.every(p=>B.$('phLeg')._h.includes(p.name))&&!B.$('phLeg').hidden,'légende de la frise : toutes les phases');
 assert(/class="phx"/.test(B.$('ohlc')._h),'phase dans la légende du graphique attendue');
-// 6. séance que Stockbee n'a pas publiée (calcul maison seul) : phase de la dernière séance Stockbee, avec la mention
+// 6. séance sans phase (ligne maison incomplète : ni n ni fenêtres longues) : phase de la dernière séance calculée, avec la mention
 const own=fs.readFileSync('breadth_data.js','utf8'), OWN=JSON.parse(own.slice(own.indexOf('=')+1).trim().replace(/;$/,''));
 const nd=(d=>{const x=new Date(OWN.rows[OWN.rows.length-1][0]+'T00:00:00Z');x.setUTCDate(x.getUTCDate()+30);return x.toISOString().slice(0,10);})();
-const C=boot(`window.BREADTH_OWN.rows.push(${JSON.stringify([nd,321,123,1.5,1.2,50,100,600,1600,15])});`), hc=strip(C.$('phaseBar')._h);
-assert(/clôture du .*Stockbee pas encore publié/.test(hc),'séance non publiée par Stockbee : mention attendue : '+hc);
+const C=boot(`window.BREADTH_OWN.rows=window.BREADTH_OWN.rows.filter(r=>r[0]<='${LAST}');window.BREADTH_OWN.rows.push(${JSON.stringify([nd,321,123,1.5,1.2])});`), hc=strip(C.$('phaseBar')._h);
+assert(/clôture du .*séance pas encore calculée/.test(hc),'séance sans phase : mention attendue : '+hc);
 assert.strictEqual(nameOf(C.$('phaseBar')._h),nameOf(hb),'même phase que la dernière séance Stockbee ('+LAST+') attendue');
 // 7. seuils lus dans la config : surchauffe impossible (hot_r5 et hot_t2108 très hauts) → le 2025-05-13 passe en expansion chaude
-const D=boot('window.MM_CONFIG.phases.hot_r5=99;window.MM_CONFIG.phases.hot_t2108=99;');
+const D=boot(SBONLY+'window.MM_CONFIG.phases.hot_r5=99;window.MM_CONFIG.phases.hot_t2108=99;');
 D.L.dPick.change({target:{value:'2025-05-13'}});
 assert.strictEqual(nameOf(D.$('phaseBar')._h),name('hot'),'seuils de surchauffe lus dans config/display.toml attendus');
 // 7 bis. reprise sur le ratio 5 j ≥ rep_r5 (note du 26/10/2026, au lieu du ratio 10 j) : le 2026-08-05 (ratio 5 j 2,71,
 // ratio 10 j 1,28, 15 séances après un lessivage) est en reprise ; avec rep_r5 très haut, il retombe en contraction
 A.L.dPick.change({target:{value:'2026-08-05'}});
 assert.strictEqual(nameOf(A.$('phaseBar')._h),name('recovery'),'2026-08-05 : reprise sur le ratio 5 j attendue');
-const E=boot('window.MM_CONFIG.phases.rep_r5=99;');
+const E=boot(SBONLY+'window.MM_CONFIG.phases.rep_r5=99;');
 E.L.dPick.change({target:{value:'2026-08-05'}});
 assert.strictEqual(nameOf(E.$('phaseBar')._h),name('contraction'),'rep_r5 lu dans la config attendu');
 assert(!('rep_r10' in PH)&&PH.mq_lag>=PH.mq_lag_valid[0]&&PH.mq_lag<=PH.mq_lag_valid[1],'rep_r5 seul, mq_lag dans sa zone valable attendus');
@@ -96,7 +99,7 @@ assert(!('rep_r10' in PH)&&PH.mq_lag>=PH.mq_lag_valid[0]&&PH.mq_lag<=PH.mq_lag_v
 const tipOf=(X,id)=>{const btn={dataset:{tip:id},setAttribute(){},getBoundingClientRect:()=>({left:0,bottom:0})};
   X.DL.click.forEach(f=>f({target:{closest:q=>q==='.tipbtn'?btn:null},stopPropagation(){},preventDefault(){}}));return strip(X.$('pop')._h);};
 // séance fixée (23/10/2026 : contraction, ratio mois 0,30) : le test ne doit pas dépendre de la dernière séance publiée par le robot
-const F=boot(); F.L.dPick.change({target:{value:'2026-10-23'}}); const hf=F.$('phaseBar')._h;
+const F=boot(SBONLY); F.L.dPick.change({target:{value:'2026-10-23'}}); const hf=F.$('phaseBar')._h;
 for(const id of ['phase','phfond','phsetups'])assert(hf.includes(`data-tip="${id}"`),'bouton ⓘ '+id+' attendu dans le bandeau');
 assert(F.$('phLeg')._h.includes('data-tip="phrules"')&&!F.$('secPhLeg').hidden&&F.$('secPhLeg')._h.includes('data-tip="phrules"'),'légendes des frises (MM, Secteurs) avec bulle des règles attendues');
 const why=tipOf(F,'phase');
@@ -119,4 +122,31 @@ B.L.phaseBar.click({target:{closest:()=>null}});
 assert(B.$('phaseBar').classList.contains('open')&&B.LS['mm.phase']==='1','toucher : bandeau déplié et mémorisé');
 B.L.phaseBar.click({target:{closest:s=>s==='.tipbtn'?{}:null}});
 assert(B.$('phaseBar').classList.contains('open'),'toucher sur ⓘ : pas de repli');
-console.log('phases de marché : 17 cas de la spec, config, séance non publiée, frise, légende, mobile — ok');
+// 9. série maison (« maison partout ») : calcul maison = copie des chiffres Stockbee depuis 2025, n réglé pour que le seuil du
+// choc maison ([phases.own] choc_pct, part de n) vaille celui de Stockbee (part de l'univers) → mêmes phases que la spec après la
+// mise en route ; bandeau « Calcul maison · Stockbee : même phase », dernière ligne provisoire, contrôle chiffré dans la bulle
+const SB=JSON.parse(SBJ.slice(SBJ.indexOf('=')+1).trim().replace(/;$/,'')), SC=Object.fromEntries(SB.columns.map((c,i)=>[c,i]));
+const OC=['date','up4','down4','ratio5','ratio10','up25m','down25m','up25q','down25q','t2108','n','provisional'];
+const ownRows=SB.rows.filter(r=>r[0]>='2025-01-01'&&r[0]<=LAST&&['down4','up25q','up25m','down25m','ratio5','t2108','universe'].every(k=>r[SC[k]]!=null))
+  .map((r,i,a)=>[...OC.slice(0,10).map(k=>k==='date'?r[0]:r[SC[k]]),r[SC.universe]*PH.choc_pct/PH.own.choc_pct,i===a.length-1?true:null]);
+const OWNSET=`window.BREADTH_OWN={columns:${JSON.stringify(OC)},rows:${JSON.stringify(ownRows)},universe:12000};`+
+  `for(const k in window.PRICES)if(Array.isArray(window.PRICES[k]))window.PRICES[k]=window.PRICES[k].filter(r=>r[0]<='${LAST}');`;
+const H=boot(OWNSET);
+for(const [d,k] of Object.entries(CASES).filter(([d])=>d>='2025-04-01')){
+  H.L.dPick.change({target:{value:d}});
+  assert.strictEqual(nameOf(H.$('phaseBar')._h),name(k),`série maison, ${d} : phase « ${name(k)} » attendue`);
+  assert(/Calcul maison · Stockbee : même phase/.test(strip(H.$('phaseBar')._h)),d+' : source maison et contrôle Stockbee attendus : '+strip(H.$('phaseBar')._h));
+}
+H.L.dPick.change({target:{value:'2024-06-03'}});
+assert(/Stockbee/.test(strip(H.$('phaseBar')._h))&&!/Calcul maison/.test(strip(H.$('phaseBar')._h)),'avant la série maison : phase Stockbee attendue');
+const H2=boot(OWNSET), h2=strip(H2.$('phaseBar')._h);
+assert(/Provisoire \(clôtures TradingView du jour\)/.test(h2),'dernière séance provisoire : mention attendue : '+h2);
+const why2=tipOf(H2,'phase');
+assert(/Source de cette séance : calcul maison du soir, provisoire/.test(why2)&&/même phase que Stockbee sur (\d+) des \1 dernières séances communes \(100 %\)/.test(why2),'bulle : source et contrôle Stockbee chiffré attendus : '+why2.slice(-400));
+assert(/Calcul sur la série maison depuis le/.test(why2)&&/part des titres cotés \(séance et veille\)/.test(why2),'bulle : série maison et choc rapporté à n attendus');
+// une séance maison en choc que Stockbee classe autrement : la phase Stockbee est écrite à côté
+const cut=ownRows.findIndex(r=>r[0]==='2025-09-09'), I=boot(OWNSET+`window.BREADTH_OWN.rows[${cut}][2]=99999;`);
+I.L.dPick.change({target:{value:'2025-09-09'}});
+const hi9=strip(I.$('phaseBar')._h);
+assert(nameOf(I.$('phaseBar')._h)===name('shock')&&/Stockbee : Expansion A/.test(hi9),'désaccord : phase maison et phase Stockbee attendues : '+hi9);
+console.log('phases de marché : 17 cas de la spec, config, séance non calculée, série maison et contrôle Stockbee, frise, légende, mobile — ok');

@@ -20,6 +20,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `config_data.js` | **Généré** (`python mmconfig.py --js`) : `window.MM_CONFIG`. Ne pas éditer. |
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
+| `breadth_soir.py` | **Calcul maison du soir** (28/10/2026) : séance du jour **provisoire** dans `breadth_data.js` (`provisional`), dès le relevé TradingView (≈ 16 h 20 à New York) = cache Polygon jusqu'à la veille (63 dernières séances, restauré en lecture seule par `postmarket.yml`) + clôtures du screener (`fetch_tv_breadth.screener()`), mêmes fonctions que `breadth_own.py` (±25 % mois / trimestre, T2108, `n`) ; ±4 % du relevé TradingView. Contrôles `[breadth_soir]` : cache à la veille (clôtures de la veille identiques), split du jour détecté par l'écart, couverture. `breadth_own.py` recalcule la séance le lendemain matin et retire la marque. `--needed` : séance du relevé absente de `breadth_data.js` ? |
 | `fetch_tv_breadth.py` | T2108 (champ SMA40) et **±4 % du jour** (formule TC2000 de `breadth_own.count_breadth`, appliquée à close / close[1] / volume / volume[1]) relevés sur le screener TradingView (actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance ; même relevé, **liste « 9M +4 % »** de l'onglet Secteurs (clé `breakouts` : tickers par séance, `[tv_breadth.breakouts]`) (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
 | `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, affichés en courbe de tendance ; % de titres au TI65 > 1 ; même % pour toutes les actions retenues, série `stocks`) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie) et `tickers_data.js` (toutes les actions US, retenues ou non : secteur, industrie, cap, flottant, TI65, rang dans l'industrie ; onglet Tickers ; sert aussi de composition publiée et de secours si TradingView ne répond pas). |
 | `config/themes.toml` | Thèmes suivis de l'onglet Secteurs (refonte du 27/10/2026) : un panier d'actions par thème, suivi comme une industrie (indice, TI65, largeur, leaders) ; liste de départ = paniers des tests 2024-2026, **à valider par l'utilisateur**. |
@@ -37,7 +38,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 27 tests Node (dashboard en DOM simulé), 9 tests Python (dont `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 27 tests Node (dashboard en DOM simulé), 10 tests Python (dont `test_breadth_soir.py`, `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -46,7 +47,8 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 cron-job.org (heure exacte, UTC)  ─┐            créneaux `schedule` GitHub (secours, souvent en retard)
                                    ▼                         │
   workflow_dispatch → update.yml : fetch_history.py → update_all.py (étapes de config/sources.toml) ─┐
-                    → postmarket.yml : fetch_postmarket.py, fetch_tv_breadth.py ─────────────────────┤
+                    → postmarket.yml : fetch_postmarket.py, fetch_tv_breadth.py, breadth_soir.py ────┤
+                      (breadth_soir : seulement si la séance manque ; cache `historique-` de update.yml restauré en lecture seule)
                                                                                                       ▼
             validate_data.py (contrôle) → commit des *_data.js sur main (rebase, 3 essais) → déploiement Pages
             fichiers générés (industries_data.js, tickers_data.js, industries/) : cache Actions `generes-` (restauré avant
@@ -68,12 +70,12 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 |---|---|---|
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
-| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[stockbee]` (Google Sheet, un gid par année, délai) ; `[tv_breadth]` (relevé TradingView) et `[tv_breadth.breakouts]` (scan 9M +4 % : hausse, volume, volume en hausse, prix minimum, séances gardées, limite d'affichage ; lu aussi par le front) ; `[history]` : profondeur de l'historique Polygon (séances, gardées, appels/min) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
+| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[stockbee]` (Google Sheet, un gid par année, délai) ; `[tv_breadth]` (relevé TradingView) et `[tv_breadth.breakouts]` (scan 9M +4 % : hausse, volume, volume en hausse, prix minimum, séances gardées, limite d'affichage ; lu aussi par le front) ; `[history]` : profondeur de l'historique Polygon (séances : 490 depuis le 28/10/2026, gardées, appels/min) ; `[breadth_soir]` : contrôles du calcul du soir (tolérance, part identique, split, couverture) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, essais / attentes / délai des requêtes au screener (`request_*`), lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
-| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), leaders et grappes des groupes actifs (`[leaders]`), séances par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
+| `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), leaders et grappes des groupes actifs (`[leaders]`), séances du calcul (`[output] sessions`, 190 : fenêtre prise à la fin du cache Polygon, plus long depuis le 28/10/2026) et par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
 | `themes.toml` | thèmes suivis (`[[theme]]` : nom, tickers, ETF de confirmation facultatif ; au moins `[index] min_members` symboles) | `fetch_industries.py` (`mmconfig.themes()`), front (noms), `--check` |
-| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, fenêtre des records « ▲ / ▼ 3M » du MM (`[breadth] record_sessions`), contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`, dont `th` : thèmes chauds), groupes actifs et Leaders actifs (`[sectors.actifs]` : fraîcheur, fenêtre du neuf, limite de la liste, pionniers, phases d'alerte, familles refuges, libellés), carte de rotation (`[sectors.rrg]` : repliée `folded`, traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]`), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, fenêtre des records « ▲ / ▼ 3M » du MM (`[breadth] record_sessions`), contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`, dont `th` : thèmes chauds), groupes actifs et Leaders actifs (`[sectors.actifs]` : fraîcheur, fenêtre du neuf, limite de la liste, pionniers, phases d'alerte, familles refuges, libellés), carte de rotation (`[sectors.rrg]` : repliée `folded`, traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]` ; `[phases.own]` : série maison, choc rapporté à `n`, début `since`, libellés de source, fenêtre du contrôle Stockbee), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique), `[generated]` (publiés sans être commités : fichiers, dossiers, URL du site, préfixe du cache ; `--check` vérifie `.gitignore`, `[site]` et les mêmes chemins de cache dans les trois workflows) | `mm/store/`, `build_site.py`, `generated.py` |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
@@ -143,7 +145,9 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
-colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche). Détail : proposition privée de l'utilisateur
+colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+phases de marché sur la série maison, Stockbee en contrôle (« tout calculer juste après la clôture, sans Stockbee »), avec
+l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
 
 ## 8. Paramètres encore en dur (connus, à migrer)
@@ -161,9 +165,15 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau
   regrouper avec les autres en phase 2 (le scan post-market et Stockbee lisent déjà les leurs dans `config/`).
 
 ## 9. Pièges principaux (détail : `RECAP_PROJET.md` §9)
-- **Phases de marché** (onglet MM, spec du 26/10/2026, `config/display.toml [phases]`) : une phase par séance **publiée par
-  Stockbee** (`STOCKBEE.rows`, jamais le complément maison : seuils réglés sur l'univers Worden, pas d'univers dans le calcul
-  maison), calculée une fois au chargement (`PHASES`). Priorité : choc > surchauffe > expansion chaude > expansion A / B / C >
+- **Phases de marché** (onglet MM, spec du 26/10/2026, `config/display.toml [phases]`) : une phase par séance, calculée une fois
+  au chargement (`PHASES`). **Série maison partout** (décision du 28/10/2026) : `breadth_data.js` (provisoire le soir, Polygon le
+  matin), paramètres `[phases.own]` (choc = part de `n`, titres cotés la séance et la veille, seuil 0,19 ≈ 0,15 × univers
+  Worden ÷ `n`) ; deux moteurs séparés (`phaseSeries`) : `PH_SB` (Stockbee, univers Worden) sert de **contrôle** (bandeau :
+  « Stockbee : même phase » ou sa phase ; bulle : accord sur `compare_sessions` séances) et donne la frise avant le début de la
+  série maison complète (+ `PH_WARM` séances de mise en route). Mesure du 28/10/2026 : 89 à 93 % de phases identiques sur
+  ~100 séances de 2026, **sans choc ni surchauffe** : seuils du choc et du T2108 à recaler sur 2025 (historique Polygon allongé à
+  490 séances, rattrapage en 3-4 matins ; ⚠️ mesure à faire, puis `[phases.own]`). Test 22 : cas de la spec sur Stockbee seul
+  (calcul maison vidé), série maison synthétique (copie de Stockbee) pour la composition et le contrôle. Priorité : choc > surchauffe > expansion chaude > expansion A / B / C >
   reprise > lessivage > contraction ; état de fond expansion / contraction après `confirm` clôtures de mq de l'autre côté de 1.
   Surchauffe **sans hystérésis** (décision du 26/10/2026 : mesure faite, gardée pour plus tard). **Reprise sur le ratio 5 j**
   ≥ `rep_r5` dans les `rep_window` séances après un lessivage (note du 26/10/2026 : le ratio 10 j de Stockbee n'avait jamais été
@@ -179,7 +189,7 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau
   des neuf phases dans l'ordre du calcul (`phRules`)) ; bulles dédiées : état de fond et momentum trimestre (`phfond`), setups de
   toutes les phases et sigles (`phsetups`), signaux (`phsig`), règles (`phrules`, légendes des deux frises). Le ratio mois n'y
   figure pas (case juste en dessous). Séance
-  pas encore publiée par Stockbee : phase de sa dernière séance, avec la mention. Mobile (≤ 640 px) : compact (phase et setups),
+  pas encore calculée : phase de la dernière séance calculée, avec la mention. Mobile (≤ 640 px) : compact (phase et setups),
   un toucher déplie le reste, mémorisé (`mm.phase`). **Frise** au pied du graphique des prix (`drawPhaseStrip`, couleurs de la config) +
   légende `#phLeg` ; phase de la séance dans la légende du graphique (`.phx`). **Onglet SA** : même bande au pied de tous les graphiques (QQQ, IWM,
   BTC, T2108, VIX, base 100 ; week-end de BTC = phase de la séance précédente, `phaseKeyAt`), phase dans chaque infobulle
@@ -190,7 +200,7 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau
   le chiffre dès qu'il existe, avec sa **source** en étiquette (Stockbee / maison / TradingView). Priorité : Stockbee (dès sa
   publication, il remplace nos chiffres) > calcul maison Polygon (`breadth_data.js`, toutes les colonnes) > relevé TradingView
   (`tv_breadth_data.js` : T2108 et ±4 %, disponibles dès 16 h 20 à New York ; ratios 5 / 10 j recalculés dans le navigateur ;
-  ±25 % seulement le lendemain matin, par Polygon). L'**alerte d'extrême du T2108** (case orange, records 3 mois)
+  ±25 % : le soir par `breadth_soir.py`, ligne maison provisoire, puis le lendemain matin par Polygon). L'**alerte d'extrême du T2108** (case orange, records 3 mois)
   n'existe que sur un chiffre Stockbee : notre T2108 a un biais de niveau (univers ≈ 5 150 titres contre ≈ 6 550 chez Worden). Contrôle
   croisé (corrélation, écart moyen, sur `config/display.toml [breadth] compare_sessions` séances) : pied de page et bulles ⓘ.
   Sur l'onglet SA, trait plein = Stockbee seul ; la variation du T2108 se calcule dans la même source (pas de faux saut).
@@ -361,7 +371,8 @@ colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau
 - Onglet Tickers : short interest Yahoo (`fetch_short.py`) publié deux fois par mois par les marchés ; rafraîchi par lots de 800
   (cycle complet de ~5 200 actions en ~7 passages). Yahoo n'a pas d'API officielle : en cas de blocage, les valeurs déjà
   publiées restent (date du relevé affichée). Créneau cron-job.org `17 12 * * 1-6` à créer à la main (sinon : secours GitHub).
-- Vue TradingView : historique limité au cache Polygon (`config/sources.toml [history] sessions`, 190 ≈ 6 mois de TI65 ; au plus `max_downloads` = 100 séances téléchargées par passage, ≈ 20 min) ; composition des
+- Vue TradingView : historique = les `config/industries.toml [output] sessions` dernières séances du cache Polygon (190 ≈ 6 mois de TI65 ; cache
+  allongé à 490 séances le 28/10/2026 pour le breadth maison, sans effet sur la vue ; au plus `max_downloads` = 100 séances téléchargées par passage, ≈ 20 min) ; composition des
   secteurs / industries = celle du jour, appliquée à tout l'historique ; TradingView ne fournit aucun historique d'industrie
   (indices recalculés ici, ils ne reproduisent pas la variation affichée par TradingView, pondérée par capitalisation).
   Pas encore copiée dans le stockage historique (branche `data`).

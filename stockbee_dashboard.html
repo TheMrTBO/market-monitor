@@ -1283,37 +1283,40 @@
   const TV_FIRST = TVB.size ? [...TVB.keys()].sort()[0] : null;                 // premier relevé TradingView (la série démarre là)
 
   // ------------------------------------------------------------------ phases de marché (config/display.toml [phases], spec du 26/10/2026)
-  // Une phase par séance publiée par Stockbee (STOCKBEE.rows, sans le complément maison : seuils réglés sur l'univers Worden, et
-  // le calcul maison n'a pas d'univers pour le choc). Elle se lit à la clôture et vaut pour la séance suivante.
+  // Une phase par séance, lue à la clôture, qui vaut pour la séance suivante. Série MAISON (décision du 28/10/2026 : « maison
+  // partout », Stockbee = contrôle) : breadth_data.js (Polygon, ou provisoire le soir : breadth_soir.py), paramètres de [phases]
+  // remplacés par [phases.own] (choc rapporté à n, titres cotés la séance et la veille). Avant le début de la série maison
+  // complète (et sa mise en route : PH_WARM séances), la frise garde les phases Stockbee (univers Worden). Les deux moteurs
+  // tournent séparément (le momentum trimestre compare des chiffres d'une même source) ; PH_SB sert de contrôle.
   // Priorité : choc > surchauffe > expansion chaude > expansion A / B / C > reprise > lessivage > contraction.
-  const PHC = CFG.phases, PHK = Object.fromEntries(PHC.phase.map(p => [p.key, p]));
-  const PHASES = (() => {
-    const P = PHC, need = ['down4', 'universe', 'up25q', 'up25m', 'down25m', 'ratio5', 't2108'];
-    const rows = STOCKBEE.rows.filter(r => need.every(k => r[COL[k]] != null)).sort((a, b) => a[COL.date] < b[COL.date] ? -1 : 1);
-    const v = (r, k) => +r[COL[k]], out = [];
+  const PHC = CFG.phases, PHK = Object.fromEntries(PHC.phase.map(p => [p.key, p])), PHO = PHC.own || {};
+  const PH_OWNP = { ...PHC, ...PHO };
+  // rows : [{ d, down4, univ, up25q, up25m, down25m, ratio5, t2108, src }] triées ; P : paramètres
+  function phaseSeries(rows, P) {
+    const out = [];
     let base = 'contraction', up = 0, dn = 0, ext = false, lastChoc = -1e9, lastWash = -1e9, rep = false;
     rows.forEach((r, i) => {
-      if (v(r, 'down4') / v(r, 'universe') >= P.choc_pct) lastChoc = i;
+      if (r.down4 / r.univ >= P.choc_pct) lastChoc = i;
       let mq = null;                                            // indéfini sur les mq_lag premières séances (amorçage)
-      if (i >= P.mq_lag && v(rows[i - P.mq_lag], 'up25q') > 0) {
-        mq = v(r, 'up25q') / v(rows[i - P.mq_lag], 'up25q'); up = mq > 1 ? up + 1 : 0; dn = mq <= 1 ? dn + 1 : 0;
+      if (i >= P.mq_lag && rows[i - P.mq_lag].up25q > 0) {
+        mq = r.up25q / rows[i - P.mq_lag].up25q; up = mq > 1 ? up + 1 : 0; dn = mq <= 1 ? dn + 1 : 0;
       }
       if (up >= P.confirm) base = 'expansion'; else if (dn >= P.confirm) base = 'contraction';
-      const r5 = v(r, 'ratio5'), t21 = v(r, 't2108');
+      const r5 = r.ratio5, t21 = r.t2108;
       if (r5 > P.ext_on_r5 || t21 > P.ext_on_t2108) ext = true;                 // marché étendu, avec hystérésis
       else if (r5 < P.ext_off_r5 && t21 < P.ext_off_t2108) ext = false;
       const hot = r5 > P.hot_r5 || t21 > P.hot_t2108;                            // surchauffe : sans hystérésis (décision du 26/10/2026)
-      const rm = v(r, 'down25m') > 0 ? v(r, 'up25m') / v(r, 'down25m') : Infinity, wash = rm < P.wash_rm;
+      const rm = r.down25m > 0 ? r.up25m / r.down25m : Infinity, wash = rm < P.wash_rm;
       if (wash) lastWash = i;
-      if (v(r, 'ratio5') >= P.rep_r5 && i - lastWash <= P.rep_window) rep = true;      // ratio 5 j (note du 26/10/2026)
+      if (r5 >= P.rep_r5 && i - lastWash <= P.rep_window) rep = true;            // ratio 5 j (note du 26/10/2026)
       const choc = i - lastChoc < P.choc_sessions;
       if (base === 'expansion' || choc) rep = false;
       const k = choc ? 'shock' : base === 'expansion' ? (ext ? (hot ? 'overheat' : 'hot') : rm >= P.grade_a_rm ? 'exp_a' : rm >= P.grade_b_rm ? 'exp_b' : 'exp_c')
         : rep ? 'recovery' : wash ? 'wash' : 'contraction';
       // valeurs gardées pour la bulle « pourquoi cette phase » (chaque étape de l'arbre, avec les chiffres de la séance)
-      const d4p = v(r, 'down4') / v(r, 'universe'), win = out.slice(Math.max(0, i - P.choc_sessions + 1)).map(x => x.d4p).concat(d4p);
-      out.push({ d: r[COL.date], k, base, mq, up, dn, rm, r5, t21, ext, hot, wash, rep, d4p, d4max: Math.max(...win), sinceWash: i - lastWash,
-        sell: v(r, 'down25m') / v(r, 'universe'), sig: [] });
+      const d4p = r.down4 / r.univ, win = out.slice(Math.max(0, i - P.choc_sessions + 1)).map(x => x.d4p).concat(d4p);
+      out.push({ d: r.d, k, base, mq, up, dn, rm, r5, t21, ext, hot, wash, rep, d4p, d4max: Math.max(...win), sinceWash: i - lastWash,
+        sell: r.down25m / r.univ, sig: [], src: r.src, chocPct: P.choc_pct });
     });
     // signaux complémentaires : jours où la condition est vraie, puis une alerte au premier jour de chaque série (une série
     // continue tant que la condition revient dans les alert_gap séances qui suivent son dernier jour)
@@ -1330,13 +1333,39 @@
     });
     Object.entries(raw).forEach(([key, a]) => { let last = -1e9; a.forEach(i => { if (i - last > P.alert_gap) out[i].sig.push(key); last = i; }); });
     return out;
+  }
+  const PH_NEED = ['down4', 'up25q', 'up25m', 'down25m', 'ratio5', 't2108'];
+  const PH_SB = phaseSeries(STOCKBEE.rows.filter(r => PH_NEED.concat('universe').every(k => r[COL[k]] != null) && +r[COL.universe] > 0)
+    .sort((a, b) => a[COL.date] < b[COL.date] ? -1 : 1)
+    .map(r => ({ d: r[COL.date], univ: +r[COL.universe], src: 'sb', ...Object.fromEntries(PH_NEED.map(k => [k, +r[COL[k]]])) })), PHC);
+  const PH_WARM = PHC.mq_lag + Math.max(PHC.confirm, PHC.rep_window, PHC.choc_sessions);   // mise en route du moteur maison
+  const PH_OWN = phaseSeries((OWN ? OWN.rows : []).filter(r => OWNC.n != null && PH_NEED.concat('n').every(k => OWNC[k] != null && r[OWNC[k]] != null) && r[OWNC.n] > 0)
+    .sort((a, b) => a[0] < b[0] ? -1 : 1)
+    .map(r => ({ d: r[0], univ: +r[OWNC.n], src: OWNC.provisional != null && r[OWNC.provisional] ? 'prov' : 'own',
+      ...Object.fromEntries(PH_NEED.map(k => [k, +r[OWNC[k]]])) })), PH_OWNP).slice(PH_WARM).filter(o => !PHO.since || o.d >= PHO.since);
+  const PH_START = PH_OWN.length ? PH_OWN[0].d : null;                           // première séance de la série maison
+  const PHASES = PH_START ? PH_SB.filter(o => o.d < PH_START).concat(PH_OWN) : PH_SB;
+  const PH_SBK = new Map(PH_SB.map(o => [o.d, o.k]));                            // contrôle : phase Stockbee de chaque séance
+  const PH_SRC = { sb: PHO.label_sb || 'Stockbee', own: PHO.label || 'calcul maison', prov: PHO.label_prov || 'calcul maison provisoire' };
+  const phAgree = (() => {                     // phases maison ↔ Stockbee sur les compare_sessions dernières séances communes
+    const c = PH_OWN.filter(o => PH_SBK.has(o.d)).slice(-(PHO.compare_sessions || 120));
+    return { n: c.length, same: c.filter(o => PH_SBK.get(o.d) === o.k).length };
   })();
   const PHI = new Map(PHASES.map((o, i) => [o.d, i]));
   const phaseIdx = d => { if (!d) return -1; if (PHI.has(d)) return PHI.get(d); let i = PHASES.length - 1; while (i >= 0 && PHASES[i].d > d) i--; return i; };
   const phRun = (i, f) => { let j = i; while (j > 0 && PHASES[j - 1][f] === PHASES[i][f]) j--; return { n: i - j + 1, from: j }; };
   // libellés de config : {clé} remplacé par la valeur de [phases] (virgule décimale) ; choc_pct_100, pullback_lo / _hi calculés
-  const phFill = t => t.replace(/\{(\w+)\}/g, (m, k) => { const x = k === 'choc_pct_100' ? Math.round(PHC.choc_pct * 1000) / 10 : k === 'pullback_lo' ? PHC.pullback_r5[0] : k === 'pullback_hi' ? PHC.pullback_r5[1] : PHC[k];
+  // P = paramètres de la série (par défaut ceux du calcul en cours : maison si elle existe, sinon Stockbee)
+  const phFill = (t, P = PH_START ? PH_OWNP : PHC) => t.replace(/\{(\w+)\}/g, (m, k) => { const x = k === 'choc_pct_100' ? Math.round(P.choc_pct * 1000) / 10 : k === 'pullback_lo' ? P.pullback_r5[0] : k === 'pullback_hi' ? P.pullback_r5[1] : P[k];
     return x == null ? m : String(x).replace('.', ','); });
+  // source d'une phase et contrôle Stockbee (bandeau, bulles)
+  const phSrcTxt = () => PH_START ? `Calcul sur la série maison depuis le ${fmtDate(PH_START, { day: 'numeric', month: 'short', year: 'numeric' })} (le soir : provisoire, clôtures TradingView du jour ; le lendemain matin : Polygon), sur les chiffres Stockbee (univers Worden) avant.`
+    : 'Calcul sur les chiffres Stockbee (univers Worden) : série maison pas encore assez longue.';
+  const phCtlShort = o => { if (o.src === 'sb') return ''; const s = PH_SBK.get(o.d);
+    return s == null ? 'Stockbee : pas encore publié' : s === o.k ? 'Stockbee : même phase' : `Stockbee : ${PHK[s].name}`; };
+  const phCtl = o => { if (o.src === 'sb') return `<p class="src">Source de cette séance : ${PH_SRC.sb}.</p>`;
+    const s = PH_SBK.get(o.d), at = s == null ? 'Stockbee pas encore publié pour cette séance' : s === o.k ? 'même phase chez Stockbee à cette séance' : `Stockbee classe cette séance en ${PHK[s].name}`;
+    return `<p class="src">Source de cette séance : ${PH_SRC[o.src]}. Contrôle : ${at}` + (phAgree.n ? ` ; même phase que Stockbee sur ${phAgree.same} des ${phAgree.n} dernières séances communes (${Math.round(100 * phAgree.same / phAgree.n)} %).` : '.') + '</p>'; };
   // bulles des phases : arbre de décision (ordre de priorité du calcul) et « pourquoi cette phase », étape par étape
   const PH_ORDER = ['shock', 'overheat', 'hot', 'exp_a', 'exp_b', 'exp_c', 'recovery', 'wash', 'contraction'];
   const phDec = x => String(x).replace('.', ','), phR = x => isFinite(x) ? nf(x, 2) : '∞';
@@ -1345,11 +1374,11 @@
   const phExt = () => `<b>Marché étendu</b> (le marché a monté vite à court terme) : allumé quand le ratio 5 jours dépasse ${phDec(PHC.ext_on_r5)} ou le T2108 ${PHC.ext_on_t2108} % ; éteint seulement quand le ratio 5 jours passe sous ${phDec(PHC.ext_off_r5)} <b>et</b> le T2108 sous ${PHC.ext_off_t2108} % ; inchangé entre les deux.`;
   const phRules = () => `<p>Chaque soir, à la clôture, les phases sont testées <b>dans cet ordre</b> ; la première condition vraie donne la phase, qui vaut pour la séance suivante.</p>
     <ol class="phtree">${PH_ORDER.map(k => `<li>${phDot(k)}<b>${PHK[k].name}</b> : ${phFill(PHK[k].rule)}</li>`).join('')}</ol>
-    <p>${phBase()}</p><p>${phExt()}</p><p class="src">Calcul sur les chiffres Stockbee (univers Worden). Seuils : config/display.toml [phases].</p>`;
+    <p>${phBase()}</p><p>${phExt()}</p><p class="src">${phSrcTxt()} Seuils : config/display.toml [phases]${PH_START ? ' et [phases.own] (série maison)' : ''}.</p>`;
   function phWhy(o) {
     const P = PHC, st = [], yes = (b, t) => `<li class="${b ? 'y' : 'n'}"><span>${b ? '✓' : '✗'}</span> ${t}</li>`, info = t => `<li class="i"><span>•</span> ${t}</li>`;
     const choc = o.k === 'shock', exp = o.base === 'expansion';
-    st.push(yes(choc, `<b>Choc</b> ? plus forte part de l'univers en baisse de 4 % sur les ${P.choc_sessions} dernières séances : ${nf(100 * o.d4max, 1)} % (seuil ${phFill('{choc_pct_100}')} %)`));
+    st.push(yes(choc, `<b>Choc</b> ? plus forte part ${o.src === 'sb' ? "de l'univers" : 'des titres cotés (séance et veille)'} en baisse de 4 % sur les ${P.choc_sessions} dernières séances : ${nf(100 * o.d4max, 1)} % (seuil ${phDec(Math.round(o.chocPct * 1000) / 10)} %)`));
     if (!choc) {
       st.push(info(`<b>État de fond</b> : ${o.base} · momentum trimestre ${o.mq == null ? '—' : nf(o.mq, 2)} (seuil 1), ${exp ? o.dn : o.up}/${P.confirm} clôtures ${exp ? 'à 1 ou moins' : 'au-dessus de 1'} pour basculer`));
       if (exp) {
@@ -1363,7 +1392,7 @@
       }
     }
     return `<p><b>Pourquoi ${PHK[o.k].name} à la clôture du ${fmtDate(o.d, { weekday: 'short', day: 'numeric', month: 'short' })}</b> (étapes dans l'ordre du calcul) :</p>
-      <ol class="phwhy">${st.join('')}</ol><p>${phDot(o.k)}<b>${PHK[o.k].name}</b> : ${phFill(PHK[o.k].rule)}.</p>`;
+      <ol class="phwhy">${st.join('')}</ol><p>${phDot(o.k)}<b>${PHK[o.k].name}</b> : ${phFill(PHK[o.k].rule, o.src === 'sb' ? PHC : PH_OWNP)}.</p>${phCtl(o)}`;
   }
   // Contrôle croisé avec Stockbee sur les dernières séances communes (config/display.toml compare_sessions) : corrélation,
   // écart moyen (biais) et écart absolu moyen, par indicateur ; calculé une fois, à la demande.
@@ -1882,7 +1911,7 @@
   }
 
   // frise des phases de marché au pied de la zone d'un graphique (onglets MM et SA) : une bande par barre, couleur de config ;
-  // ds = date de chaque barre ; un jour sans séance Stockbee (week-end de BTC) prend la phase de la séance précédente
+  // ds = date de chaque barre ; un jour sans séance (week-end de BTC) prend la phase de la séance précédente
   const PH_STRIP = 8;
   const phaseKeyAt = d => { let k = PHI.get(d); if (k == null && PHASES.length && d > PHASES[0].d && d < PHASES[PHASES.length - 1].d) k = phaseIdx(d); return k == null ? null : PHASES[k].k; };
   function drawPhaseStrip(g, ds, X, bw, y, h) {
@@ -5396,9 +5425,9 @@
     const o = PHASES[i], ph = PHK[o.k], run = phRun(i, 'k'), brun = phRun(i, 'base'), prev = run.from > 0 ? PHK[PHASES[run.from - 1].k] : null;
     const exp = o.base === 'expansion', cnt = exp ? o.dn : o.up;
     const day = d => fmtDate(d, { weekday: 'short', day: 'numeric', month: 'short' });
-    // date de la phase écrite seulement si elle diffère de la séance affichée (séance pas encore publiée par Stockbee : la phase
+    // date de la phase écrite seulement si elle diffère de la séance affichée (séance pas encore calculée : la phase
     // reste celle de sa dernière séance) ; sinon la date est celle de la barre « Stats du »
-    const when = o.d < target ? ` · clôture du ${day(o.d)} (${fmtDate(target, { day: 'numeric', month: 'short' })} : Stockbee pas encore publié)`
+    const when = o.d < target ? ` · clôture du ${day(o.d)} (${fmtDate(target, { day: 'numeric', month: 'short' })} : séance pas encore calculée)`
       : i === PHASES.length - 1 && !past ? ' · vaut pour la prochaine séance' : '';
     let lastSig = -1; for (let j = i; j >= 0 && lastSig < 0; j--) if (PHASES[j].sig.length) lastSig = j;
     const SN = Object.fromEntries(PHC.signal.map(x => [x.key, x]));
@@ -5413,7 +5442,8 @@
     el.innerHTML =
       `<div class="phmain"><div class="phlbl">Phase${when}${tipBtn('phase')}</div>` +
       `<div class="phname"><span class="phdot"></span>${ph.name}<span class="phrun">${run.n} séance${run.n > 1 ? 's' : ''}</span><span class="phcar" aria-hidden="true">▾</span></div>` +
-      `<div class="phsub phmore">${prev ? `Précédente : ${prev.name} · ` : ''}état de fond ${o.base} depuis ${brun.n} séance${brun.n > 1 ? 's' : ''} (${fmtDate(PHASES[brun.from].d, { day: 'numeric', month: 'short' })})</div></div>` +
+      `<div class="phsub phmore">${prev ? `Précédente : ${prev.name} · ` : ''}état de fond ${o.base} depuis ${brun.n} séance${brun.n > 1 ? 's' : ''} (${fmtDate(PHASES[brun.from].d, { day: 'numeric', month: 'short' })})</div>` +
+      `<div class="phsub phmore phsrc">${o.src === 'prov' ? 'Provisoire (clôtures TradingView du jour)' : o.src === 'own' ? 'Calcul maison' : 'Stockbee'}${phCtlShort(o) ? ' · ' + phCtlShort(o) : ''}</div></div>` +
       `<div class="phmq phmore"><div class="phlbl">Bascule vers ${side} : momentum trimestre (mq)${tipBtn('phfond')}</div>` +
       `<div class="phgauge" title="Momentum trimestre (mq) = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt ; jauge de 0 à 2, trait = 1"><span class="fill" style="width:${o.mq == null ? 0 : Math.max(0, Math.min(1, o.mq / 2)) * 100}%"></span><span class="mid"></span></div>` +
       `<div class="phsub"><b>${o.mq == null ? '—' : nf(o.mq, 2)}</b> (seuil 1) · <span class="phdots">${dots}</span> ${cnt}/${PHC.confirm} clôtures ${sdx}</div></div>` +

@@ -79,7 +79,7 @@ t = long_[LD[50]]["t2108"]            # seance 50 : UP, LOWV, CHEAP au-dessus de
 checks["T2108 : absent avant 40 seances, puis % au-dessus de la SMA 40"] = \
     long_[LD[38]]["t2108"] is None and t == round(100 * 3 / 6, 2)
 rows_l = bo.build_rows({LD[60]: [1, 1]}, long_)
-checks["lignes : colonnes longues a la suite des ratios"] = rows_l[0][5:] == [long_[LD[60]][k] for k in bo.LONG]
+checks["lignes : colonnes longues a la suite des ratios (n, provisional absents)"] = rows_l[0][5:] == [long_[LD[60]].get(k) for k in bo.LONG]
 
 # ---------------------------------------------------------------- conservation des lignes publiees
 with tempfile.TemporaryDirectory() as tmp:

@@ -398,6 +398,7 @@ def main():
     import fetch_data as fd                       # importe requests : seulement si on exécute le calcul
     import fetch_history as fh
     dates, history = fh.load_history()
+    dates = dates[-CFG["output"]["sessions"]:]    # le cache peut être plus long (breadth maison) : fenêtre de la vue TradingView
     need = TI["long"] + TI["delta"]               # un TI65 aujourd'hui et il y a `delta` séances (colonne Δ)
     if len(dates) < need:
         sys.exit(f"Historique insuffisant : {len(dates)} séances en cache (minimum {need}). Lance python fetch_history.py.")

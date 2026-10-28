@@ -41,6 +41,8 @@ theme_share_pct = 50          # signal d'un thème (config/themes.toml) : au moi
 list_sessions = 63            # séances dont la liste des leaders est écrite dans industries_data.js (clé « leaders »)
 
 [output]
+sessions = 190                # séances du calcul (indices, TI65, leaders de industries_data.js) : les dernières du cache Polygon,
+                              # plus long depuis le 28/10/2026 (490, pour le breadth maison) sans alourdir la vue TradingView
 stock_sessions = 190          # séances par action dans industries/<industrie>.js (fiche action : graphique, TI65 sur ~6 mois)
 folder = "industries"         # un fichier par industrie, chargé à l'ouverture de l'industrie
 volume_unit = 1000            # volumes des actions écrits en milliers (fichiers plus légers) ; l'unité est écrite dans le fichier

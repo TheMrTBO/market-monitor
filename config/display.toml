@@ -164,6 +164,22 @@ record_sessions = 63       # records 3 mois : au-delà du plus haut / plus bas d
 alert_gap = 10             # une alerte = premier jour d'une série : pas de nouvelle alerte dans les 10 séances suivantes
 setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
 
+[phases.own]
+# Phases sur la série MAISON (décision du 28/10/2026 : « maison partout », Stockbee = contrôle) : breadth_data.js (Polygon, ou
+# provisoire le soir par breadth_soir.py) ; avant le début de cette série complète, la frise garde les phases Stockbee
+# (`since` = première séance calculée sur la série maison, vide = dès qu'elle a toutes ses colonnes). Valeurs ci-dessous =
+# remplacent celles de [phases] pour les séances maison ; le reste de [phases] vaut pour les deux séries.
+# choc_pct : part de n (titres cotés la séance et la veille, ≈ 5 100) au lieu de l'univers Worden (≈ 6 550) ; nos comptes de
+# ±4 % égalent ceux de Worden, d'où 0,15 × 1,263 (médiane univers Worden ÷ n, 189 séances 2026) ≈ 0,19 ; mesure du 28/10/2026 :
+# 93 % de phases identiques à Stockbee sur 89 séances (juin-octobre 2026, sans choc ni surchauffe). À recaler sur 2025
+# (historique Polygon allongé, [history] sessions) : choc d'avril, surchauffe de mai, seuils du T2108 (biais de notre T2108).
+choc_pct = 0.19
+since = ""
+label = "calcul maison"                        # source des phases dans le bandeau et ses bulles
+label_prov = "calcul maison du soir, provisoire (clôtures TradingView du jour)"
+label_sb = "Stockbee (avant le début de la série maison complète)"
+compare_sessions = 120                         # contrôle : phases Stockbee ↔ maison sur les N dernières séances communes
+
 # une entrée par phase, dans l'ordre du cycle (légende de la frise) ; key = identifiant du calcul (ne pas changer).
 # setups = l'essentiel, court (EP et / ou breakouts) ; detail = la précision, en plus petit dessous (vide si rien à ajouter).
 # Toujours en positif (jamais d'interdit, ni nombre de trades ni taille de position) ; sigles en clair dans detail

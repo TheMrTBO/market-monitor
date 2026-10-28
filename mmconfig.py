@@ -138,6 +138,15 @@ def check():
         errors.append("postmarket : seuils strictement positifs attendus")
     if not (pm["request_attempts"] >= 1 and len(pm["request_waits"]) == pm["request_attempts"] - 1 and pm["request_timeout"] > 0):
         errors.append("postmarket : request_attempts ≥ 1, request_waits = request_attempts − 1 attentes, request_timeout > 0 attendus")
+    bs = load("sources")["breadth_soir"]
+    if not (0 < bs["match_tol"] < 0.1 and 0.5 <= bs["min_match"] <= 1 and bs["split_min"] > 1 + bs["match_tol"]
+            and 0.5 <= bs["min_coverage"] <= 1):
+        errors.append("sources.breadth_soir : 0 < match_tol < 0,1, min_match et min_coverage entre 0,5 et 1, split_min > 1 + match_tol attendus")
+    po = load("display")["phases"].get("own", {})
+    if not (0 < po.get("choc_pct", 0) < 1 and isinstance(po.get("compare_sessions"), int) and po["compare_sessions"] > 0
+            and (po.get("since") == "" or re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(po.get("since"))))
+            and all(po.get(k) for k in ("label", "label_prov", "label_sb"))):
+        errors.append("display.phases.own : choc_pct entre 0 et 1, compare_sessions entier > 0, since vide ou AAAA-MM-JJ, libellés attendus")
     sbk = load("sources")["stockbee"]
     year = datetime.now(ZoneInfo(m["timezone"])).year
     if str(year) not in sbk["gids"]:
@@ -199,8 +208,8 @@ def check():
         errors.append("sources.history : sessions (entier) ≤ keep, rate > 0 et max_downloads (entier ≥ 0) attendus")
     elif hist["max_downloads"] and hist["max_downloads"] / hist["rate"] > 40:
         errors.append("sources.history : max_downloads / rate dépasse 40 min (un passage du robot doit rester court)")
-    elif ind["output"]["stock_sessions"] > hist["sessions"]:
-        errors.append("industries.output.stock_sessions dépasse sources.history.sessions (historique Polygon téléchargé)")
+    elif not ind["output"]["stock_sessions"] <= ind["output"]["sessions"] <= hist["sessions"]:
+        errors.append("industries.output : stock_sessions ≤ sessions ≤ sources.history.sessions (historique Polygon téléchargé) attendu")
     tk = load("display").get("tickers", {})
     if not (0 < tk.get("hot_top_pct", 0) <= 100 and 0 <= tk.get("hot_min_breadth", -1) <= 100
             and tk.get("emerging_min_delta", 0) >= 1 and tk.get("max_tickers", 0) >= 1):
