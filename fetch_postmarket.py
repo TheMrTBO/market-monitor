@@ -70,15 +70,16 @@ def next_weekday(d):
 
 def scan(payload):
     import requests                           # importe ici : les tests tournent sans requests
-    for i in range(3):
+    n = PM["request_attempts"]               # essais et attentes : config/postmarket.toml
+    for i in range(n):
         try:
-            r = requests.post(URL, json=payload, headers=HEADERS, timeout=30)
+            r = requests.post(URL, json=payload, headers=HEADERS, timeout=PM["request_timeout"])
             r.raise_for_status()
             return r.json().get("data", [])
         except (requests.RequestException, ValueError) as e:
-            if i == 2:
+            if i == n - 1:
                 raise RuntimeError(f"TradingView injoignable : {e}")
-            time.sleep(10 * (i + 1))
+            time.sleep(PM["request_waits"][i])
     return []
 
 

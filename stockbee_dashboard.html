@@ -1489,7 +1489,7 @@
   // seuils de couleur du breadth (bandeau, tableau) : calibrés sur la tendance d'IWM 2019-2026, voir renderKpis
   const TH = { ratio5: CFG.breadth.ratio5, rq: CFG.breadth.rq, rm: CFG.breadth.rm };   // seuils : config/display.toml
   const T2E = CFG.breadth.t2108_extremes;                                              // T2108 : zones extrêmes
-  // Records sur 3 mois (63 séances) : ▲ = au-dessus du plus haut des 63 séances précédentes, ▼ = sous le plus bas.
+  // Records sur 3 mois (RECW séances, [breadth] record_sessions) : ▲ = au-dessus du plus haut des RECW précédentes, ▼ = sous le plus bas.
   // Couleur selon le côté : bleu = côté hausses, rouge = côté baisses (un record du nombre de baisses de 25 % est rouge).
   let HMA = (() => { const v = store.get('mm.hma'); return v == null ? 10 : +v || 0; })();   // moyenne mobile sur les histogrammes (0 = aucune)
   let _dates = null; const sbDates = () => _dates || (_dates = [...SB.keys()].sort());
@@ -1497,14 +1497,14 @@
   const netOf = (u, v) => d => { const a = sb(d, u), b = sb(d, v); return a == null || b == null ? null : a - b; };
   const SER = { net4: netOf('up4', 'down4'), rq: ratioOf('up25q', 'down25q'), rm: ratioOf('up25m', 'down25m') };
   const serFn = k => SER[k] || (k.startsWith('net:') ? netOf(...k.slice(4).split('/')) : d => sb(d, k));
-  const REC = {}, BEAR = new Set(['down4', 'down25m', 'down25q']);
+  const RECW = CFG.breadth.record_sessions, REC = {}, BEAR = new Set(['down4', 'down25m', 'down25q']);
   function recMap(k) {                  // date -> 1 (plus haut 3 mois) ou -1 (plus bas 3 mois)
     if (!REC[k]) {
       // T2108 : un extrême n'est signalé que sur un chiffre des sources de t2108_alert_sources (Stockbee : notre T2108 a un biais de niveau)
       const f = serFn(k), D = sbDates(), v = D.map(d => k === 't2108' && !T2_ALERT.has(srcOf(d, 't2108')) ? null : f(d)), out = new Map();
-      for (let i = 63; i < v.length; i++) {
+      for (let i = RECW; i < v.length; i++) {
         if (v[i] == null) continue; let hi = -Infinity, lo = Infinity;
-        for (let j = i - 63; j < i; j++) if (v[j] != null) { if (v[j] > hi) hi = v[j]; if (v[j] < lo) lo = v[j]; }
+        for (let j = i - RECW; j < i; j++) if (v[j] != null) { if (v[j] > hi) hi = v[j]; if (v[j] < lo) lo = v[j]; }
         if (hi > -Infinity && v[i] > hi) out.set(D[i], 1); else if (lo < Infinity && v[i] < lo) out.set(D[i], -1);
       }
       REC[k] = out;
@@ -1518,23 +1518,23 @@
   const isLag = k => /25[mq]|^r[mq]$|^t2108$/.test(k);
   const recCls = (k, r) => isLag(k) ? 'rw' : recGood(k, r) ? 'ru' : 'rd';
   const recCol = (k, r) => css(isLag(k) ? '--warn' : recGood(k, r) ? '--up' : '--down');
-  const recTitle = r => r > 0 ? 'Plus haut des 3 derniers mois (63 séances)' : 'Plus bas des 3 derniers mois (63 séances)';
+  const recTitle = r => `${r > 0 ? 'Plus haut' : 'Plus bas'} des 3 derniers mois (${RECW} séances)`;
   const recTag = (k, d) => { const r = recOf(k, d); return r ? `<span class="rec ${recCls(k, r)}" title="${recTitle(r)}">${r > 0 ? '▲' : '▼'} 3M</span>` : ''; };
   const recNum = (k, d, txt) => { const r = recOf(k, d); return r ? `<span class="recn ${recCls(k, r)}" title="${recTitle(r)}">${txt}${r > 0 ? '▲' : '▼'}</span>` : txt; };
-  // Plus haut / plus bas 3 mois : jauge dans les cases, triangles sur les bougies et les barres record. Fenêtre = 63 séances précédant la séance affichée (sélectionnée ou dernière).
-  function range3(k, d) {               // plus bas / plus haut des 63 séances précédant d, et valeur du jour
+  // Plus haut / plus bas 3 mois : jauge dans les cases, triangles sur les bougies et les barres record. Fenêtre = RECW séances précédant la séance affichée (sélectionnée ou dernière).
+  function range3(k, d) {               // plus bas / plus haut des RECW séances précédant d, et valeur du jour
     const D = sbDates(), i = D.indexOf(d); if (i < 0) return null;
     const f = serFn(k); let lo = Infinity, hi = -Infinity, n = 0;
-    for (let j = Math.max(0, i - 63); j < i; j++) { const v = f(D[j]); if (v != null) { if (v < lo) lo = v; if (v > hi) hi = v; n++; } }
-    return n ? { lo, hi, v: f(d), from: D[Math.max(0, i - 63)] } : null;
+    for (let j = Math.max(0, i - RECW); j < i; j++) { const v = f(D[j]); if (v != null) { if (v < lo) lo = v; if (v > hi) hi = v; n++; } }
+    return n ? { lo, hi, v: f(d), from: D[Math.max(0, i - RECW)] } : null;
   }
   const pRec = {};
-  function priceRec(name) {             // bougies qui battent le plus haut (H) / plus bas (B) des 63 barres précédentes
+  function priceRec(name) {             // bougies qui battent le plus haut (H) / plus bas (B) des RECW barres précédentes
     if (!pRec[name]) {                  // utilisé par la case Indices (pastille ▲ / ▼ 3M de chaque indice)
       const a = window.PRICES[name] || [], all = new Map();
-      for (let i = 63; i < a.length; i++) {
+      for (let i = RECW; i < a.length; i++) {
         let hi = -Infinity, lo = Infinity;
-        for (let j = i - 63; j < i; j++) { if (a[j][2] > hi) hi = a[j][2]; if (a[j][3] < lo) lo = a[j][3]; }
+        for (let j = i - RECW; j < i; j++) { if (a[j][2] > hi) hi = a[j][2]; if (a[j][3] < lo) lo = a[j][3]; }
         if (a[i][2] > hi) all.set(a[i][0], 1); else if (a[i][3] < lo) all.set(a[i][0], -1);
       }
       pRec[name] = { all };
@@ -1546,7 +1546,7 @@
   function gauge(k, d, fmt) {           // jauge : position du jour dans la plage des 3 derniers mois
     const r = d && range3(k, d); if (!r || r.v == null) return '';
     const p = (r.v - r.lo) / ((r.hi - r.lo) || 1) * 100, rr = recOf(k, d), cl = rr ? recCls(k, rr) : '';
-    return `<div class="g3" title="Plage des 3 derniers mois (63 séances) : plus bas ${fmt(r.lo)}, plus haut ${fmt(r.hi)}"><span class="gt">3M</span><span>${fmt(r.lo)}</span>` +
+    return `<div class="g3" title="Plage des 3 derniers mois (${RECW} séances) : plus bas ${fmt(r.lo)}, plus haut ${fmt(r.hi)}"><span class="gt">3M</span><span>${fmt(r.lo)}</span>` +
       `<span class="gb"><i class="${cl}" style="left:${Math.max(0, Math.min(100, p))}%"></i></span><span>${fmt(r.hi)}</span></div>`;
   }
   const maCache = {};
@@ -5470,7 +5470,7 @@
     const idxHtml = `<div class="kpi kidx"><div class="top"><span class="lbl">Indices · MM${MAS[TR1].len} / MM${MAS[TR2].len}</span>${tipBtn('idx')}</div><div class="rows">` +
       idx.map(({ n, b }) => `<button class="irow${n === current ? ' on' : ''}" data-inst="${n}" title="Afficher ${n} dans le graphique"><b>${n}</b>` +
         `<span class="px">${nf(b.c, pxd(b.c))}</span><span class="${cls(b.chg)}">${pct(b.chg)}` +
-        (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des 63 dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
+        (r => r ? `<b class="recn ${r > 0 ? 'ru' : 'rd'}" title="${r > 0 ? 'Plus haut' : 'Plus bas'} des ${RECW} dernières séances (3 mois)"> ${r > 0 ? '▲' : '▼'}</b>` : '')(priceRec(n).all.get(b.d) || 0) + '</span>' +
         `<span class="chip t${b.st}" title="${trendLong(b.tf)}" aria-label="${trendLong(b.tf)}">${trendShort(b.tf)}</span></button>`).join('') + '</div></div>';
     const tiles = [
       ['solde', '±4 % du jour', `<span class="${cl(n4S)}">${recNum('net4', d4, signed(net4))}</span>`,
@@ -5520,7 +5520,7 @@
       idx: ['Indices · MM', `<p>Même code couleur que le fond des graphiques. La pastille décrit la <b>MM${MAS[TR1].len}</b> et la <b>MM${MAS[TR2].len}</b> : leur ordre (&gt; ou &lt;), puis la pente de chacune sur ${TREND_LEN} séances (↗ monte, ↘ baisse, → stable).</p>
         <p><span class="chip t3" style="padding:0 6px">vert soutenu</span> ${trendWhy(3)} · <span class="chip t2" style="padding:0 6px">vert clair</span> ${trendWhy(2)} ·
         <span class="chip t1" style="padding:0 6px">jaune</span> ${trendWhy(1)} · <span class="chip t0" style="padding:0 6px">sans couleur</span> MM${MAS[TR1].len} sous la MM${MAS[TR2].len}, ou seule la MM${MAS[TR2].len} monte.</p>
-        <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des 63 séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
+        <p>Clique sur une ligne pour afficher l'indice dans le graphique. <b>▲ / ▼ 3M</b> : la séance dépasse le plus haut (ou passe sous le plus bas) des ${RECW} séances précédentes.</p><p class="src">Logique de l'indicateur TradingView « ChillLax Moving Averages » · état de la dernière séance, sans délai de confirmation.</p>`],
       solde: ['±4 % du jour', `<p>Sur la séance du ${fmtDate(d4)}, nombre d'actions US (≈ ${nf(sb(dq, 'universe'))}) en hausse d'au moins <b>4 %</b> et en baisse d'au moins <b>4 %</b>, avec un volume ≥ 100 000 et en hausse.</p>
         <p>Les deux chiffres disent <b>de quel côté sont partis les gros mouvements</b> et avec quelle ampleur : 100 / 372 et 600 / 872 donnent le même solde (−272), mais la seconde séance est bien plus agitée. Le grand chiffre est le <b>solde</b> (hausses − baisses), les deux nombres sont en dessous ; la mini-courbe et la jauge 3M suivent le solde sur la durée.</p>
         <p>Pour la tendance sur plusieurs jours, voir <b>Ratio 5 j</b>.</p>${srcNote('solde')}`],
