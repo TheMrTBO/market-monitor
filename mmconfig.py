@@ -15,8 +15,10 @@ import json
 import re
 import sys
 import tomllib
+from datetime import datetime
 from functools import lru_cache
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
@@ -134,6 +136,12 @@ def check():
     pm = load("postmarket")
     if not (pm["min_price"] > 0 and pm["min_volume"] > 0 and pm["min_change"] > 0 and pm["max_per_side"] > 0 and pm["keep_sessions"] > 0):
         errors.append("postmarket : seuils strictement positifs attendus")
+    if not (pm["request_attempts"] >= 1 and len(pm["request_waits"]) == pm["request_attempts"] - 1 and pm["request_timeout"] > 0):
+        errors.append("postmarket : request_attempts ≥ 1, request_waits = request_attempts − 1 attentes, request_timeout > 0 attendus")
+    sbk = load("sources")["stockbee"]
+    year = datetime.now(ZoneInfo(m["timezone"])).year
+    if str(year) not in sbk["gids"]:
+        errors.append(f"sources.stockbee : onglet {year} absent de gids (Stockbee ouvre un onglet par année : ajouter son gid)")
     for l in pm.get("links", []):
         if not l.get("label") or not str(l.get("url", "")).startswith("https://") or not re.search(r"\{(sym|symd|tv)\}", l.get("url", "")):
             errors.append(f"postmarket.links « {l.get('label', '?')} » : libellé, url https:// et {{sym}}, {{symd}} ou {{tv}} attendus")

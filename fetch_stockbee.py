@@ -12,14 +12,16 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import requests
 
+import mmconfig
+
 HERE = Path(__file__).resolve().parent
-SHEET = "1O6OhS7ciA8zwfycBfGPbP2fWJnR0pn2UUvFZVDP9jpE"
-# onglets au format actuel (meme disposition de colonnes) : annee -> gid
-GIDS = {2026: 1082103394, 2025: 780188096, 2024: 1146204629, 2023: 632667710,
-        2022: 1394777987, 2021: 1981550515, 2020: 2093835319, 2019: 1089581064}
+CFG = mmconfig.load("sources")["stockbee"]   # Google Sheet, onglets (annee -> gid), delai : config/sources.toml [stockbee]
+SHEET = CFG["sheet"]
+GIDS = {int(y): g for y, g in CFG["gids"].items()}
 COLUMNS = ["date", "up4", "down4", "ratio5", "ratio10", "up25q", "down25q", "up25m", "down25m",
            "up50m", "down50m", "up13_34d", "down13_34d", "universe", "t2108", "sp500"]
 
@@ -34,7 +36,7 @@ def num(s):
 
 def fetch_year(year, gid):
     url = f"https://docs.google.com/spreadsheets/d/{SHEET}/pub"
-    r = requests.get(url, params={"output": "csv", "gid": gid}, timeout=60)
+    r = requests.get(url, params={"output": "csv", "gid": gid}, timeout=CFG["timeout"])
     r.raise_for_status()
     rows = []
     for line in csv.reader(io.StringIO(r.text)):
@@ -51,6 +53,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--from-year", type=int, default=min(GIDS), help="premiere annee (2019 min.)")
     args = ap.parse_args()
+    this_year = datetime.now(ZoneInfo(mmconfig.load("market")["timezone"])).year
+    if this_year not in GIDS:
+        print(f"⚠️ onglet {this_year} absent de config/sources.toml [stockbee] gids : la serie s'arrete au 31/12/{max(GIDS)}", flush=True)
     rows = []
     for year in sorted(GIDS):
         if year >= args.from_year:

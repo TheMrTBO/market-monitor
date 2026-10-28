@@ -15,6 +15,14 @@ keep = 400
 rate = 5               # appels par minute (plan gratuit Polygon / Massive)
 max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 min) : un passage tient toujours avant le suivant
 
+[stockbee]
+# Market Monitor de Stockbee (fetch_stockbee.py) : Google Sheet publié, un onglet par année (même disposition de colonnes).
+# ⚠️ Chaque janvier, Stockbee ouvre un onglet pour la nouvelle année : ajouter ici son gid (lien « Publier sur le web » de
+# l'onglet, paramètre gid=…), sinon la série s'arrête au 31/12 (`--check` signale l'année manquante dès le 1er janvier).
+sheet = "1O6OhS7ciA8zwfycBfGPbP2fWJnR0pn2UUvFZVDP9jpE"
+gids = { "2019" = 1089581064, "2020" = 2093835319, "2021" = 1981550515, "2022" = 1394777987, "2023" = 632667710, "2024" = 1146204629, "2025" = 780188096, "2026" = 1082103394 }
+timeout = 60                  # secondes par onglet
+
 [tv_breadth]
 # T2108 relevé sur le screener TradingView (fetch_tv_breadth.py) : seconde source maison, comparée à Stockbee (décision du
 # 20/10/2026). Univers = actions ordinaires des trois bourses (≈ 5 130 avec une SMA 40 en octobre 2026 ; Worden ≈ 6 550).

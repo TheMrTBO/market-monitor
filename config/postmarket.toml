@@ -6,6 +6,9 @@ min_change = 4           # variation post-market > +4 % (hausses) ou < -4 % (bai
 max_per_side = 150       # titres par sens ; limite atteinte = liste marquée « tronquée »
 keep_sessions = 20       # séances gardées dans postmarket_data.js (l'historique complet viendra du stockage, refonte phase 3)
 chart_bars = 65          # bougies journalières (~3 mois) pour la fiche détail
+request_attempts = 3     # requêtes au screener par sens avant abandon (en plus des essais de l'étape, config/sources.toml)
+request_waits = [10, 20] # attentes entre ces requêtes (secondes) : request_attempts − 1 valeurs
+request_timeout = 30     # secondes par requête
 
 # Liens de la fiche d'un titre, dans cet ordre, ouverts dans un nouvel onglet.
 # {sym} = symbole (LQDA) ; {symd} = symbole avec un tiret pour les classes d'actions (BRK.B → BRK-B) ; {tv} = symbole TradingView (NASDAQ:LQDA).
