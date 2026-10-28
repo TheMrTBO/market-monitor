@@ -165,10 +165,14 @@ alert_gap = 10             # une alerte = premier jour d'une série : pas de nou
 setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
 
 [phases.own]
-# Phases sur la série MAISON (décision du 28/10/2026 : « maison partout », Stockbee = contrôle) : breadth_data.js (Polygon, ou
-# provisoire le soir par breadth_soir.py) ; avant le début de cette série complète, la frise garde les phases Stockbee
-# (`since` = première séance calculée sur la série maison, vide = dès qu'elle a toutes ses colonnes). Valeurs ci-dessous =
+# Phases sur la série MAISON : breadth_data.js (Polygon, ou provisoire le soir par breadth_soir.py). Valeurs ci-dessous =
 # remplacent celles de [phases] pour les séances maison ; le reste de [phases] vaut pour les deux séries.
+# primary : "sb" = Stockbee prioritaire (décision du 28/10/2026, « pour le moment ») : phase maison affichée tant que Stockbee
+#           n'a pas publié la séance (le soir), puis la phase Stockbee la remplace ; la maison sert de contrôle ;
+#           "own" = maison partout (Stockbee = contrôle), après calage des seuils sur 2025 et accord de l'utilisateur
+#           (comparaison du 28/10/2026 : 89 % de phases identiques, choc du 05/06/2026 manqué de peu, voir ARCHITECTURE.md).
+# since : première séance maison utilisable en mode "own" (vide = dès que la série a toutes ses colonnes et sa mise en route).
+primary = "sb"
 # choc_pct : part de n (titres cotés la séance et la veille, ≈ 5 100) au lieu de l'univers Worden (≈ 6 550) ; nos comptes de
 # ±4 % égalent ceux de Worden, d'où 0,15 × 1,263 (médiane univers Worden ÷ n, 189 séances 2026) ≈ 0,19 ; mesure du 28/10/2026 :
 # 93 % de phases identiques à Stockbee sur 89 séances (juin-octobre 2026, sans choc ni surchauffe). À recaler sur 2025

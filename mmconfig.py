@@ -143,10 +143,11 @@ def check():
             and 0.5 <= bs["min_coverage"] <= 1):
         errors.append("sources.breadth_soir : 0 < match_tol < 0,1, min_match et min_coverage entre 0,5 et 1, split_min > 1 + match_tol attendus")
     po = load("display")["phases"].get("own", {})
-    if not (0 < po.get("choc_pct", 0) < 1 and isinstance(po.get("compare_sessions"), int) and po["compare_sessions"] > 0
+    if not (po.get("primary") in ("sb", "own") and 0 < po.get("choc_pct", 0) < 1
+            and isinstance(po.get("compare_sessions"), int) and po["compare_sessions"] > 0
             and (po.get("since") == "" or re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(po.get("since"))))
             and all(po.get(k) for k in ("label", "label_prov", "label_sb"))):
-        errors.append("display.phases.own : choc_pct entre 0 et 1, compare_sessions entier > 0, since vide ou AAAA-MM-JJ, libellés attendus")
+        errors.append("display.phases.own : primary sb ou own, choc_pct entre 0 et 1, compare_sessions entier > 0, since vide ou AAAA-MM-JJ, libellés attendus")
     sbk = load("sources")["stockbee"]
     year = datetime.now(ZoneInfo(m["timezone"])).year
     if str(year) not in sbk["gids"]:
