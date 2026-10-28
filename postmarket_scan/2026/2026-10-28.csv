@@ -290,3 +290,63 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-28,2026-10-28T21:37:33+00:00,false,NYSE:S,S,"SentinelOne, Inc. Class A",Technology Services,Packaged Software,25.59,-0.23,24.2,-5.43,1044240,0.12,8906577188,325009785,
 2026-10-28,2026-10-28T21:37:33+00:00,false,NYSE:TDOC,TDOC,"Teladoc Health, Inc.",Health Services,Medical/Nursing Services,6.88,6.67,7.52,9.3,2054871,0.48,1249986027,180368971,amc
 2026-10-28,2026-10-28T21:37:33+00:00,false,NYSE:TYL,TYL,"Tyler Technologies, Inc.",Technology Services,Data Processing Services,360.9,-4.68,340.01,-5.79,154488,0.19,14779675612,40735662,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:AUR,AUR,"Aurora Innovation, Inc. Class A",Technology Services,Packaged Software,5.09,-0.59,4.72,-7.27,3527446,0.13,10201103513,1496149795,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:BKYI,BKYI,"BIO-key International, Inc.",Technology Services,Information Technology Services,3.14,14.81,2.81,-10.51,276465,0.07,6390368,1910753,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:CHKP,CHKP,Check Point Software Technologies Ltd.,Technology Services,Internet Software/Services,155.22,-2.89,147.52,-4.96,187501,0.16,15848059691,76945253,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:COHU,COHU,"Cohu, Inc.",Electronic Technology,Semiconductors,53.14,4.24,56.28,5.91,401395,0.35,2515564270,45667212,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:CRWD,CRWD,"CrowdStrike Holdings, Inc. Class A",Technology Services,Packaged Software,266.66,-0.51,250.186,-6.18,1607373,0.17,273042446429,991642415,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:CRWV,CRWV,"CoreWeave, Inc. Class A",Technology Services,Packaged Software,63.93,7.32,60.94,-4.68,4935615,0.14,35259733735,349311034,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:DOCU,DOCU,"DocuSign, Inc.",Technology Services,Packaged Software,83.6,1.9,80.24,-4.02,368707,0.12,15625045041,185728442,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:EBAY,EBAY,eBay Inc.,Retail Trade,Internet Retail,118.02,0.16,122.9175,4.15,952231,0.23,52518900816,400341135,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:FIVN,FIVN,"Five9, Inc.",Technology Services,Packaged Software,37.63,1.35,36.0,-4.33,205887,0.09,2811846651,71498433,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:FROG,FROG,JFrog Ltd.,Technology Services,Packaged Software,100.47,0.01,96.0121,-4.44,184899,0.08,12388083036,109685733,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:FRSH,FRSH,"Freshworks, Inc. Class A",Technology Services,Packaged Software,15.38,3.22,14.7,-4.42,1722657,0.16,4012961465,193990636,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:FTNT,FTNT,"Fortinet, Inc.",Technology Services,Information Technology Services,174.08,-5.9,131.7361,-24.32,3015855,0.64,127724867500,607519594,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GEN,GEN,Gen Digital Inc.,Technology Services,Packaged Software,24.35,0.41,26.569,9.11,2176061,0.3,14575594329,539142522,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GOOG,GOOG,Alphabet Inc. Class C,Technology Services,Internet Software/Services,321.89,1.6,287.6,-10.65,11275099,0.6,3962252226911,5132222971,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GOOGL,GOOGL,Alphabet Inc. Class A,Technology Services,Internet Software/Services,324.89,1.34,290.21,-10.67,19796978,0.7,3952399631947,5848160292,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GOOGM,GOOGM,Alphabet Inc. Depository Shs Repr 1/20th Conv Pfd Registered Shs,Technology Services,Internet Software/Services,46.72,1.02,43.5,-6.89,164061,0.08,3899966985779,5848160292,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GOOGN,GOOGN,Alphabet Inc. Depository Shs Repr 1/20th Conv Pfd Registered Shs,Technology Services,Internet Software/Services,46.62,1.0,43.7,-6.26,490467,0.25,3899966985779,5848160292,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:GTLB,GTLB,"Gitlab, Inc. Class A",Technology Services,Packaged Software,57.97,2.02,54.0327,-6.79,442979,0.1,9658671497,144723626,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:INTU,INTU,Intuit Inc.,Technology Services,Packaged Software,328.19,-0.08,314.11,-4.29,381222,0.1,87704183615,261289731,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:LITE,LITE,"Lumentum Holdings, Inc.",Producer Manufacturing,Electrical Products,913.95,5.52,1000.0531,9.42,780813,0.16,82788206804,89087104,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:MDXG,MDXG,"MiMedx Group, Inc.",Health Technology,Medical Specialties,3.95,1.28,3.6,-8.86,153380,0.12,575753860,114304554,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:MRAM,MRAM,"Everspin Technologies, Inc.",Electronic Technology,Semiconductors,14.65,5.17,13.19,-9.97,210603,0.19,356727653,20649920,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:MRVL,MRVL,"Marvell Technology, Inc.",Electronic Technology,Semiconductors,251.65,3.32,229.23,-8.91,3091813,0.13,220671897779,,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:NBIS,NBIS,Nebius Group N.V. Class A,Technology Services,Packaged Software,182.34,6.96,173.06,-5.09,1920474,0.09,49570082993,222545208,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:OKTA,OKTA,"Okta, Inc. Class A",Technology Services,Packaged Software,222.66,-1.51,210.75,-5.35,255719,0.08,38925590625,166273211,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:PANW,PANW,"Palo Alto Networks, Inc.",Technology Services,Packaged Software,394.49,-1.79,368.84,-6.5,1068123,0.17,322692829805,810657151,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:PRCH,PRCH,"Porch Group, Inc.",Finance,Property/Casualty Insurance,16.3,-7.7,19.7909,21.42,690937,0.4,1850373317,89660479,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:RPD,RPD,Rapid7 Inc.,Technology Services,Information Technology Services,17.68,0.45,16.05,-9.22,326682,0.14,1191643383,64311900,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:SAIL,SAIL,"SailPoint, Inc.",Technology Services,Packaged Software,22.28,-0.49,20.15,-9.56,272881,0.06,12719910571,75338065,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:SFM,SFM,"Sprouts Farmers Market, Inc.",Retail Trade,Food Retail,62.0,-3.74,49.3268,-20.44,1824476,0.87,5781353218,92579201,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:STRL,STRL,"Sterling Infrastructure, Inc.",Industrial Services,Engineering & Construction,388.87,5.81,370.0,-4.85,199404,0.27,11894957049,29849114,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:TEAM,TEAM,Atlassian Corp Class A,Technology Services,Packaged Software,220.12,0.32,204.5,-7.1,244238,0.06,55437653263,155630129,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:TENB,TENB,"Tenable Holdings, Inc.",Technology Services,Packaged Software,48.72,0.14,45.7851,-6.02,409669,0.1,5366020195,108444725,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:TTAN,TTAN,"ServiceTitan, Inc. Class A",Technology Services,Packaged Software,80.86,-0.93,76.53,-5.35,122564,0.06,7800394587,58809347,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:UCTT,UCTT,"Ultra Clean Holdings, Inc.",Producer Manufacturing,Industrial Machinery,55.88,8.55,53.6,-4.08,308581,0.24,2530080253,43935261,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:VNDA,VNDA,Vanda Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,4.0,0.25,4.2,5.0,313650,0.33,241850753,57198923,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:WDAY,WDAY,"Workday, Inc. Class A",Technology Services,Information Technology Services,204.36,-0.54,195.03,-4.57,386587,0.1,49250761609,193958856,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NASDAQ:ZS,ZS,"Zscaler, Inc.",Technology Services,Packaged Software,255.8,-1.67,239.4611,-6.39,276479,0.1,41709391986,106156142,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:AGI,AGI,Alamos Gold Inc.,Non-Energy Minerals,Precious Metals,31.67,1.57,30.3,-4.33,158457,0.04,13257203023,417112932,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:AMRZ,AMRZ,Amrize Ltd,Non-Energy Minerals,Construction Materials,40.03,-0.5,37.25,-6.94,729699,0.2,21893431444,459164874,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:AUB,AUB,Atlantic Union Bankshares Corporation,Finance,Regional Banks,39.26,-0.41,37.5268,-4.41,190583,0.16,5513881514,139058386,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,228.08,4.38,218.5814,-4.16,1268579,0.08,67433374946,277968433,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:BHC,BHC,Bausch Health Companies Inc.,Health Technology,Pharmaceuticals: Other,6.92,9.67,7.88,13.87,1218803,0.39,2588014711,331339189,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:CMG,CMG,"Chipotle Mexican Grill, Inc.",Consumer Services,Restaurants,28.73,2.68,30.76,7.07,5854663,0.32,36355457647,1255628180,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:CP,CP,Canadian Pacific Kansas City Limited,Transportation,Railroads,89.43,-1.87,85.7,-4.17,434192,0.18,78616053657,878542761,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:CRM,CRM,"Salesforce, Inc.",Technology Services,Packaged Software,242.11,0.51,227.0,-6.24,1105560,0.09,199256529495,797048341,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:CVNA,CVNA,Carvana Co. Class A,Retail Trade,Specialty Stores,59.05,-0.3,64.0,8.38,3250839,0.35,64982386761,672575763,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:EGO,EGO,Eldorado Gold Corporation,Non-Energy Minerals,Precious Metals,34.46,0.85,32.0,-7.14,270194,0.09,9005081965,258038343,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:ESTC,ESTC,Elastic NV,Technology Services,Packaged Software,106.58,1.0,102.0,-4.3,485807,0.22,11295366287,95987569,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:GKOS,GKOS,Glaukos Corp,Health Technology,Medical Specialties,181.43,0.14,215.5,18.78,343992,0.39,10701455456,56642121,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:GWRE,GWRE,"Guidewire Software, Inc.",Technology Services,Information Technology Services,166.92,-1.32,160.0,-4.15,278667,0.2,13686215673,81284037,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:HUBS,HUBS,"HubSpot, Inc.",Technology Services,Packaged Software,248.97,-0.73,231.7,-6.94,146807,0.09,12415187355,47913888,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:LXU,LXU,"LSB Industries, Inc.",Process Industries,Chemicals: Agricultural,10.29,-0.77,10.88,5.73,133098,0.16,740854320,54610103,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:MAX,MAX,"MediaAlpha, Inc. Class A",Technology Services,Information Technology Services,11.72,-0.42,13.99,19.37,192732,0.22,718013859,27989922,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:MTH,MTH,Meritage Homes Corporation,Finance,Real Estate Development,62.02,-3.0,58.41,-5.82,263734,0.3,4042097294,62872150,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:NOW,NOW,"ServiceNow, Inc.",Technology Services,Packaged Software,150.13,-3.0,123.2258,-17.92,6164787,0.35,155234418775,1024687795,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:RBRK,RBRK,"Rubrik, Inc. Class A",Technology Services,Information Technology Services,136.0,0.19,126.9458,-6.66,537577,0.17,28193403855,158096841,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:S,S,"SentinelOne, Inc. Class A",Technology Services,Packaged Software,25.59,-0.23,23.99,-6.25,1057333,0.12,8906577188,325009785,
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:TDOC,TDOC,"Teladoc Health, Inc.",Health Services,Medical/Nursing Services,6.88,6.67,7.51,9.16,2064324,0.48,1249986027,180368971,amc
+2026-10-28,2026-10-28T21:52:41+00:00,false,NYSE:TYL,TYL,"Tyler Technologies, Inc.",Technology Services,Data Processing Services,360.9,-4.68,338.0,-6.35,155453,0.19,14779675612,40735662,amc
