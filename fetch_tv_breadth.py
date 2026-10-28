@@ -117,23 +117,30 @@ def breakouts(items):
     return sorted(out, key=lambda x: (-x[4], x[0]) if BO["sort"] == "dvol" else (-x[1], x[0]))
 
 
-def main():
+def screener():
+    """Lignes `d` du screener (colonnes SCAN_COLS) : actions ordinaires, ADR et ETF des bourses de [tv_breadth] (+ CBOE).
+    Aussi lu par breadth_soir.py (clôtures du jour). Limite scan_limit atteinte = liste peut-être tronquée : arrêt."""
     from fetch_postmarket import scan            # même client (en-têtes, essais) que le scan post-market
-    now = datetime.now(timezone.utc)
-    existing = load_existing(OUT)          # OUT lu à l'appel (les tests le redirigent vers un dossier temporaire)
-    lists = load_breakouts(OUT)
     raw = scan({"columns": SCAN_COLS, "markets": [CFG["market"]], "range": [0, CFG["scan_limit"]],
                 "filter": [{"left": "type", "operation": "in_range", "right": [CFG["type"], *{t.split("/")[0] for t in BO["extra"]}]},
                            {"left": "exchange", "operation": "in_range", "right": [*CFG["exchanges"], *BO["extra_exchanges"]]}]})
     if len(raw) >= CFG["scan_limit"]:
         sys.exit(f"TradingView : {len(raw)} lignes = limite scan_limit atteinte (config/sources.toml) ; fichier non modifié.")
-    day, res = measure([x["d"] for x in raw], now)
+    return [x["d"] for x in raw]
+
+
+def main():
+    now = datetime.now(timezone.utc)
+    existing = load_existing(OUT)          # OUT lu à l'appel (les tests le redirigent vers un dossier temporaire)
+    lists = load_breakouts(OUT)
+    items = screener()
+    day, res = measure(items, now)
     if day is None:
         print(f"T2108 TradingView : rien à relever ({res}).")
         if not OUT.exists():                     # premier passage hors fenêtre : fichier vide, pour que le site le charge
             write_js([], None, OUT)
         return
-    row, bo = [day, *res], breakouts([x["d"] for x in raw])
+    row, bo = [day, *res], breakouts(items)
     if existing.get(day) == row and lists.get(day) == bo:   # relevé identique : fichier inchangé (pas de commit à chaque passage)
         print(f"T2108 TradingView : séance {day} déjà relevée à l'identique ({res[0]} %).")
         return

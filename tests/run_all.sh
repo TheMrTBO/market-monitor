@@ -20,6 +20,8 @@ echo "--- test Python : annulation des donnees invalides"
 python3 tests/test_update_rollback.py || fail=1
 echo "--- test Python : calcul maison du breadth, historique et controle croise"
 python3 tests/test_breadth_own.py || fail=1
+echo "--- test Python : calcul maison du soir (cache Polygon + clotures TradingView, ligne provisoire)"
+python3 tests/test_breadth_soir.py || fail=1
 echo "--- test Python : T2108 TradingView (seance de la bougie, differe, filtre, controle)"
 python3 tests/test_tv_breadth.py || fail=1
 echo "--- test Python : scan post-market (seance, resultats, lendemain, controle)"

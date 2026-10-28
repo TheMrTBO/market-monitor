@@ -1,6 +1,7 @@
 name: Scan post-market (toutes les 15 min le soir)
 
-# Relève seulement le scan post-market (fetch_postmarket.py, screener public TradingView, aucune clé) et republie le site.
+# Relève le scan post-market (fetch_postmarket.py, screener public TradingView, aucune clé), le breadth TradingView et le calcul
+# maison du soir (breadth_soir.py, avec le cache Polygon de update.yml), puis republie le site.
 # Le post-market US dure de 16 h à 20 h à New York, soit 20:00-00:00 UTC en heure d'été (EDT) et 21:00-01:00 UTC en heure
 # d'hiver (EST) : les créneaux ci-dessous couvrent les deux ; hors fenêtre, le script ne fait rien (pas de commit).
 # Le dernier relevé, après la fin du post-market, est fait par update.yml (05:43 UTC). Les tâches planifiées de GitHub
@@ -56,6 +57,30 @@ jobs:
           python fetch_tv_breadth.py && python validate_data.py tv_breadth \
             || git checkout -- tv_breadth_data.js 2>/dev/null || rm -f tv_breadth_data.js
 
+      # Calcul maison du soir (breadth_soir.py, décision du 28/10/2026) : séance du jour, provisoire, dans breadth_data.js
+      # (±25 % mois et trimestre, T2108, n : phases de marché dès la clôture), avec les clôtures TradingView et l'historique
+      # Polygon de update.yml (cache restauré en lecture seule, jamais sauvegardé ici) ; Polygon la remplace le lendemain matin.
+      # Seulement si la séance du dernier relevé manque dans breadth_data.js (pas de restauration du cache à chaque passage).
+      - name: Séance du soir à calculer ?
+        id: soir
+        continue-on-error: true
+        run: python breadth_soir.py --needed >> "$GITHUB_OUTPUT"
+
+      - name: Restaurer l'historique des clôtures (cache de update.yml, lecture seule)
+        id: soir_cache
+        if: steps.soir.outputs.needed == 'true'
+        continue-on-error: true
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}   # jamais trouvée : on prend le plus récent (restore-keys)
+          restore-keys: historique-
+
+      - name: Calcul maison du soir (séance provisoire)
+        if: steps.soir.outputs.needed == 'true' && steps.soir_cache.outputs.cache-matched-key != ''
+        continue-on-error: true
+        run: python breadth_soir.py && python validate_data.py breadth || git checkout -- breadth_data.js
+
       - name: Enregistrer le scan
         id: commit
         run: |
@@ -63,6 +88,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add postmarket_data.js status_data.js   # status_data.js : heure du relevé (« pm »), lue par le bouton « Actualiser »
           if [ -f tv_breadth_data.js ]; then git add tv_breadth_data.js; fi   # T2108 TradingView
+          git add breadth_data.js                    # calcul maison du soir (inchangé s'il n'a pas tourné)
           if git diff --cached --quiet; then
             echo "Aucun changement (hors post-market ou scan identique)."
             echo "changed=false" >> "$GITHUB_OUTPUT"
@@ -130,7 +156,7 @@ jobs:
           GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GIT_COMMITTER_NAME: github-actions[bot]
           GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
-        run: python -m mm.store sync --only postmarket_data.js tv_breadth_data.js --message "Scan post-market du $(date -u '+%Y-%m-%d %H:%M UTC')"
+        run: python -m mm.store sync --only postmarket_data.js tv_breadth_data.js breadth_data.js --message "Scan post-market du $(date -u '+%Y-%m-%d %H:%M UTC')"
 
       - name: Signaler un échec du stockage (le site est publié)
         if: steps.store_checkout.outcome == 'failure' || steps.store.outcome == 'failure'

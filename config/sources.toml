@@ -10,8 +10,11 @@
 # 190 (décision du 18/10/2026) : courbes du TI65 sur ~6 mois dans la vue TradingView (190 − 64 = 126 séances) ; couvre
 # aussi le calcul maison du breadth (fenêtre trimestrielle). Augmenter = rattrapage unique, réparti sur plusieurs passages
 # (max_downloads) ; 5 appels/min sur le plan gratuit, soit 1 séance = 12 s.
-sessions = 190
-keep = 400
+# 490 (décision du 28/10/2026) : calcul maison du breadth depuis fin 2024 pour rejouer les phases de marché sur 2025 (choc
+# d'avril, surchauffe de mai) et caler leurs seuils sur notre univers. Le plan gratuit remonte à 2 ans : rester sous ~500.
+# Rattrapage : ~300 séances, 100 par passage (3 à 4 passages du matin). Les agrégats restent dans breadth_data.js.
+sessions = 490
+keep = 500
 rate = 5               # appels par minute (plan gratuit Polygon / Massive)
 max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 min) : un passage tient toujours avant le suivant
 
@@ -22,6 +25,14 @@ max_downloads = 100    # séances téléchargées au plus par passage (≈ 20 mi
 sheet = "1O6OhS7ciA8zwfycBfGPbP2fWJnR0pn2UUvFZVDP9jpE"
 gids = { "2019" = 1089581064, "2020" = 2093835319, "2021" = 1981550515, "2022" = 1394777987, "2023" = 632667710, "2024" = 1146204629, "2025" = 780188096, "2026" = 1082103394 }
 timeout = 60                  # secondes par onglet
+
+[breadth_soir]
+# Calcul maison du soir (breadth_soir.py, postmarket.yml, décision du 28/10/2026) : séance du jour = cache Polygon jusqu'à la
+# veille + clôtures du screener TradingView, mêmes formules que breadth_own.py ; ligne provisoire jusqu'au calcul Polygon.
+match_tol = 0.005             # clôture de la veille TradingView et dernière clôture en cache « identiques » à 0,5 % près
+min_match = 0.9               # part des titres identiques exigée : sinon le cache n'est pas à la veille (rien n'est écrit)
+split_min = 1.2               # écart d'au moins 1,2 (ou 1 / 1,2) = split du jour ; entre les deux : titre ignoré
+min_coverage = 0.9            # part des titres cotés la veille retrouvés sur TradingView (≈ 97 % mesurés le 28/10/2026)
 
 [tv_breadth]
 # T2108 relevé sur le screener TradingView (fetch_tv_breadth.py) : seconde source maison, comparée à Stockbee (décision du

@@ -21,6 +21,9 @@ Les clotures sont ajustees des splits sur toute la fenetre (sinon un split 2-pou
 Sortie : breadth_data.js -> window.BREADTH_OWN = {columns, rows, asof, universe}. Seuls des agregats sont ecrits (aucune
 donnee brute dans le depot). Les lignes deja presentes sont conservees : la serie s'allonge chaque jour meme si le cache
 d'historique est glissant ; les seances en cache sont recalculees.
+    n           : titres de l'univers cotes la seance et la veille (denominateur du choc des phases de marche).
+    provisional : true = seance calculee le soir par breadth_soir.py (clotures TradingView du jour + cache Polygon) ;
+                  le calcul Polygon du lendemain la remplace (colonne videe).
 Stockbee ne sert plus que de controle croise (voir validate_data.py et le pied de page du dashboard).
 
 Usage : python3 breadth_own.py
@@ -31,8 +34,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "breadth_data.js"
-COLUMNS = ["date", "up4", "down4", "ratio5", "ratio10", "up25m", "down25m", "up25q", "down25q", "t2108"]
-LONG = COLUMNS[5:]           # fenetres longues : absentes tant que l'historique en cache est trop court
+COLUMNS = ["date", "up4", "down4", "ratio5", "ratio10", "up25m", "down25m", "up25q", "down25q", "t2108", "n", "provisional"]
+LONG = COLUMNS[5:]           # fenetres longues (absentes tant que l'historique en cache est trop court), n, provisional
 MONTH, QUARTER, SMA = 20, 63, 40
 MIN_PRICE = 5.0              # mois : cloture brute de depart minimale (sans ce filtre : ~2 fois trop de titres)
 MIN_PRICE_Q = 1.0            # trimestre : idem (calibrage provisoire, a reverifier sur ~60 seances)
@@ -69,6 +72,11 @@ def compute_counts(dates, history, universe, splits):
         prev = history[prev_d]
         out[d] = list(count_breadth(today, prev, universe, splits.get(d, {})))
     return out
+
+
+def count_compared(today, prev, universe):
+    """Titres de l'univers cotes `today` et `prev` (cloture de la veille > 0) : denominateur du choc des phases de marche."""
+    return sum(1 for t in today if t in universe and t in prev and prev[t][0] and prev[t][0] > 0)
 
 
 def adjusted_series(dates, history, universe, splits):
@@ -192,13 +200,16 @@ def main():
     except (OSError, ValueError, KeyError):
         sys.exit("Univers introuvable (cache/universe.json) : lance python fetch_history.py.")
     splits = fh.load_splits_file()
-    counts, long = load_existing(), load_existing_long()
+    counts, long = load_existing(OUT), load_existing_long(OUT)        # OUT lu a l'appel (tests)
     fresh = compute_counts(dates, history, universe, splits)
     counts.update(fresh)
     for d, vals in compute_long(dates, history, universe, splits).items():   # une valeur deja publiee n'est pas effacee
         long.setdefault(d, {}).update({k: v for k, v in vals.items() if v is not None})
+    for prev_d, d in zip(dates, dates[1:]):     # seance recalculee depuis Polygon : n a jour, plus provisoire
+        long.setdefault(d, {})["n"] = count_compared(history[d], history[prev_d], universe)
+        long[d].pop("provisional", None)
     rows = build_rows(counts, long)
-    write_js(rows, len(universe))
+    write_js(rows, len(universe), OUT)
     print(f"Ecrit : {OUT.name} ({len(rows)} seances, {len(fresh)} recalculees, derniere {rows[-1][0]})")
 
 

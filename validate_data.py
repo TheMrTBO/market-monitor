@@ -107,6 +107,18 @@ def check_breadth(data, today, stockbee_path=None):
         vals = [r[cols[k]] for r in rows[-250:] if cols[k] < len(r) and r[cols[k]] is not None]
         if any(not isinstance(v, (int, float)) or v < 0 or v > hi for v in vals):
             errors.append(f"breadth : {k} hors bornes [0, {hi}]")
+    # n (titres cotes la seance et la veille, denominateur du choc) et marque provisoire (calcul du soir, breadth_soir.py) :
+    # absents des lignes d'avant le 28/10/2026 ; les lignes provisoires sont toutes en fin de serie (Polygon les remplace dans l'ordre)
+    if "n" in cols:
+        vals = [r[cols["n"]] for r in rows[-250:] if cols["n"] < len(r) and r[cols["n"]] is not None]
+        if any(not isinstance(v, int) or not 1000 <= v <= 20000 for v in vals):
+            errors.append("breadth : n hors bornes [1000, 20000]")
+    if "provisional" in cols:
+        prov = [i for i, r in enumerate(rows) if cols["provisional"] < len(r) and r[cols["provisional"]] is not None]
+        if any(rows[i][cols["provisional"]] is not True for i in prov):
+            errors.append("breadth : provisional = true ou absent attendu")
+        elif prov and prov != list(range(prov[0], len(rows))):
+            errors.append(f"breadth : seance provisoire {rows[prov[0]][0]} suivie de seances Polygon (pas remplacee)")
     if stockbee_path:
         try:
             sb = load_js(stockbee_path)

@@ -16,7 +16,7 @@ description = "Calcul maison du breadth (clôtures Polygon / Massive)"
 primary_key = ["session_date"]
 partition = "month"
 partition_by = "session_date"
-columns = { session_date = "date", up4 = "int", down4 = "int", ratio5 = "float?", ratio10 = "float?", up25m = "int?", down25m = "int?", up25q = "int?", down25q = "int?", t2108 = "float?" }
+columns = { session_date = "date", up4 = "int", down4 = "int", ratio5 = "float?", ratio10 = "float?", up25m = "int?", down25m = "int?", up25q = "int?", down25q = "int?", t2108 = "float?", n = "int?", provisional = "bool?" }
 
 [datasets.tv_breadth_daily]
 description = "Breadth relevé sur le screener TradingView : T2108 et ±4 % TC2000 (aucun historique chez TradingView : un relevé par séance depuis le 19/10/2026 ; ±4 % depuis le 20/10/2026)"
