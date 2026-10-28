@@ -16,6 +16,8 @@
     "down25m": "int?",
     "up25q": "int?",
     "down25q": "int?",
-    "t2108": "float?"
+    "t2108": "float?",
+    "n": "int?",
+    "provisional": "bool?"
   }
 }
