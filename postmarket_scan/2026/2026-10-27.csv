@@ -909,3 +909,35 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-27,2026-10-28T02:38:07+00:00,true,NYSE:ORN,ORN,"Orion Group Holdings, Inc.",Industrial Services,Engineering & Construction,9.15,4.21,9.88,7.98,140526,0.27,370531881,38146815,amc
 2026-10-27,2026-10-28T02:38:07+00:00,true,NYSE:PPG,PPG,"PPG Industries, Inc.",Process Industries,Industrial Specialties,113.44,3.22,121.36,6.98,712488,0.4,25217712696,222053469,amc
 2026-10-27,2026-10-28T02:38:07+00:00,true,NYSE:UHS,UHS,"Universal Health Services, Inc. Class B",Health Services,Hospital/Nursing Management,177.32,-4.52,169.0,-4.69,131417,0.17,10448414491,48791319,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:AIOK,AIOK,AI OKTO Corp.,Transportation,Marine Shipping,13.42,46.51,14.0881,4.98,318234,,,,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:AVPT,AVPT,"AvePoint, Inc. Class A",Technology Services,Packaged Software,16.46,-2.31,17.34,5.35,440303,0.2,3482366800,140822318,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:BBNX,BBNX,"Beta Bionics, Inc.",Health Technology,Medical Specialties,21.39,4.29,19.17,-10.38,200479,0.16,1153909503,46431829,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:BOOM,BOOM,DMC Global Inc.,Industrial Services,Oilfield Services/Equipment,5.35,-0.37,6.28,17.38,840524,3.78,109894074,18156039,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:BRAI,BRAI,Braiin Limited,Technology Services,Packaged Software,3.31,56.13,5.1636,56.0,6878880,8.41,682152043,206088228,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,4.99,0.4,4.54,-9.02,660541,0.13,13350306,713828,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:CSGP,CSGP,"CoStar Group, Inc.",Technology Services,Internet Software/Services,32.01,-5.01,29.4,-8.15,1316390,0.2,12970375512,401528932,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:ENPH,ENPH,"Enphase Energy, Inc.",Producer Manufacturing,Electrical Products,29.76,-1.98,25.15,-15.49,5309286,1.07,3932624507,128115106,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:ENSG,ENSG,"Ensign Group, Inc.",Health Services,Medical/Nursing Services,169.5,-4.19,178.0,5.01,119731,0.24,9878872215,56182251,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:FA,FA,First Advantage Corp.,Technology Services,Packaged Software,21.08,-0.8,22.0,4.36,269216,0.14,3620567840,77824141,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:HOOD,HOOD,"Robinhood Markets, Inc. Class A",Finance,Investment Banks/Brokers,94.56,1.85,87.3423,-7.63,9059356,0.42,85017217802,760937099,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:ICHR,ICHR,"Ichor Holdings, Ltd.",Producer Manufacturing,Industrial Machinery,40.75,7.07,43.02,5.57,164561,0.18,1526259978,36692831,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:INTA,INTA,"Intapp, Inc.",Technology Services,Packaged Software,42.95,-8.91,35.79,-16.67,303729,0.44,3294040841,68351862,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:LPLA,LPLA,LPL Financial Holdings Inc.,Finance,Investment Banks/Brokers,317.56,0.1,301.68,-5.0,134697,0.17,25005401424,78321894,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:MANH,MANH,"Manhattan Associates, Inc.",Technology Services,Packaged Software,233.98,-1.02,258.0,10.27,125106,0.17,13642197371,57450307,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:NUWE,NUWE,"Nuwellis, Inc.",Health Technology,Medical Specialties,5.41,74.69,5.11,-5.55,2820070,4.57,11295199,3117769,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:NXPI,NXPI,NXP Semiconductors NV,Electronic Technology,Semiconductors,253.5,3.12,235.99,-6.91,1788886,0.47,63923617397,251830639,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:OSS,OSS,"One Stop Systems, Inc.",Electronic Technology,Computer Processing Hardware,6.76,13.04,7.15,5.77,197514,0.2,168629461,21527907,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:RAPP,RAPP,"Rapport Therapeutics, Inc.",Health Technology,Biotechnology,27.54,8.72,22.02,-20.04,236339,0.45,1321322013,28805923,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:SAIQ,SAIQ,WISeSat.Space Holdings Corp.,Finance,Financial Conglomerates,7.52,11.74,7.2001,-4.25,110269,0.05,224217609,8284068,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:STX,STX,Seagate Technology Holdings PLC,Electronic Technology,Computer Peripherals,667.85,3.67,631.0,-5.52,1963417,0.41,151864434007,226535046,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:TER,TER,"Teradyne, Inc.",Electronic Technology,Electronic Production Equipment,323.68,4.75,307.0501,-5.14,1190534,0.36,50604372024,155192049,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:TRVI,TRVI,"Trevi Therapeutics, Inc.",Health Technology,Biotechnology,13.35,6.71,14.0,4.87,627361,0.28,1902052570,103049471,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:UCTT,UCTT,"Ultra Clean Holdings, Inc.",Producer Manufacturing,Industrial Machinery,51.48,10.21,57.0,10.72,305562,0.24,2330861311,43935261,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:ULBI,ULBI,Ultralife Corporation,Producer Manufacturing,Electrical Products,6.36,5.82,15.56,144.65,785134,17.45,105978395,9760444,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NASDAQ:ZVRA,ZVRA,"Zevra Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,10.055,5.51,9.6128,-4.4,136350,0.12,597103905,58514718,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:HLF,HLF,Herbalife Ltd.,Consumer Non-Durables,Food: Major Diversified,13.47,1.43,14.044,4.26,400618,0.25,1411701539,101822507,
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,15.41,3.28,14.7,-4.61,921239,0.23,3837670151,234575216,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:OI,OI,O-I Glass Inc,Process Industries,Containers/Packaging,6.43,-0.16,6.09,-5.29,1071534,0.31,988032164,150962498,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:ORN,ORN,"Orion Group Holdings, Inc.",Industrial Services,Engineering & Construction,9.15,4.21,9.88,7.98,140526,0.27,370531881,38146815,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:PPG,PPG,"PPG Industries, Inc.",Process Industries,Industrial Specialties,113.44,3.22,121.36,6.98,712488,0.4,25217712696,222053469,amc
+2026-10-27,2026-10-28T03:18:47+00:00,true,NYSE:UHS,UHS,"Universal Health Services, Inc. Class B",Health Services,Hospital/Nursing Management,177.32,-4.52,169.0,-4.69,131417,0.17,10448414491,48791319,amc
