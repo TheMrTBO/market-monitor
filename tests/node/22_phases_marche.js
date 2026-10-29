@@ -104,6 +104,15 @@ const tipOf=(X,id)=>{const btn={dataset:{tip:id},setAttribute(){},getBoundingCli
 const F=boot(SBONLY); F.L.dPick.change({target:{value:'2026-10-23'}}); const hf=F.$('phaseBar')._h;
 for(const id of ['phase','phfond','phsetups'])assert(hf.includes(`data-tip="${id}"`),'bouton ⓘ '+id+' attendu dans le bandeau');
 assert(F.$('phLeg')._h.includes('data-tip="phrules"')&&!F.$('secPhLeg').hidden&&F.$('secPhLeg')._h.includes('data-tip="phrules"'),'légendes des frises (MM, Secteurs) avec bulle des règles attendues');
+// 7 ter bis. évolution (décision du 29/10/2026) : mini-courbe du momentum trimestre dans le bandeau ; seuils de bascule de la
+// phase affichée tracés sur les graphiques Ratio 5 j, Ratio mois (échelle log) et détail ±4 %, avec leur légende
+assert(/class="phspark"/.test(hf)&&/mq sur 20 séances · trait = 1/.test(strip(hf)),'mini-courbe du momentum trimestre attendue : '+strip(hf));
+const l5=strip(F.$('legPhR5')._h), lm=strip(F.$('legPhRm')._h), l4=strip(F.$('legPhD4')._h);
+assert(/Seuils de la phase Contraction/.test(l5)&&/2 · reprise \(fenêtre : encore 12 séances\)/.test(l5)&&/1,5 · pré-expansion/.test(l5),'23/10 : seuils reprise (fenêtre ouverte depuis le lessivage du 20/10) et pré-expansion attendus : '+l5);
+assert(/0,3 · lessivage/.test(lm)&&!F.$('rmLog').hidden,'Ratio mois : seuil du lessivage et échelle log attendus : '+lm);
+assert(/\d+ · choc \(15 % de l'univers\)/.test(l4),'détail ±4 % : seuil du choc en nombre de titres attendu : '+l4);
+A.L.dPick.change({target:{value:'2026-08-05'}});
+assert(/aucun sur ce graphique/.test(strip(A.$('legPhR5')._h))&&/fin de la reprise/.test(strip(A.$('legPhRm')._h)),'reprise : pas de seuil sur le ratio 5 j, fin de la reprise sur le ratio mois attendues');
 const why=tipOf(F,'phase');
 assert(/Pourquoi Contraction à la clôture du ven\. 23 oct\./.test(why),'bulle : pourquoi la phase du jour attendu : '+why.slice(0,200));
 assert(/✗ Choc \? plus forte part de l'univers en baisse de 4 % sur les 5 dernières séances : \d+,\d %/.test(why),'étape choc chiffrée attendue : '+why.slice(0,400));
