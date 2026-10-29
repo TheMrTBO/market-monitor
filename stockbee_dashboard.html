@@ -568,6 +568,8 @@
   .phdots i.on { background: var(--text); border-color: var(--text); }
   .phset { font-size: 18px; font-weight: 650; line-height: 1.2; }
   .phspark { margin-top: 6px; } .phspark svg { display: block; width: 100%; height: 40px; overflow: visible; }   /* mini-courbe du mq (29/10/2026) */
+  .phsptog { background: none; border: 0; padding: 2px 0; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; }
+  .phsptog::before { content: "▾ "; } .phspark.off .phsptog::before { content: "▸ "; } .phspark.off svg, .phspark.off .cap { display: none; }
   .phspark .cap { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; } .phspark .cap b { color: var(--text); font-weight: 600; }
   .legph { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; color: var(--warn); } .legph:empty { display: none; } .legph b { font-weight: 600; }
   .phsig { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--upbg); color: var(--up); margin: 4px 4px 0 0; }
@@ -5478,20 +5480,23 @@
     phLeg.innerHTML = lg; phLeg.hidden = false;
     ['secPhLeg', 'cmpPhLeg'].forEach(id => { const el = $(id); if (el) { el.innerHTML = lg; el.hidden = false; } });   // Secteurs, SA
   }
-  // mini-courbe du momentum trimestre sur les mq_spark dernières séances (trait = 1), pour voir son évolution (29/10/2026)
+  // mini-courbe du momentum trimestre sur les mq_spark dernières séances (trait = 1), pour voir son évolution (29/10/2026) ;
+  // masquable d'un clic sur son titre, mémorisé (mm.mqspark)
   function mqSpark(i) {
     const a = Math.max(0, i - PHC.mq_spark + 1), pts = PHASES.slice(a, i + 1).filter(x => x.mq != null);
     if (pts.length < 2) return '';
     const v = pts.map(x => x.mq), lo = Math.min(1, ...v) - .05, hi = Math.max(1, ...v) + .05, W = 300, H = 40, p = 3;
     const x = j => p + j * (W - 2 * p) / (v.length - 1), y = t => H - p - (t - lo) / (hi - lo) * (H - 2 * p), y1 = y(1), n = v.length - 1;
     const path = v.map((t, j) => `${j ? 'L' : 'M'}${x(j).toFixed(1)},${y(t).toFixed(1)}`).join('');
-    return `<div class="phspark" title="Momentum trimestre (mq) sur les ${v.length} dernières séances ; trait = 1, au-dessus : vers l'expansion">` +
+    const off = store.get('mm.mqspark') === '0';
+    return `<div class="phspark${off ? ' off' : ''}" title="Momentum trimestre (mq) sur les ${v.length} dernières séances ; trait = 1, au-dessus : vers l'expansion">` +
+      `<button type="button" class="phsptog" aria-expanded="${!off}">Courbe du mq · ${PHC.mq_spark_label}</button>` +
       `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">` +
       `<rect x="0" y="0" width="${W}" height="${Math.max(0, y1).toFixed(1)}" style="fill:var(--upbg)"/>` +
       `<rect x="0" y="${y1.toFixed(1)}" width="${W}" height="${Math.max(0, H - y1).toFixed(1)}" style="fill:var(--downbg)"/>` +
       `<line x1="0" x2="${W}" y1="${y1.toFixed(1)}" y2="${y1.toFixed(1)}" vector-effect="non-scaling-stroke" style="stroke:var(--text);stroke-width:1;stroke-dasharray:4 3;opacity:.7"/>` +
       `<path d="${path}" vector-effect="non-scaling-stroke" style="fill:none;stroke:var(--text);stroke-width:1.8"/></svg>` +
-      `<div class="cap"><span>${nf(v[0], 2)} le ${fmtDate(pts[0].d, { day: 'numeric', month: 'short' })} → <b>${nf(v[n], 2)}</b></span><span>mq sur ${v.length} séances · trait = 1</span></div></div>`;
+      `<div class="cap"><span>${nf(v[0], 2)} le ${fmtDate(pts[0].d, { day: 'numeric', month: 'short' })} → <b>${nf(v[n], 2)}</b></span><span>${v.length} séances · trait = 1</span></div></div>`;
   }
   function renderPhase(target, past) {
     const el = $('phaseBar'); if (!el) return;
@@ -5528,6 +5533,11 @@
   }
   $('phaseBar').addEventListener('click', e => {        // mobile : un toucher déplie ou replie le bandeau (sans effet visible sur bureau)
     if (e.target && e.target.closest && e.target.closest('.tipbtn')) return;
+    if (e.target && e.target.closest && e.target.closest('.phsptog')) {            // courbe du mq masquée / affichée, mémorisé
+      const sp = $('phaseBar').querySelector('.phspark'), off = !sp.classList.contains('off');
+      sp.classList.toggle('off', off); e.target.closest('.phsptog').setAttribute('aria-expanded', String(!off)); store.set('mm.mqspark', off ? '0' : '1');
+      return;
+    }
     const el = $('phaseBar'), open = !el.classList.contains('open');
     el.classList.toggle('open', open); store.set('mm.phase', open ? '1' : '0');
   });

@@ -164,7 +164,8 @@ pullback_phases = ["exp_a", "exp_b", "exp_c"]
 record_sessions = 63       # records 3 mois : au-delà du plus haut / plus bas des 63 séances précédentes
 alert_gap = 10             # une alerte = premier jour d'une série : pas de nouvelle alerte dans les 10 séances suivantes
 setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
-mq_spark = 20              # mini-courbe du momentum trimestre (mq) dans le bandeau : N dernières séances (décision du 29/10/2026)
+mq_spark = 63              # mini-courbe du momentum trimestre (mq) dans le bandeau : N dernières séances (29/10/2026 : 3 mois),
+mq_spark_label = "3 mois"  # …et sa durée en clair ; masquable d'un clic (mémorisé : mm.mqspark)
 
 [phases.lines]
 # Seuils tracés en orange sur les graphiques selon la phase de la séance affichée (« Stats du », sinon la dernière séance) :

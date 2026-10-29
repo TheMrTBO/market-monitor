@@ -106,7 +106,14 @@ for(const id of ['phase','phfond','phsetups'])assert(hf.includes(`data-tip="${id
 assert(F.$('phLeg')._h.includes('data-tip="phrules"')&&!F.$('secPhLeg').hidden&&F.$('secPhLeg')._h.includes('data-tip="phrules"'),'légendes des frises (MM, Secteurs) avec bulle des règles attendues');
 // 7 ter bis. évolution (décision du 29/10/2026) : mini-courbe du momentum trimestre dans le bandeau ; seuils de bascule de la
 // phase affichée tracés sur les graphiques Ratio 5 j, Ratio mois (échelle log) et détail ±4 %, avec leur légende
-assert(/class="phspark"/.test(hf)&&/mq sur 20 séances · trait = 1/.test(strip(hf)),'mini-courbe du momentum trimestre attendue : '+strip(hf));
+assert(/class="phspark"/.test(hf)&&/Courbe du mq · 3 mois/.test(strip(hf))&&/63 séances · trait = 1/.test(strip(hf)),'courbe du momentum trimestre sur 3 mois attendue : '+strip(hf));
+{ const sp={classList:{_s:new Set(),toggle(c,f){f?this._s.add(c):this._s.delete(c);},contains(c){return this._s.has(c);}}};   // clic sur son titre : masquée, mémorisé
+  F.$('phaseBar').querySelector=()=>sp;
+  F.L.phaseBar.click({target:{closest:q=>q==='.phsptog'?{setAttribute(){}}:null}});
+  assert(sp.classList.contains('off')&&F.LS['mm.mqspark']==='0'&&!F.$('phaseBar').classList.contains('open'),'courbe du mq masquée et mémorisée, bandeau inchangé attendus');
+  F.L.dPick.change({target:{value:'2026-10-22'}});
+  assert(/class="phspark off"/.test(F.$('phaseBar')._h),'courbe du mq masquée après un nouveau rendu attendue');
+  F.LS['mm.mqspark']='1'; F.L.dPick.change({target:{value:'2026-10-23'}}); }
 const l5=strip(F.$('legPhR5')._h), lm=strip(F.$('legPhRm')._h), l4=strip(F.$('legPhD4')._h);
 assert(/Seuils de la phase Contraction/.test(l5)&&/2 · reprise \(fenêtre : encore 12 séances\)/.test(l5)&&/1,5 · pré-expansion/.test(l5),'23/10 : seuils reprise (fenêtre ouverte depuis le lessivage du 20/10) et pré-expansion attendus : '+l5);
 assert(/0,3 · lessivage/.test(lm)&&!F.$('rmLog').hidden,'Ratio mois : seuil du lessivage et échelle log attendus : '+lm);
