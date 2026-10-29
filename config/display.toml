@@ -5,6 +5,7 @@
 ratio5 = [1, 1.5]
 rq = [1, 1.5]
 rm = [1, 2]
+rm_log = true              # graphique Ratio mois en échelle logarithmique (décision du 29/10/2026 : seuil du lessivage 0,3 lisible)
 t2108_extremes = [20, 70]   # T2108 : zones extrêmes (orange)
 record_sessions = 63        # « ▲ / ▼ 3M » du MM (cases, jauge 3M, barres, indices) : record = au-delà du plus haut / plus bas des N séances précédentes
 compare_sessions = 60       # contrôle croisé calcul maison / TradingView ↔ Stockbee : dernières séances communes (corrélation, écart)
@@ -163,6 +164,22 @@ pullback_phases = ["exp_a", "exp_b", "exp_c"]
 record_sessions = 63       # records 3 mois : au-delà du plus haut / plus bas des 63 séances précédentes
 alert_gap = 10             # une alerte = premier jour d'une série : pas de nouvelle alerte dans les 10 séances suivantes
 setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
+mq_spark = 20              # mini-courbe du momentum trimestre (mq) dans le bandeau : N dernières séances (décision du 29/10/2026)
+
+[phases.lines]
+# Seuils tracés en orange sur les graphiques selon la phase de la séance affichée (« Stats du », sinon la dernière séance) :
+# ceux qui feraient changer la phase (décision du 29/10/2026). Entrée = [graphique, seuil de [phases], libellé court] ;
+# graphique : "ratio5" (Ratio 5 j), "rm" (Ratio mois), "down4" (détail des histogrammes ±4 %, seuil = choc_pct × univers).
+# rep_r5 n'est tracé que pendant la fenêtre de rep_window séances après un lessivage. Phase absente = aucun seuil.
+contraction = [["ratio5", "rep_r5", "reprise"], ["ratio5", "pre_r5", "pré-expansion"], ["rm", "wash_rm", "lessivage"], ["down4", "choc_pct", "choc"]]
+wash = [["ratio5", "rep_r5", "reprise"], ["ratio5", "pre_r5", "pré-expansion"], ["rm", "wash_rm", "lessivage"], ["down4", "choc_pct", "choc"]]
+recovery = [["rm", "wash_rm", "nouveau lessivage : fin de la reprise"], ["down4", "choc_pct", "choc"]]
+exp_c = [["ratio5", "ext_on_r5", "marché étendu"], ["rm", "grade_a_rm", "note A"], ["rm", "grade_b_rm", "note B"], ["down4", "choc_pct", "choc"]]
+exp_b = [["ratio5", "ext_on_r5", "marché étendu"], ["rm", "grade_a_rm", "note A"], ["rm", "grade_b_rm", "note B"], ["down4", "choc_pct", "choc"]]
+exp_a = [["ratio5", "ext_on_r5", "marché étendu"], ["rm", "grade_a_rm", "note A"], ["rm", "grade_b_rm", "note B"], ["down4", "choc_pct", "choc"]]
+hot = [["ratio5", "hot_r5", "surchauffe"], ["ratio5", "ext_off_r5", "fin du marché étendu (avec T2108 < 60 %)"], ["down4", "choc_pct", "choc"]]
+overheat = [["ratio5", "hot_r5", "surchauffe"], ["ratio5", "ext_off_r5", "fin du marché étendu (avec T2108 < 60 %)"], ["down4", "choc_pct", "choc"]]
+shock = [["rm", "wash_rm", "lessivage"], ["down4", "choc_pct", "choc"]]
 
 [phases.own]
 # Phases sur la série MAISON : breadth_data.js (Polygon, ou provisoire le soir par breadth_soir.py). Valeurs ci-dessous =
