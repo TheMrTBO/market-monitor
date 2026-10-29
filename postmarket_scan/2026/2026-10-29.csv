@@ -236,3 +236,72 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-10-29,2026-10-29T21:22:49+00:00,false,NYSE:VRT,VRT,Vertiv Holdings Co. Class A,Electronic Technology,Electronic Production Equipment,245.92,1.23,233.9395,-4.87,750282,0.13,94676296561,383747568,
 2026-10-29,2026-10-29T21:22:49+00:00,false,NYSE:WKC,WKC,World Kinect Corporation,Distribution Services,Wholesale Distributors,37.21,1.64,35.5,-4.6,160619,0.15,1903351915,49255154,amc
 2026-10-29,2026-10-29T21:22:49+00:00,false,NYSE:YOU,YOU,"Clear Secure, Inc. Class A",Technology Services,Packaged Software,46.21,1.61,43.38,-6.12,147998,0.09,6251662200,95525180,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:AAOI,AAOI,"Applied Optoelectronics, Inc.",Electronic Technology,Semiconductors,79.19,-3.69,74.0,-6.55,1211417,0.12,6723729058,80529634,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:AEHR,AEHR,Aehr Test Systems,Electronic Technology,Electronic Production Equipment,61.21,-5.16,57.01,-6.86,171988,0.06,1999090832,31068688,bmo
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:ALHC,ALHC,"Alignment Healthcare, Inc.",Health Services,Managed Health Care,8.06,-1.47,7.4,-8.19,2013888,0.27,1671927373,198386062,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:AMD,AMD,"Advanced Micro Devices, Inc.",Electronic Technology,Semiconductors,566.42,-2.08,534.09,-5.71,2376313,0.1,924666479573,1624160881,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:AMZN,AMZN,"Amazon.com, Inc.",Retail Trade,Internet Retail,243.79,-4.25,228.25,-6.37,23508745,0.55,2629595663566,9816730279,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:ATEC,ATEC,"Alphatec Holdings, Inc.",Health Technology,Medical Specialties,11.37,-0.7,7.76,-31.75,1751542,0.71,1756108753,120781299,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:AXTI,AXTI,"AXT, Inc.",Electronic Technology,Electronic Production Equipment,60.88,-5.44,57.66,-5.29,2009551,0.2,3992096955,62844895,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:BNC,BNC,BNB Standard Corporation,Producer Manufacturing,Trucks/Construction/Farm Machinery,5.41,-4.08,5.18,-4.25,207146,0.13,222750528,36237808,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,8.16,-7.27,7.75,-5.02,235493,0.09,684176360,34443661,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:CDNA,CDNA,"CareDx, Inc.",Health Technology,Medical Specialties,71.52,-0.85,82.2,14.93,224163,0.18,3700031445,47090020,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:COHU,COHU,"Cohu, Inc.",Electronic Technology,Semiconductors,53.4,0.49,51.0,-4.49,289554,0.26,2527872256,45667212,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:CRDO,CRDO,Credo Technology Group Holding Ltd.,Technology Services,Information Technology Services,165.29,-4.84,156.3,-5.44,900614,0.12,31066573219,169379451,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:CRWV,CRWV,"CoreWeave, Inc. Class A",Technology Services,Packaged Software,60.74,-4.99,57.6845,-5.03,4055287,0.12,33500332368,349311034,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:CYPH,CYPH,Cypherpunk Technologies Inc.,Finance,Financial Conglomerates,3.31,2.16,3.04,-8.16,1247016,0.13,356700103,70048970,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:EXTR,EXTR,"Extreme Networks, Inc.",Electronic Technology,Computer Peripherals,23.59,-3.48,22.1298,-6.19,257487,0.15,3117906522,128062464,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:FWDI,FWDI,Forward Industries Inc.,Finance,Financial Conglomerates,6.94,-4.54,6.63,-4.47,155478,0.09,529440214,66051010,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:GDYN,GDYN,"Grid Dynamics Holdings, Inc. Class A",Technology Services,Information Technology Services,9.49,8.46,9.91,4.43,396954,0.25,769894133,62151155,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:HOOD,HOOD,"Robinhood Markets, Inc. Class A",Finance,Investment Banks/Brokers,91.59,0.17,87.6,-4.36,1401834,0.07,82305544782,760937099,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:HUT,HUT,Hut 8 Corp.,Technology Services,Data Processing Services,66.44,-4.35,63.48,-4.46,207977,0.04,8189358951,112408880,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:ICHR,ICHR,"Ichor Holdings, Ltd.",Producer Manufacturing,Industrial Machinery,42.43,-1.51,40.48,-4.6,178633,0.19,1589183099,36692831,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:ILMN,ILMN,"Illumina, Inc.",Health Technology,Medical Specialties,290.06,0.44,255.0,-12.09,277578,0.11,43799061295,150483127,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:INOD,INOD,Innodata Inc.,Technology Services,Data Processing Services,46.17,-3.11,44.22,-4.22,150679,0.11,1587447106,32722221,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:INTC,INTC,Intel Corporation,Electronic Technology,Semiconductors,92.07,-3.62,73.75,-19.9,37122335,0.35,486691724288,4546858088,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:IREN,IREN,IREN Limited,Technology Services,Data Processing Services,26.25,-8.98,25.02,-4.69,6146505,0.14,10621105150,354999818,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:JANX,JANX,"Janux Therapeutics, Inc.",Health Technology,Biotechnology,17.83,-1.22,17.0052,-4.63,116600,0.12,1090068601,57830155,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:MRAM,MRAM,"Everspin Technologies, Inc.",Electronic Technology,Semiconductors,14.43,-1.5,13.49,-6.51,114777,0.1,351370633,20649920,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:MRVL,MRVL,"Marvell Technology, Inc.",Electronic Technology,Semiconductors,218.34,-13.24,209.33,-4.13,3393682,0.15,191462346687,,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:MXL,MXL,"MaxLinear, Inc.",Electronic Technology,Semiconductors,71.61,-4.7,67.75,-5.39,266418,0.08,6516510493,85514793,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:NBIS,NBIS,Nebius Group N.V. Class A,Technology Services,Packaged Software,171.99,-5.68,161.6,-6.04,1620465,0.08,46756380068,222545208,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:NUWE,NUWE,"Nuwellis, Inc.",Health Technology,Medical Specialties,5.78,2.12,5.5,-4.84,139532,0.17,3126494,,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:OSPN,OSPN,OneSpan Inc.,Technology Services,Information Technology Services,20.15,0.35,24.01,19.16,125672,0.26,742571280,36106864,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:OUST,OUST,"Ouster, Inc.",Electronic Technology,Semiconductors,32.14,-4.37,30.5,-5.1,226935,0.07,2317690495,69213241,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:PENG,PENG,Penguin Solutions Incorporation,Electronic Technology,Semiconductors,58.79,-3.31,55.05,-6.36,227025,0.07,3541593080,57429271,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:POET,POET,POET Technologies Inc.,Producer Manufacturing,Electrical Products,5.66,-3.08,5.41,-4.42,1622431,0.15,979508815,90387900,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:PURR,PURR,"Hyperliquid Strategies, Inc",Finance,Financial Conglomerates,12.29,23.27,11.4704,-6.67,3270981,0.19,3419954009,252909653,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:REAL,REAL,"RealReal, Inc.",Retail Trade,Internet Retail,11.35,2.62,11.95,5.29,1022239,0.33,1380967261,110676565,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:RIVN,RIVN,"Rivian Automotive, Inc. Class A",Consumer Durables,Motor Vehicles,11.45,-1.89,11.97,4.54,6040562,0.22,16578004208,942870674,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,140.85,-4.16,134.6443,-4.41,465077,0.14,13144914046,92837787,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:SPSC,SPSC,"SPS Commerce, Inc.",Technology Services,Packaged Software,85.78,0.22,82.0,-4.41,161460,0.29,3088094920,35165211,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:TSEM,TSEM,Tower Semiconductor Ltd,Electronic Technology,Semiconductors,187.92,-2.89,177.93,-5.32,393366,0.2,21332239523,105657365,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:TTMI,TTMI,"TTM Technologies, Inc.",Electronic Technology,Electronic Components,87.63,-3.48,84.0,-4.14,531151,0.17,9231721511,102977172,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:TWST,TWST,Twist Bioscience Corp.,Health Technology,Biotechnology,173.45,0.0,163.81,-5.56,148987,0.07,11418633109,64007657,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:WYFI,WYFI,"WhiteFiber, Inc.",Technology Services,Data Processing Services,11.23,-5.39,10.657,-5.1,153996,0.07,508510531,10965941,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NASDAQ:XE,XE,"X-Energy, Inc. Class A",Producer Manufacturing,Industrial Machinery,11.7,1.39,11.2004,-4.27,576329,0.1,4754483164,160758138,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,222.3,-2.53,208.99,-5.99,875887,0.06,65724479879,277968433,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:BFAM,BFAM,"Bright Horizons Family Solutions, Inc.",Commercial Services,Miscellaneous Commercial Services,66.98,-3.33,64.0,-4.45,349600,0.41,3257592671,48068163,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:COHR,COHR,Coherent Corp.,Electronic Technology,Semiconductors,237.22,-0.99,222.6,-6.16,470871,0.07,46716010864,188157133,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:COUR,COUR,Coursera Inc,Commercial Services,Miscellaneous Commercial Services,4.66,-0.85,4.36,-6.44,1958539,0.31,1232103921,231222823,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:CRCL,CRCL,"Circle Internet Group, Inc. Class A",Technology Services,Packaged Software,79.99,-2.11,76.31,-4.6,1175032,0.09,20406480777,193345792,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:DELL,DELL,"Dell Technologies, Inc. Class C",Electronic Technology,Computer Processing Hardware,475.51,-3.7,438.94,-7.69,427825,0.06,302335330273,292644858,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:DOCN,DOCN,"DigitalOcean Holdings, Inc.",Technology Services,Packaged Software,99.97,-4.85,95.26,-4.71,191336,0.06,11754426986,96775042,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:DVA,DVA,DaVita Inc.,Health Services,Medical/Nursing Services,193.31,5.1,176.0,-8.95,229202,0.29,12333177360,62476086,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:DXC,DXC,DXC Technology Co.,Technology Services,Data Processing Services,15.23,-5.34,12.85,-15.63,731264,0.18,2433429419,155708150,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:FPS,FPS,"Forgent Power Solutions, Inc. Class A",Producer Manufacturing,Electrical Products,28.35,-3.14,26.7,-5.82,688913,0.07,8630559297,190822414,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,58.87,-2.42,55.93,-4.99,1344059,0.07,78147850537,1322394412,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:HPQ,HPQ,HP Inc.,Technology Services,Information Technology Services,31.83,-1.91,29.73,-6.6,2461757,0.17,28704008702,899405762,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:INGM,INGM,Ingram Micro Holding Corporation,Technology Services,Information Technology Services,28.61,0.74,30.63,7.06,440485,0.29,6581355935,65447111,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:INVX,INVX,"Innovex International, Inc.",Industrial Services,Oilfield Services/Equipment,30.0,-1.22,28.0,-6.67,182758,0.28,2098074932,51079639,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:NPKI,NPKI,NPK International Inc.,Producer Manufacturing,Building Products,11.2,-0.88,9.5,-15.18,246065,0.29,950990774,80474376,bmo
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:PINS,PINS,"Pinterest, Inc. Class A",Technology Services,Internet Software/Services,19.92,-4.78,17.55,-11.9,8448964,0.67,11280955340,483010139,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:RBLX,RBLX,Roblox Corp. Class A,Technology Services,Packaged Software,52.46,-1.54,43.13,-17.78,4214112,0.37,37476160636,633662629,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:RDDT,RDDT,"Reddit, Inc. Class A",Technology Services,Internet Software/Services,129.6,-3.79,108.5,-16.28,4723454,0.85,24934588484,141267184,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:SECZ,SECZ,Securitize Corp.,Technology Services,Packaged Software,8.43,1.2,8.04,-4.63,115432,0.04,1376329720,139353307,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:SEI,SEI,"Solaris Energy Infrastructure, Inc. Class A",Industrial Services,Oilfield Services/Equipment,69.12,0.22,72.25,4.53,321684,0.11,5541056071,56718633,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:SYK,SYK,Stryker Corporation,Health Technology,Medical Specialties,311.75,2.55,275.0,-11.79,474987,0.18,119578891655,361008934,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:TWLO,TWLO,"Twilio, Inc. Class A",Technology Services,Packaged Software,241.9,-4.68,198.12,-18.1,818505,0.3,37149847753,153027658,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:VRT,VRT,Vertiv Holdings Co. Class A,Electronic Technology,Electronic Production Equipment,245.92,1.23,234.18,-4.77,759940,0.13,94676296561,383747568,
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:WKC,WKC,World Kinect Corporation,Distribution Services,Wholesale Distributors,37.21,1.64,35.5,-4.6,160619,0.15,1903351915,49255154,amc
+2026-10-29,2026-10-29T21:37:34+00:00,false,NYSE:YOU,YOU,"Clear Secure, Inc. Class A",Technology Services,Packaged Software,46.21,1.61,43.38,-6.12,147998,0.09,6251662200,95525180,
