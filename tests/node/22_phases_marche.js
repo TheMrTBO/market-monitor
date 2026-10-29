@@ -117,6 +117,7 @@ assert(/class="phspark"/.test(hf)&&/Courbe du mq · 3 mois/.test(strip(hf))&&/63
 const l5=strip(F.$('legPhR5')._h), lm=strip(F.$('legPhRm')._h), l4=strip(F.$('legPhD4')._h);
 assert(/Seuils de la phase Contraction/.test(l5)&&/2 · reprise \(fenêtre : encore 12 séances\)/.test(l5)&&/1,5 · pré-expansion/.test(l5),'23/10 : seuils reprise (fenêtre ouverte depuis le lessivage du 20/10) et pré-expansion attendus : '+l5);
 assert(/0,3 · lessivage/.test(lm)&&!F.$('rmLog').hidden,'Ratio mois : seuil du lessivage et échelle log attendus : '+lm);
+assert(!F.$('rqLog').hidden&&F.sb.MM_CONFIG.breadth.ratio_zone_alpha<1,'Ratio trimestre en échelle log et zones des ratios allégées attendus (29/10/2026)');
 assert(/\d+ · choc \(15 % de l'univers\)/.test(l4),'détail ±4 % : seuil du choc en nombre de titres attendu : '+l4);
 A.L.dPick.change({target:{value:'2026-08-05'}});
 assert(/aucun sur ce graphique/.test(strip(A.$('legPhR5')._h))&&/fin de la reprise/.test(strip(A.$('legPhRm')._h)),'reprise : pas de seuil sur le ratio 5 j, fin de la reprise sur le ratio mois attendues');

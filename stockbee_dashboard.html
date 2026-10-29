@@ -571,7 +571,7 @@
   .phsptog { background: none; border: 0; padding: 2px 0; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; }
   .phsptog::before { content: "▾ "; } .phspark.off .phsptog::before { content: "▸ "; } .phspark.off svg, .phspark.off .cap { display: none; }
   .phspark .cap { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 11px; } .phspark .cap b { color: var(--text); font-weight: 600; }
-  .legph { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; color: var(--warn); } .legph:empty { display: none; } .legph b { font-weight: 600; }
+  .legph { display: inline-flex; flex-wrap: wrap; gap: 2px 12px; color: var(--muted); } .legph:empty { display: none; } .legph b { font-weight: 400; }
   .phsig { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: var(--upbg); color: var(--up); margin: 4px 4px 0 0; }
   .phcar { display: none; }
   .phtip .phdot, .phwhy .phdot, .phtree .phdot, #pop .phdot { width: 9px; height: 9px; margin-right: 5px; vertical-align: 0; }
@@ -1170,7 +1170,7 @@
   <div class="card hcard rcard" data-card="rq">
     <div class="chrow"><span class="grip" tabindex="0" role="button" title="Glisser pour réorganiser (ou Alt + ↑ / ↓)" aria-label="Déplacer la carte">⠿</span><button class="chead" data-key="rq" aria-expanded="true"><span class="car">▾</span><span class="ttl">Ratio ±25 % trimestre</span></button><button class="tipbtn" data-tip="rq" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="sum" id="sumRq"></span></div>
     <div class="cbody">
-      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span></div>
+      <div class="legend"><span><i class="ln" style="background:var(--text)"></i>+25 % ÷ −25 % sur un trimestre</span><span><i style="background:var(--upbg);outline:1px solid var(--up)"></i>≥ 1,5</span><span><i style="background:var(--downbg);outline:1px solid var(--down)"></i>&lt; 1</span><span class="legown" data-k="up25q" hidden title="Notre calcul à partir des clôtures Polygon / Massive, superposé aux chiffres Stockbee"><i style="background:none;border-top:2px dashed var(--text);height:0;border-radius:0"></i>calcul maison expérimental (pointillé)</span><span id="rqLog" hidden>échelle logarithmique</span></div>
       <canvas id="rtq"></canvas>
     </div>
   </div>
@@ -2044,43 +2044,47 @@
     }).filter(Boolean);
     return { o, list };
   }
-  // traits orange en pointillé, libellé court à gauche puis à droite (chevauchements) ; légende de la carte mise à jour
+  // traits orange fins en pointillé, valeur du seuil en orange sur l'axe (elle masque la graduation voisine) ; aucun libellé
+  // sur la courbe : le texte est dans la légende de la carte, en gris (29/10/2026 : l'orange ne doit pas passer devant la courbe)
   function phLineDraw(c, Y, chart, lo, hi) {
     const { o, list } = phLines(chart), { g, W } = c, col = css('--warn');
     const leg = $({ ratio5: 'legPhR5', rm: 'legPhRm', down4: 'legPhD4' }[chart]);
     if (leg) leg.innerHTML = !o ? '' : `<b>Seuils de la phase ${PHK[o.k].name} :</b>` + (list.length
-      ? list.map(x => `<span><i class="ln" style="background:none;border-top:2px dashed var(--warn);height:0"></i>${x.full}</span>`).join('')
+      ? list.map(x => `<span><i class="ln" style="background:none;border-top:1px dashed var(--warn);height:0"></i>${x.full}</span>`).join('')
       : '<span>aucun sur ce graphique</span>');
-    g.save(); g.font = '600 10.5px -apple-system, "Segoe UI", sans-serif'; g.textBaseline = 'bottom';
-    list.forEach((x, n) => {
-      if (x.v < lo || x.v > hi) return;
-      const y = Math.round(Y(x.v)) + 0.5, tw = g.measureText(x.t).width, x0 = n % 2 ? W - PAD.r - tw - 10 : PAD.l + 4;
-      g.strokeStyle = col; g.lineWidth = 1.5; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(PAD.l, y); g.lineTo(W - PAD.r, y); g.stroke();
-      g.setLineDash([]); g.fillStyle = css('--panel'); g.globalAlpha = .85; g.fillRect(x0, y - 14, tw + 6, 13); g.globalAlpha = 1;
-      g.fillStyle = col; g.textAlign = 'left'; g.fillText(x.t, x0 + 3, y - 2);
+    g.save(); g.font = '600 10.5px -apple-system, "Segoe UI", sans-serif'; g.textAlign = 'right'; g.textBaseline = 'middle';
+    const vis = list.filter(x => x.v >= lo && x.v <= hi).map(x => ({ ...x, y: Math.round(Y(x.v)) + 0.5 }));
+    g.fillStyle = css('--panel'); vis.forEach(x => g.fillRect(0, x.y - 9, PAD.l - 1, 18));   // graduations voisines masquées d'abord
+    vis.forEach(x => {
+      g.strokeStyle = col; g.lineWidth = 1; g.globalAlpha = .6; g.setLineDash([5, 4]);
+      g.beginPath(); g.moveTo(PAD.l, x.y); g.lineTo(W - PAD.r, x.y); g.stroke(); g.setLineDash([]); g.globalAlpha = 1;
+      g.fillStyle = col; g.fillText(chart === 'down4' ? nf(x.v) : phDec(x.v), PAD.l - 6, x.y); g.fillRect(PAD.l - 3, x.y - 0.5, 3, 1.5);
     });
     g.restore();
   }
 
   // graphique d'un ratio (même axe des dates que le prix) : zones au-dessus / au-dessous des seuils, records 3 mois ;
-  // Ratio mois en échelle logarithmique si [breadth] rm_log (décision du 29/10/2026 : seuil du lessivage 0,3 lisible)
+  // Ratio mois / trimestre en échelle logarithmique si [breadth] rm_log / rq_log (29/10/2026), bas de l'axe adapté aux valeurs
+  // (plancher 0,05, jamais au-dessus de 0,5 pour garder la zone < 1) ; zones allégées ([breadth] ratio_zone_alpha)
   const cvR5 = $('rt5'), cvRm = $('rtm'), cvRq = $('rtq');
   function drawRatio(cv, k, k2, thr) {
     if (!cv.clientWidth) return;
     const c = setup(cv); if (!c.n) return;
     const { g, ph, X, pw } = c, f = serFn(k), vals = T.map(f), vals2 = k2 ? T.map(serFn(k2)) : [];
     const all = vals.concat(vals2).filter(v => v != null); if (!all.length) return;
-    const log = k === 'rm' && CFG.breadth.rm_log, LO = 0.05;                                  // log : plancher (ratio nul)
-    const top = Math.max(thr[1] * 1.15, ...all) * (log ? 1.15 : 1.05), hi = top, lo = log ? LO : 0, L = v => Math.log10(Math.max(LO, v));
-    const ticks = log ? [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50].filter(t => t <= top) : niceTicks(0, top, 4).filter(t => t <= top);
+    const log = !!CFG.breadth[{ rm: 'rm_log', rq: 'rq_log' }[k]], LO = log ? Math.max(0.05, Math.min(0.5, Math.min(...all) / 1.4)) : 0;
+    const top = Math.max(thr[1] * 1.15, ...all) * (log ? 1.15 : 1.05), hi = top, lo = LO, L = v => Math.log10(Math.max(LO, v));
+    const ticks = log ? [0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50].filter(t => t <= top && t >= LO) : niceTicks(0, top, 4).filter(t => t <= top);
     const Y = log ? v => PAD.t + (L(hi) - L(Math.min(v, hi))) / (L(hi) - L(LO)) * ph : v => PAD.t + (hi - v) / hi * ph;
+    g.globalAlpha = CFG.breadth.ratio_zone_alpha;
     g.fillStyle = css('--downbg'); g.fillRect(PAD.l, Y(thr[0]), pw, Y(lo) - Y(thr[0]));         // zone sous le seuil bas
     g.fillStyle = css('--upbg'); g.fillRect(PAD.l, Y(hi), pw, Y(thr[1]) - Y(hi));               // zone au-dessus du seuil haut
+    g.globalAlpha = 1;
     grid(c, ticks, Y, v => nf(v, v % 1 ? 1 : 0)); xLabels(c);
     g.save(); g.setLineDash([4, 3]);
     for (const [t, col] of [[thr[0], '--down'], [thr[1], '--up']]) { g.strokeStyle = css(col); g.beginPath(); g.moveTo(PAD.l, Math.round(Y(t)) + .5); g.lineTo(PAD.l + pw, Math.round(Y(t)) + .5); g.stroke(); }
     g.restore();
-    if (k === 'rm') $('rmLog').hidden = !log;
+    if (k === 'rm' || k === 'rq') $(k + 'Log').hidden = !log;
     if (k === 'ratio5' || k === 'rm') phLineDraw(c, Y, k, lo, hi);
     const line = (vv, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.lineJoin = 'round'; g.beginPath(); let pen = false;
       vv.forEach((v, i) => { if (v == null) { pen = false; return; } pen ? g.lineTo(X(i), Y(v)) : g.moveTo(X(i), Y(v)); pen = true; }); g.stroke(); g.lineWidth = 1; };

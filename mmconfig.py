@@ -291,6 +291,11 @@ def check():
         wf = s_.get("separate")
         if wf and (not (WORKFLOWS / wf).exists() or s_["script"] not in (WORKFLOWS / wf).read_text()):
             errors.append(f"sources.{s_['name']} : workflow {wf} introuvable ou ne lance pas {s_['script']}")
+    br = load("display").get("breadth", {})
+    if not (all(isinstance(br.get(k), bool) for k in ("rm_log", "rq_log"))
+            and isinstance(br.get("ratio_zone_alpha"), (int, float)) and not isinstance(br.get("ratio_zone_alpha"), bool)
+            and 0 < br["ratio_zone_alpha"] <= 1):
+        errors.append("display.breadth : rm_log et rq_log booléens, ratio_zone_alpha entre 0 (exclu) et 1 attendus")
     ph = load("display").get("phases", {})
     PH_KEYS = ["contraction", "wash", "recovery", "exp_c", "exp_b", "exp_a", "hot", "overheat", "shock"]
     num = lambda k: isinstance(ph.get(k), (int, float)) and not isinstance(ph.get(k), bool)
