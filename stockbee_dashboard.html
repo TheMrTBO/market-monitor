@@ -1295,7 +1295,7 @@
   // rows : [{ d, down4, univ, up25q, up25m, down25m, ratio5, t2108, src }] triées ; P : paramètres
   function phaseSeries(rows, P) {
     const out = [];
-    let base = 'contraction', up = 0, dn = 0, ext = false, lastChoc = -1e9, lastWash = -1e9, rep = false;
+    let base = 'contraction', up = 0, dn = 0, ext = false, lastChoc = -1e9, lastWash = -1e9, rep = false, prevWash = false;
     rows.forEach((r, i) => {
       if (r.down4 / r.univ >= P.choc_pct) lastChoc = i;
       let mq = null;                                            // indéfini sur les mq_lag premières séances (amorçage)
@@ -1309,6 +1309,10 @@
       const hot = r5 > P.hot_r5 || t21 > P.hot_t2108;                            // surchauffe : sans hystérésis (décision du 26/10/2026)
       const rm = r.down25m > 0 ? r.up25m / r.down25m : Infinity, wash = rm < P.wash_rm;
       if (wash) lastWash = i;
+      // nouveau lessivage (ratio mois qui repasse sous wash_rm) pendant une reprise : fin de la reprise (décision du 29/10/2026) ;
+      // un lessivage déjà en cours au déclenchement ne la coupe pas (le ratio mois reste bas des semaines après un krach)
+      if (rep && wash && !prevWash) rep = false;
+      prevWash = wash;
       if (r5 >= P.rep_r5 && i - lastWash <= P.rep_window) rep = true;            // ratio 5 j (note du 26/10/2026)
       const choc = i - lastChoc < P.choc_sessions;
       if (base === 'expansion' || choc) rep = false;
@@ -1398,7 +1402,7 @@
         else st.push(info(`<b>Note A / B / C</b> : ratio mois ${phR(o.rm)} (A à ${phDec(P.grade_a_rm)} ou plus, B de ${phDec(P.grade_b_rm)} à ${phDec(P.grade_a_rm)}, C en dessous de ${phDec(P.grade_b_rm)})`));
       } else {
         const w = o.sinceWash > 1e6 ? 'aucun lessivage' : o.sinceWash === 0 ? "lessivage aujourd'hui" : `dernier lessivage il y a ${o.sinceWash} séance${o.sinceWash > 1 ? 's' : ''}`;
-        st.push(yes(o.rep, `<b>Reprise</b> ? ratio 5 jours ${phR(o.r5)} (seuil ${phDec(P.rep_r5)}), ${w} (fenêtre de ${P.rep_window} séances ; une reprise déclenchée dure jusqu'à l'expansion ou un choc)`));
+        st.push(yes(o.rep, `<b>Reprise</b> ? ratio 5 jours ${phR(o.r5)} (seuil ${phDec(P.rep_r5)}), ${w} (fenêtre de ${P.rep_window} séances ; une reprise déclenchée dure jusqu'à l'expansion, un choc ou un nouveau lessivage)`));
         if (!o.rep) st.push(yes(o.wash, `<b>Lessivage</b> ? ratio mois ${phR(o.rm)} (sous ${phDec(P.wash_rm)})`));
       }
     }

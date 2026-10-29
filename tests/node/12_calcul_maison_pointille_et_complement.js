@@ -31,7 +31,7 @@ const strip=h=>String(h||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
 const ownJs=fs.readFileSync('breadth_data.js','utf8');
 const own=JSON.parse(ownJs.slice(ownJs.indexOf('=')+1).trim().replace(/;$/,''));
 assert(own.rows.length>=10,'breadth_data.js : au moins 10 séances');
-assert.deepStrictEqual(own.columns,['date','up4','down4','ratio5','ratio10','up25m','down25m','up25q','down25q','t2108']);
+assert.deepStrictEqual(own.columns,['date','up4','down4','ratio5','ratio10','up25m','down25m','up25q','down25q','t2108','n','provisional']);   // breadth_own.py COLUMNS
 
 // 1. sans le fichier : aucune surimpression et pas d'exception (comportement d'avant)
 const base=boot(null);
