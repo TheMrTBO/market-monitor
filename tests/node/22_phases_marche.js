@@ -37,7 +37,9 @@ const name=k=>PH.phase.find(p=>p.key===k).name;
 // 1. cas de test de la spec (CSV complet, paramètres par défaut)
 const CASES={'2020-03-12':'shock','2020-03-23':'shock','2021-05-26':'recovery','2022-06-16':'shock','2025-04-04':'shock','2025-05-13':'overheat',
   '2025-06-02':'hot','2025-06-13':'exp_b','2025-08-22':'contraction','2025-09-09':'exp_a','2025-09-19':'hot','2025-10-10':'shock',
-  '2026-02-04':'exp_c','2026-02-27':'contraction','2026-06-05':'shock','2026-10-16':'wash','2026-10-23':'contraction'};
+  '2026-02-04':'exp_c','2026-02-27':'contraction','2026-06-05':'shock','2026-10-16':'wash','2026-10-23':'contraction',
+  // fin de la reprise sur un nouveau lessivage (décision du 29/10/2026) ; un lessivage en cours au déclenchement ne la coupe pas
+  '2021-04-09':'recovery','2021-04-12':'wash','2021-04-26':'recovery','2021-05-13':'wash','2025-04-14':'recovery'};
 const SBJ=fs.readFileSync('stockbee_data.js','utf8'), LAST=JSON.parse(SBJ.slice(SBJ.indexOf('=')+1).trim().replace(/;$/,'')).rows.map(r=>r[0]).sort().pop();
 const SBONLY='window.BREADTH_OWN.rows=[];';
 const A=boot(SBONLY);

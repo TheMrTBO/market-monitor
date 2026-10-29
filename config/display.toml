@@ -208,9 +208,9 @@ rule = "en contraction, ratio mois (actions à +25 % ÷ actions à −25 % sur u
 key = "recovery"
 name = "Reprise"
 color = "#3fbf74"
-setups = "EP"
-detail = "préparer la liste des leaders"
-rule = "en contraction, ratio 5 jours (hausses ÷ baisses de 4 % sur 5 séances) à {rep_r5} ou plus dans les {rep_window} séances après un lessivage ; dure jusqu'à l'expansion ou un choc"
+setups = "EP + Breakouts A+"
+detail = "breakouts A+ des leaders sur un setup excellent · préparer la liste des leaders"   # breakouts A+ : décision du 29/10/2026
+rule = "en contraction, ratio 5 jours (hausses ÷ baisses de 4 % sur 5 séances) à {rep_r5} ou plus dans les {rep_window} séances après un lessivage ; dure jusqu'à l'expansion, un choc ou un nouveau lessivage (ratio mois qui repasse sous {wash_rm})"
 
 [[phases.phase]]
 key = "exp_c"

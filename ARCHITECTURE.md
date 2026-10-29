@@ -182,7 +182,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   reprise > lessivage > contraction ; état de fond expansion / contraction après `confirm` clôtures de mq de l'autre côté de 1.
   Surchauffe **sans hystérésis** (décision du 26/10/2026 : mesure faite, gardée pour plus tard). **Reprise sur le ratio 5 j**
   ≥ `rep_r5` dans les `rep_window` séances après un lessivage (note du 26/10/2026 : le ratio 10 j de Stockbee n'avait jamais été
-  testé ; 21 épisodes au lieu de 5 depuis 2019, reprise ≈ 9,5 % des séances au lieu de 2 %). **mq sur 20 séances = réglage
+  testé ; 21 épisodes au lieu de 5 depuis 2019, reprise ≈ 9,5 % des séances au lieu de 2 %). **Fin de la reprise** à l'expansion, au choc ou à un **nouveau lessivage** (ratio mois qui repasse sous `wash_rm` pendant la reprise ; un lessivage déjà en cours au déclenchement ne la coupe pas, le ratio mois restant bas des semaines après un krach). Décision du 29/10/2026 : le lessivage n'est pas un feu vert, la reprise l'est sur un setup excellent (setups « EP + Breakouts A+ ») ; mesure Stockbee 2018-2026 : 25 épisodes au lieu de 22, 7,6 % des séances au lieu de 9,5 %, plus long 18 séances au lieu de 44 (avril-juin 2021 coupé par les lessivages des 12/04 et 13/05) ; avril 2025 gardé (11/04 → 24/04). **mq sur 20 séances = réglage
   fragile** (choisi sur le journal, valable entre 15 et 20 séances : `mq_lag_valid`, vérifié par `--check`, écrit dans la bulle) ;
   suivi vers le 26/04/2027 sur les seuls trades nouveaux (journal hors dépôt). **Bandeau** au-dessus des
   cases (`renderPhase`, suit « Stats du » et le survol comme les cases), trois colonnes : phase (séances dans la phase,
