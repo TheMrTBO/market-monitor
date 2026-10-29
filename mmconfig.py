@@ -311,14 +311,14 @@ def check():
             and ph["mq_lag_valid"][0] <= ph["mq_lag"] <= ph["mq_lag_valid"][1]
             and sorted(x.get("key") for x in ph.get("signal", [])) == sorted(["pre", "pullback", "sell_high", "sell_low", "rm_high"])
             and all(x.get("name") and x.get("tip") for x in ph["signal"])
-            and pos_int("mq_spark")
+            and pos_int("mq_spark") and isinstance(ph.get("mq_spark_label"), str) and ph["mq_spark_label"]
             and set(ph.get("lines", {})) <= set(PH_KEYS)
             and all(isinstance(e, list) and len(e) == 3 and e[0] in ("ratio5", "rm", "down4") and num(e[1])
                     and isinstance(e[2], str) and e[2] for v in ph.get("lines", {}).values() for e in v)):
         errors.append("display.phases : seuils numériques (ext_off ≤ ext_on ≤ hot, 0 < grade_b_rm ≤ grade_a_rm, 0 < choc_pct < 1), "
                       "séances entières > 0, mq_lag dans mq_lag_valid = [min, max] (réglage fragile), pullback_r5 = [bas, haut], une [[phases.phase]] par phase (" + ", ".join(PH_KEYS) +
                       ") avec name, color #rrggbb, setups, detail (texte, vide permis), rule, setups_label, et une [[phases.signal]] par signal (pre, pullback, sell_high, "
-                      "sell_low, rm_high) avec name et tip, mq_spark entier > 0, [phases.lines] : phases connues, entrées [ratio5 | rm | down4, "
+                      "sell_low, rm_high) avec name et tip, mq_spark entier > 0 et mq_spark_label, [phases.lines] : phases connues, entrées [ratio5 | rm | down4, "
                       "seuil numérique de [phases], libellé] attendus")
     site = load("storage").get("site", {})
     listed = set(site.get("required", [])) | set(site.get("optional", [])) | {d + "/" for d in site.get("dirs", [])}
