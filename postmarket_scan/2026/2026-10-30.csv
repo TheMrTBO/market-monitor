@@ -1,0 +1,6 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-10-30,2026-10-30T20:22:40+00:00,false,NASDAQ:ASPE,ASPE,"Aspen Neuroscience, Inc.",Health Technology,Biotechnology,14.89,,14.18,-4.77,182890,,,,
+2026-10-30,2026-10-30T20:22:40+00:00,false,NASDAQ:BRKR,BRKR,Bruker Corporation,Health Technology,Medical Specialties,57.07,-7.95,60.59,6.17,315998,0.14,8695146048,110996578,
+2026-10-30,2026-10-30T20:22:40+00:00,false,NASDAQ:BTSG,BTSG,"BrightSpring Health Services, Inc.",Health Services,Medical/Nursing Services,66.89,11.08,63.88,-4.5,617812,0.2,13235138431,167914915,bmo
+2026-10-30,2026-10-30T20:22:40+00:00,false,NASDAQ:CLBK,CLBK,Columbia Financial Inc,Finance,Savings Banks,11.04,2.89,10.55,-4.44,652913,0.13,2975778169,263669727,
+2026-10-30,2026-10-30T20:22:40+00:00,false,NASDAQ:VRDN,VRDN,"Viridian Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,24.67,-0.52,26.0,5.39,233015,0.12,2794920136,106358756,
