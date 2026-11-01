@@ -18,6 +18,16 @@ source_labels = { sb = "Stockbee", own = "maison", tv = "TradingView" }   # éti
 [vix]
 refs = [20, 30]            # lignes de repère du graphique VIX
 
+[chart_nine]
+# Bougies 9M sur tous les graphiques de prix (demande du 01/11/2026) : seuils du scan 9M (config/sources.toml [tv_breadth.breakouts]),
+# couleur --c9m (cyan) du thème des graphiques ; ▲ sous la bougie : plein = bougie forte, creux = bougie faible
+shown = true
+label = "9M"
+strong_label = "bougie forte"
+tip = "Bougie 9M : même règle que le scan 9M de l'onglet Secteurs (hausse ≥ {pct} % sur la veille, volume > {vol} M et > celui de la veille, clôture > {price} $). ▲ plein : bougie forte (clôture dans le haut de la bougie, range ≥ ADR et > celui de la veille) ; ▲ creux : bougie faible."
+legend = "Bougie cyan = 9M · ▲ plein = bougie forte, ▲ creux = bougie faible"
+skip = ["BTC"]                # graphiques sans marque 9M (onglet QQQ · IWM · BTC) : volumes du bitcoin non comparables au scan
+
 [colors]
 # Base 100 de l'onglet SA (ni bleu ni rouge, réservés aux hausses / baisses), validées sur fond noir
 base100 = { QQQ = "#199e70", IWM = "#d95926", BTC = "#9085e9" }
@@ -35,16 +45,138 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 # ind : industries au TI65 > 1 · sec : secteurs au TI65 > 1 · rot : rotation (industries qui passent au-dessus / en dessous
 # de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
-tiles = ["sec", "ind", "rot", "rr", "stk", "th"]   # secteurs d'abord, puis industries (demande du 20/10/2026) ;
-# th : thèmes chauds (config/themes.toml), ajoutée le 27/10/2026 (refonte de l'onglet, mêmes visuels que les autres cases)
+tiles = ["ind", "rot", "bo9", "t9"]   # audit du 31/10/2026 : 6 → 4 cases (avant : "sec", "ind", "rot", "rr", "stk", "th") ;
+tiles_text = { bo9 = "9M à regarder", bo9_none = "pas de repères pour cette séance", bo9_ext = ["étendu", "étendus"], bo9_kw = "bougie forte", bo9_own = "actions retenues, calcul maison", t9 = "Thèmes 9M", t9_none = "pas de liste 9M", t9_loading = "chargement…", t9_sub = "dont {n} {r}", t9_kw = "{k} titres et {p} % en {w} s" }   # cases 9M (01/11/2026)
+# secteurs, actions TI65 > 1 : même mesure que les industries ; ratio de rotation : mêmes entrées / sorties que « rot » ; thèmes
+# chauds : « chaud » seul sans avance mesurée. bo9 : 9M à regarder (bougie forte pas étendue) ; t9 : Thèmes 9M (sectors.actifs nine_*)
+# th (thèmes chauds de config/themes.toml, 27/10/2026), sec, rr, stk : toujours disponibles en les remettant dans la liste
 rotation_window = 5           # « Rotation » : entrées / sorties au-dessus de 1 comptées sur ce nombre de séances
 # rr : ratio de rotation = entrées ÷ sorties de chaque séance, cumulées sur rotation_ratio_sessions séances, lu comme « Ratio 5 j »
 # du MM ; dessous : les deux totaux (entrées / sorties). Plus de fenêtre 10 j (demande du 20/10/2026 : ratio 10 j non utilisé).
 rotation_ratio_sessions = 5
 rotation_ratio = [1, 1.5]     # couleur : rouge sous 1 (plus de sorties que d'entrées), bleue à partir de 1,5, grise entre
-record_sessions = 63          # « plus haut / plus bas 3 mois » et jauge 3M : fenêtre en séances (comme le MM)
+record_sessions = 252         # cases de l'onglet Secteurs : jauge et « plus haut / plus bas » sur cette fenêtre (01/11/2026 : 12 mois)
+record_label = "12M"           # étiquette de la jauge
+record_text = "12 mois"         # « ▲ Plus haut 12 mois »
 breadth_mid = 50              # cases « … TI65 > 1 » : bleu à partir de ce pourcentage, rouge en dessous ; pointillé des mini-courbes
 benchmark = "IWM"             # repère mesuré du ratio de rotation (bulle ⓘ) : variation de cet instrument (prices_data.js) après chaque séance
+
+[sectors.map]
+# Carte des thèmes (31/10/2026, à la place de la carte de rotation retirée : zones sans avance, tests 13-14) : chaque industrie
+# placée par sa tendance (x = rang TI65 parmi les industries, 0-100) et sa demande actuelle (y = part de ses actions retenues en
+# 9M sur [sectors.actifs] nine_window séances) ; taille = leaders ; couleur = état (neuf, chaud, 9M fort). Zones mesurées hors
+# dépôt sur 2008-2025 (règles du site rejouées, yfinance) : indice de l'industrie sur 21 séances moins la moyenne des
+# industries, à élan 10 j et tendance 63 j égaux. 9M fort = [sectors.actifs] nine_min titres et nine_share %.
+shown = true
+label = "Carte des thèmes"
+x_hot = 80                    # trait vertical : rang TI65 à partir duquel une industrie peut être « chaude » (top 20 %)
+y_max = 100                   # haut de l'axe des 9M (en %) : toutes les parts possibles
+trail = 5                     # traînée : séances montrées (la séance affichée comprise), sur les points 9M fort ou neufs et sur le point choisi
+y_scale = "log"               # axe des 9M : "log" (log(1 + part / y_log_k) : log au-delà de quelques %, garde 0 %), "sqrt" ou "linear"
+y_log_k = 5                   # log : part (en %) où l'échelle passe de quasi linéaire à logarithmique
+y_ticks = [0, 5, 10, 20, 35, 50, 100]   # graduations de l'axe des 9M (en %)
+x_title = "Tendance : rang TI65 parmi les industries"
+y_title = "% des actions en 9M (10 s)"
+read_hint = "Ce n'est pas un graphique dans le temps : → la tendance de l'industrie se renforce face aux autres, ← elle faiblit · ↑ plus de ses actions en breakout 9M, ↓ moins. La flèche montre d'où vient le point sur les dernières séances."
+time_sessions = 252           # tableau par zone : séances des courbes de la part en 9M (≈ 12 mois, demande du 01/11/2026)
+time_label = "12 mois"          # durée des courbes en clair (légende du tableau)
+side_share = 58               # côte à côte : part de la largeur pour la carte (%, flex-grow)
+map_min = 540                 # largeur minimale de la carte (px, flex-basis) ; carte + tableau plus larges que le bloc : l'un sous l'autre
+zone_min = 380                # largeur minimale du tableau par zone (px)
+grow_max = 420                # côte à côte : hauteur ajoutée au plus à la carte (px) pour finir à la hauteur du tableau
+zones = { reveil = "Réveil", lasting = "Thème qui dure", trend = "Tendance seule", calm = "Calme" }
+zone_notes = { reveil = "+1,8 % sur 21 s · 11 ans / 18 (13 / 18 à 42 s)", lasting = "+0,7 % sur 21 s · 9 ans / 18, instable", trend = "−0,02 %", calm = "−0,03 %" }
+# notes vérifiées le 01/11/2026 avec les définitions du site (actions retenues ≥ 3 $, volume moyen ≥ 100 000 ; règle « chaud » du site) :
+# cache/analyse_scans/verif_site.txt. Avec toutes les actions liquides (tests d'origine), Réveil faisait +1,6 %, 14 années sur 18.
+tip = "Chaque point est une industrie (actions retenues de l'onglet). À droite : tendance forte (rang TI65 face aux autres industries) ; en haut : beaucoup de ses actions en breakout 9M ces 10 dernières séances. Tests 2008-2025 avec les définitions du site : la zone Réveil (9M fort sans être chaude) a fait le mieux, +1,8 % sur 21 séances contre les autres industries, mais seulement 11 années sur 18 (13 sur 18 à 42 séances) ; « chaud » sans 9M n'a rien apporté. À côté, le tableau reprend les industries qui comptent, avec leurs actions en 9M."
+
+[sectors.map.board]
+# Tableau par zone (01/11/2026), à côté de la carte : une ligne par industrie Réveil, thème qui dure ou neuve (pastilles = membres,
+# remplies si en 9M ; courbe de la part en 9M ; titres en 9M, ▲ = bougie forte), puis les autres industries à 9M ≥ 2 titres.
+label = "Thèmes par zone"      # titre du composant (à côté de la carte)
+copy_tip = "Copier tous les titres en 9M du tableau (tickers séparés par des virgules)"
+copy_zone_tip = "Copier les titres en 9M de la zone {z}"
+neuf_label = "Neuf"
+notes = { neuf = "avec 9M +1,0 % sur 21 s, sans +0,3 %", other = "≥ 2 titres, +0,5 % sur 21 s · 16 ans / 18" }   # verif_site.txt (01/11/2026)
+other_label = "9M actif ailleurs"
+other_max = 8                 # industries montrées avant « + N autres »
+dots_max = 30                 # pastilles (une par membre) jusqu'à ce nombre de membres ; au-delà, le compte seul
+basket = "panier {k}"         # ≥ 2 de ses titres 9M dans un panier de config/themes.toml
+same_day = "⚠ les {n} le même jour"
+lift_label = "{x}× le marché"       # concentration : part des membres en 9M ÷ part de toutes les actions retenues en 9M (01/11/2026)
+lift_short = "{x}×"
+lift_hi = 2                   # à partir de ce multiple, la concentration est mise en avant (≥ 3 titres et ≥ 2× ≈ règle des 20 %, verif_sousgroupes)
+lift_tip = "Concentration : {p} % des membres en 9M contre {b} % de toutes les actions retenues. Un gros groupe actif l'est souvent par sa taille (Packaged Software) ; une forte concentration signale une demande propre au groupe. Tests 2008-2025 (verif_sousgroupes) : ≥ 3 titres et ≥ 2× le marché ≈ la règle des 20 % (+0,8 % sur 21 s, 14 ans / 18) ; une information, pas une nouvelle règle."
+age_label = "grappe depuis {n} s"   # séances consécutives avec au moins [sectors.actifs] nine_min titres en 9M sur nine_window séances
+age_buckets = [5, 20, 60]     # bornes des tranches d'âge (séances) des notes ci-dessous
+age_notes = ["1-5 s : +0,45 % sur 21 s · 11 ans / 18", "6-20 s : +0,84 % · 12 / 18", "21-60 s : +0,97 % · 8 / 14", "plus de 60 s : +0,74 % · 3 / 8"]
+age_tip = "Âge de la grappe : séances consécutives avec au moins {k} titres en 9M sur {w} séances. Tests 2008-2025 (actions retenues du site, verif_age.txt), indice de l'industrie sur 21 séances contre les autres à élan égal : {notes}. L'avance moyenne grandit après 5 séances, pas la régularité : une information, pas une règle."
+low_rank = 40                 # zone Réveil : rang TI65 sous ce seuil = industrie délaissée, en tête de la zone avec l'étiquette (01/11/2026)
+low_label = "délaissée"
+low_tip = "Industrie délaissée (rang TI65 sous {r}) dont plusieurs titres sortent en 9M : le meilleur cas de la zone Réveil. Tests 2008-2025 (actions retenues du site, verif_reveil_rang.txt), indice de l'industrie sur 21 séances contre les autres à élan égal : rang sous 40 +2,8 % (12 ans / 18, médiane +2,4 %, +5,0 % à 42 s) ; rang 60 et plus +0,7 % (10 ans / 18). Même résultat à volatilité égale ; le sens du rang (monte ou baisse) n'apporte rien. La zone reste irrégulière : une information pour l'ordre de lecture, pas une règle."
+same_day_tip = "Tous ses titres 9M sont partis la même séance : souvent une nouvelle commune (rachat, résultats, réglementation) plutôt qu'un thème qui s'installe. Non testé à part."
+legend = "● = un membre, rempli s'il est en 9M sur {w} séances · courbe = part en 9M sur {d}, pointillé {s} % · ▲ bougie forte · toucher une ligne : son point sur la carte"
+empty = "Aucune industrie en zone Réveil, thème qui dure ou neuve, ni avec 2 titres en 9M, à cette séance."
+
+# Ordre des zones du tableau selon la phase de marché de la séance (01/11/2026). Tests hors dépôt, phases du site 2019-2025
+# (7 ans seulement ; cache/analyse_scans/verif_zones_phases.txt) : en Expansion, « Thème qui dure » fait le mieux et la Réveil
+# délaissée ne tient pas en Expansion A-B-C ; ailleurs (Choc, Lessivage, Reprise, Surchauffe, Contraction), la Réveil délaissée
+# fait le mieux et « Thème qui dure » ≈ 0 ou négatif. Chaque phase de [[phases.phase]] doit figurer dans une seule règle.
+# order = zones dans l'ordre (rev = Réveil, both = Thème qui dure, neuf) ; low = délaissées en tête de Réveil avec l'étiquette.
+# Phase inconnue (séance pas encore calculée) : default_order et étiquette « délaissée ».
+default_order = ["rev", "both", "neuf"]
+phase_label = "Phase {p} : {z} d'abord"   # ligne en tête du tableau ({p} = phase, {z} = première zone)
+[[sectors.map.board.phase_rule]]
+phases = ["exp_a", "exp_b", "exp_c"]
+order = ["both", "rev", "neuf"]
+low = false
+tip = "En Expansion A, B ou C (tests 2019-2025, écart de l'industrie sur 21 séances à élan égal) : Thème qui dure +4,1 % (6 ans / 7) ; Réveil au rang TI65 40 ou plus +4,0 % (4 / 7) ; Réveil délaissée +0,4 % seulement (3 / 7), donc sans étiquette. Bougie forte + 9M la plus forte dans ces phases : un titre sur trois à +25 % en 21 séances."
+[[sectors.map.board.phase_rule]]
+phases = ["hot"]
+order = ["both", "rev", "neuf"]
+low = true
+tip = "En Expansion chaude (tests 2019-2025, écart de l'industrie sur 21 séances à élan égal) : Thème qui dure +4,6 % (5 ans / 7) ; puis Réveil délaissée +3,6 % (4 / 7)."
+[[sectors.map.board.phase_rule]]
+phases = ["shock", "wash", "recovery", "overheat", "contraction"]
+order = ["rev", "both", "neuf"]
+low = true
+tip = "En Choc, Lessivage, Reprise, Surchauffe ou Contraction (tests 2019-2025, écart de l'industrie sur 21 séances à élan égal) : Réveil délaissée +4,7 à +5,4 % (5 à 6 ans / 7 sauf Reprise 4 / 6) ; Thème qui dure ≈ 0 ou négatif (Contraction −0,9 %, 1 an / 6 ; Surchauffe −0,5 %)."
+
+[sectors.map.text]
+# Libellés de la carte et du tableau par zone (01/11/2026, audit « sans valeur en dur ») ; {x} = valeur remplie par la page,
+# paires [singulier, pluriel]
+legend = { reveil = "{z} : 9M fort, pas chaud", lasting = "chaud + 9M fort", neuf = "neuf", hot = "chaud, peu de 9M", read = "trait et flèche = {n} dernières séances · taille = leaders · toucher un point ou une ligne : son évolution" }
+notes_title = "Tests 2008-2025, 21 séances après :"
+no_list = "Pas de liste 9M sur les {w} séances avant cette séance."
+loading = "Chargement de l'index des tickers…"
+state = { neuf = "neuf", hot = "chaud" }
+nine_some = "{n} en 9M ({p} %)"
+nine_none = "aucun titre en 9M"
+point_tip = "{k} · rang {ti} {r} / 100 · {m} · {l}{s} · toucher : son évolution"
+rank = "rang {ti} {r}"
+over = ["sur {n} séance", "sur {n} séances"]
+go_leaders = "Ses leaders ›"
+go_actions = "Ses actions ›"
+close = "Fermer"
+leader = ["leader", "leaders"]
+titre = ["titre", "titres"]
+industrie = ["industrie", "industries"]
+titre_9m = ["titre en 9M", "titres en 9M"]
+row_tip = "{k} : {n} titres sur {m} en 9M ({p} %) · toucher : son point sur la carte"
+row_tip_none = "{k} : aucun titre en 9M sur {m} · toucher : son point sur la carte"
+chip_tip = "{s} : son graphique"
+copy = "Copier"
+
+[ticker_popup]
+# Fenêtre graphique d'un ticker (01/11/2026) : titres du tableau par zone et du bloc 9M
+range = "1A"                  # préréglage à l'ouverture (3M, 6M, YTD, 1A, 2A, 5A, Tout)
+loading = "chargement…"
+no_index = "index des tickers indisponible"
+not_found = "pas dans l'index des tickers"
+no_chart = "pas de graphique pour ce titre"
+fiche = "Fiche ›"
+fiche_tip = "Ouvrir la fiche complète dans l'onglet Tickers"
+close = "Fermer"
 
 [sectors.rrg]
 # carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :
@@ -91,15 +223,24 @@ old_sessions = 42             # « s'essouffle » (information, pas une règle d
 list_limit = 30               # Leaders actifs : lignes affichées avant « + N autres » (tri par gain sur 21 séances : test 11)
 high_sessions = 20            # colonne « / plus haut » : écart au plus haut de ce nombre de séances (0 = au plus haut : encore en base ou déjà parti)
 alert_phases = ["wash", "shock"]   # alerte « phase avec groupes chauds » : clés de [[phases.phase]] (test 9 : seul signal net)
-pioneer_gain_pct = 50         # pionnier : leader à +50 % ou plus sur 21 séances, devenu leader depuis au plus pioneer_window séances
-pioneer_window = 10           # (et pas leader dans les fresh_sessions d'avant), son industrie ni chaude ni en grappe (test 8)
-chauds_shown = 6              # groupes chauds affichés (ceux qui ont le plus de leaders) avant « + N autres » (retour UX du 27/10/2026)
+# pionniers retirés le 31/10/2026 (audit de l'onglet : pas d'avance moyenne mesurée, test 8)
+chauds_shown = 6              # groupes chauds affichés avant « + N autres » : d'abord ceux qui ont le plus de titres en 9M, puis de leaders
+# 9M par groupe (31/10/2026, tests hors dépôt 2008-2025 : neuf avec 9M +1,28 % sur 21 séances contre +0,07 % sans ; chaud avec
+# 9M +0,56 % contre −0,10 % ; « Réveil », 9M fort sans être chaud, +1,61 %, 14 années sur 18) : titres du groupe (actions retenues)
+# présents dans les listes 9M des nine_window dernières séances, rapportés aux membres du groupe. Les tests comptaient les membres
+# liquides (clôture ≥ 1 $, volume en dollars ≥ 5 M$) : ici les actions retenues de l'onglet (≥ 3 $, 300 M$) ; écart non mesuré.
+nine_window = 10              # séances de listes 9M comptées
+nine_min = 3                  # « 9M fort » : au moins nine_min titres en 9M…
+nine_share = 20               # …et au moins nine_share % des membres du groupe
+nine_intense = 35             # repère « intense » (+1,9 % sur 21 séances dans les tests)
+nine_tip = "Tests 2008-2025 avec les définitions du site (verif_site.txt) : neuf avec au moins 2 titres en 9M +1,0 % sur 21 séances contre les autres industries, sans 9M +0,3 % ; chaud avec 9M +0,5 %, sans −0,1 % ; 9M hors chaud et neuf +0,5 %, 16 années sur 18."
+reveil_label = "Réveil"
+reveil_tip = "9M fort (au moins 3 titres et 20 % du groupe en breakout 9M sur 10 séances) sans que le groupe soit chaud ni neuf : la demande arrive avant la tendance. Tests 2008-2025 avec les définitions du site : +1,8 % sur 21 séances contre les autres industries, 11 années sur 18 (13 sur 18 à 42 séances)."
 trend_sessions = 5            # ligne « Sur N s » : groupes chauds, neufs et leaders comparés à N séances avant (voir à temps qu'il faut lever le pied)
 label = "Groupes actifs"
 leaders_label = "Leaders actifs"
 alert_text = "Repère 2019-2026 : le premier jour de lessivage ou de choc, les thèmes chauds n'ont battu le marché que 28 à 41 % du temps sur les 42 séances suivantes."
 neuf_tip = "Grappe de leaders (au moins 3 actions à +25 % sur 21 séances, 2 fois plus que le marché) ou moitié d'un panier de thème leader, sans signal dans les 42 séances d'avant. Signal le plus solide des tests (53 % devant le marché à 42 séances sur 2019-2026) : il dit où et quand, pas si le thème va marcher."
-pioneer_tip = "Action seule à +50 % sur 21 séances, partie depuis au plus 10 séances, dans une industrie ni chaude ni en grappe : amorce de thème à valider (environ 2 par mois ; en moyenne, pas d'avance mesurée, seulement plus de très gros mouvements : test 8)."
 # familles refuges (étiquette sur les groupes et les tickers) : pas de liste fixe qui tienne d'une contraction à l'autre (test 12)
 refuges = { "Énergie" = ["Integrated Oil", "Oil & Gas Production", "Oil Refining/Marketing", "Oilfield Services/Equipment", "Contract Drilling", "Oil & Gas Pipelines", "Coal", "Marine Shipping"], "Métaux" = ["Precious Metals", "Other Metals/Minerals", "Steel", "Aluminum"], "Services publics" = ["Electric Utilities", "Gas Distributors", "Water Utilities", "Alternative Power Generation"], "Conso. de base" = ["Food: Major Diversified", "Food: Specialty/Candy", "Food: Meat/Fish/Dairy", "Beverages: Non-Alcoholic", "Beverages: Alcoholic", "Household/Personal Care", "Tobacco", "Food Retail", "Discount Stores", "Food Distributors"], "Santé défensive" = ["Pharmaceuticals: Major", "Managed Health Care", "Medical Distributors", "Hospital/Nursing Management"], "Assurance" = ["Property/Casualty Insurance", "Multi-Line Insurance", "Life/Health Insurance", "Specialty Insurance", "Insurance Brokers/Services"], "Défense" = ["Aerospace & Defense"] }
 
@@ -116,8 +257,9 @@ step = 0.5                    # pas du champ du filtre
 name = "TI65"
 short = 7
 long = 65
-spark = 63                 # séances de la miniature du TI65 dans les tableaux de l'onglet Secteurs (63 ≈ 3 mois)
-spark_label = "3 mois"     # en-tête de la colonne de la miniature
+spark = 252                # séances des mini-courbes du TI65 (tableaux, cases de l'onglet Secteurs) : 252 ≈ 12 mois (demande du 01/11/2026 ;
+                           # le TI65 demande 65 séances de recul : industries.output.sessions ≥ 252 + 64)
+spark_label = "12 mois"     # en-tête de la colonne de la miniature
 delta = 5                  # colonne Δ : variation du rang sur `delta` séances
 breadth_ref = 50           # carte « % des actions avec un TI65 > 1 » : ligne de repère (en %)
 
@@ -166,8 +308,8 @@ pullback_phases = ["exp_a", "exp_b", "exp_c"]
 record_sessions = 63       # records 3 mois : au-delà du plus haut / plus bas des 63 séances précédentes
 alert_gap = 10             # une alerte = premier jour d'une série : pas de nouvelle alerte dans les 10 séances suivantes
 setups_label = "Setups recommandés (EP = Episodic Pivot)"   # en-tête de la colonne des setups du bandeau
-mq_spark = 63              # mini-courbe du momentum trimestre (mq) dans le bandeau : N dernières séances (29/10/2026 : 3 mois),
-mq_spark_label = "3 mois"  # …et sa durée en clair ; masquable d'un clic (mémorisé : mm.mqspark)
+mq_spark = 252             # mini-courbe du momentum trimestre (mq) dans le bandeau : N dernières séances (01/11/2026 : 12 mois),
+mq_spark_label = "12 mois"  # …et sa durée en clair ; masquable d'un clic (mémorisé : mm.mqspark)
 
 [phases.lines]
 # Seuils tracés en orange sur les graphiques selon la phase de la séance affichée (« Stats du », sinon la dernière séance) :

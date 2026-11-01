@@ -92,6 +92,38 @@ check("% > 1 : 1 titre sur 3 (AAA monte, BBB baisse, CCC stable)", abs(b[-1] - 3
 
 payload, files = fi.compute(dates, close, vol, members, keep=70, ohlc=ohlc)
 inds = {i["k"]: i for i in payload["industries"]}
+# 9M par séance (31/10/2026) : scan de [tv_breadth.breakouts] sur les actions retenues, depuis le cache (ajusté des splits)
+bo = {"pct": 4, "min_volume": 8_900_000, "volume_up": True, "min_price": 0.8, "extended_pct": 20}
+c9 = {m["s"]: [10.0] * n for m in members}
+v9 = {m["s"]: [1_000_000] * n for m in members}
+c9["AAA"][70], v9["AAA"][70] = 10.4, 9_000_000           # +4 % pile, 9 M > veille : retenu
+c9["BBB"][71], v9["BBB"][71] = 10.39, 20_000_000         # +3,9 % : non
+c9["CCC"][72], v9["CCC"][72] = 11.0, 8_900_000           # volume = 8,9 M (pas strictement au-dessus) : non
+c9["DDD"][73], v9["DDD"][73], v9["DDD"][72] = 11.0, 9_000_000, 9_500_000   # volume en baisse sur la veille : non
+c9["JMP"][74], c9["JMP"][73], v9["JMP"][74] = 0.79, 0.7, 20_000_000         # +13 % mais clôture < 0,80 $ : non
+nn = fi.nine(c9, v9, members, payload["industries"], bo)
+hits = {(r[0], k + nn["start"]) for k, day in enumerate(nn["days"]) for r in day}
+check("9M par séance : formule du scan TC2000 (seuil +4 % inclus, volume > 8,9 M strict et en hausse, clôture > 0,80 $)",
+      hits == {("AAA", 70)} and nn["start"] + len(nn["days"]) == n)
+check("9M par séance : industrie de l'action (index des industries publiées)",
+      [r for day in nn["days"] for r in day] == [["AAA", [i["k"] for i in payload["industries"]].index("Soft")]])
+# bougie forte (01/11/2026) : clôture haute, range >= ADR 14 j ($) et > range de la veille ; repères de [tv_breadth.breakouts]
+bq = {**bo, "candle_close_pct": 70, "candle_range_adr": 1.0, "candle_range_prev": 1.0, "adr_sessions": 14, "extended_pct": 20}
+o9 = {"AAA": ([None] * n, [c + 0.05 for c in c9["AAA"]], [c - 0.05 for c in c9["AAA"]])}   # ranges de 0,1 $
+h, l = o9["AAA"][1], o9["AAA"][2]
+h[70], l[70] = 10.45, 10.0                                # range 0,45 $ (> ADR 0,1 et > veille), clôture 10,4 à 89 % : forte
+nb = fi.nine(c9, v9, members, payload["industries"], bq, ohlc=o9)
+check("9M par séance : bougie forte marquée d'un 1 (clôture haute, range ≥ ADR 14 j et > veille)",
+      [r for day in nb["days"] for r in day] == [["AAA", [i["k"] for i in payload["industries"]].index("Soft"), 1]])
+h[70], l[70] = 10.6, 10.0                                 # clôture 10,4 à 67 % de la bougie : faible
+nb = fi.nine(c9, v9, members, payload["industries"], bq, ohlc=o9)
+check("9M par séance : bougie faible sans marque (clôture sous 70 % de la bougie)", [len(r) for day in nb["days"] for r in day] == [2])
+c9e = {k: list(v) for k, v in c9.items()}
+c9e["AAA"][65] = 8.0                                     # 10,4 contre 8,0 cinq séances avant : +30 % ≥ 20 % → étendu (repère 2)
+ne = fi.nine(c9e, v9, members, payload["industries"], bo)
+check("9M par séance : titre étendu marqué 2 (+extended_pct % sur 5 séances), sans OHLC donc sans bougie forte",
+      [r for day in ne["days"] for r in day] == [["AAA", [i["k"] for i in payload["industries"]].index("Soft"), 2]])
+check("9M par séance : publiés dans industries_data.js (clé nine)", "nine" in payload and payload["nine"]["start"] + len(payload["nine"]["days"]) == n)
 check("industries et secteurs : effectifs", inds["Soft"]["n"] == 3 and inds["Banks"]["n"] == 1
       and {s["k"]: s["n"] for s in payload["sectors"]} == {"Finance": 1, "Tech": 5})
 check("noms de fichiers uniques (Chips & Co / Chips/Co)", len({i["f"] for i in payload["industries"]}) == 4

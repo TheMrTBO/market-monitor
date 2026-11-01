@@ -16,6 +16,9 @@ Un nouveau relevé de la même séance remplace le précédent ; les séances d�
 
 Même relevé, liste « 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, config/sources.toml
 [tv_breadth.breakouts], exception au gel du 27/10/2026) : tickers par séance (clé `breakouts`), `keep_sessions` séances gardées.
+Repères de chaque titre (demande de l'utilisateur du 31/10/2026, tests hors dépôt 2008-2025) : position de la clôture dans la
+bougie, range du jour ÷ ADR TradingView et ÷ range de la veille, performance de la semaine ; mêmes colonnes du même relevé
+(aucune requête de plus). Valeurs brutes : les seuils (bougie forte, étendu) sont dans la config et appliqués par le front.
 
 Lancé par update_all.py (update.yml) et, pour l'avoir dès la fin de séance, par postmarket.yml.
 Usage : python fetch_tv_breadth.py
@@ -38,8 +41,12 @@ CFG = mmconfig.load("sources")["tv_breadth"]
 NY = ZoneInfo(MARKET["timezone"])
 BO = CFG["breakouts"]
 COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture et SMA40 ; up4 / down4 : ±4 % du jour (TC2000)
-BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol"]   # liste 9M +4 % : % du jour, volume, volume ÷ veille, clôture × volume ($)
-SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name", "type", "exchange"]
+# liste 9M +4 % : % du jour, volume, volume ÷ veille, clôture × volume ($) ; puis repères (31/10/2026) : pos = clôture dans la
+# bougie du jour (0 = plus bas, 100 = plus haut), rr = range du jour ÷ ADR TradingView (moyenne 14 j de plus haut − plus bas),
+# rp = range du jour ÷ range de la veille (en % du plus bas), w = performance de la semaine (Perf.W, %)
+BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol", "pos", "rr", "rp", "w"]
+SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name", "type", "exchange",
+             "high", "low", "high[1]", "low[1]", "ADR", "Perf.W"]
 
 
 def load_existing(path):
@@ -51,7 +58,7 @@ def load_existing(path):
 
 
 def load_breakouts(path):
-    """{séance: [[ticker, pct, volume, vol_ratio], ...]} déjà publiés (fichier d'avant la liste : {})."""
+    """{séance: [[ticker, pct, volume, vol_ratio, …], ...]} déjà publiés (fichier d'avant la liste : {})."""
     try:
         text = Path(path).read_text()
         return json.loads(text[text.index("=") + 1:].strip().rstrip(";")).get("breakouts", {})
@@ -101,6 +108,16 @@ def measure(items, now_utc):
     return day.isoformat(), (round(100 * above / len(valid), 2), len(valid), up4, down4)
 
 
+def marks(r):
+    """Repères bruts d'un titre (colonnes pos, rr, rp, w de BO_COLUMNS) ; None quand un champ manque ou n'a pas de sens."""
+    c, h, l, h1, l1, a, w = (r.get(k) for k in ("close", "high", "low", "high[1]", "low[1]", "ADR", "Perf.W"))
+    ok = lambda *v: None not in v
+    pos = round(100 * (c - l) / (h - l)) if ok(c, h, l) and h > l else None
+    rr = round((h - l) / a, 2) if ok(h, l, a) and a > 0 else None
+    rp = round((h / l - 1) / (h1 / l1 - 1), 2) if ok(h, l, h1, l1) and l > 0 and l1 > 0 and h1 > l1 else None
+    return [pos, rr, rp, round(w, 1) if w is not None else None]
+
+
 def breakouts(items):
     """Liste 9M +4 % d'un relevé (formule TC2000 de l'utilisateur, seuils dans [tv_breadth.breakouts]) : lignes BO_COLUMNS,
     du plus fort volume en dollars au plus faible (sort = "dvol") ou de la plus forte hausse (sort = "pct"). Titres sans clôture,
@@ -113,7 +130,7 @@ def breakouts(items):
             continue
         if (c / c1 >= (100 + BO["pct"]) / 100 and v > BO["min_volume"] and (v > v1 or not BO["volume_up"])
                 and c > BO["min_price"]):
-            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None, int(round(c * v))])
+            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None, int(round(c * v)), *marks(r)])
     return sorted(out, key=lambda x: (-x[4], x[0]) if BO["sort"] == "dvol" else (-x[1], x[0]))
 
 

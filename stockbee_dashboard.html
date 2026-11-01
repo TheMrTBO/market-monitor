@@ -14,7 +14,7 @@
     /* thème des graphiques de prix : fond noir, bougies jaunes (hausse) et rouges (baisse) */
     --cbg: #000000; --cgrid: #1c1c1c; --cref: #444444; --ctext: #9aa0a6; --ccross: #d6d6d6;
     --rrgimpr: rgba(214, 219, 228, .10);                               /* carte de rotation : zone « S'améliore » (fond noir des graphiques) */
-    --cup: #f6e24b; --cdown: #cf5148;
+    --cup: #f6e24b; --cdown: #cf5148; --c9m: #22d3ee;                /* bougie 9M (scan 9M de l'onglet Secteurs) : cyan, ni MM ni hausse / baisse */
     --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
   }
   :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
@@ -225,6 +225,10 @@
   .secact .acard .al { text-align: right; font-size: 16px; font-variant-numeric: tabular-nums; }
   .secact .old { color: var(--warn); } .secact .ref { color: var(--ok); } .secact .th { color: var(--muted); font-size: 10.5px; border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
   .secact .acard.zero .al { color: var(--faint); }
+  /* 9M par groupe et section Réveil (31/10/2026) */
+  .secact .n9 { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .secact .n9.f { color: var(--ok); font-weight: 600; } .secact .n9.i { color: var(--panel); background: var(--ok); border-radius: 4px; padding: 0 5px; font-weight: 600; }
+  .secact .acard.rv { border-left: 3px solid var(--ok); } .etat.rv { background: color-mix(in srgb, var(--ok) 14%, transparent); color: var(--ok); }
   .secact .aleg { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11px; color: var(--muted); }
   .secact .amore { border: 0; background: none; color: var(--up); font-size: 12px; cursor: pointer; padding: 4px 0; text-align: left; align-self: flex-start; }   /* pas « .more » : feuille « Plus » du mobile */
   .etat.neuf { background: var(--upbg); color: var(--up); } .etat.chaud { background: var(--warnbg); color: var(--warn); }
@@ -237,6 +241,92 @@
   .secbo .bochip .pos { grid-column: 3; text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; }
   .secbo .bochip .bv { grid-column: 1 / -1; font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .secbo .ahead .copybtn { align-self: center; }
+  /* repères 9M (31/10/2026) : couloirs, mini-bougie, étiquettes ; seuils dans config/sources.toml [tv_breadth.breakouts] */
+  .secbo .bolanes { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, .8fr); gap: 8px; align-items: start; }
+  .secbo .bolane { border-radius: 8px; padding: 8px; background: var(--panel2); min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .secbo .bolane.l0 { background: color-mix(in srgb, var(--ok) 11%, transparent); } .secbo .bolane.l1 { background: var(--warnbg); }
+  .secbo .bolh { display: flex; gap: 8px; align-items: center; } .secbo .bolh b { display: block; font-size: 12.5px; } .secbo .bolh small { display: block; font-size: 11px; color: var(--muted); }
+  .secbo .boln { font-size: 20px; font-weight: 650; min-width: 1.3em; text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); }
+  .secbo .bolane.l0 .boln, .fsum .bo-a { color: var(--ok); } .secbo .bolane.l1 .boln { color: var(--warn); }
+  .secbo .bolane .bogrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .secbo .bolane .amore { padding: 0; }
+  .secbo .bomini { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .secbo .bolane.l2.open { grid-column: 1 / -1; }   /* déplié : sur toute la largeur, pastilles en grille */
+  .secbo .bochip.mk { grid-template-columns: 10px auto auto minmax(0, 1fr); background: var(--panel); }
+  .secbo .bochip.mk .cdl { grid-row: 1 / span 3; align-self: center; } .secbo .bochip.mk .pos { grid-column: 4; }
+  .secbo .bochip.mk .bv, .secbo .bochip .bt { grid-column: 2 / -1; } .secbo .bochip .bt { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 2px; }
+  .secbo .bolane.l2 .bochip { opacity: .75; } .secbo .bolane.l2 .bochip:hover, .secbo .bolane.l2 .bochip:focus-visible { opacity: 1; }
+  .cdl line { stroke: var(--faint); stroke-width: 2; stroke-linecap: round; } .cdl rect { fill: var(--faint); }
+  .cdl.ok line { stroke: var(--ok); } .cdl.ok rect { fill: var(--ok); }
+  .botg { font-size: 10px; font-weight: 600; border-radius: 999px; padding: 0 5px; white-space: nowrap; }
+  .botg.w { color: var(--warn); background: var(--warnbg); } .botg.m { color: var(--muted); background: var(--neutralbg); }
+  .aleg .cdl { vertical-align: middle; margin-right: 2px; }
+  /* carte des thèmes (31/10/2026) */
+  .secmap .smap { width: 100%; height: auto; display: block; }
+  .smap .mg { stroke: var(--grid); opacity: .6; } .smap .mx { fill: var(--muted); font-size: 11px; } .smap .mt { stroke: var(--muted); stroke-dasharray: 4 3; } .smap .mt2 { stroke: var(--faint); stroke-dasharray: 2 4; }
+  .smap .mzr { fill: color-mix(in srgb, var(--ok) 6%, transparent); } .smap .mzb { fill: color-mix(in srgb, var(--up) 7%, transparent); }
+  .smap .mz { font-size: 13px; font-weight: 650; fill: var(--faint); } .smap .mz.reveil { fill: var(--ok); } .smap .mz.lasting { fill: var(--up); } .smap .mzs { font-size: 11px; fill: var(--muted); }
+  .smap .mp { stroke: var(--panel); stroke-width: 1.5; cursor: pointer; } .smap .mp:focus-visible, .smap .mp:hover { stroke: var(--text); outline: none; }
+  .smap .mp.calm { fill: var(--faint); opacity: .35; stroke-width: 0; } .smap .mp.hot { fill: var(--warn); opacity: .8; } .smap .mp.rev { fill: var(--ok); } .smap .mp.both { fill: var(--up); } .smap .mp.neuf { fill: var(--up); stroke: var(--text); }
+  .smap .trl { display: none; pointer-events: none; } .smap .pt.imp .trl, .smap .pt.sel .trl, .smap .pt:hover .trl { display: inline; }
+  .smap .trl polyline { fill: none; stroke-width: 1.2; stroke: var(--faint); opacity: .7; stroke-linejoin: round; stroke-linecap: round; } .smap .trd { fill: var(--faint); }
+  .smap .pt.rev .trl polyline { stroke: var(--ok); } .smap .pt.rev .trd { fill: var(--ok); } .smap .pt.both .trl polyline, .smap .pt.neuf .trl polyline { stroke: var(--up); }
+  .smap .pt.both .trd, .smap .pt.neuf .trd { fill: var(--up); } .smap .pt.hot .trl polyline { stroke: var(--warn); } .smap .pt.hot .trd { fill: var(--warn); }
+  .smap .pt.sel .trl polyline { stroke-width: 2.5; opacity: 1; } .smap .pt.sel .mp { stroke: var(--text); stroke-width: 2.5; opacity: 1; }
+  .secmap .mapinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); }
+  .secmap .mapinfo .asp { flex: 1 1 auto; } .secmap .mapinfo .mi-x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; min-height: 30px; }
+  .secmap .mk.calm { background: var(--faint); }
+  .smap .mat { fill: var(--muted); font-size: 11.5px; font-weight: 600; } .smap .tra { fill: var(--faint); }
+  .smap .pt.rev .tra { fill: var(--ok); } .smap .pt.both .tra, .smap .pt.neuf .tra { fill: var(--up); } .smap .pt.hot .tra { fill: var(--warn); }
+  .secmap .mhint { margin: 0; }
+  .maprow { display: flex; flex-flow: row-reverse wrap; gap: 12px; align-items: stretch; } .maprow > .card { min-width: 0; margin: 0; } .maprow[hidden] { display: none; }
+  .maprow > .card.folded { align-self: flex-start; }   /* une carte repliée ne s'étire pas à la hauteur de l'autre */
+  .seczone .ahead .copybtn { align-self: center; } .secmap .mbz .copybtn { margin-left: auto; padding: 1px 7px; font-size: 11px; }
+  .secmap .mb-t[data-pop] { cursor: pointer; display: inline-flex; align-items: center; min-height: 22px; }
+  .secmap .mb-t[data-pop]:hover, .secmap .mb-t[data-pop]:focus-visible { border-color: var(--up); color: var(--up); outline: none; }
+  .popov { position: fixed; inset: 0; z-index: 60; background: rgba(0, 0, 0, .55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .popov[hidden] { display: none; }
+  .popbox { position: relative; width: min(960px, 100%); background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .pophead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; } .pophead .asp { flex: 1 1 auto; } .popsub { font-size: 12px; color: var(--muted); }
+  .popx { border: 0; background: none; color: var(--muted); font-size: 18px; cursor: pointer; min-width: 36px; min-height: 36px; }
+  .popbox .ovl { position: static; } .popbox canvas { width: 100%; height: min(460px, 58vh); display: block; border-radius: 6px; touch-action: none; }
+  .popleg { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .popleg .k9 { display: inline-block; width: 8px; height: 10px; border-radius: 1px; background: var(--c9m); margin-right: 5px; vertical-align: -1px; }
+  .ohlc .t9 { color: var(--c9m); font-weight: 600; }
+  body.popopen { overflow: hidden; } body.popopen .tip { z-index: 61; }   /* fenêtre ouverte : page figée, infobulle du réticule au-dessus */
+  @media (max-width: 640px) { .popov { padding: 0; align-items: stretch; } .popbox { border-radius: 0; width: 100%; } .popbox canvas { height: 62vh; } }
+  .secmap .mside { display: grid; gap: 16px; align-items: start; } .secmap .mside > div { min-width: 0; }
+  .secmap .mboard { display: flex; flex-direction: column; }
+  .secmap .mbz { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12.5px; margin: 10px 0 3px; } .secmap .mbz:first-child { margin-top: 0; }
+  .secmap .mbz small { color: var(--muted); font-size: 11.5px; }
+  .secmap .mbp { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); cursor: help; margin-bottom: 4px; } .secmap .mbp .phdot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .secmap .mbr { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 3px 10px; align-items: center; width: 100%; text-align: left; border: 0;
+    border-top: 1px solid var(--border); background: none; color: var(--text); font: inherit; padding: 6px 4px; cursor: pointer; }
+  .secmap .mbr:hover, .secmap .mbr:focus-visible { background: var(--hover); outline: none; } .secmap .mbr.on { background: var(--panel2); box-shadow: inset 2px 0 0 var(--up); }
+  .secmap .mb-n { min-width: 0; } .secmap .mb-n b { display: block; font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .secmap .mb-s { font-size: 11px; color: var(--muted); } .secmap .mb-s .warn { color: var(--warn); } .secmap .mb-th { cursor: help; text-decoration: underline dotted; text-underline-offset: 2px; } .secmap .mb-a { cursor: help; text-decoration: underline dotted; text-underline-offset: 2px; } .secmap .mb-lo { cursor: help; color: var(--text); font-weight: 600; text-decoration: underline dotted; text-underline-offset: 2px; }
+  .secmap .mbr svg { width: 96px; height: 26px; display: block; }
+  .secmap .mb-r { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+  .secmap .mb-d { display: inline-flex; flex-wrap: wrap; gap: 2px; max-width: 140px; } .secmap .mb-d i { width: 7px; height: 7px; border-radius: 50%; border: 1px solid var(--faint); box-sizing: border-box; }
+  .secmap .mbr.rev .mb-d i.y { background: var(--ok); border-color: var(--ok); } .secmap .mbr.both .mb-d i.y, .secmap .mbr.neuf .mb-d i.y, .secmap .mbr.hot .mb-d i.y, .secmap .mbr.calm .mb-d i.y { background: var(--up); border-color: var(--up); }
+  .secmap .mb-c { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .secmap .mb-l { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; cursor: help; } .secmap .mb-l.hi { color: var(--text); font-weight: 600; }
+  .secmap .mb-t { font-size: 11px; padding: 0 5px; border: 1px solid var(--border); border-radius: 4px; } .secmap .mb-t.ok { border-color: var(--ok); color: var(--ok); }
+  .secmap .mbo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 10px; font-size: 12px; color: var(--muted); border-top: 1px solid var(--border); padding: 6px 4px; }
+  .secmap .mbo b { color: var(--text); font-weight: 600; } .secmap .mbo button { border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; padding: 2px 0; min-height: 28px; }
+  .secmap .mbo button.on { color: var(--up); } .secmap .mbo button.mbmore { color: var(--up); }
+  .secmap .mbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .secmap .mm-t { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .7; }
+  .secmap .mm-l polyline { fill: none; stroke: var(--faint); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: round; } .secmap .mm-a polygon { fill: var(--faint); opacity: .12; }
+  .secmap .mbr.rev .mm-l polyline { stroke: var(--ok); } .secmap .mbr.rev .mm-a polygon { fill: var(--ok); }
+  .secmap .mbr.both .mm-l polyline, .secmap .mbr.neuf .mm-l polyline { stroke: var(--up); } .secmap .mbr.both .mm-a polygon, .secmap .mbr.neuf .mm-a polygon { fill: var(--up); }
+  .smap .mzs { paint-order: stroke; stroke: var(--panel); stroke-width: 3px; } .smap .tle { stroke: var(--panel); stroke-width: 1.5; }
+
+  .smap .ml { fill: var(--text); font-size: 11px; font-weight: 550; paint-order: stroke; stroke: var(--panel); stroke-width: 3px; pointer-events: none; }
+  .smap .mll { stroke: var(--muted); stroke-width: 0.8; opacity: .55; pointer-events: none; }
+  .secmap .mk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .secmap .mk.rev { background: var(--ok); } .secmap .mk.both { background: var(--up); } .secmap .mk.neuf { background: var(--up); box-shadow: 0 0 0 1.5px var(--text); } .secmap .mk.hot { background: var(--warn); }
+  @media (max-width: 900px) { .secbo .bolanes { grid-template-columns: minmax(0, 1fr); } }
   .etat { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 5px; white-space: nowrap; }
   /* Leaders actifs : symbole toujours lisible, gain et écart au plus haut à droite ; écrans moyens (liste à côté du graphique) :
      capitalisation et miniature masquées (fiche et graphique les donnent) */
@@ -249,7 +339,7 @@
   #secTable.bo td.c-dv, #secTable.bo td.c-pbo, #secTable.bo td.c-bvol { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   #secTable.bo td.c-bvol .tsub { display: block; font-size: 11px; color: var(--muted); }
   @media (max-width: 1400px) { #secTable.bo .c-spark, #secTable.bo .c-adr { display: none; } }
-  #secRows tr.more td { text-align: left; padding: 8px; } #secRows tr.more button { border: 1px solid var(--border); background: var(--panel2); color: var(--text); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }
+  #secRows tr.rkmore td { text-align: left; padding: 8px; } #secRows tr.rkmore button { border: 1px solid var(--border); background: var(--panel2); color: var(--text); border-radius: 8px; padding: 5px 10px; font-size: 12.5px; cursor: pointer; }   /* pas « tr.more » : la classe « more » est la feuille « Plus » du mobile (position fixe) */
   .secflow { padding: 10px 12px; margin: 0; }
   .secflow h4 { margin: 0 0 6px; font-size: 13px; font-weight: 600; } .secflow h4 span { color: var(--muted); font-weight: 400; }
   .secflow button { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; width: 100%; text-align: left; border: 0; background: none;
@@ -321,6 +411,7 @@
   .seccol .card { margin-bottom: 0; }
   #secScoreNow b { color: var(--text); font-weight: 600; }
   #secScoreCv, #secBrdCv, #tkScoreCv { width: 100%; height: 150px; display: block; margin-bottom: 6px; }
+  #secScoreCard.folded #secScoreCv { display: none; } #secScoreCard .foldh { min-height: 0; padding: 0; font-size: inherit; }   /* replié par défaut (audit du 31/10/2026) */
   #tkScoreCv { height: 120px; }
   #tkCanvas { height: calc(100vh - 330px); min-height: 300px; }
   #view-tk .chartbar { min-height: 32px; margin-bottom: 8px; }
@@ -892,8 +983,12 @@
       <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
     <div class="card secflow" id="secFlow" hidden></div>
-    <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
     <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
+    <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
+    <div class="maprow" id="secMapRow" hidden>
+      <div class="card secact secmap seczone" id="secZone" role="region" aria-label="Thèmes par zone" hidden></div>
+      <div class="card secact secmap" id="secMap" role="region" aria-label="Carte des thèmes" hidden></div>
+    </div>
     <div class="secsplit" id="secSplit">
       <div class="card seclist">
         <div class="sechead">
@@ -932,7 +1027,7 @@
         <div hidden><input type="range" id="topPadS" min="0" max="60" step="1"><output id="topPadSOut"></output><input type="range" id="rightPadS" min="0" max="60" step="1"><output id="rightPadSOut"></output><div id="secTrend"></div></div>
       </div>
       <div class="card secscore" id="secScoreCard">
-        <div class="mini-title"><b id="secScoreName">Score TI65</b><button class="tipbtn" data-tip="secscore" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px" id="secScoreNow"></span></div>
+        <div class="mini-title"><button type="button" class="foldh" id="secScoreFold" aria-expanded="false" title="Afficher ou replier la courbe du score"><span class="car"></span><b id="secScoreName">Score TI65</b></button><button class="tipbtn" data-tip="secscore" aria-label="Explication" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button><span class="px" id="secScoreNow"></span></div>
         <canvas id="secScoreCv"></canvas>
       </div>
       <div class="card secscore" id="secBrdCard" hidden>
@@ -1224,12 +1319,22 @@
 <div class="pop" id="pop" role="dialog" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
+<div class="popov" id="tkPop" hidden>
+  <div class="popbox" role="dialog" aria-modal="true" aria-labelledby="popTitle">
+    <div class="pophead"><b id="popTitle"></b><span class="popsub" id="popSub"></span><span class="asp"></span>
+      <button type="button" class="go" id="popTk"></button>
+      <button type="button" class="popx" id="popX">✕</button></div>
+    <div class="ovl"><span class="ohlc" id="popOhlc"></span></div>
+    <canvas id="popCanvas"></canvas>
+    <div class="popleg" id="popLeg"></div>
+  </div>
+</div>
 <script>
   // Fichiers de données. GitHub Pages garde les fichiers 10 min en cache : le bouton « Actualiser » recharge la page avec
   // ?v=<horodatage>, ce qui force le navigateur à retélécharger les données les plus récentes.
   (function () {
     var m = location.search.match(/[?&]v=(\d+)/), q = m ? '?v=' + m[1] : '';
-    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js'].forEach(function (f) {
+    ['config_data.js', 'stockbee_data.js', 'breadth_data.js', 'tv_breadth_data.js', 'prices_data.js', 'vix_data.js', 'sectors_data.js', 'postmarket_data.js', 'status_data.js', 'etf_themes_data.js'].forEach(function (f) {
       document.write('<script src="' + f + q + '"><\/script>');
     });
   })();
@@ -1481,6 +1586,15 @@
   const $ = id => document.getElementById(id);
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
+  // libellés de la config : {x} remplacé par o.x ; plu(paire, n) = singulier ou pluriel ([singulier, pluriel] de la config)
+  const tpl = (s, o) => String(s).replace(/\{(\w+)\}/g, (m, k) => o[k] != null ? o[k] : m), plu = (p, n) => `${n} ${p[n > 1 ? 1 : 0]}`;
+  // thèmes ETF (01/11/2026, etf_themes_data.js, config/etf_themes.toml) : étiquettes d'information, pas une règle
+  const ETC = CFG.etf_themes, ETH = window.ETF_THEMES && window.ETF_THEMES.stocks ? window.ETF_THEMES : null;
+  const themesOf = sym => ETH && ETH.stocks[sym] ? ETH.stocks[sym].map(([t]) => ETH.themes[t]) : [];
+  const themesSum = syms => {                         // « Cloud 3 · Cybersécurité 2 » : thèmes les plus fréquents d'une liste
+    const c = new Map(); syms.forEach(s => themesOf(s).forEach(t => c.set(t, (c.get(t) || 0) + 1)));
+    return [...c].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).slice(0, ETC.row_max).map(([t, n]) => `${t} ${n}`).join(' · ');
+  };
   const nf = (v, d = 0) => v == null ? '—' : v.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
   const pxd = v => v >= 1000 ? 0 : 2;
   const fmtDate = (s, o) => new Date(s + 'T00:00:00Z').toLocaleDateString('fr-FR', Object.assign({ timeZone: 'UTC' }, o || { day: 'numeric', month: 'short', year: 'numeric' }));
@@ -1741,6 +1855,7 @@
   function render() {
     cancelAnimationFrame(rafId);
     rafId = requestAnimationFrame(() => {
+      if (popSym) popRedraw();                         // fenêtre graphique ouverte : zoom et déplacement s'y appliquent
       if (tab === 'sec') { secRedraw(); return; }
       if (tab === 'pm') { pmRedraw(); return; }
       if (tab === 'tk') { tkRedraw(); return; }
@@ -1848,13 +1963,38 @@
   }
 
   function cursor(c) {
-    const i = secCtx.active || pmCtx.active || tkCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
+    const i = secCtx.active || pmCtx.active || tkCtx.active || popCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
     if (i < 0 || i >= c.n) return;
     const { g, X, ph } = c, x = Math.round(X(i)) + 0.5;
     g.strokeStyle = css(c.th.cross); g.lineWidth = 1; g.setLineDash([3, 3]);
     g.beginPath(); g.moveTo(x, PAD.t); g.lineTo(x, PAD.t + ph); g.stroke(); g.setLineDash([]);
   }
 
+  // bougies 9M sur tous les graphiques de prix (demande du 01/11/2026, config/display.toml [chart_nine]) : seuils du scan 9M de
+  // l'onglet Secteurs (config/sources.toml [tv_breadth.breakouts]) : hausse ≥ pct % sur la clôture de la veille, volume > min_volume
+  // et > celui de la veille, clôture > min_price. Bougie forte en plus : clôture ≥ candle_close_pct % du range, range ≥
+  // candle_range_adr × ADR (adr_sessions séances d'avant, en $, comme TradingView) et range en % > candle_range_prev × celui de la veille.
+  // 1 = 9M, 2 = 9M bougie forte ; mémorisé par jeu de barres (Map) et par taille
+  const N9C = CFG.sectors.breakouts, CN9 = CFG.chart_nine, n9Memo = new WeakMap();
+  function nineFlags(bm) {                             // bm : Map date → barre (graphiques de prix) ou tableau de barres (QQQ · IWM · BTC)
+    const a = Array.isArray(bm) ? bm : [...bm.values()], m = n9Memo.get(bm); if (m && m.n === a.length) return m.f;
+    const f = new Map();
+    if (CN9.shown) for (let i = 1; i < a.length; i++) {
+      const b = a[i], p = a[i - 1];
+      if (!b || !p || !b.v || !p.c || b.c == null || b.c / p.c - 1 < N9C.pct / 100 || b.v <= N9C.min_volume || (N9C.volume_up && !(b.v > (p.v || 0))) || !(b.c > N9C.min_price)) continue;
+      let strong = false;
+      const na = N9C.adr_sessions;
+      if (b.o != null && i >= na) {
+        let t = 0; for (let j = i - na; j < i; j++) t += a[j].h - a[j].l;
+        const rg = b.h - b.l, adr = t / na, rp = b.l > 0 && p.l > 0 && p.h > p.l ? (b.h / b.l - 1) / (p.h / p.l - 1) : null;   // rp en %, comme le relevé
+        strong = rg > 0 && adr > 0 && rp != null && 100 * (b.c - b.l) / rg >= N9C.candle_close_pct && rg >= N9C.candle_range_adr * adr && rp > N9C.candle_range_prev;
+      }
+      f.set(b.d, strong ? 2 : 1);
+    }
+    n9Memo.set(bm, { n: a.length, f }); return f;
+  }
+  const CN9_TIP = CN9.tip.replace('{pct}', nf(N9C.pct, 0)).replace('{vol}', nf(N9C.min_volume / 1e6, 1)).replace('{price}', nf(N9C.min_price, 2));
+  const nineTag = b => { const k = b && !(tab === 'main' && CN9.skip.includes(current)) ? nineFlags(bars).get(b.d) : 0; return k ? `<span class="t9" title="${escA(CN9_TIP)}">· ${escH(CN9.label)}${k === 2 ? ' ' + escH(CN9.strong_label) : ''}</span>` : ''; };
   function drawPrice(cv = cvPrice) {
     const c = setup(cv, true); if (!c.n) return;
     const { g, n, ph, bw, X } = c;
@@ -1877,14 +2017,20 @@
     const maxV = Math.max(1, ...have.map(b => b.v || 0)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
     const line = have.every(b => b.o == null);              // clôtures seules (indices et actions TradingView) : courbe au lieu des bougies
     const up = b => line ? (b.chg == null || b.chg >= 0) : b.c >= b.o;
+    const f9 = line || (cv === cvPrice && CN9.skip.includes(current)) ? null : nineFlags(bars), c9 = css('--c9m');   // onglet MM : pas sur BTC (skip)
     vis.forEach((b, i) => {
       if (!b) return;
-      const col = css(up(b) ? '--cup' : '--cdown'), x = X(i);
+      const k9 = f9 ? f9.get(b.d) : 0, col = k9 ? c9 : css(up(b) ? '--cup' : '--cdown'), x = X(i);
       if (b.v) { g.globalAlpha = 0.3; g.fillStyle = col; g.fillRect(x - w / 2, PAD.t + ph - b.v / maxV * vh, w, b.v / maxV * vh); }
       g.globalAlpha = 1; if (line) return;
       g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 1;
       g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
       g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
+      if (k9) {                                           // ▲ sous la bougie 9M : plein = bougie forte, creux = bougie faible
+        const tw = Math.max(4, Math.min(6, w / 2 + 2)), ty = Math.min(PAD.t + ph - 2, Y(b.l) + 5);
+        g.beginPath(); g.moveTo(x, ty); g.lineTo(x - tw, ty + tw * 1.4); g.lineTo(x + tw, ty + tw * 1.4); g.closePath();
+        if (k9 === 2) g.fill(); else { g.lineWidth = 1.2; g.stroke(); }
+      }
     });
     if (line) {
       g.save(); g.strokeStyle = css('--ccross'); g.lineWidth = 1.6; g.lineJoin = g.lineCap = 'round'; g.beginPath(); let pen = false;   // gris clair du graphique (fond noir dans les deux thèmes) : distinct des MM
@@ -2164,15 +2310,15 @@
   function setHover(i, kind, e) {
     hover = i;
     if (kind === 'sec' || kind === 'secscore' || kind === 'secbrd') { drawPrice(cvSec); drawSecScore(); drawSecBreadth(); secOverlay(); renderSecKpis(i >= 0 && T[i] ? T[i] : null); }
-    else if (kind === 'tk' || kind === 'tkscore') { drawPrice(cvTk); drawTkScore(); tkOverlay(); } else if (kind === 'pm') { drawPrice(cvPm); pmOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
+    else if (kind === 'tk' || kind === 'tkscore') { drawPrice(cvTk); drawTkScore(); tkOverlay(); } else if (kind === 'pop') { drawPrice(cvPop); popOverlay(); } else if (kind === 'pm') { drawPrice(cvPm); pmOverlay(); } else { drawAll(); highlightRow(); updateLegend(); scheduleKpis(); }
     const finger = e && e.pointerType === 'touch';
     if (i < 0 || (kind === 'price' && !finger)) { tip.style.display = 'none'; return; }   // prix à la souris : valeurs dans la légende
-    const pb = (kind === 'price' || kind === 'sec' || kind === 'pm' || kind === 'tk') && finger ? bars.get(T[i]) : null;
+    const pb = (kind === 'price' || kind === 'sec' || kind === 'pm' || kind === 'tk' || kind === 'pop') && finger ? bars.get(T[i]) : null;
     // au doigt sur un graphique de prix : infobulle compacte (la légende OHLC / MM est masquée sur mobile)
     tip.innerHTML = pb ? `<b>${fmtDate(pb.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</b><div>C ${nf(pb.c, pxd(pb.c))} <span class="${cls(pb.chg)}">${pct(pb.chg)}</span></div>` +
-        `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + `<div>MM ${trendShort(pb.tf)}</div>` +
+        `<div>H ${nf(pb.h, pxd(pb.h))} · B ${nf(pb.l, pxd(pb.l))}</div>` + `<div>MM ${trendShort(pb.tf)}</div>` + (nineTag(pb) ? `<div>${nineTag(pb)}</div>` : '') +
         (sb(pb.d, 'up4') != null ? `<div>±4 % : +${nf(sb(pb.d, 'up4'))} / −${nf(sb(pb.d, 'down4'))}</div>` : '')
-      : kind === 'secscore' || kind === 'tkscore' ? secScoreTip(T[i]) : kind === 'secbrd' ? secBrdTip(T[i]) : tipHtml(kind === 'sec' || kind === 'pm' || kind === 'tk' ? 'price' : kind, T[i]);
+      : kind === 'secscore' || kind === 'tkscore' ? secScoreTip(T[i]) : kind === 'secbrd' ? secBrdTip(T[i]) : tipHtml(kind === 'sec' || kind === 'pm' || kind === 'tk' || kind === 'pop' ? 'price' : kind, T[i]);
     tip.style.display = 'block';
     const tw = tip.offsetWidth, th = tip.offsetHeight, W = document.documentElement.scrollWidth;
     if (finger) {                                // au doigt : en haut du graphique, du côté opposé au doigt (jamais sous le pouce)
@@ -2226,9 +2372,9 @@
     vp.to = (N - 1) + rightPad * (span + 1); vp.from = vp.to - span;
     clampViewport(); manual(); render();
   }
-  const withCtx = (kind, fn) => kind === 'sec' || kind === 'secscore' || kind === 'secbrd' ? inCtx(secCtx, fn) : kind === 'tk' || kind === 'tkscore' ? inCtx(tkCtx, fn) : kind === 'pm' ? inCtx(pmCtx, fn) : fn();
-  const isPrice = k => k === 'price' || k === 'sec' || k === 'pm' || k === 'tk';
-  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvPm, 'pm'], [$('secScoreCv'), 'secscore'], [$('secBrdCv'), 'secbrd'], [$('tkCanvas'), 'tk'], [$('tkScoreCv'), 'tkscore'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
+  const withCtx = (kind, fn) => kind === 'sec' || kind === 'secscore' || kind === 'secbrd' ? inCtx(secCtx, fn) : kind === 'tk' || kind === 'tkscore' ? inCtx(tkCtx, fn) : kind === 'pm' ? inCtx(pmCtx, fn) : kind === 'pop' ? inCtx(popCtx, fn) : fn();
+  const isPrice = k => k === 'price' || k === 'sec' || k === 'pm' || k === 'tk' || k === 'pop';
+  for (const [cv, kind] of [[cvPrice, 'price'], [cvSec, 'sec'], [cvPm, 'pm'], [$('secScoreCv'), 'secscore'], [$('secBrdCv'), 'secbrd'], [$('tkCanvas'), 'tk'], [$('tkScoreCv'), 'tkscore'], [$('popCanvas'), 'pop'], [cvHist, 'hist'], [cvNet4, 'hist'], [cvHistM, 'hist25m'], [cvNetM, 'hist25m'], [cvHist2, 'hist2'], [cvNet25, 'hist2'], [cvR5, 'r5'], [cvRm, 'rm'], [cvRq, 'rq']]) {
     // glisser = déplacer ; molette = zoom (graphiques de prix seulement) ; double-clic = retour à 6 mois
     cv.addEventListener('pointerdown', e => withCtx(kind, () => {
       drag = isPrice(kind) && onHandle(cv, e) ? { handle: true } : isPrice(kind) && onTopHandle(cv, e) ? { handleTop: true }
@@ -2282,7 +2428,7 @@
       lpClear();
       if (!drag) return;
       if (drag.cross) { drag = null; setHover(-1, kind); tip.style.display = 'none'; return; }   // on lâche : plus de réticule
-      if (kind !== 'sec' && kind !== 'secscore' && kind !== 'secbrd' && kind !== 'pm' && kind !== 'tk' && kind !== 'tkscore' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
+      if (kind !== 'sec' && kind !== 'secscore' && kind !== 'secbrd' && kind !== 'pm' && kind !== 'tk' && kind !== 'tkscore' && kind !== 'pop' && e && e.type === 'pointerup' && !drag.handle && !drag.handleTop && !drag.axis && !drag.moved && !isMobile()) {
         const i = idxAt(cv, e); if (i >= 0) setPinned(T[i] === pinned ? null : T[i]);
       }
       if (drag.handle) { const p = padPct(); rightPad = p / 100; store.set('mm.pad', String(p)); }   // la marge choisie devient celle des préréglages
@@ -2304,7 +2450,7 @@
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { panBars(e.deltaX * k / (pw / (vp.to - vp.from + 1))); return; }
       zoomAt(anchorFrac((e.clientX - r.left - PAD.l) / pw), Math.exp(e.deltaY * k * 0.0015));   // molette vers le bas = dézoom
     }), { passive: false });
-    cv.addEventListener('dblclick', () => selectRange(isMobile() ? '3M' : '6M'));
+    cv.addEventListener('dblclick', () => kind === 'pop' ? popPreset() : selectRange(isMobile() ? '3M' : '6M'));
   }
 
   // ------------------------------------------------------------------ onglet « Secteurs » : classement TI65
@@ -2718,7 +2864,7 @@
     const i = id.indexOf(':'), kind = i < 0 ? id : id.slice(0, i), key = i < 0 ? '' : id.slice(i + 1);
     const filt = `prix ≥ ${nf(TIC.min_price)} $, volume moyen sur ${TIC.avg_volume_sessions} séances ≥ ${nf(TIC.min_avg_volume)} actions, capitalisation ≥ ${capFmt(TIC.min_market_cap)} $`;
     const lvl = secView === 'etf' ? 'etf' : secD ? secD.kind : 'sec';
-    const g3 = `<p>Mini-courbe : ${TI.spark} dernières séances (pointillé : ${SKP.breadth_mid} %). Jauge 3M : position dans la plage des ${SKP.record_sessions} séances précédentes ; « plus haut / plus bas 3 mois » = information sur un indicateur retardé, pas un signal.</p>`;
+    const g3 = `<p>Mini-courbe : ${TI.spark} dernières séances (pointillé : ${SKP.breadth_mid} %). Jauge ${SKP.record_label} : position dans la plage des ${SKP.record_sessions} séances précédentes ; « plus haut / plus bas ${SKP.record_text} » = information sur un indicateur retardé, pas un signal.</p>`;
     // repère mesuré du ratio de rotation : variation moyenne de SKP.benchmark (IWM par défaut) sur les rotation_ratio_sessions séances suivantes, par zone
     // (recalculé à chaque chargement ; fenêtres qui se chevauchent : un repère, pas une statistique indépendante)
     const thr = v => nf(v, Number.isInteger(v) ? 0 : 1);   // seuils : « 1 », « 1,5 »
@@ -2733,7 +2879,7 @@
       <p><b>Survoler ou glisser sur la frise</b> : toute la page passe à cette séance (cases, groupes actifs) ; un clic la fixe dans « Stats du ». <b>Toucher une case</b> : raccourci vers la liste correspondante.</p>`];
     if (kind === 'act') return ['Groupes actifs', `<p>Industries TradingView et thèmes suivis (config/themes.toml) <b>neufs</b> ou <b>chauds</b> à la séance des cases ; le nombre = leaders du groupe (actions à +${CFG.industries.leaders.gain_pct} % sur ${CFG.industries.leaders.sessions} séances).</p>
       <p><b>Neuf</b> : ${escH(AC.neuf_tip)}</p><p><b>Chaud</b> : règle de l'onglet Tickers (top ${CFG.tickers.hot_top_pct} % du ${TIN}, seuil des industries, ${TIN} &gt; 1, au moins ${CFG.tickers.hot_min_breadth} % des actions au-dessus de 1).</p>
-      <p><b>Pionniers</b> : ${escH(AC.pioneer_tip)}</p><p><b>S'essouffle</b> : chaud depuis au moins ${AC.old_sessions} séances ; information seulement (aucune règle de sortie n'a fait mieux que garder, test 9). L'alerte « phase avec groupes chauds » est le seul signal net de fin (test 9).</p>
+      <p><b>9M</b> : titres du groupe dans les listes Breakouts 9M des ${AC.nine_window} dernières séances, et leur part du groupe. ${escH(AC.nine_tip)}</p><p><b>${escH(AC.reveil_label)}</b> : ${escH(AC.reveil_tip)} Toucher une carte : les actions de l'industrie.</p><p><b>S'essouffle</b> (au survol) : chaud depuis au moins ${AC.old_sessions} séances ; information seulement (aucune règle de sortie n'a fait mieux que garder, test 9). L'alerte « phase avec groupes chauds » est le seul signal net de fin (test 9).</p>
       <p class="src">Tests sur 2019-2026 : document d'analyse de la refonte (27/10/2026). Information, pas un conseil.</p>`];
     if (kind === 'skpi' && key === 'th') return ['Thèmes suivis chauds', `<p><b>Nombre de thèmes suivis chauds / nombre de thèmes suivis.</b> Un thème = un panier d'actions de config/themes.toml (${actData() ? actData().G.filter(g => g.kind === 'th' && g.n >= TIC.min_members).length : ''} paniers d'au moins ${TIC.min_members} actions retenues), suivi comme une industrie : indice équipondéré, ${TIN}, part de ses actions au ${TIN} > 1.</p>
       <p><b>Chaud</b> : ${TIN} du panier dans le top ${CFG.tickers.hot_top_pct} % (seuil calculé sur les industries seules), au-dessus de 1, et au moins ${CFG.tickers.hot_min_breadth} % de ses actions au-dessus de 1. <b>Neuf</b> (dessous) : au moins la moitié du panier à +${CFG.industries.leaders.gain_pct} % sur ${CFG.industries.leaders.sessions} séances depuis au plus ${AC.neuf_window} séances, sans signal dans les ${AC.fresh_sessions} séances d'avant.</p>
@@ -2755,6 +2901,8 @@
         <p><b>À lire avec le niveau du marché</b> : si la plupart des industries sont sous 1 (case « Industries ${TIN} > 1 » basse), un ratio bleu signale souvent une <b>rotation défensive</b> (l'argent se réfugie dans quelques secteurs) plutôt qu'une hausse qui s'élargit. Le <b>flux par secteur</b> (case Rotation) dit lesquels.</p>
         <p><b>Action</b> : toucher la case affiche les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances <b>et toujours au-dessus</b> : c'est là qu'apparaissent les nouveaux meneurs (ouvre une industrie pour voir ses actions).</p>
         <p>Repère mesuré sur l'historique disponible (${IND.dates.length} séances ; fenêtres qui se chevauchent, un seul cycle : un repère, pas une prévision) :</p><ul>${rrBack('rr', SKP.rotation_ratio_sessions)}</ul>${g3.replace('pointillé : 50 %', 'pointillé : 1')}<p class="src">Information, pas un conseil d'investissement.</p>`],
+      bo9: ['9M à regarder', `<p>Nombre de titres de la liste Breakouts 9M de la séance avec une <b>bougie forte</b> (clôture à au moins ${BOC.candle_close_pct} % de la bougie, range ≥ l'ADR et &gt; celui de la veille) et une semaine sous +${BOC.extended_pct} % ; dessous : les bougies fortes déjà étendues.</p><p>${escH(BOC.edge_note)}</p><p>Toucher : le bloc Breakouts 9M.</p><p>Courbe et jauge : le même compte sur toute la fenêtre publiée, calculé par le robot sur les actions retenues (cache Polygon) ; le chiffre du jour vient de la liste TradingView quand elle existe (elle compte aussi ETF et ADR), sinon du calcul maison (mention sous le chiffre).</p>`],
+      t9: ['Thèmes 9M', `<p>Industries dont au moins ${AC.nine_min} actions retenues, et ${AC.nine_share} % des membres, sont apparues dans les listes Breakouts 9M des ${AC.nine_window} dernières séances ; dessous : celles qui ne sont ni chaudes ni neuves (${escH(AC.reveil_label)}).</p><p>${escH(AC.nine_tip)}</p><p>${escH(AC.reveil_label)} : ${escH(AC.reveil_tip)}</p><p>Toucher : le bloc Groupes actifs.</p>`],
       ind: [`Industries ${TIN} > 1`, `<p>Industries classées (au moins ${TIC.min_members} titres) dont le ${TIN} dépasse 1, sur toutes celles qui ont un ${TIN} à cette séance : la <b>largeur</b> du mouvement, industrie par industrie. Dessous : la même part ${TI.delta} séances plus tôt.</p>${g3}<p>Toucher : affiche les industries au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des industries TradingView (clôtures Polygon / Massive).</p>`],
       sec: [`Secteurs ${TIN} > 1`, `<p>Secteurs TradingView dont le ${TIN} dépasse 1 : la tendance de fond, moins nerveuse que les industries.</p>${g3}<p>Toucher : affiche les secteurs au-dessus de 1 ; à nouveau : retour au classement.</p><p class="src">Indices équipondérés des secteurs TradingView (clôtures Polygon / Massive).</p>`],
       rot: [`Rotation ${SKP.rotation_window} j`, `<p>Industries qui <b>franchissent 1</b> en ${SKP.rotation_window} séances : <b>entrées</b> (${TIN} à 1 ou en dessous il y a ${SKP.rotation_window} séances, au-dessus aujourd'hui) et <b>sorties</b> (l'inverse). Le grand chiffre est le <b>solde</b> (entrées − sorties), comme le solde des ±4 % : au-dessus de 0, la hausse s'élargit à de nouvelles industries.</p>
@@ -2878,11 +3026,10 @@
   //   chaud = règle de l'onglet Tickers (top hot_top_pct % du TI65, seuil calculé sur les industries seules, TI65 > 1, largeur ≥
   //           hot_min_breadth %) ; un thème est comparé au seuil des industries (test 10) ;
   //   neuf  = signal parti depuis au plus neuf_window séances, sans signal ni état chaud dans les fresh_sessions d'avant ;
-  //   leaders actifs = leaders des groupes neufs ou chauds ; pionnier = leader seul à +pioneer_gain_pct %, parti depuis au plus
-  //           pioneer_window séances (pas leader dans les fresh_sessions d'avant), son industrie ni chaude ni en grappe.
+  //   leaders actifs = leaders des groupes neufs ou chauds (pionniers retirés le 31/10/2026 : pas d'avance mesurée, test 8).
   // Information, pas un signal d'achat : le document d'analyse (tests 5 à 16) dit ce que chaque état a valu sur 2019-2026.
   const AC = CFG.sectors.actifs;
-  let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [];   // actZero : groupes chauds sans leader dépliés
+  let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [], actSyms = [];   // actSyms : leaders actifs (bouton Copier)   // actZero : groupes chauds sans leader dépliés
   function actData() {
     if (!IND || !IND.leaders || !Array.isArray(IND.themes) || !IND.industries.every(x => Array.isArray(x.l) && typeof x.g === 'string')) return null;
     if (ACD && ACD.src === IND) return ACD;
@@ -2901,7 +3048,7 @@
     return (ACD = { src: IND, G, hotAt, at: new Map() });
   }
   const actEnd = () => { const Ds = IND.dates; let i = Ds.length - 1; if (pinned) while (i > 0 && Ds[i] > pinned) i--; return i; };
-  function actAt(e) {                                  // état des groupes, leaders actifs et pionniers à la séance e (mémorisé)
+  function actAt(e) {                                  // état des groupes et leaders actifs à la séance e (mémorisé)
     const A = actData(); if (!A || e < 0) return null;
     if (A.at.has(e)) return A.at.get(e);
     const F = AC.fresh_sessions, W = AC.neuf_window, L0 = IND.leaders.start, D = IND.leaders.days;
@@ -2928,23 +3075,44 @@
       leaders.push({ s: sym, ii, g21, keys, groups: keys.map(k => byKey.get(k).g.k), etat: neuf ? 'Neuf' : 'Chaud',
                      fam: keys.map(k => byKey.get(k).g.fam).find(Boolean) || null });
     }
-    const pioneers = [];                               // pionniers : besoin des listes des fresh_sessions + pioneer_window séances d'avant
-    if (day) for (const [sym, ii, g21] of day) {
-      if (g21 < AC.pioneer_gain_pct) continue;
-      const g = groups.find(x => x.g.key === 'i:' + IND.industries[ii].k);
-      if (g && (g.hot || g.sig)) continue;
-      const isL = k => k >= L0 && k - L0 < D.length && D[k - L0].some(r => r[0] === sym);
-      let s0 = e; while (s0 > L0 && isL(s0 - 1)) s0--;
-      if (e - s0 > AC.pioneer_window || s0 - F < L0) continue;
-      let fresh = true; for (let k = s0 - F; k < s0 && fresh; k++) if (isL(k)) fresh = false;
-      if (fresh) pioneers.push({ s: sym, g21, ind: IND.industries[ii].k, since: e - s0 });
-    }
     const th = groups.filter(x => x.g.kind === 'th');
-    const res = { e, day: !!day, groups, active, leaders, pioneers, neufs: active.filter(x => x.neuf), chauds: active.filter(x => !x.neuf && x.hot),
+    const res = { e, day: !!day, groups, active, leaders, neufs: active.filter(x => x.neuf), chauds: active.filter(x => !x.neuf && x.hot),
                   old: active.filter(x => x.hot && x.age >= AC.old_sessions).sort((a, b) => b.age - a.age),
                   thHot: th.filter(x => x.hot).length, thN: th.length };
     A.at.set(e, res); return res;
   }
+  // 9M par groupe (31/10/2026) : titres d'une industrie (actions retenues) ou d'un thème suivi présents dans les listes 9M des
+  // nine_window séances jusqu'à la séance e ; part = titres ÷ membres du groupe. Index Tickers (industrie) chargé à la demande.
+  let nineMemo = new Map();
+  function nineAt(e) {
+    const A = actData(), NI = IND && IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null;
+    if (!A || e < 0) return null;
+    if (nineMemo.has(e)) return nineMemo.get(e);
+    // 1. historique du robot (industries_data.js, clé nine, cache Polygon, 31/10/2026) : une liste par séance de l'onglet
+    // 2. secours (ancien fichier) : listes TradingView gardées (depuis le 27/10/2026) × index Tickers (industrie, action retenue)
+    let syms = new Set(), byInd = new Map(), days;
+    const add = (k, s) => (byInd.get(k) || byInd.set(k, []).get(k)).push(s);
+    if (NI) {
+      const k0 = Math.max(NI.start, e - AC.nine_window + 1); days = Math.max(0, e - k0 + 1);
+      const seen = new Map(); for (let k = k0; k <= e; k++) (NI.days[k - NI.start] || []).forEach(([s, ii]) => seen.set(s, ii));
+      seen.forEach((ii, s) => { syms.add(s); if (IND.industries[ii]) add('i:' + IND.industries[ii].k, s); });
+    } else {
+      const L = (window.TV_BREADTH || {}).breakouts; if (!L) return null;
+      if (!window.TICKERS) { if (!tkLoaded.tickers) tkLoad(renderSecKpis); return null; }
+      const T = window.TICKERS, ci = T.cols.indexOf('ind'), ck = T.cols.indexOf('kept'), d = IND.dates[e];
+      const dl = Object.keys(L).sort().filter(x => x <= d).slice(-AC.nine_window); days = dl.length;
+      const C = Object.fromEntries(((window.TV_BREADTH || {}).bo_columns || ['ticker']).map((c, i) => [c, i]));
+      dl.forEach(x => (L[x] || []).forEach(r => syms.add(r[C.ticker])));
+      syms.forEach(s => { const r = tkLookup(s); if (!r || !r[ck]) return; add('i:' + T.inds[r[ci]][0], s); });
+    }
+    const out = new Map();
+    A.G.forEach(g => {
+      const t = g.kind === 'th' ? [...syms].filter(s => g.m.has(s)) : byInd.get(g.key) || [];
+      if (t.length) out.set(g.key, { n: t.length, share: g.n ? 100 * t.length / g.n : 0, t });
+    });
+    out.days = days; out.src = NI ? 'polygon' : 'tv'; nineMemo.set(e, out); return out;
+  }
+  const nineLvl = x => !x ? '' : x.n >= AC.nine_min && x.share >= AC.nine_intense ? 'i' : x.n >= AC.nine_min && x.share >= AC.nine_share ? 'f' : '';
   const actThAt = e => { const A = actData(); if (!A || e < 0) return null; const H = A.hotAt(e); return A.G.filter(g => g.kind === 'th' && g.n >= TIC.min_members && H.has(g.key)).length; };
   function actLevel() {                                // niveau « Leaders actifs » : actions de plusieurs industries (fichiers chargés à la demande)
     const e = actEnd(), at = actAt(e), base = { kind: 'act', dates: [], items: [], act: at };
@@ -2962,6 +3130,12 @@
     }).filter(Boolean));
     const F0 = files.map(f => window.TV_STOCKS && window.TV_STOCKS[f]).find(Boolean);
     return { kind: 'act', key, dates: F0 ? F0.dates : [], vu: F0 ? F0.vu || 1 : 1, items, act: at };
+  }
+  function goInd(k) {                                  // actions d'une industrie dans le Classement (Réveil, carte des thèmes)
+    const I = IND.industries.find(x => x.k === k); if (!I) return;
+    if (secView !== 'tv') { secView = 'tv'; store.set('mm.secview', 'tv'); }
+    tvNav = { lvl: 'stk', sec: I.sec, ind: I.k }; tvSave(); secSel = null; $('view-sec').classList.remove('detail'); renderSectors();
+    const t = $('secTable'); if (t && t.scrollIntoView && typeof window.scrollTo === 'function' && t.getBoundingClientRect && t.getBoundingClientRect().top > window.innerHeight) t.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
   function goAct(key) {                                // ouvre Leaders actifs (tous, ou ceux d'un groupe), sélection remise à zéro
     actGrp = key || null; actAll = false; secSel = null;
@@ -3025,8 +3199,9 @@
   let actOpen = foldGet('act'), listOpen = foldGet('list');   // les cases ne se replient pas : point d'ancrage (27/10/2026)
   // ordre des blocs sous la frise (exception au gel du 27/10/2026) : choisi par glisser-déposer, mémorisé (mm.secorder) ; par
   // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
-  const SEC_BLK = { flow: 'secFlow', act: 'secAct', bo: 'secBo', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);
-  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Groupes actifs', bo: 'Breakouts 9M +4 %', list: 'Classement' };
+  // ordre par défaut = HTML ; Breakouts 9M avant Groupes actifs depuis le 31/10/2026 (seul bloc à l'avance mesurée, audit de l'onglet)
+  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', act: 'secAct', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : carte des thèmes (31/10/2026)
+  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Groupes actifs', bo: 'Breakouts 9M +4 %', map: 'Carte des thèmes', list: 'Classement' };
   let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
   const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
     `title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button>`;
@@ -3059,52 +3234,82 @@
       return `<span class="${c}" title="${escA(tip)}">${lbl} ${b} → <b>${a}</b>${a < b ? ' ↓' : a > b ? ' ↑' : ''}</span>`; };
     const trend = was ? [P0 >= 0 && P && PHASES[P0].k !== P.k ? `<span class="dn" title="Phase de marché ${T} séances avant → aujourd'hui">${escH(PHK[PHASES[P0].k].name)} → <b>${escH(ph.name)}</b></span>` : '',
       mv('chauds', now.hot, was.hot, `Groupes chauds ${T} séances avant → à cette séance`), mv('neufs', now.neuf, was.neuf, `Groupes neufs ${T} séances avant → à cette séance`),
-      mv('leaders', now.lead, was.lead, `Leaders actifs ${T} séances avant → à cette séance`),
-      at.old.length ? `<span class="dn" title="Groupes chauds depuis au moins ${AC.old_sessions} séances (information, pas une règle de sortie : test 9)">⚑ ${at.old.length} s'essouffle${at.old.length > 1 ? 'nt' : ''}</span>` : ''].filter(Boolean) : [];
+      mv('leaders', now.lead, was.lead, `Leaders actifs ${T} séances avant → à cette séance`)].filter(Boolean) : [];   // « s'essouffle » : au survol des cartes (31/10/2026)
     // replié : seulement ce qui baisse (groupes chauds, leaders), pour le voir sans ouvrir le bloc
+    const N9 = nineAt(e), n9 = x => N9 ? N9.get(x.g.key) || null : null;   // 9M par groupe (null : index Tickers en chargement)
+    const RV0 = N9 ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(n9(x))) : [];
     const worse = !was ? [] : [now.hot < was.hot ? `chauds ${was.hot} → ${now.hot}` : null, now.lead != null && was.lead != null && now.lead < was.lead ? `leaders ${was.lead} → ${now.lead}` : null].filter(Boolean);
     const dt = fmtDate(d, { day: 'numeric', month: 'short' });
-    const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
+    const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')}${RV0.length ? ` · ${RV0.length} ${escH(AC.reveil_label.toLowerCase())}` : ''} · ${pl(at.chauds.length, 'chaud')}` +
       (!actOpen && alert ? ` · <span class="w">⚠ ${escH(ph.name)}</span>` : '') + (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
     const head = `<div class="ahead">${dragH('act')}<button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
-      (at.leaders.length ? `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+      (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
+        `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+    actSyms = at.leaders.map(r => r.s);
     if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
     // la phase et ses setups sont dans le titre de la frise (une seule source) ; ici, seulement l'alerte qui concerne les groupes
     const phl = alert ? `<div class="phl"><span class="alrt" title="${escA(AC.alert_text)}" tabindex="0">⚠ ${escH(ph.name)} avec ${pl(nHot, 'groupe')} chaud${nHot > 1 ? 's' : ''}</span></div>` : '';
     const trl = trend.length ? `<div class="atrend"><span class="note">Sur ${T} s</span>${trend.join('')}</div>` : '';
     const ago = n => n === 0 ? 'cette séance' : `${n} séance${n > 1 ? 's' : ''}`;
+    // carte : nom, « thème », 9M du groupe (titres · part ; vert à partir de nine_share %, plein à partir de nine_intense %), leaders.
+    // ⚑ s'essouffle et ◆ refuge : au survol seulement depuis le 31/10/2026 (audit : aucune règle mesurée, tests 9 et 12)
     const card = x => {
       const g = x.g, on = tvNav.lvl === 'act' && actGrp === g.key, v = secScore(g.c, e), b = g.b && g.b[e] != null ? g.b[e] : null, old = x.hot && x.age >= AC.old_sessions;
+      const m9 = n9(x), rv = !x.hot && !x.neuf;
       const tip = [`${g.k}${g.kind === 'th' ? ' (thème suivi)' : g.sec ? ' · ' + tvSecLabel(g.sec) : ''}`, `${pl(x.lead, 'leader')}`, v != null ? `${TIN} ${nf(v, 2)}` : null,
         b != null ? `${nf(b, 0)} % des actions > 1` : null, x.neuf ? `signal depuis ${ago(x.since)}` : x.age != null ? `chaud depuis ${ago(x.age)}` : null,
         old ? "s'essouffle (information, pas une règle de sortie : test 9)" : null, g.fam ? `famille refuge : ${g.fam} (étiquette : test 12)` : null,
-        g.etf ? `ETF de confirmation : ${g.etf}` : null, 'toucher : ses leaders'].filter(Boolean).join(' · ');
-      const ic = (g.kind === 'th' ? '<span class="th">thème</span>' : '') + (old ? '<span class="old">⚑</span>' : '') + (g.fam ? '<span class="ref">◆</span>' : '');
-      return `<button type="button" data-actg="${escA(g.key)}" class="acard${x.neuf ? ' neuf' : ''}${on ? ' on' : ''}${x.lead ? '' : ' zero'}" aria-pressed="${on}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
+        g.etf ? `ETF de confirmation : ${g.etf}` : null,
+        m9 ? `${pl(m9.n, 'titre')} en 9M sur ${N9.days} séance${N9.days > 1 ? 's' : ''} (${nf(m9.share, 0)} % du groupe) : ${m9.t.join(', ')}` : N9 ? 'aucun titre en 9M' : null,
+        rv ? 'toucher : ses actions' : 'toucher : ses leaders'].filter(Boolean).join(' · ');
+      const ic = (g.kind === 'th' ? '<span class="th">thème</span>' : '') + (m9 ? `<span class="n9 ${nineLvl(m9)}">9M ${m9.n} · ${nf(m9.share, 0)} %</span>` : '');
+      const data = rv ? `data-actind="${escA(g.k)}"` : `data-actg="${escA(g.key)}"`;
+      return `<button type="button" ${data} class="acard${x.neuf ? ' neuf' : ''}${rv ? ' rv' : ''}${on ? ' on' : ''}${x.lead ? '' : ' zero'}" aria-pressed="${on}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
         `<span class="an">${escH(g.k)}</span><span class="ai">${ic}</span><b class="al">${x.lead}</b></button>`;
     };
-    const byLead = (a, b) => b.lead - a.lead || (a.g.k < b.g.k ? -1 : 1);
-    const N = at.neufs.slice().sort(byLead), C = at.chauds.slice().sort(byLead), Cw = C.filter(x => x.lead > 0).slice(0, AC.chauds_shown), rest = C.length - Cw.length;
+    // chauds : d'abord ceux qui ont le plus de titres en 9M, puis de leaders (« chaud » seul : pas d'avance mesurée, audit du 31/10/2026)
+    const byLead = (a, b) => b.lead - a.lead || (a.g.k < b.g.k ? -1 : 1), by9 = (a, b) => ((n9(b) || {}).n || 0) - ((n9(a) || {}).n || 0) || byLead(a, b);
+    const N = at.neufs.slice().sort(by9), C = at.chauds.slice().sort(by9), Cw = C.filter(x => x.lead > 0 || n9(x)).slice(0, AC.chauds_shown), rest = C.length - Cw.length;
+    // Réveil : 9M fort (nine_min titres, nine_share %) dans une industrie ni chaude ni neuve (+1,6 % sur 21 s, 14 ans sur 18)
+    const RV = RV0.slice().sort(by9);
     const shown = N.concat(actZero ? C : Cw);
     const sec = (cls, lbl, arr, list) => arr.length ? `<div class="asec"><span class="etat ${cls}">${lbl} ${arr.length}</span></div><div class="agrid">${list.map(card).join('')}</div>` : '';
     const more = rest ? `<button type="button" class="amore" data-actzero="1" aria-expanded="${actZero}">${actZero ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
-    const pion = at.pioneers.length ? `<div class="asec"><span class="etat" style="background:var(--neutralbg);color:var(--muted)" title="${escA(AC.pioneer_tip)}">Pionniers ${at.pioneers.length}</span><span class="note">` +
-      at.pioneers.map(p => `<b title="${escA(p.ind + ' · leader depuis ' + ago(p.since))}">${escH(p.s)}</b> +${nf(p.g21, 0)} %`).join(' · ') + '</span></div>' : '';
-    const leg = [shown.some(x => x.hot && x.age >= AC.old_sessions) ? `<span><span class="old">⚑</span> s'essouffle (chaud ≥ ${AC.old_sessions} s)</span>` : '',
-      shown.some(x => x.g.fam) ? '<span><span class="ref">◆</span> famille refuge</span>' : '', 'nombre = leaders · survol : détail'].filter(Boolean).join('');
+    const rvs = RV.length ? `<div class="asec"><span class="etat rv" title="${escA(AC.reveil_tip)}">${escH(AC.reveil_label)} ${RV.length}</span></div><div class="agrid">${RV.map(card).join('')}</div>` : '';
+    const leg = [N9 ? `<span><span class="n9">9M 3 · 12 %</span> titres en 9M sur ${AC.nine_window} séances · part du groupe ; <span class="n9 f">vert</span> dès ${AC.nine_min} titres et ${AC.nine_share} %, <span class="n9 i">plein</span> dès ${AC.nine_intense} %</span>` : '',
+      'nombre = leaders · survol : détail'].filter(Boolean).join('');
     box.innerHTML = head + phl + trl +
-      (at.day ? sec('neuf', 'Neufs', N, N) + sec('chaud', 'Chauds', C, actZero ? C : Cw) + more + pion + (shown.length ? `<div class="aleg">${leg}</div>` : '')
+      (at.day ? sec('neuf', 'Neufs', N, N) + rvs + sec('chaud', 'Chauds', C, actZero ? C : Cw) + more + (shown.length || RV.length ? `<div class="aleg">${leg}</div>` : '')
         : `<div class="note">Leaders disponibles sur les ${CFG.industries.leaders.list_sessions} dernières séances seulement.</div>`) +
       (at.day && !at.active.length ? '<div class="note">Aucun groupe neuf ou chaud à cette séance.</div>' : '');
   }
   // bloc « Breakouts 9M +4 % » (scan TC2000 de l'utilisateur, exception au gel du 27/10/2026) : relevé TradingView du soir
   // (tv_breadth_data.js, clé breakouts, fetch_tv_breadth.py). Séance des cases si elle est choisie ou survolée, sinon le
   // dernier relevé : le soir même, avant que Polygon publie la séance (les cases montrent encore la veille)
-  const BOC = CFG.sectors.breakouts;
-  let boOpen = foldGet('bo'), boAll = false, boShown = [], boDay = null;
-  const usdFmt = v => v == null ? '—' : capFmt(v) + ' $';   // volume en dollars : « 166 M $ », « 1,2 Md $ »
+  const BOC = CFG.sectors.breakouts, BMT = BOC.marks_text;   // libellés des repères : config/sources.toml [tv_breadth.breakouts] marks_text
+  let boOpen = foldGet('bo'), boAll = false, boWeak = false, boShown = [], boDay = null;   // boWeak : couloir « bougie faible » déplié
+  const usdFmt = v => v == null ? '—' : capFmt(v) + ' $';
+  // repères 9M (31/10/2026) : bougie forte et étendu, seuils de config/sources.toml [tv_breadth.breakouts] (bloc et case « 9M à regarder »)
+  const boStrong = (pos, rr, rp) => pos != null && rr != null && rp != null && pos >= BOC.candle_close_pct && rr >= BOC.candle_range_adr && rp > BOC.candle_range_prev;
+  const boExt = w => w != null && w >= BOC.extended_pct;
+  // même compte depuis l'historique du robot (industries_data.js, nine : repères 1 = bougie forte, 2 = étendu ; actions retenues,
+  // calcul maison sur le cache Polygon, 01/11/2026) : courbe et jauge de la case « 9M à regarder » sur toute la fenêtre publiée
+  let nbFlags = null;
+  function nineBo(e) {
+    const N = IND && IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null; if (!N) return null;
+    if (nbFlags === null || nbFlags.src !== N) nbFlags = { src: N, ok: N.days.some(d => d.some(r => r.length > 2)) };
+    const day = nbFlags.ok ? N.days[e - N.start] : null; if (!day) return null;
+    let a = 0, b = 0; day.forEach(([, , q]) => { if (q & 1) { if (q & 2) b++; else a++; } });
+    return { a, b, n: day.length, own: true };
+  }
+  function boCountAt(d) {                              // {a : bougie forte pas étendue, b : étendue, n} de la liste 9M de la séance d ; null sans repères
+    const X = window.TV_BREADTH || {}, rows = (X.breakouts || {})[d]; if (!rows) return null;
+    const C = Object.fromEntries((X.bo_columns || []).map((c, i) => [c, i])); if (C.pos == null || !rows.some(r => r[C.pos] != null)) return null;
+    let a = 0, b = 0; rows.forEach(r => { if (boStrong(r[C.pos], r[C.rr], r[C.rp])) { if (boExt(r[C.w])) b++; else a++; } });
+    return { a, b, n: rows.length };
+  }   // volume en dollars : « 166 M $ », « 1,2 Md $ »
   // ordre de la liste (config sort, choix de l'utilisateur du 27/10/2026) : volume en dollars du jour, du plus haut au plus bas
   // (listes d'avant cette colonne : hausse du jour), ou hausse du jour
   const boSort = items => items.sort((a, b) => BOC.sort === 'dvol' && (a.dv != null || b.dv != null)
@@ -3119,11 +3324,22 @@
     const last = IND.dates.length - 1, d = latest ? ds[ds.length - 1] : IND.dates[e], rows = L[d] || null;
     let k = last; while (k > 0 && IND.dates[k] > d) k--;   // leaders actifs de la séance (ou de la veille si Polygon ne l'a pas encore)
     const at = actAt(k), lead = at && at.day ? new Map(at.leaders.map(r => [r.s, r])) : null;
+    const col = (r, c) => C[c] != null ? r[C[c]] ?? null : null;
+    // « 9M ×n » : listes 9M des repeat_sessions séances gardées avant celle-ci (la série commence au premier relevé)
+    const prevDays = ds.filter(x => x < d).slice(-BOC.repeat_sessions), seen = new Map();
+    prevDays.forEach(x => (L[x] || []).forEach(r => seen.set(r[C.ticker], (seen.get(r[C.ticker]) || 0) + 1)));
     const items = boSort((rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio],
-      dv: C.dvol != null ? r[C.dvol] ?? null : null, l: lead ? lead.get(r[C.ticker]) : null })));
+      dv: col(r, 'dvol'), l: lead ? lead.get(r[C.ticker]) : null, pos: col(r, 'pos'), rr: col(r, 'rr'), rp: col(r, 'rp'), w: col(r, 'w'),
+      n9: seen.get(r[C.ticker]) || 0 })));
+    items.forEach(r => {   // repères (31/10/2026) : seuils dans config/sources.toml [tv_breadth.breakouts]
+      r.bq = boStrong(r.pos, r.rr, r.rp); r.ext = boExt(r.w);
+      r.lane = r.bq ? (r.ext ? 1 : 0) : 2;
+    });
+    const marked = items.some(r => r.pos != null), lanesN = [0, 1, 2].map(i => items.filter(r => r.lane === i).length);
     boShown = items.map(r => r.s); boDay = rows ? d : null;
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`, nl = items.filter(r => r.l).length, dt = fmtDate(d, { day: 'numeric', month: 'short' });
-    const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
+    const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (marked ? ` · <b class="bo-a">${lanesN[0]}</b> à regarder · ${pl(lanesN[1], 'étendu')}` : '') +
+      (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
       (!boOpen && items.length ? ` · ${items.slice(0, 5).map(r => escH(r.s)).join(', ')}${items.length > 5 ? '…' : ''}` : '') : 'pas de relevé');
     const btns = items.length ? `<button type="button" class="copybtn" data-bocopy="1" title="Copier les tickers de la liste, séparés par des virgules"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
       `<button type="button" class="copybtn" data-botk="1" title="Analyser ces tickers dans l'onglet Tickers (secteur, industrie, tendance, short interest)"><svg class="i"><use href="#i-search"/></svg><span>Tickers</span></button>` +
@@ -3134,20 +3350,277 @@
     box.classList.remove('folded');
     const x1 = x => nf(x, x >= 10 ? 0 : 1);
     const chip = r => {
+      const mk = r.pos != null ? [tpl(BMT.close, { p: r.pos }), r.rr != null ? tpl(BMT.range, { r: nf(r.rr, 1) }) : null, r.rp != null ? tpl(BMT.prev, { r: nf(r.rp, 1) }) : null,
+        r.w != null ? tpl(BMT.week, { w: `${r.w >= 0 ? '+' : ''}${nf(r.w, 1)}` }) : null, r.bq ? BMT.strong : BMT.weak] : [];
       const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
-        r.l ? `leader actif (${r.l.etat}) : ${r.l.groups.join(', ')}` : null, "toucher : son graphique et sa fiche (Classement)"].filter(Boolean).join(' · ');
-      return `<button type="button" class="bochip${r.l ? ' lead' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
-        `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
-        `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span></button>`;   // ×veille : détail au survol
+        ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: prevDays.length }) : null,
+        r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
+      const tags = (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
+      return `<button type="button" class="bochip${r.l ? ' lead' : ''}${marked ? ' mk' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
+        (marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
+        `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span>` +   // ×veille : détail au survol
+        (tags ? `<span class="bt">${tags}</span>` : '') + '</button>';
     };
     const shown = boAll ? items : items.slice(0, BOC.list_limit), rest = items.length - shown.length;
     const more = items.length > BOC.list_limit ? `<button type="button" class="amore" data-boall="1" aria-expanded="${boAll}">${boAll ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
     const ahead = latest && d > IND.dates[last] ? `<div class="note">Relevé TradingView du soir : la séance du ${dt} n'est pas encore dans les cases (Polygon la publie le lendemain matin)${lead ? ` ; ★ : leaders actifs du ${fmtDate(IND.dates[k], { day: 'numeric', month: 'short' })}` : ''}</div>` : '';
+    // couloirs (relevés avec repères, depuis le 31/10/2026) : bougie forte pas étendue, bougie forte étendue, bougie faible (repliée)
+    const lane = i => {
+      const rs = items.filter(r => r.lane === i), sub = escH(BOC.lanes_sub[i].replace('{ext}', BOC.extended_pct));
+      const h = `<div class="bolh"><span class="boln">${rs.length}</span><span><b>${escH(BOC.lanes[i])}</b><small>${sub}</small></span></div>`;
+      if (i < 2) return `<div class="bolane l${i}">${h}${rs.length ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : ''}</div>`;
+      return `<div class="bolane l2${boWeak ? ' open' : ''}">${h}` + (boWeak ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : rs.length ? `<p class="bomini">${rs.map(r => escH(r.s)).join(', ')}</p>` : '') +
+        (rs.length ? `<button type="button" class="amore" data-boweak="1" aria-expanded="${boWeak}">${boWeak ? 'Replier' : `Voir les ${rs.length}`}</button>` : '') + '</div>';
+    };
+    const legM = `<span>${boCdl({ pos: 92, rr: 1.5, bq: true })} ${escH(BMT.leg_strong)}</span><span>${boCdl({ pos: 40, rr: 0.7, bq: false })} ${escH(BMT.leg_weak)}</span>` +   // bougies d'exemple
+      `<span><span class="botg w">${escH(tpl(BMT.leg_ext_tag, { ext: BOC.extended_pct }))}</span> ${escH(BMT.leg_ext)}</span><span><span class="botg m">9M ×${BOC.repeat_min}</span> ${escH(tpl(BMT.leg_repeat, { n: BOC.repeat_min, s: BOC.repeat_sessions }))}</span>`;
+    const leg = (marked || nl) ? `<div class="aleg">${marked ? legM : ''}${nl ? `<span><span class="star" style="color:var(--up)">★</span> ${escH(BMT.leg_leader)}</span>` : ''}<span>${escH(BMT.leg_hover)}</span></div>` : '';
     box.innerHTML = head + ahead + (!rows ? `<div class="note">Pas de relevé pour cette séance : la liste commence le ${fmtDate(ds[0], { day: 'numeric', month: 'short', year: 'numeric' })} (TradingView ne garde pas d'historique de ce scan).</div>`
-      : items.length ? `<div class="bogrid">${shown.map(chip).join('')}</div>${more}` + (nl ? '<div class="aleg"><span><span class="star" style="color:var(--up)">★</span> leader actif (groupe neuf ou chaud)</span><span>survol : détail</span></div>' : '')
+      : items.length ? (marked ? `<div class="bolanes">${lane(0)}${lane(1)}${lane(2)}</div>` : `<div class="bogrid">${shown.map(chip).join('')}</div>${more}`) + leg
       : '<div class="note">Aucun titre à cette séance.</div>');
   }
-  const skVal = (K, id, e) => { const v = id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
+  // carte des thèmes (31/10/2026, config/display.toml [sectors.map]) : industries placées par tendance (rang TI65, x) et demande
+  // (part en 9M sur nine_window séances, y) ; taille = leaders ; couleur = neuf, chaud + 9M fort, 9M fort seul (Réveil), chaud, autre.
+  // Zones mesurées hors dépôt 2008-2025 (notes de la config). SVG à la largeur du bloc : texte lisible sur mobile
+  const MP = CFG.sectors.map, MT = MP.text, TPC = CFG.ticker_popup;
+  let mapOpen = foldGet('map'), mapSel = null;          // mapSel : industrie choisie (traînée, barre d'information)
+  // positions des industries à la séance k (mémorisé) : px = rang TI65 parmi les industries classées (0-100), py = part en 9M
+  const mapMemo = new Map();
+  function mapAt(k) {
+    if (mapMemo.has(k)) return mapMemo.get(k);
+    const at = actAt(k), N9 = at ? nineAt(k) : null, ok9 = N9 && N9.days; if (!at) return null;
+    const pts = at.groups.filter(x => x.g.kind === 'ind').map(x => ({ x, s: secScore(x.g.c, k) })).filter(o => o.s != null).sort((a, b) => a.s - b.s);
+    pts.forEach((o, i) => {
+      const m = ok9 ? N9.get(o.x.g.key) || null : null; o.px = pts.length > 1 ? 100 * i / (pts.length - 1) : 50; o.py = m ? m.share : 0; o.m = m;
+      o.strong = !!nineLvl(m); o.cl = o.x.neuf ? 'neuf' : o.strong && o.x.hot ? 'both' : o.strong ? 'rev' : o.x.hot ? 'hot' : 'calm';
+    });
+    const r = { pts, by: new Map(pts.map(o => [o.x.g.key, o])), ok9, N9 };
+    if (mapMemo.size > 400) mapMemo.clear();
+    if (N9) mapMemo.set(k, r);                          // index Tickers en chargement (secours) : pas mémorisé
+    return r;
+  }
+  const MAP_TRAIL = MP.trail;                            // séances de la traînée (la séance affichée comprise)
+  let mapOther = false;                                 // tableau par zone : « 9M actif ailleurs » déplié
+  // axe des 9M (config y_scale) : « log » = log(1 + part / y_log_k), logarithmique au-delà de quelques % et 0 % gardé
+  // (un vrai log ne peut pas montrer 0 %) ; « sqrt » racine carrée ; « linear »
+  const mapY = v => {
+    const c = Math.max(0, Math.min(v, MP.y_max));
+    if (MP.y_scale === 'log') return Math.log1p(c / MP.y_log_k) / Math.log1p(MP.y_max / MP.y_log_k);
+    return MP.y_scale === 'sqrt' ? Math.sqrt(c / MP.y_max) : c / MP.y_max;
+  };
+  // deux composants (demande du 01/11/2026) : la carte (#secMap) et le tableau par zone (#secZone) dans #secMapRow (bloc
+  // déplaçable « map »), en flex : côte à côte quand la place le permet (map_min + zone_min px), l'un au-dessus de l'autre sinon
+  // (row-reverse : la carte à gauche, le tableau au-dessus sur mobile) ; même hauteur côte à côte (étirement + mapFill)
+  function renderSecMap(e) {
+    const box = $('secMap'), zb = $('secZone'), row = $('secMapRow'); if (!box) return;
+    const at = IND && MP.shown ? actAt(e) : null, off = !at || !(IND.nine || (window.TV_BREADTH || {}).breakouts);
+    box.hidden = zb.hidden = row.hidden = off; if (off) return;
+    box.style.flex = `${MP.side_share} 1 ${MP.map_min}px`; zb.style.flex = `${100 - MP.side_share} 1 ${MP.zone_min}px`;
+    const M = mapAt(e), pts = M.pts, ok9 = M.ok9, pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
+    renderSecZone(e, M);
+    const nRev = pts.filter(o => o.cl === 'rev').length, nBoth = pts.filter(o => o.cl === 'both').length, dt = fmtDate(IND.dates[e], { day: 'numeric', month: 'short' });
+    const sum = `· ${dt}` + (ok9 ? ` · <b class="bo-a">${nRev}</b> ${escH(MP.zones.reveil.toLowerCase())} · ${nBoth} ${escH(MP.zones.lasting.toLowerCase())}` : '');
+    const head = `<div class="ahead">${dragH('map')}<button type="button" class="foldh" data-mapfold="1" aria-expanded="${mapOpen}"><span class="car">${mapOpen ? '▾' : '▸'}</span><b>${escH(MP.label)}</b></button>` +
+      `<span class="fsum">${sum}</span>${tipI('map', MP.label)}</div>`;
+    if (!mapOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
+    box.classList.remove('folded');
+    if (!ok9) { box.innerHTML = head + `<div class="note">${escH(M.N9 ? tpl(MT.no_list, { w: AC.nine_window }) : MT.loading)}</div>`; return; }
+    const W = Math.max(300, Math.min(1000, (box.clientWidth || 760) - 24)), small = W < 520;
+    // barre d'information du point choisi (les deux vues) : évolution sur la traînée, et l'action (ses leaders ou ses actions)
+    const past = []; for (let k = Math.max(0, e - MAP_TRAIL + 1); k < e; k++) { const P = mapAt(k); if (P) past.push(P); }
+    const S = mapSel ? M.by.get(mapSel) : null;
+    let info = '';
+    if (S) {
+      const first = past.map(P => P.by.get(S.x.g.key)).find(Boolean), act = S.x.hot || S.x.neuf, n = past.length + 1;
+      const mv = (a, b, f) => a == null || Math.round(a) === Math.round(b) ? `<b>${f(b)}</b>` : `${f(a)} → <b>${f(b)}</b>`;
+      info = `<div class="mapinfo"><span class="mi-n"><i class="mk ${S.cl}"></i><b>${escH(S.x.g.k)}</b>${S.x.neuf ? ' · ' + escH(MT.state.neuf) : S.x.hot ? ' · ' + escH(MT.state.hot) : ''}</span>` +
+        `<span>${escH(tpl(MT.rank, { ti: TIN, r: '' }))}${mv(first && first.px, S.px, v => nf(v, 0))}</span><span>9M ${mv(first && first.py, S.py, v => nf(v, 0) + ' %')}${S.m ? ` (${escH(plu(MT.titre, S.m.n))})` : ''}</span>` +
+        `<span>${escH(plu(MT.leader, S.x.lead))}</span><span class="note">${escH(tpl(MT.over[n > 1 ? 1 : 0], { n }))}</span><span class="asp"></span>` +
+        `<button type="button" class="go" ${act ? `data-actg="${escA(S.x.g.key)}"` : `data-actind="${escA(S.x.g.k)}"`}>${escH(act ? MT.go_leaders : MT.go_actions)}</button>` +
+        `<button type="button" class="mi-x" data-mapsel="" aria-label="${escA(MT.close)}">✕</button></div>`;
+    }
+    const svgOf = (H, g) => `<svg class="smap" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${escA(MP.label)}">${g.join('')}</svg>`;
+    const H = (small ? 320 : 380) + mapGrow, L = 52, R = 10, T = 10, B = 44;
+    const sx = v => L + (W - L - R) * v / 100, sy = v => T + (H - T - B) * (1 - mapY(v));
+    const xs = sx(MP.x_hot), ys = sy(AC.nine_share), yi = sy(AC.nine_intense);
+    // zones de droite sur petit écran (colonne étroite) : libellé sur deux lignes, coupé au premier espace ; note coupée à chaque « · »
+    // noms déjà posés [x0, ligne de base, largeur] : les libellés des zones d'abord, pour que les noms d'industries les évitent
+    const placed = [], cw = 6.4, lh = 13;
+    const zl = (k, x, y, anchor, note) => {
+      const two = small && anchor === 'end', w = MP.zones[k].split(' '), lines = two && w.length > 1 ? [w[0], w.slice(1).join(' ')] : [MP.zones[k]];
+      lines.forEach((t, i) => { const tw = t.length * 7.6; placed.push([anchor === 'end' ? x - tw : x, y + 14 * i, tw]); });
+      return lines.map((t, i) => `<text class="mz ${k}" x="${x}" y="${y + 14 * i}" text-anchor="${anchor}">${escH(t)}</text>`).join('') +
+        (note ? MP.zone_notes[k].split(' · ').map((t, i) => `<text class="mzs" x="${x}" y="${y + 14 * lines.length + 13 * i}" text-anchor="${anchor}">${escH(t)}</text>`).join('') : '');
+    };
+    const g = [];
+    g.push(`<rect class="mzr" x="${L}" y="${T}" width="${xs - L}" height="${ys - T}"/><rect class="mzb" x="${xs}" y="${T}" width="${W - R - xs}" height="${ys - T}"/>`);
+    for (let v = 0; v <= 100; v += small ? 50 : 20) g.push(`<line class="mg" x1="${sx(v)}" x2="${sx(v)}" y1="${T}" y2="${H - B}"/><text class="mx" x="${sx(v)}" y="${H - B + 14}" text-anchor="middle">${v}</text>`);
+    MP.y_ticks.forEach(v => g.push(`<line class="mg" x1="${L}" x2="${W - R}" y1="${sy(v)}" y2="${sy(v)}"/><text class="mx" x="${L - 5}" y="${sy(v) + 4}" text-anchor="end">${v} %</text>`));
+    g.push(`<line class="mt" x1="${xs}" x2="${xs}" y1="${T}" y2="${H - B}"/><line class="mt" x1="${L}" x2="${W - R}" y1="${ys}" y2="${ys}"/><line class="mt2" x1="${L}" x2="${W - R}" y1="${yi}" y2="${yi}"/>`);
+    g.push(`<text class="mat" x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">${escH(MP.x_title)} →</text>` +
+      `<text class="mat" transform="translate(13 ${(T + H - B) / 2}) rotate(-90)" text-anchor="middle">${escH(MP.y_title)} →</text>`);
+    // zones du bas : libellé juste sous la ligne des nine_share % (le bas de la carte est plein de points à 0 %)
+    // notes des zones dans la légende (sous le graphique) : dans le graphique, elles cachaient les points du haut
+    g.push(zl('reveil', L + 6, T + 15, 'start', false), zl('lasting', W - R - 6, T + 15, 'end', false), zl('trend', W - R - 6, ys + 16, 'end', false), zl('calm', L + 6, ys + 16, 'start', false));
+    // traînée des MAP_TRAIL dernières séances (A : points importants ; B : survol ou point choisi), flèche au bout = sens du mouvement
+    const trail = (o, r) => {
+      const q = past.map(P => P.by.get(o.x.g.key)).filter(Boolean).concat([o]); if (q.length < 2) return '';
+      const xy = q.map(p => [sx(p.px), sy(p.py)]), [x1, y1] = xy[xy.length - 1];
+      let k = xy.length - 2; while (k > 0 && Math.hypot(x1 - xy[k][0], y1 - xy[k][1]) < 4) k--;
+      const dx = x1 - xy[k][0], dy = y1 - xy[k][1], len = Math.hypot(dx, dy);
+      let arrow = '';
+      if (len >= 4) {
+        const ux = dx / len, uy = dy / len, tx = x1 - ux * (r + 1.5), ty = y1 - uy * (r + 1.5), bx = tx - ux * 6.5, by = ty - uy * 6.5;
+        arrow = `<polygon class="tra" points="${tx.toFixed(1)},${ty.toFixed(1)} ${(bx - uy * 3.2).toFixed(1)},${(by + ux * 3.2).toFixed(1)} ${(bx + uy * 3.2).toFixed(1)},${(by - ux * 3.2).toFixed(1)}"/>`;
+      }
+      return `<g class="trl"><polyline points="${xy.map(c => c[0].toFixed(1) + ',' + c[1].toFixed(1)).join(' ')}"/>` +
+        xy.slice(0, -1).map(([x, y], i) => `<circle class="trd" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2" style="opacity:${(0.25 + 0.6 * i / Math.max(1, xy.length - 2)).toFixed(2)}"/>`).join('') + arrow + '</g>';
+    };
+    const ord = { calm: 0, hot: 1, rev: 2, both: 2, neuf: 3 };
+    pts.slice().sort((a, b) => (a.x.g.key === mapSel) - (b.x.g.key === mapSel) || ord[a.cl] - ord[b.cl] || a.x.lead - b.x.lead).forEach(o => {
+      const x = o.x, m = o.m, imp = o.strong || x.neuf, sel = x.g.key === mapSel;
+      const r = o.cl === 'calm' && !sel ? 2 + 0.9 * Math.sqrt(x.lead) : 3 + 1.8 * Math.sqrt(x.lead);   // points calmes plus petits et pâles : le reste ressort
+      const tip = tpl(MT.point_tip, { k: x.g.k, ti: TIN, r: nf(o.px, 0), m: m ? tpl(MT.nine_some, { n: plu(MT.titre, m.n), p: nf(m.share, 0) }) : MT.nine_none,
+        l: plu(MT.leader, x.lead), s: x.neuf ? ' · ' + MT.state.neuf : x.hot ? ' · ' + MT.state.hot : '' });
+      g.push(`<g class="pt ${o.cl}${imp ? ' imp' : ''}${sel ? ' sel' : ''}">${trail(o, r)}<circle class="mp ${o.cl}" cx="${sx(o.px).toFixed(1)}" cy="${sy(o.py).toFixed(1)}" r="${r.toFixed(1)}" data-mapsel="${escA(x.g.key)}" tabindex="0" role="button" aria-pressed="${sel}" aria-label="${escA(tip)}"><title>${escH(tip)}</title></circle></g>`);
+    });
+    // noms : à droite du point (à gauche près du bord) ; s'il chevauche un nom déjà posé, essai à l'autre côté puis décalé en hauteur
+    const hit = (x0, y0, w) => placed.some(([a0, b0, aw]) => x0 < a0 + aw && a0 < x0 + w && Math.abs(y0 - b0) < lh);
+    pts.filter(o => o.strong || o.x.neuf || o.x.g.key === mapSel).sort((a, b) => (b.x.g.key === mapSel) - (a.x.g.key === mapSel) || b.py - a.py).forEach(o => {
+      const x = sx(o.px), y = sy(o.py), w = o.x.g.k.length * cw, prefEnd = x + 9 + w > W - R;
+      let pos = null;
+      for (const dy of [0, lh, -lh, 2 * lh, -2 * lh, 3 * lh, -3 * lh]) {
+        for (const end of prefEnd ? [true, false] : [false, true]) {
+          const x0 = end ? x - 9 - w : x + 9, yy = Math.min(H - B - 2, Math.max(T + 10, y + 4 + dy));
+          if (x0 >= L && x0 + w <= W - R && !hit(x0, yy, w)) { pos = { x0, yy, end, moved: Math.abs(yy - (y + 4)) > 6 }; break; }
+        }
+        if (pos) break;
+      }
+      // pas de place libre : le nom n'est écrit que pour le point choisi (les autres restent touchables, et dans le tableau par zone)
+      if (!pos && o.x.g.key !== mapSel) return;
+      if (!pos) pos = { x0: prefEnd ? x - 9 - w : x + 9, yy: y + 4, end: prefEnd };
+      placed.push([pos.x0, pos.yy, w]);
+      // nom décalé en hauteur : un trait fin le relie à son point
+      if (pos.moved) g.push(`<line class="mll" x1="${x.toFixed(1)}" y1="${y.toFixed(1)}" x2="${(pos.end ? pos.x0 + w + 2 : pos.x0 - 2).toFixed(1)}" y2="${(pos.yy - 4).toFixed(1)}"/>`);
+      g.push(`<text class="ml" x="${(pos.end ? pos.x0 + w : pos.x0).toFixed(1)}" y="${pos.yy.toFixed(1)}" text-anchor="${pos.end ? 'end' : 'start'}">${escH(o.x.g.k)}</text>`);
+    });
+    const LG = MT.legend;
+    const leg = `<div class="aleg"><span><i class="mk rev"></i>${escH(tpl(LG.reveil, { z: MP.zones.reveil }))}</span><span><i class="mk both"></i>${escH(LG.lasting)}</span><span><i class="mk neuf"></i>${escH(LG.neuf)}</span>` +
+      `<span><i class="mk hot"></i>${escH(LG.hot)}</span><span>${escH(tpl(LG.read, { n: MAP_TRAIL }))}</span></div>` +
+      `<div class="aleg mznotes"><span>${escH(MT.notes_title)}</span>${['reveil', 'lasting', 'trend', 'calm'].map(k => `<span><b>${escH(MP.zones[k])}</b> ${escH(MP.zone_notes[k])}</span>`).join('')}</div>`;
+    box.innerHTML = head + `<div class="note mhint">${escH(MP.read_hint)}</div>` + svgOf(H, g) + info + leg;
+    // côte à côte (même ligne du flex) : la carte grandit (jusqu'à grow_max px) pour finir à la hauteur du tableau, sans vide
+    if (!mapGrowing) { const g2 = mapFill(box, $('secZone')); if (Math.abs(g2 - mapGrow) > 4) { mapGrow = g2; mapGrowing = true; try { renderSecMap(e); } finally { mapGrowing = false; } } }
+  }
+  let mapGrow = 0, mapGrowing = false;
+  function mapFill(box, zb) {
+    const kids = el => [...(el.children || [])];
+    if (!zb || !mapOpen || !zoneOpen || zb.hidden || box.offsetTop !== zb.offsetTop || !kids(box).length || !kids(zb).length) return 0;
+    const nat = el => { const r = el.getBoundingClientRect(), pb = parseFloat(getComputedStyle(el).paddingBottom) || 0;
+      return Math.max(...kids(el).map(c => c.getBoundingClientRect().bottom)) - r.top + pb; };
+    return Math.round(Math.max(0, Math.min(MP.grow_max, nat(zb) - (nat(box) - mapGrow))));
+  }
+  // tableau par zone (01/11/2026, à côté de la carte) : une ligne par industrie Réveil, thème qui dure ou neuve ; pastilles = membres
+  // (remplies : en 9M sur nine_window séances), courbe de la part en 9M sur time_sessions séances, titres en 9M (▲ bougie forte
+  // dans les listes TradingView gardées) ; « tous le même jour » (historique nine) ; panier de config/themes.toml qui recoupe ;
+  // puis les autres industries à 9M ≥ 2 titres (other_max, « + N autres »). Toucher une ligne = choisir le point (mapSel) ;
+  // toucher un titre = sa fenêtre graphique (openPop) ; Copier : tous les titres du tableau, ou ceux d'une zone
+  let zoneOpen = foldGet('zone'), zoneSyms = [];
+  function renderSecZone(e, M) {
+    const zb = $('secZone'), BD = MP.board; if (!zb) return;
+    const B = M.ok9 ? mapBoardHtml(e, M) : null, dt = fmtDate(IND.dates[e], { day: 'numeric', month: 'short' });
+    zoneSyms = B ? B.syms : [];
+    const sum = `· ${dt}` + (B ? ` · ${escH(plu(MT.industrie, B.nz))} · ${escH(plu(MT.titre_9m, zoneSyms.length))}` : '');
+    const copy = zoneSyms.length ? `<button type="button" class="copybtn" data-zcopy="all" title="${escA(BD.copy_tip)}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(MT.copy)}</span></button>` : '';
+    const head = `<div class="ahead">${dragH('map')}<button type="button" class="foldh" data-zonefold="1" aria-expanded="${zoneOpen}"><span class="car">${zoneOpen ? '▾' : '▸'}</span><b>${escH(BD.label)}</b></button>` +
+      `<span class="fsum">${sum}</span><span class="asp"></span>${copy}</div>`;
+    zb.classList.toggle('folded', !zoneOpen);
+    zb.innerHTML = head + (!zoneOpen ? '' : B ? B.html : `<div class="note">${escH(M.N9 ? tpl(MT.no_list, { w: AC.nine_window }) : MT.loading)}</div>`);
+  }
+  function mapBoardHtml(e, M) {
+    const BD = MP.board, pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
+    const ks = []; for (let k = Math.max(0, e - MP.time_sessions + 1); k <= e; k++) ks.push(k);
+    // first / last : première et dernière séance 9M de chaque titre dans la fenêtre ; strong : bougie forte (historique nine,
+    // 3e valeur = 1, calcul Polygon sur toute la fenêtre ; et listes TradingView gardées pour un ancien fichier)
+    const NI = IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null, first = new Map(), last = new Map();
+    const X = window.TV_BREADTH || {}, L = X.breakouts || {}, C = Object.fromEntries((X.bo_columns || ['ticker']).map((c, i) => [c, i])), strong = new Set();
+    if (NI) for (let k = Math.max(NI.start, e - AC.nine_window + 1); k <= e; k++) (NI.days[k - NI.start] || []).forEach(([s, , q]) => {
+      if (!first.has(s)) first.set(s, k); last.set(s, k); if (q & 1) strong.add(s); });
+    if (C.pos != null) Object.keys(L).sort().filter(d => d <= IND.dates[e]).slice(-AC.nine_window)
+      .forEach(d => (L[d] || []).forEach(r => { if (boStrong(r[C.pos], r[C.rr], r[C.rp])) strong.add(r[C.ticker]); }));
+    const spark = key => {
+      const w = 96, h = 26, pad = 2, sx = i => pad + (w - 2 * pad) * (ks.length > 1 ? i / (ks.length - 1) : 1), sy = v => pad + (h - 2 * pad) * (1 - mapY(v));
+      const pts = ks.map((k, i) => { const P = mapAt(k), q = P && P.ok9 ? P.by.get(key) : null; return q ? [sx(i), sy(q.py)] : null; });
+      const segs = []; let cur = []; pts.forEach(p => { if (p) cur.push(p); else if (cur.length) { segs.push(cur); cur = []; } }); if (cur.length) segs.push(cur);
+      const xy = sg => sg.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+      return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><line class="mm-t" x1="0" x2="${w}" y1="${sy(AC.nine_share).toFixed(1)}" y2="${sy(AC.nine_share).toFixed(1)}"/>` +
+        `<g class="mm-a">${segs.map(sg => `<polygon points="${sg[0][0].toFixed(1)},${h - pad} ${xy(sg)} ${sg[sg.length - 1][0].toFixed(1)},${h - pad}"/>`).join('')}</g>` +
+        `<g class="mm-l">${segs.map(sg => `<polyline points="${xy(sg)}"/>`).join('')}</g></svg>`;
+    };
+    // âge de la grappe : séances consécutives (jusqu'à e) avec au moins nine_min titres en 9M sur nine_window séances ;
+    // « ≥ » quand l'historique commence avant la fin de la grappe
+    const ageOf = key => {
+      let a = 0, k = e;
+      for (; k >= 0; k--) { const N = nineAt(k); if (!N || !N.days) break; const q = N.get(key); if (!q || q.n < AC.nine_min) return { a, cap: false }; a++; }
+      return { a, cap: true };
+    };
+    // concentration : part des membres en 9M ÷ part de toutes les actions retenues en 9M (même fenêtre) ; null si le marché n'en a pas
+    const ip = M.pts.filter(o => o.x.g.kind === 'ind'), base = ip.reduce((a, o) => a + (o.m ? o.m.n : 0), 0) / Math.max(1, IND.industries.reduce((a, x) => a + x.n, 0));
+    const liftOf = o => o.m && base > 0 ? o.m.share / 100 / base : null;
+    const liftHtml = (o, short) => { const L = liftOf(o); if (L == null) return '';
+      return `<span class="mb-l${L >= BD.lift_hi ? ' hi' : ''}" title="${escA(tpl(BD.lift_tip, { p: nf(o.m.share, 0), b: nf(100 * base, 1) }))}">${escH(tpl(short ? BD.lift_short : BD.lift_label, { x: nf(L, 1) }))}</span>`; };
+    // zone Réveil : industrie délaissée (rang TI65 sous low_rank), le meilleur cas mesuré (verif_reveil_rang) ; en tête de la zone
+    // ordre des zones selon la phase de la séance (règles [sectors.map.board] phase_rule, verif_zones_phases) ; séance pas encore
+    // calculée : phase de la dernière séance calculée, comme le bandeau ; phase inconnue : default_order, étiquette gardée
+    const pd = IND.dates[e], pk = phaseKeyAt(pd) || (PHASES.length && pd > PHASES[PHASES.length - 1].d ? PHASES[PHASES.length - 1].k : null);
+    const PR = pk ? (BD.phase_rule || []).find(r => r.phases.includes(pk)) || null : null;
+    const lowOf = o => (PR ? PR.low : true) && o.cl === 'rev' && o.px != null && o.px < BD.low_rank;
+    const ageTip = escA(BD.age_tip.replace('{k}', AC.nine_min).replace('{w}', AC.nine_window).replace('{notes}', BD.age_notes.join(' ; ')));
+    const row = o => {
+      const x = o.x, m = o.m, n = x.g.n, key = x.g.key, sel = key === mapSel;
+      const t = m ? m.t.slice().sort((a, b) => strong.has(b) - strong.has(a) || (last.get(b) ?? -1) - (last.get(a) ?? -1) || (a < b ? -1 : 1)) : [];   // bougie forte, puis 9M le plus récent
+      const ag = m && m.n >= AC.nine_min ? ageOf(key) : null, bi = ag ? BD.age_buckets.filter(b => ag.a > b).length : 0;
+      const days = new Set(t.map(s => first.get(s)).filter(k => k != null));
+      const sameDay = first.size && m && m.n >= AC.nine_min && days.size === 1;
+      let bk = null; (IND.themes || []).forEach(th => { const c = t.filter(s => th.m.includes(s)).length; if (c >= 2 && (!bk || c > bk.c)) bk = { k: th.k, c }; });
+      const sub = [escH(tpl(MT.rank, { ti: TIN, r: nf(o.px, 0) })), lowOf(o) ? `<span class="mb-lo" title="${escA(tpl(BD.low_tip, { r: BD.low_rank }))}">${escH(BD.low_label)}</span>` : null, ag && ag.a ? `<span class="mb-a" title="${escA(BD.age_notes[bi])} · ${ageTip}">${escH(BD.age_label.replace('{n}', (ag.cap ? '≥ ' : '') + ag.a))}</span>` : null, x.lead ? escH(plu(MT.leader, x.lead)) : null, bk ? escH(BD.basket.replace('{k}', bk.k)) : null,
+        sameDay ? `<span class="warn" title="${escA(BD.same_day_tip)}">${escH(BD.same_day.replace('{n}', m.n))}</span>` : null,
+        themesSum(t) ? `<span class="mb-th" title="${escA(ETC.tip)}">${escH(tpl(ETC.row_label, { t: themesSum(t) }))}</span>` : null].filter(Boolean).join(' · ');
+      const dots = n <= BD.dots_max ? `<span class="mb-d" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i < (m ? m.n : 0) ? 'y' : ''}"></i>`).join('')}</span>` : '';
+      const tip = m ? tpl(MT.row_tip, { k: x.g.k, n: m.n, m: n, p: nf(m.share, 0) }) : tpl(MT.row_tip_none, { k: x.g.k, m: n });
+      return `<div class="mbr ${o.cl}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-pressed="${sel}" title="${escA(tip)}">` +
+        `<span class="mb-n"><b>${escH(x.g.k)}</b><span class="mb-s">${sub}</span></span>${spark(key)}` +
+        `<span class="mb-r">${dots}<span class="mb-c">${m ? m.n : 0} / ${n}</span>${liftHtml(o, false)}${t.map(s => `<span class="mb-t${strong.has(s) ? ' ok' : ''}" role="button" tabindex="0" data-pop="${escA(s)}" title="${escA([tpl(MT.chip_tip, { s }), themesOf(s).join(', ')].filter(Boolean).join(' · '))}">${escH(s)}${strong.has(s) ? ' ▲' : ''}</span>`).join('')}</span></div>`;
+    };
+    const byN = (a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py;
+    const ZD = { rev: [MP.zones.reveil, MP.zone_notes.reveil], both: [MP.zones.lasting, MP.zone_notes.lasting], neuf: [BD.neuf_label, BD.notes.neuf] };
+    const zones = (PR ? PR.order : BD.default_order).map(cl => [cl, ...ZD[cl]]);
+    const inZ = new Set(), parts = [], syms = [];
+    zones.forEach(([cl, lab, note]) => {
+      const rs = M.pts.filter(o => o.cl === cl).sort((a, b) => lowOf(b) - lowOf(a) || byN(a, b)); if (!rs.length) return;   // Réveil : délaissées d'abord
+      rs.forEach(o => inZ.add(o.x.g.key));
+      const zs = [...new Set(rs.flatMap(o => o.m ? o.m.t.slice().sort() : []))]; zs.forEach(s => syms.includes(s) || syms.push(s));
+      const cp = zs.length ? `<button type="button" class="copybtn" data-zcopy="${escA(zs.join(','))}" title="${escA(BD.copy_zone_tip.replace('{z}', lab))}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(MT.copy)}</span></button>` : '';
+      parts.push(`<div class="mbz"><i class="mk ${cl}"></i><b>${escH(lab)}</b><small>${escH(note)}</small>${cp}</div>` + rs.map(row).join(''));
+    });
+    const oth = M.pts.filter(o => !inZ.has(o.x.g.key) && o.m && o.m.n >= 2).sort(byN), shown = mapOther ? oth : oth.slice(0, BD.other_max);
+    if (oth.length) parts.push(`<div class="mbo"><span><b>${escH(BD.other_label)}</b> (${escH(BD.notes.other)}) :</span>` +
+      shown.map(o => `<button type="button" class="${o.x.g.key === mapSel ? 'on' : ''}" data-mapsel="${escA(o.x.g.key)}" aria-pressed="${o.x.g.key === mapSel}"${themesSum(o.m.t) ? ` title="${escA(tpl(ETC.row_label, { t: themesSum(o.m.t) }))}"` : ''}>${escH(o.x.g.k)} ${o.m.n}</button> ${liftHtml(o, true)}`).join(' · ') +
+      (oth.length > BD.other_max ? ` <button type="button" class="mbmore" data-mapother="1" aria-expanded="${mapOther}">${mapOther ? 'moins' : `+ ${oth.length - BD.other_max} autres`} ›</button>` : '') + '</div>');
+    if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZD[PR.order[0]][0] }))}</div>`);
+    const legend = `<div class="mbl">${escH(BD.legend.replace('{w}', AC.nine_window).replace('{s}', AC.nine_share).replace('{d}', MP.time_label))}</div>`;
+    return { html: `<div class="mboard">${parts.length ? parts.join('') + legend : `<div class="note">${escH(BD.empty)}</div>`}</div>`, syms, nz: inZ.size };
+  }
+  // mini-bougie d'un titre 9M : trait = range du jour (long si range ≥ ADR), barre = clôture dans la bougie ; vert = bougie forte
+  function boCdl(r) {
+    if (r.pos == null) return '<svg class="cdl" viewBox="0 0 10 28" width="10" height="28" aria-hidden="true"></svg>';
+    const h = r.rr != null && r.rr >= BOC.candle_range_adr ? 24 : 14, top = (28 - h) / 2, y = top + h * (1 - r.pos / 100);
+    return `<svg class="cdl${r.bq ? ' ok' : ''}" viewBox="0 0 10 28" width="10" height="28" aria-hidden="true"><line x1="5" x2="5" y1="${top}" y2="${top + h}"/>` +
+      `<rect x="1" y="${(y - 1.5).toFixed(1)}" width="8" height="3" rx="1"/></svg>`;
+  }
+  // séance sans aucune liste 9M dans la fenêtre (avant le premier relevé) : inconnue, pas zéro (courbe et repère 3 mois justes)
+  const nineCount = e => { const N9 = nineAt(e); return N9 && N9.days ? actData().G.filter(g => g.kind === 'ind' && nineLvl(N9.get(g.key))).length : null; };
+  const skVal = (K, id, e) => { const v = id === 'bo9' ? (nineBo(e) || boCountAt(IND.dates[e]) || {}).a : id === 't9' ? nineCount(e) : id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
   function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
     const W = SKP.record_sessions, v = skVal(K, id, e); if (v == null || e < W) return { html: '', rec: 0 };
@@ -3155,7 +3628,7 @@
     if (prev.length < W) return { html: '', rec: 0 };
     const lo = Math.min(...prev, v), hi = Math.max(...prev, v), rec = v > Math.max(...prev) ? 1 : v < Math.min(...prev) ? -1 : 0;
     const p = (v - lo) / ((hi - lo) || 1) * 100;
-    return { rec, html: `<div class="g3" title="Plage des ${W} séances précédentes : plus bas ${fmt(Math.min(...prev))}, plus haut ${fmt(Math.max(...prev))}"><span class="gt">3M</span><span>${fmt(lo)}</span>` +
+    return { rec, html: `<div class="g3" title="Plage des ${W} séances précédentes : plus bas ${fmt(Math.min(...prev))}, plus haut ${fmt(Math.max(...prev))}"><span class="gt">${escH(SKP.record_label)}</span><span>${fmt(lo)}</span>` +
       `<span class="gb"><i class="${rec ? 'rw' : ''}" style="left:${Math.max(0, Math.min(100, p))}%"></i></span><span>${fmt(hi)}</span></div>` };
   }
   // raccourcis : état actif (la liste montre déjà ce que la case résume) et action ; un second toucher revient au classement
@@ -3172,6 +3645,9 @@
     sec: { state: () => tvNav.lvl === 'sec' && tvAbove, set: () => { goLevel('sec'); setAbove(true); }, unset: () => setAbove(false) },
     rot: { state: () => skFlow, set: () => { skFlow = true; }, unset: () => { skFlow = false; } },   // panneau « flux par secteur »
     th: { state: () => tvNav.lvl === 'act' && !actGrp, set: () => { goAct(null); }, unset: () => {} },   // thèmes chauds : leaders actifs
+    // 9M à regarder / Thèmes 9M (31/10/2026) : ouvrent leur bloc et y mènent (pas d'état durable)
+    bo9: { state: () => false, set: () => { boOpen = true; foldSet('bo', true); setTimeout(() => { const b = $('secBo'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
+    t9: { state: () => false, set: () => { actOpen = true; foldSet('act', true); setTimeout(() => { const b = $('secAct'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
     rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
     stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
            set: () => { skStkLvl = tvNav.lvl === 'stk' || tvNav.lvl === 'act' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
@@ -3184,11 +3660,11 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir les groupes et leurs 9M (Groupes actifs)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
-    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = true; return; }
+    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
     applyFolds();
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
@@ -3230,6 +3706,19 @@
         return [lbl, `${at.thHot}<span class="kden"> / ${at.thN}</span>`, `${at.neufs.filter(x => x.g.kind === 'th').length} neuf${b != null ? `<span class="kw"> · il y a ${TI.delta} j : ${b}</span>` : ''}`,
           spark(series('th'), { ref: 0 }, css(at.thHot ? '--up' : '--muted')), skGauge(K, 'th', e, x => String(x))];
       },
+      bo9: () => {                                   // 9M à regarder : bougie forte pas étendue, liste 9M de la séance (repères depuis le 31/10/2026)
+        const TT = SKP.tiles_text, lbl = TT.bo9, c = boCountAt(Ds[e]) || nineBo(e);   // chiffre : liste TradingView du jour, sinon calcul maison
+        if (!c) return [lbl, '—', escH(TT.bo9_none), '', { html: '', rec: 0 }];
+        return [lbl, `${c.a}<span class="kden"> / ${c.n}</span>`, `${c.b} ${escH(TT.bo9_ext[c.b > 1 ? 1 : 0])}<span class="kw"> · ${escH(c.own ? TT.bo9_own : TT.bo9_kw)}</span>`,
+          spark(series('bo9'), { ref: 0 }, css(c.a ? '--ok' : '--muted')), skGauge(K, 'bo9', e, x => String(x))];
+      },
+      t9: () => {                                    // Thèmes 9M : industries en 9M fort (nine_min titres et nine_share % en nine_window séances)
+        const TT = SKP.tiles_text, lbl = TT.t9, N9 = nineAt(e);
+        if (!N9 || !N9.days) return [lbl, '—', escH(window.TICKERS ? TT.t9_none : TT.t9_loading), '', { html: '', rec: 0 }];
+        const at = actAt(e), nr = at ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(N9.get(x.g.key))).length : 0, v = nineCount(e);
+        return [lbl, String(v), `${escH(tpl(TT.t9_sub, { n: nr, r: AC.reveil_label.toLowerCase() }))}<span class="kw"> · ${escH(tpl(TT.t9_kw, { k: AC.nine_min, p: AC.nine_share, w: AC.nine_window }))}</span>`,
+          spark(series('t9'), { ref: 0 }, css(v ? '--ok' : '--muted')), skGauge(K, 't9', e, x => String(x))];
+      },
       stk: () => {
         const v = K.stk ? K.stk[e] : null, b = K.stk && past >= 0 ? K.stk[past] : null;
         if (v == null) return [`Actions ${TIN} > 1`, '—', K.stk ? 'historique trop court' : 'disponible au prochain passage du robot', '', { html: '', rec: 0 }];
@@ -3238,9 +3727,9 @@
       },
     };
     // « Actions TI65 > 1 » : série publiée par le robot ; tant qu'elle manque (ancien fichier), la case n'est pas affichée
-    box.innerHTML = SKP.tiles.filter(id => (id !== 'stk' || K.stk) && (id !== 'th' || actData())).map(id => {
+    box.innerHTML = SKP.tiles.filter(id => (id !== 'stk' || K.stk) && (id !== 'th' && id !== 't9' || actData()) && (id !== 'bo9' || (window.TV_BREADTH || {}).breakouts)).map(id => {
       const [lbl, val, sub, sp, g] = T_[id](), on = SK_ACT[id].on();
-      const ban = g.rec ? `<div class="kban" title="Indicateur retardé : information, pas un signal">${g.rec > 0 ? '▲ Plus haut' : '▼ Plus bas'} 3 mois</div>` : '';
+      const ban = g.rec ? `<div class="kban" title="Indicateur retardé : information, pas un signal">${g.rec > 0 ? '▲ Plus haut' : '▼ Plus bas'} ${escH(SKP.record_text)}</div>` : '';
       return `<div class="kpi ${g.rec ? 'hot-warn' : ''}${on ? ' on' : ''}" data-sk="${id}" role="button" tabindex="0" aria-pressed="${on}" title="${escA(on ? 'Revenir au classement' : SK_GO[id])}">${ban}` +
         `<div class="top"><span class="lbl">${lbl}</span>${tipI('skpi:' + id, lbl)}</div><div class="body"><div><div class="val">${val}</div><div class="ksub">${sub}</div></div>${sp}</div>${g.html}</div>`;
     }).join('');
@@ -3253,6 +3742,7 @@
       ` <span class="frst"${ph.detail ? ` title="${escA(ph.detail)}"` : ''}>· ${escH(PHC.setups_label)} : <b>${escH(ph.setups)}</b></span>` : '<span class="note">Phase de marché non publiée pour cette séance</span>';
     drawFrise(K, e, !!dHover);
     renderSecAct(e);
+    renderSecMap(e);
     renderSecBo(e, !dHover && !pinned);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
@@ -3824,7 +4314,7 @@
       const cl = [r.x.s === secSel ? 'sel' : '', r.rank == null ? 'short' : '', r.rank == null && !seenShort ? 'sep' : ''].filter(Boolean).join(' ');
       if (r.rank == null) seenShort = true;
       return `<tr data-s="${escA(r.x.s)}" class="${cl}">${cols.map(id => cell[id](r)).join('')}</tr>`;
-    }).join('') + (D.kind === 'act' && sorted.length > lim ? `<tr class="more"><td colspan="${cols.length}"><button type="button" data-actall="1">${actAll ? `Revenir aux ${lim} premiers` : `+ ${sorted.length - lim} autres`}</button></td></tr>` : '');
+    }).join('') + (D.kind === 'act' && sorted.length > lim ? `<tr class="rkmore"><td colspan="${cols.length}"><button type="button" data-actall="1">${actAll ? `Revenir aux ${lim} premiers` : `+ ${sorted.length - lim} autres`}</button></td></tr>` : '');
     const nRanked = secRows.filter(r => r.rank != null).length, short = secRows.length - nRanked;
     const unit = { etf: 'ETF classés', sec: 'secteurs classés', ind: 'industries classées', stk: 'actions classées', act: 'leaders actifs', bo: 'titres' }[D.kind];
     $('secMeta').textContent = D.kind === 'bo' ? `${BOC.short_label} du ${fmtDate(D.day)} · ${secRows.length} ${unit} · graphiques jusqu'au ${fmtDate(D.dates[secBuiltEnd], { day: 'numeric', month: 'short' })}`
@@ -3917,15 +4407,39 @@
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act', actOpen); renderSecKpis(); return; }
     if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
+    if (b.dataset.actcopy != null) { copyTickers(b, actSyms); return; }
     if (b.dataset.actg != null) goAct(tvNav.lvl === 'act' && actGrp === b.dataset.actg ? null : b.dataset.actg);
+    else if (b.dataset.actind != null) goInd(b.dataset.actind);   // carte Réveil (ni chaude ni neuve) : les actions de l'industrie
     else if (b.dataset.actgo != null) goAct(null);
   });
+  $('secMap').addEventListener('click', e => {        // carte des thèmes : repli ; un point = sa traînée et sa barre ; la barre = ses leaders ou ses actions
+    const b = e.target.closest('[data-mapfold],[data-mapother],[data-mapsel],[data-actg],[data-actind]'); if (!b) return;
+    if (b.dataset.mapfold != null) { mapOpen = !mapOpen; foldSet('map', mapOpen); renderSecKpis(); return; }
+    if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return; }
+    if (b.dataset.mapsel != null) { mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return; }
+    if (b.dataset.actg != null) goAct(b.dataset.actg); else if (b.dataset.actind != null) goInd(b.dataset.actind);
+  });
+  $('secMap').addEventListener('keydown', e => { if (e.key !== 'Enter' && e.key !== ' ') return; const t = e.target.closest && e.target.closest('circle[data-mapsel]'); if (!t) return; e.preventDefault();
+    mapSel = t.dataset.mapsel !== mapSel ? t.dataset.mapsel : null; renderSecKpis(); });
+  // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
+  function zoneAct(t) {
+    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-mapsel]'); if (!b) return false;
+    if (b.dataset.pop != null) { openPop(b.dataset.pop); return true; }
+    if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
+    if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
+    if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
+    mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return true;
+  }
+  $('secZone').addEventListener('click', e => { zoneAct(e.target); });
+  $('secZone').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"]') && zoneAct(e.target)) e.preventDefault(); });
   $('secBo').addEventListener('click', e => {         // 9M +4 % : repli, liste complète, copie, onglet Tickers (liste, ou fiche d'un titre)
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.bofold != null) { boOpen = !boOpen; foldSet('bo', boOpen); renderSecKpis(); return; }
     if (b.dataset.boall != null) { boAll = !boAll; renderSecKpis(); return; }
+    if (b.dataset.boweak != null) { boWeak = !boWeak; renderSecKpis(); return; }
     if (b.dataset.bocopy != null) { copyTickers(b, boShown); return; }
-    if (b.dataset.bos != null || b.dataset.bogo != null) { goBo(b.dataset.bos || null); return; }   // Classement : liste, graphique, fiche
+    if (b.dataset.bos != null) { openPop(b.dataset.bos); return; }   // un titre : sa fenêtre graphique (01/11/2026)
+    if (b.dataset.bogo != null) { goBo(null); return; }              // bouton du bloc : la liste dans le Classement (tableau, graphique, fiche)
     if (b.dataset.botk == null || !boShown.length) return;
     $('tkInput').value = boShown.join(', '); store.set('mm.tklist', $('tkInput').value);
     tkSel = boShown[0];
@@ -4098,7 +4612,7 @@
     if (!b) { $('secOhlc').innerHTML = ''; $('secMa').innerHTML = ''; return; }   // sans cours (ETF de la liste 9M) : pas de légende d'un autre titre
     const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
     $('secOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
-      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>${nineTag(b)}` +
       `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
     $('secMa').innerHTML = maChipsHtml(b);
   }
@@ -4106,7 +4620,12 @@
     const b = bars.get(d); if (!b || b.r == null) return `<b>${fmtDate(d)}</b>Score indisponible (moins de ${TI.long} séances)`;
     return `<b>${fmtDate(d)}</b><div>${TIN} : ${nf(b.r, 3)}</div><div>écart <span class="${cls((b.r - 1) * 100)}">${pct((b.r - 1) * 100)}</span></div>`;
   }
-  function drawSecScore() { if (secD) drawScore(cvScore, secD.dates[secBuiltEnd]); }   // survol pendant le chargement : rien à dessiner
+  // courbe du score repliée par défaut depuis l'audit du 31/10/2026 (même tendance que le graphique des prix) ; choix mémorisé
+  let scoreOpen = store.get('mm.fold.score') === '0';
+  function applyScoreFold() { const c = $('secScoreCard'), b = $('secScoreFold'); if (c) c.classList.toggle('folded', !scoreOpen); if (b) b.setAttribute('aria-expanded', String(scoreOpen)); }
+  applyScoreFold();
+  $('secScoreFold').addEventListener('click', () => { scoreOpen = !scoreOpen; store.set('mm.fold.score', scoreOpen ? '0' : '1'); applyScoreFold(); renderSectors(); });
+  function drawSecScore() { if (secD && scoreOpen) drawScore(cvScore, secD.dates[secBuiltEnd]); }   // survol pendant le chargement : rien à dessiner
   function drawScore(cv, dotDate) {                      // TI65 dans le temps, même fenêtre de dates que le prix (Secteurs, Tickers)
     if (!cv.clientWidth) return;
     const c = setup(cv); if (!c.n) return;
@@ -4406,14 +4925,14 @@
 
   // --- fiche et graphique de l'action sélectionnée : bougies (fichier de son industrie), TI65 dans le temps, chiffres clés
   const tkCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null, n: 0 };
-  function tkStock(r) {                                  // {D, x} pour secBarsFor ; {wait} pendant le chargement ; {none} sans graphique
+  function tkStock(r, after = renderTickers) {          // {D, x} pour secBarsFor ; {wait} pendant le chargement ; {none} sans graphique
     // action retenue : fichier de son industrie ; hors filtres : fichier « hors filtres » de l'industrie (s'il est publié)
     if (r.c == null) return { none: true };              // pas d'historique de cours (introduction récente, absente de Polygon)
     const ix = window.TICKERS.inds.findIndex(i => i[0] === r.indName);
     const I = r.kept ? IND && IND.industries.find(i => i.k === r.indName) : ix >= 0 && window.TICKERS.inds[ix][2] ? { k: r.indName + ' (hors filtres)', f: window.TICKERS.inds[ix][2] } : null;
     if (!I) return { none: true };
     const F = window.TV_STOCKS && window.TV_STOCKS[I.f];
-    if (!F) { if (!tvFailed.has(I.f)) { tvLoad(I, renderTickers); return { wait: true }; } return { none: true }; }
+    if (!F) { if (!tvFailed.has(I.f)) { tvLoad(I, after); return { wait: true }; } return { none: true }; }
     const row = F.rows.find(x => x[0] === r.s); if (!row) return { none: true };
     const [s, n, cap, c, v, o, h, l] = row;
     return { D: { kind: 'stk', key: 'stk|' + I.k, dates: F.dates, vu: F.vu || 1 }, x: { s, n, c, v, ...(o ? { op: o, h, l } : {}) } };
@@ -4429,6 +4948,48 @@
     tkCtx.sym = id; tkCtx.n = arr.length;
     return S;
   }
+  // --- fenêtre graphique d'un ticker (demande du 01/11/2026) : toucher un titre (tableau par zone, bloc 9M) ouvre son graphique
+  //     par-dessus l'onglet : bougies et MM de l'onglet Tickers (index des tickers, fichier de son industrie), bougies 9M ; zoom,
+  //     déplacement et réticule du moteur commun (contexte popCtx) ; « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer
+  const cvPop = $('popCanvas'), popCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null };
+  let popSym = null, popFrom = null;
+  $('popTk').textContent = TPC.fiche; $('popTk').title = TPC.fiche_tip; $('popX').setAttribute('aria-label', TPC.close);
+  function openPop(sym) {
+    popFrom = document.activeElement; popSym = sym; $('tkPop').hidden = false; document.body.classList.add('popopen');
+    $('popTitle').textContent = sym; $('popSub').textContent = TPC.loading; $('popOhlc').innerHTML = '';
+    $('popLeg').innerHTML = CN9.shown ? `<span><i class="k9"></i>${escH(CN9.legend)}</span>` : '';
+    inCtx(popCtx, () => { bars = new Map(); ALLT = []; T = []; hover = -1; }); popCtx.sym = null;
+    popLoad(); if ($('popX').focus) $('popX').focus();
+  }
+  function closePop() {
+    if (!popSym) return; popSym = null; $('tkPop').hidden = true; document.body.classList.remove('popopen'); tip.style.display = 'none';
+    if (popFrom && popFrom.focus && document.contains && document.contains(popFrom)) popFrom.focus();   // focus rendu au titre touché
+  }
+  function popLoad() {
+    if (!popSym) return;
+    if (!window.TICKERS) { if (tkLoaded.tickers) $('popSub').textContent = TPC.no_index; else tkLoad(popLoad); return; }
+    const r = tkRow(popSym); if (!r) { $('popSub').textContent = TPC.not_found; return; }
+    const S = tkStock(r, popLoad); if (S.wait) return;
+    $('popSub').textContent = [r.n, r.indName, tvSecLabel(r.secName), themesOf(popSym).length ? `${ETC.label} : ${themesOf(popSym).join(', ')}` : ''].filter(Boolean).join(' · ') + (S.none ? ' · ' + TPC.no_chart : '');
+    if (S.none) return;
+    const arr = secBarsFor(S.D, S.x);
+    inCtx(popCtx, () => { bars = new Map(arr.map(b => [b.d, b])); ALLT = arr.map(b => b.d); });
+    popCtx.sym = popSym; popPreset();
+  }
+  function popPreset() { inCtx(popCtx, () => { presetViewport(TPC.range); clampViewport(); }); popRedraw(); }   // config : [ticker_popup] range
+  function popRedraw() { if (popSym && popCtx.sym) inCtx(popCtx, () => { applyViewport(); drawPrice(cvPop); popOverlay(); }); }
+  function popOverlay() {                                // légende : OHLC (séance survolée, sinon dernière) et marque 9M
+    const d = hover >= 0 ? T[hover] : null, b = (d && bars.get(d)) || [...bars.values()].pop();
+    if (!b) { $('popOhlc').innerHTML = ''; return; }
+    const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
+    $('popOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>${nineTag(b)}` +
+      `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
+  }
+  $('popX').addEventListener('click', closePop);
+  $('tkPop').addEventListener('click', e => { if (e.target === $('tkPop')) closePop(); });
+  $('popTk').addEventListener('click', () => { const s = popSym; closePop(); if (s) tkAdd([s], s); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && popSym) closePop(); });
   // --- fiche standard d'un ticker : mêmes informations, dans le même ordre, dans les onglets Tickers, Post-market et Secteurs
   //     (prix, tendance TI65 de l'action, de son industrie et de son secteur, taille, short interest, liens) ; chaque onglet
   //     ajoute ensuite ses informations propres (ex. post-market). Index et short interest chargés à la demande.
@@ -4495,7 +5056,7 @@
     if (!b) { $('tkOhlc').innerHTML = ''; $('tkMa').innerHTML = ''; return; }
     const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
     $('tkOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
-      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>${nineTag(b)}` +
       `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
     $('tkMa').innerHTML = maChipsHtml(b);
   }
@@ -4743,7 +5304,7 @@
     if (!b) { $('pmOhlc').innerHTML = ''; $('pmMa').innerHTML = ''; return; }
     $('pmOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
       `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
-      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>${nineTag(b)}` +
       `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>`;
     $('pmMa').innerHTML = maChipsHtml(b);
   }
@@ -4839,12 +5400,18 @@
 
     if (trendOn) trendBands(g, vis, X, bw, MPAD.t, ph);      // fond de tendance ChillLax, derrière les bougies
     const maxV = Math.max(...vis.map(b => b.v)), vh = ph * 0.16, w = Math.max(1, Math.min(12, bw * 0.7));
+    const f9 = CN9.skip.includes(m.name) ? null : nineFlags(barsFor(m.name)), c9 = css('--c9m');   // bougies 9M (pas BTC : volumes non comparables)
     vis.forEach((b, i) => {
-      const col = css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
+      const k9 = f9 ? f9.get(b.d) : 0, col = k9 ? c9 : css(b.c >= b.o ? '--cup' : '--cdown'), x = X(i);
       g.globalAlpha = 0.3; g.fillStyle = col; g.fillRect(x - w / 2, MPAD.t + ph - b.v / maxV * vh, w, b.v / maxV * vh);
       g.globalAlpha = 1; g.strokeStyle = col; g.fillStyle = col;
       g.beginPath(); g.moveTo(Math.round(x) + 0.5, Y(b.h)); g.lineTo(Math.round(x) + 0.5, Y(b.l)); g.stroke();
       g.fillRect(x - w / 2, Math.min(Y(b.o), Y(b.c)), w, Math.max(1, Math.abs(Y(b.o) - Y(b.c))));
+      if (k9) {                                           // ▲ sous la bougie 9M : plein = bougie forte, creux = bougie faible
+        const tw = Math.max(4, Math.min(6, w / 2 + 2)), ty = Math.min(MPAD.t + ph - 2, Y(b.l) + 5);
+        g.beginPath(); g.moveTo(x, ty); g.lineTo(x - tw, ty + tw * 1.4); g.lineTo(x + tw, ty + tw * 1.4); g.closePath();
+        if (k9 === 2) g.fill(); else { g.lineWidth = 1.2; g.stroke(); }
+      }
     });
     g.save(); g.beginPath(); g.rect(MPAD.l, MPAD.t, pw, ph); g.clip();
     g.lineWidth = 1.25; g.lineJoin = g.lineCap = 'round';
@@ -5246,7 +5813,7 @@
     const si = selIdx(), d = si >= 0 ? T[si] : null, b = (d && bars.get(d)) || [...bars.values()].pop(); if (!b) { $('ohlc').innerHTML = ''; return; }
     $('ohlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` +
       `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>` +
-      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>` +
+      `<span>C <b class="${cls(b.chg)}">${nf(b.c, pxd(b.c))}</b></span><span class="${cls(b.chg)}">${pct(b.chg)}</span>${nineTag(b)}` +
       `<span title="${trendLong(b.tf)}">· MM ${trendShort(b.tf)}</span>` +
       (k => k == null ? '' : `<span class="phx" title="Phase de marché à la clôture (bandeau en haut de l'onglet)">· <i class="phdot" style="background:${PHK[PHASES[k].k].color}"></i> ${PHK[PHASES[k].k].name}</span>`)(PHI.get(b.d));
     $('maBar').innerHTML = maChipsHtml(b);
@@ -5682,10 +6249,14 @@
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
   const SEC_TIPS = () => ({
+    map: [MP.label, `<p>${escH(MP.tip)}</p><ul>${['reveil', 'lasting', 'trend', 'calm'].map(k => `<li><b>${escH(MP.zones[k])}</b> : ${escH(MP.zone_notes[k])}</li>`).join('')}</ul>` +
+      `<p class="src">Traits pointillés : rang ${TIN} ${MP.x_hot} (haut du classement), ${AC.nine_share} % et ${AC.nine_intense} % des actions en 9M. Mesure : indice de l'industrie sur 21 séances moins la moyenne des industries, à élan 10 j et tendance 63 j égaux (tests hors dépôt, yfinance, industries d'aujourd'hui).</p>`],
     bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux ${escH(BOC.universe_label)} du screener TradingView : ${boRule()}.</p>
       <p>Disponible vers 16 h 20 à New York (données différées de 15 min), avant la séance des cases (Polygon publie le lendemain matin) : sans séance choisie, le bloc montre le dernier relevé ; une séance choisie ou survolée sur la frise montre sa liste. ★ = leader actif (groupe neuf ou chaud) à cette séance.</p>
       <p>Classement : ${BOC.sort === 'dvol' ? '<b>volume en dollars</b> du jour (clôture × volume), du plus haut au plus bas' : 'hausse du jour, de la plus forte à la plus faible'} ; sur chaque titre : ${BOC.sort === 'dvol' ? 'volume en dollars, ' : ''}volume en millions d'actions (M), multiple du volume de la veille (×).</p>
       <p>« ${escH(BOC.short_label)} › » (ou le fil du Classement) : la liste dans le Classement, tableau à gauche (tri par colonne), graphique et fiche à droite ; toucher un titre l'ouvre directement. La bougie du jour du scan arrive le lendemain matin (Polygon). « Tickers » envoie toute la liste dans l'onglet Tickers (colonne et filtre « Vol $ »), « Copier » la copie (« A, B, C »). ADR et ETF n'ont ni ★ ni graphique (hors de la classification TradingView des actions).</p>
+      <p><b>Couloirs</b> (relevés depuis le 31/10/2026) : <b>${escH(BOC.lanes[0])}</b> = bougie forte (clôture à au moins ${BOC.candle_close_pct} % de la bougie du jour, range ≥ ${nf(BOC.candle_range_adr, 1)} × l'ADR TradingView et &gt; celui de la veille), semaine sous +${BOC.extended_pct} % ; <b>${escH(BOC.lanes[1])}</b> = bougie forte, semaine à +${BOC.extended_pct} % ou plus ; <b>${escH(BOC.lanes[2])}</b> = le reste, replié. Mini-bougie : trait = range du jour (long s'il dépasse l'ADR), barre = place de la clôture. « 9M ×n » = titre déjà dans ${BOC.repeat_min} listes 9M ou plus sur les ${BOC.repeat_sessions} séances d'avant (listes gardées seulement).</p>
+      <p>${escH(BOC.edge_note)}</p>
       <p class="src">Volumes TradingView : la liste peut différer un peu de celle de TC2000. TradingView ne garde pas d'historique de ce scan : la liste commence au premier relevé et garde ${BOC.keep_sessions} séances.${BOC.min_price > 0 ? '' : ' Condition TC2000 « Price History > 0,8 » pas encore appliquée (sens à confirmer).'}</p>`],
     phrules: ['Comment chaque phase est établie', phRules()],
     phfond: ['État de fond et momentum trimestre', `<p><b>Momentum trimestre (mq)</b> = actions en hausse de 25 % sur un trimestre ÷ le même chiffre ${PHC.mq_lag} séances plus tôt. Au-dessus de 1, les fortes hausses sur un trimestre se multiplient.</p>

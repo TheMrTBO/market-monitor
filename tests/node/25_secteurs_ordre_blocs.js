@@ -5,7 +5,7 @@ const fs=require('fs'),vm=require('vm');
 require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
-const BLK={flow:'secFlow',act:'secAct',bo:'secBo',list:'secSplit'};
+const BLK={flow:'secFlow',act:'secAct',bo:'secBo',map:'secMapRow',list:'secSplit'};
 function boot(ls){
   const L={},els={},DL={};
   const mkCtx=()=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):()=>{},set:()=>true});
@@ -17,7 +17,7 @@ function boot(ls){
   const $=id=>els[id]||(els[id]=mkEl(id));
   let focused=null;
   // la vue : enfants dans l'ordre du HTML ; chaque bloc fait 100 px de haut, empilé dans l'ordre courant
-  const view=$('view-sec'); view.kids=['secFlow','secAct','secBo','secSplit','secRrg']; view.moves=0;
+  const view=$('view-sec'); view.kids=['secFlow','secBo','secAct','secMapRow','secSplit','secRrg']; view.moves=0;   // ordre du HTML (Breakouts 9M avant Groupes actifs)
   view.insertBefore=(el,ref)=>{view.moves++;view.kids=view.kids.filter(x=>x!==el.id);const i=view.kids.indexOf(ref.id);view.kids.splice(i<0?view.kids.length:i,0,el.id);return el;};
   for(const id of Object.values(BLK))$(id).getBoundingClientRect=()=>{const top=view.kids.filter(x=>!$(x).hidden).indexOf(id)*100;return {left:0,top,right:900,bottom:top+100,width:900,height:100};};
   let seq=0;
@@ -44,33 +44,35 @@ const key=(A,k,kk)=>A.L['view-sec'].keydown({target:handle(k),key:kk,preventDefa
 
 // --- ordre par défaut : rien n'est déplacé ; une poignée dans chaque en-tête
 let ls={'mm.secview':'tv'}, A=boot(ls); tab(A);
-ok('ordre par défaut (HTML) : aucun bloc déplacé au chargement',A.view.moves===0&&order(A)==='secFlow,secAct,secBo,secSplit');
-ok('poignée dans Groupes actifs, Breakouts 9M +4 % et Classement (flux : à son rendu)',/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)
+ok('ordre par défaut (HTML) : aucun bloc déplacé au chargement, Breakouts 9M avant Groupes actifs, carte des thèmes avant le Classement',A.view.moves===0&&order(A)==='secFlow,secBo,secAct,secMapRow,secSplit',A.view.moves+' '+order(A));
+ok('poignée dans Groupes actifs, Breakouts 9M +4 %, carte des thèmes et Classement (flux : à son rendu)',/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)&&/data-drag="map"/.test(A.$('secMap')._h)
    &&/class="dragh"[^>]*data-drag="list"/.test(html)&&html.includes("<h4>${dragH('flow')}"));
 
-// --- glisser Breakouts au-dessus de Groupes actifs (flux masqué : act 0-100, bo 100-200, list 200-300)
-down(A,'bo');
-ok('prise de la poignée : bloc marqué, curseur de glisser',A.$('secBo').classList.contains('dragging')&&A.sb.document.body.classList.contains('secdrag'));
+// --- glisser Groupes actifs au-dessus de Breakouts (flux masqué : bo 0-100, act 100-200, map 200-300, list 300-400)
+down(A,'act');
+ok('prise de la poignée : bloc marqué, curseur de glisser',A.$('secAct').classList.contains('dragging')&&A.sb.document.body.classList.contains('secdrag'));
 move(A,40);
-ok('glissé au-dessus du milieu de Groupes actifs : Breakouts passe devant',order(A)==='secFlow,secBo,secAct,secSplit',order(A));
+ok('glissé au-dessus du milieu de Breakouts : Groupes actifs passe devant',order(A)==='secFlow,secAct,secBo,secMapRow,secSplit',order(A));
 move(A,45);
-ok('pointeur immobile sur la même place : pas de nouveau déplacement',order(A)==='secFlow,secBo,secAct,secSplit');
-move(A,290);
-ok('glissé sous le milieu du Classement : Breakouts en dernier (avant la carte de rotation)',order(A)==='secFlow,secAct,secSplit,secBo'&&A.view.kids[4]==='secRrg',order(A));
+ok('pointeur immobile sur la même place : pas de nouveau déplacement',order(A)==='secFlow,secAct,secBo,secMapRow,secSplit');
+move(A,390);
+ok('glissé sous le milieu du Classement : Groupes actifs en dernier (avant la carte de rotation)',order(A)==='secFlow,secBo,secMapRow,secSplit,secAct'&&A.view.kids[5]==='secRrg',order(A));
 up(A);
-ok('relâché : marque retirée, ordre mémorisé',!A.$('secBo').classList.contains('dragging')&&!A.sb.document.body.classList.contains('secdrag')&&ls['mm.secorder']==='flow,act,list,bo',ls['mm.secorder']);
+ok('relâché : marque retirée, ordre mémorisé',!A.$('secAct').classList.contains('dragging')&&!A.sb.document.body.classList.contains('secdrag')&&ls['mm.secorder']==='flow,bo,map,list,act',ls['mm.secorder']);
 move(A,10);
-ok('après le relâché : le pointeur ne déplace plus rien',order(A)==='secFlow,secAct,secSplit,secBo');
+ok('après le relâché : le pointeur ne déplace plus rien',order(A)==='secFlow,secBo,secMapRow,secSplit,secAct');
 
-// --- clavier : ↑ sur la poignée du Classement (flux masqué : saute par-dessus) ; ↓ en dernier : rien
+// --- clavier : ↑ sur la poignée du Classement ; en tête des blocs visibles (flux masqué : saute par-dessus) ; ↓ en dernier : rien
 key(A,'list','ArrowUp');
-ok('flèche ↑ : le Classement passe au-dessus de Groupes actifs, ordre mémorisé',order(A)==='secFlow,secSplit,secAct,secBo'&&ls['mm.secorder']==='flow,list,act,bo',order(A));
+ok('flèche ↑ : le Classement passe au-dessus de la carte, ordre mémorisé',order(A)==='secFlow,secBo,secSplit,secMapRow,secAct'&&ls['mm.secorder']==='flow,bo,list,map,act',order(A));
 key(A,'list','ArrowUp');
-ok('flèche ↑ en tête des blocs visibles : rien ne bouge (le flux masqué ne compte pas)',order(A)==='secFlow,secSplit,secAct,secBo');
-key(A,'bo','ArrowDown');
-ok('flèche ↓ sur le dernier bloc : rien ne bouge',ls['mm.secorder']==='flow,list,act,bo');
+ok('flèche ↑ : puis au-dessus de Breakouts',order(A)==='secFlow,secSplit,secBo,secMapRow,secAct',order(A));
+key(A,'list','ArrowUp');
+ok('flèche ↑ en tête des blocs visibles : rien ne bouge (le flux masqué ne compte pas)',order(A)==='secFlow,secSplit,secBo,secMapRow,secAct');
+key(A,'act','ArrowDown');
+ok('flèche ↓ sur le dernier bloc : rien ne bouge',ls['mm.secorder']==='flow,list,bo,map,act');
 
 // --- relu au chargement ; clés inconnues ignorées, blocs manquants complétés dans l'ordre du HTML
 A=boot({'mm.secview':'tv','mm.secorder':'bo,zz,list'}); tab(A);
-ok('ordre mémorisé relu au chargement (clé inconnue ignorée, blocs manquants complétés)',order(A)==='secBo,secSplit,secFlow,secAct',order(A));
+ok('ordre mémorisé relu au chargement (clé inconnue ignorée, blocs manquants complétés)',order(A)==='secBo,secSplit,secFlow,secAct,secMapRow',order(A));
 process.exit(bad?1:0);

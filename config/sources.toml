@@ -67,6 +67,24 @@ extra_exchanges = ["CBOE"]
 universe_label = "actions ordinaires, ADR et ETF de NYSE, Nasdaq, AMEX et CBOE"   # bulle ⓘ du bloc
 sort = "dvol"                 # ordre de la liste (Secteurs et Tickers) : "dvol" = volume en dollars du jour (clôture × volume,
                               # choix de l'utilisateur du 27/10/2026), du plus haut au plus bas ; "pct" = hausse du jour
+# Repères (demande de l'utilisateur du 31/10/2026 ; tests hors dépôt 2008-2025, breakouts 4 % à ADR > 4 % et DV ≥ 15 M$) : la
+# liste se range en couloirs. Bougie forte = clôture dans le haut de la bougie, range ≥ ADR et > range de la veille : avec un
+# volume 9M, 41 % de +8 % avant le stop en 5 séances contre 32 % (18 années sur 18). L'ADR TradingView (14 j, en $) du site
+# donne la même bougie forte que l'ADR 20 j en % des tests dans 94 % des cas, et le même résultat (vérifié le 01/11/2026,
+# cache/analyse_scans/verif_site.txt). Étendu = +20 % sur la semaine (Perf.W) : plus de gros mouvements, rendement médian
+# à 21 séances plus faible.
+candle_close_pct = 70         # bougie forte : clôture à au moins 70 % de la bougie (0 = plus bas, 100 = plus haut)…
+candle_range_adr = 1.0        # …range du jour ≥ ce multiple de l'ADR…
+adr_sessions = 14             # ADR de la bougie forte : moyenne des ranges ($) des N séances d'avant (TradingView : 14)
+# libellés des repères (pastilles et légende du bloc 9M, 01/11/2026) ; {x} = valeur remplie par la page ; repeat : [singulier, pluriel]
+marks_text = { close = "clôture à {p} % de la bougie", range = "range {r} × ADR", prev = "{r} × celui de la veille", week = "{w} % sur la semaine", strong = "bougie forte", weak = "bougie faible", repeat = ["{n} liste 9M sur les {s} séances gardées d'avant", "{n} listes 9M sur les {s} séances gardées d'avant"], leader = "leader actif ({e}) : {g}", touch = "toucher : son graphique", leg_strong = "bougie forte : clôture en haut, range ≥ ADR et > veille", leg_weak = "bougie faible", leg_ext_tag = "+{ext} % sem.", leg_ext = "étendu", leg_repeat = "{n} listes 9M ou plus sur {s} séances", leg_leader = "leader actif (groupe neuf ou chaud)", leg_hover = "survol : détail" }
+candle_range_prev = 1.0       # …et strictement au-dessus de ce multiple du range de la veille
+extended_pct = 20             # étendu : performance de la semaine ≥ ce pourcentage
+repeat_min = 3                # « 9M ×n » : au moins repeat_min listes 9M sur les repeat_sessions séances d'avant (titre où la
+repeat_sessions = 40          # demande revient : +0,44 ADR sur 63 séances, 14 années sur 18 ; compté sur les listes gardées)
+lanes = ["À regarder en premier", "Bougie forte, déjà étendu", "Bougie faible"]   # couloirs : titres des trois groupes
+lanes_sub = ["pas encore étendu : rendement médian le meilleur", "+{ext} % sur la semaine : plus de gros mouvements, médiane plus faible", "clôture basse ou range étroit : comme un breakout ordinaire"]
+edge_note = "Tests 2008-2025 avec les définitions du site (verif_site.txt), breakouts 4 % à ADR > 4 % : bougie forte + 9M, 41 % font +8 % avant le stop en 5 séances contre 32 % pour les autres, 23 % font +25 % en 21 séances contre 14 % (mieux 18 années sur 18). Pas encore étendus : 38 % et 20 %, rendement médian à 21 séances au-dessus des autres (14 années sur 18). Déjà étendus : 51 % et 31 %, plus de gros mouvements, mais rendement médian sous les autres. Bougie faible : comme un breakout ordinaire."
 
 [[step]]
 name = "stockbee"
@@ -167,3 +185,15 @@ attempts = 1
 waits = [0]
 separate = "short.yml"            # lancé par son propre workflow l'après-midi, pas par update_all.py
 freshness = { max_age = 10, min_rows = 500 }
+
+[[step]]
+name = "etf_themes"
+label = "Thèmes ETF"
+label_inline = "thèmes ETF"       # dans une phrase (« … en échec »)
+script = "fetch_etf_themes.py"    # SEC EDGAR (N-PORT-P), contact SEC_UA : config/etf_themes.toml
+output = "etf_themes_data.js"
+restore = ["etf_themes_data.js"]
+attempts = 1
+waits = [0]
+separate = "etf_themes.yml"       # lancé par son propre workflow, une fois par mois (compositions trimestrielles)
+freshness = { max_age = 70, min_rows = 300 }

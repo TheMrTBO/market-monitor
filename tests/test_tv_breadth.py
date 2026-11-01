@@ -126,8 +126,20 @@ bo_items = [[10.4, 10, "common", BAR_1019, P, 10.0, 9_000_000, 5_000_000, "AAA"]
 bo = tb.breakouts(bo_items)
 check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires, ADR et ETF, sans autre fonds)",
       [x[0] for x in bo] == ["EEE", "DRX", "ETX", "AAA"])
-check("9M +4 % : % du jour, volume, volume ÷ veille, volume en dollars", bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000]
-      and bo[3] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000])
+check("9M +4 % : % du jour, volume, volume ÷ veille, volume en dollars ; repères vides sans plus haut / plus bas",
+      bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000, None, None, None, None]
+      and bo[3] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000, None, None, None, None])
+# repères (31/10/2026) : colonnes high, low, high[1], low[1], ADR, Perf.W ajoutées en fin de SCAN_COLS
+assert tb.SCAN_COLS[-6:] == ["high", "low", "high[1]", "low[1]", "ADR", "Perf.W"], "ordre des colonnes du test"
+mk = lambda name, c, h, l, h1, l1, adr, w: [c, 10, "common", BAR_1019, P, 10.0, 20_000_000, 10_000_000, name, None, None, h, l, h1, l1, adr, w]
+# KKK : clôture 11,9 dans 10,2-12,0 → 94 % ; range 1,8 ÷ ADR 0,9 = 2,0 ; (12/10,2−1) ÷ (10,5/10−1) = 3,53 ; semaine +8,26 %
+marked = tb.breakouts([mk("KKK", 11.9, 12.0, 10.2, 10.5, 10.0, 0.9, 8.26),
+                       mk("LLL", 11.0, 11.0, 11.0, 10.5, 10.0, 0, None),        # range nul, ADR nul, semaine absente
+                       mk("MMM", 11.0, 11.5, 10.5, 10.0, 10.0, 1.0, 25.0)])      # range de la veille nul
+by = {x[0]: x for x in marked}
+check("repères : clôture dans la bougie (%), range ÷ ADR, range ÷ veille, semaine",
+      by["KKK"][5:] == [94, 2.0, 3.53, 8.3] and by["LLL"][5:] == [None, None, 0.0, None] and by["MMM"][5:] == [50, 1.0, None, 25.0])
+check("repères : colonnes publiées (bo_columns)", tb.BO_COLUMNS[5:] == ["pos", "rr", "rp", "w"])
 # ordre : volume en dollars du plus haut au plus bas (sort = "dvol", choix de l'utilisateur) ; "pct" : plus forte hausse d'abord
 two = [[10.5, 10, "common", BAR_1019, P, 10.0, 30_000_000, 5_000_000, "BIG"],    # +5 %, 315 M$
        [6.0, 10, "common", BAR_1019, P, 5.0, 10_000_000, 5_000_000, "HOT"]]      # +20 %, 60 M$
@@ -158,6 +170,12 @@ with tempfile.TemporaryDirectory() as tmp:
     check("contrôle : volume en dollars négatif refusé", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
     tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2]]})
     check("contrôle : liste d'avant le volume en dollars (4 colonnes) acceptée", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) == [])
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2, 50, 94, 2.0, 3.5, -12.4]]})
+    check("contrôle : repères acceptés (semaine négative possible)", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) == [])
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2, 50, 140, 2.0, 3.5, 1.0]]})
+    check("contrôle : clôture hors de la bougie (> 100) refusée", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
+    tb.write_js([["2026-10-19", 27.41, 5129, 161, 173]], None, tb.OUT, {"2026-10-19": [["EEE", 5.0, 9_000_000, 1.2, 50, 60, -1.0, 3.5, 1.0]]})
+    check("contrôle : range ÷ ADR négatif refusé", validate_data.validate("tv_breadth", tb.OUT, date(2026, 10, 20)) != [])
 
 for label, ok in checks.items():
     print(("ok     " if ok else "ECHEC  ") + label)

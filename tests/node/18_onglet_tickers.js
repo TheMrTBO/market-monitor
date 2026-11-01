@@ -22,7 +22,7 @@ function boot(ls,opts={}){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--c9m':'#22d3ee','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   if(opts.after)vm.runInContext(opts.after,sb);
@@ -108,6 +108,11 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
   const hasOhlc=F.sb.TV_STOCKS[I.f].rows[0].length>=8;
   ok('graphique : bougies japonaises (si le fichier a l\'OHLC)',!hasOhlc||bodies>20,bodies+' corps de bougie');
   ok('courbe du TI65 tracée',(F.M.tkScoreCv||[]).length>0);
+  // bougies 9M (01/11/2026) : même règle que le scan (config/sources.toml [tv_breadth.breakouts]), en cyan (--c9m)
+  { const Fl=F.sb.TV_STOCKS[I.f], rw=Fl.rows.find(x=>x[0]==='NVDA'), vu=Fl.vu||1, c=rw[3], v=rw[4], BO=F.sb.MM_CONFIG.sectors.breakouts; let n9r=0, p=-1;
+    for(let i=0;i<c.length;i++){ if(c[i]==null)continue; if(p>=0&&v[i]){ const V=v[i]*vu, V1=(v[p]||0)*vu; if(c[i]/c[p]-1>=BO.pct/100&&V>BO.min_volume&&(!BO.volume_up||V>V1)&&c[i]>BO.min_price&&i>=c.length-100)n9r++; } p=i; }
+    const cyan=(F.R.tkCanvas||[]).filter(r=>r[0]==='#22d3ee'&&r[3]>0&&r[3]<20).length;
+    ok('bougies 9M en cyan, même règle que le scan ('+n9r+' sur les 100 dernières séances de NVDA)',n9r?cyan>0:cyan===0,cyan+' rectangles cyan'); }
   ok('fiche : capitalisation, flottant, short, secteur, industrie, lien Finviz',/Capitalisation/.test(F.$('tkFacts')._h)&&/Days to cover/.test(F.$('tkFacts')._h)&&/Industrie/.test(F.$('tkFacts')._h)&&/finviz/.test(F.$('tkLinks')._h));
   // navigation ‹ › dans l'ordre affiché
   const order=rows(F).map(x=>x.s);

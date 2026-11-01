@@ -71,7 +71,10 @@ ok('★ = leaders actifs de la séance (même compte que le bloc Groupes actifs)
 
 // --- envoi vers Tickers (fiche d'un titre), repli mémorisé, bulle
 boClick(A,{bos:'ZZZ'});
-ok('toucher un titre : la liste 9M s\'ouvre dans le Classement (tableau, graphique, fiche)',JSON.parse(ls['mm.tvnav']).lvl==='bo');
+ok('toucher un titre : sa fenêtre graphique s\'ouvre (01/11/2026)',A.$('tkPop').hidden===false&&String(A.$('popTitle').textContent)==='ZZZ');
+A.L.popX.click({}); ok('✕ : la fenêtre se ferme',A.$('tkPop').hidden===true);
+boClick(A,{bogo:'1'});
+ok('bouton du bloc : la liste 9M s\'ouvre dans le Classement (tableau, graphique, fiche)',JSON.parse(ls['mm.tvnav']).lvl==='bo');
 boClick(A,{botk:'1'});
 ok('« Tickers » : la liste part dans Tickers',A.$('tkInput').value===`${leader}, ZZZ`&&ls['mm.tklist']===`${leader}, ZZZ`);
 tab(A); A.L.dPick.change({target:{value:last}});
@@ -82,4 +85,43 @@ const t=tip(A,'bo');
 ok('bulle : règle lue dans la config (seuil de volume, +4 %)',t.includes(BOC.label)&&t.includes('8 900 000')&&t.includes('1,04'),t.slice(0,140));
 const B2=boot({...ls},{after:tvb({[last]:[['ZZZ',4.1,9e6,1.1]]})}); tab(B2);
 ok('repli relu au chargement suivant',B2.$('secBo')._h.includes('aria-expanded="false"'));
+
+// --- repères (31/10/2026) : couloirs bougie forte / étendue / faible, mini-bougie, « 9M ×n » ; seuils lus dans la config
+const cols9=['ticker','pct','volume','vol_ratio','dvol','pos','rr','rp','w'];
+const tvb9=lists=>`window.TV_BREADTH={columns:['date','t2108','n','up4','down4'],rows:[['${last}',50,5100,100,90]],asof:'${last}',bo_columns:${JSON.stringify(cols9)},breakouts:${JSON.stringify(lists)}};`;
+const P=BOC.candle_close_pct, X=BOC.extended_pct;
+const L9={[evening]:[['AAA',6,2e7,1.5,4e8,P,BOC.candle_range_adr,BOC.candle_range_prev+0.1,X-1],   // seuils pile : bougie forte, pas étendu
+                     ['BBB',9,2e7,1.5,3e8,95,2,2,X],                                               // bougie forte, étendu (seuil inclus)
+                     ['CCC',5,2e7,1.5,2e8,P-1,2,2,1],                                              // clôture juste sous le seuil : faible
+                     ['DDD',5,2e7,1.5,1e8,90,2,BOC.candle_range_prev,1]]};                          // range = veille (pas strictement au-dessus)
+for(let i=1;i<=BOC.repeat_min;i++)L9[`2098-12-${String(20+i).padStart(2,'0')}`]=[['AAA',5,1e7,1.2]];
+L9[last]=L9[evening];                                // même liste à la séance des cases : case « 9M à regarder »
+const M=boot({'mm.secview':'tv'},{after:tvb9(L9)}); tab(M);
+h=M.$('secBo')._h;
+const lane=i=>(h.split(`class="bolane l${i}`)[1]||'').split('class="bolane')[0];   // l2 déplié : « bolane l2 open »
+ok('couloirs : bougie forte pas étendue / étendue / faible (seuils de la config, bornes incluses ou strictes)',
+  /data-bos="AAA"/.test(lane(0))&&/data-bos="BBB"/.test(lane(1))&&!/data-bos="(CCC|DDD)"/.test(h)&&/CCC, DDD/.test(strip(lane(2))));
+ok('résumé : nombre à regarder et étendus',strip(h).includes('4 titres · 1 à regarder · 1 étendu'),strip(h).slice(0,120));
+ok('mini-bougie verte sur les bougies fortes seulement',(h.match(/class="cdl ok"/g)||[]).length===2+1&&h.includes('class="cdl"'));
+ok('étiquettes : « +X % sem. » sur l\'étendu, « 9M ×n » après repeat_min listes',
+  /data-bos="BBB"[\s\S]*?botg w">\+20 % sem\./.test(h)&&new RegExp(`data-bos="AAA"[\\s\\S]*?botg m">9M ×${BOC.repeat_min}`).test(h));
+boClick(M,{boweak:'1'}); h=M.$('secBo')._h;
+ok('« Voir les 2 » : le couloir faible se déplie, sur toute la largeur',/data-bos="CCC"/.test(lane(2))&&/data-bos="DDD"/.test(lane(2))&&strip(lane(2)).includes('Replier')&&h.includes('class="bolane l2 open"'));
+const kpi=strip((M.$('secKpis')._h.match(/data-sk="bo9"[\s\S]*?(?=<div class="kpi|$)/)||[''])[0]);
+ok('case « 9M à regarder » : bougies fortes pas étendues / liste de la séance, étendues dessous',kpi.includes('9M à regarder')&&kpi.includes('1 / 4')&&kpi.includes('1 étendu'),kpi.slice(0,90));
+// historique maison (01/11/2026) : industries_data.js nine, repères 1 = bougie forte, 2 = étendu ; séance sans liste TradingView
+{ const TT=M.sb.MM_CONFIG.sectors.kpis.tiles_text, nD=M.sb.INDUSTRIES.dates.length, dd=Array.from({length:nD},()=>[]);
+  dd[nD-2]=[['AAA',0,1],['BBB',0,3],['CCC',0],['DDD',0,1]];
+  const H9=boot({'mm.secview':'tv'},{after:tvb({})+`INDUSTRIES.nine=${JSON.stringify({start:0,days:dd})};`}); tab(H9);
+  H9.L.dPick.change({target:{value:H9.sb.INDUSTRIES.dates[nD-2]}});
+  const kh=strip((H9.$('secKpis')._h.match(/data-sk="bo9"[\s\S]*?(?=<div class="kpi|$)/)||[''])[0]);
+  ok('case « 9M à regarder » sans liste TradingView : calcul maison (2 bougies fortes pas étendues / 4, 1 étendue), mention',
+     kh.includes('2 / 4')&&kh.includes('1 étendu')&&kh.includes(TT.bo9_own),kh.slice(0,120)); }
+const t9=tip(M,'bo');
+ok('bulle : couloirs et seuils lus dans la config',t9.includes('Couloirs')&&t9.includes(`${P} %`)&&t9.includes(`+${X} %`)&&t9.includes(BOC.edge_note.slice(0,30)),t9.slice(0,80));
+// --- courbe du score TI65 repliée par défaut (audit du 31/10/2026), choix mémorisé
+{ const lsS={'mm.secview':'tv'}, S=boot(lsS,{after:tvb({})}); tab(S);
+  ok('Score TI65 : courbe repliée par défaut',S.$('secScoreCard').classList.contains('folded'));
+  S.L.secScoreFold.click({});
+  ok('toucher le titre : courbe affichée, choix mémorisé',!S.$('secScoreCard').classList.contains('folded')&&lsS['mm.fold.score']==='0'); }
 process.exit(bad?1:0);
