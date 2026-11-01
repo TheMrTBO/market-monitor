@@ -66,7 +66,7 @@ ok('« Classer par » % jour : plus forte hausse d\'abord, tri mémorisé pour c
 { let copied=null; A.sb.navigator={clipboard:{writeText:s=>{copied=s;return Promise.resolve();}}}; A.sb.isSecureContext=true; A.L.secCopy.click({});
   ok('Copier : tickers de la liste, dans l\'ordre affiché',copied===[SB,'ETFX',SA].join(', '),String(copied)); }
 boClick(A,{bos:SA});
-ok('toucher un titre du bloc : ce titre sélectionné dans le Classement',String(A.$('secTitle').textContent).startsWith(SA)&&ls['mm.tvsel']===SA);
+ok('toucher un titre du bloc : sa fenêtre graphique (le Classement reste par le bouton du bloc)',A.$('tkPop').hidden===false&&String(A.$('popTitle').textContent)===SA&&JSON.parse(ls['mm.tvnav']).lvl==='bo');
 const B=boot({...ls},{after:files+tvb}); tab(B);
 ok('niveau relu au chargement',rows(B).length===3&&/data-bo="1" class="on"/.test(B.$('secFilt')._h));
 filt(A,{lvl:'0'});

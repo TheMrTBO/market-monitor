@@ -53,6 +53,9 @@ workflows de `main`.
 ## Aucune information privée
 - **Une seule clé : `POLYGON_API_KEY`** (plan gratuit Polygon / Massive), stockée **uniquement** dans les GitHub Secrets
   (Settings > Secrets and variables > Actions > New repository secret). Elle n'est jamais écrite dans un fichier du dépôt.
+- **`SEC_UA`** (thèmes ETF, 01/11/2026) : le contact que la SEC exige dans chaque requête (« Prénom Nom adresse@domaine »),
+  même endroit (GitHub Secrets). Lu par `.github/workflows/etf_themes.yml` (le 3 de chaque mois) ; sans lui, le passage échoue
+  et les thèmes publiés sont gardés. Jamais écrit dans un fichier du dépôt. En local : `SEC_UA="…" python fetch_etf_themes.py`.
   Toutes les autres sources sont publiques et sans clé.
 - Le fichier `.env` local (même clé, pour les essais sur ton Mac) est **exclu** par `.gitignore` et ne doit jamais être publié.
   Une clé qui a été exposée doit être révoquée sur ton compte Massive / Polygon puis recréée.

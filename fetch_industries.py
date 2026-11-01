@@ -20,6 +20,8 @@ Sorties :
                              themes:[{k, etf, m (actions retenues), n, c, b, l, h (moitié du panier leader : « 1 » / « 0 »)}]
                              (config/themes.toml) ; leaders = {start, days:[[[symbole, index de l'industrie, gain % sur
                              `sessions` séances]]]} pour les list_sessions dernières séances (days[i] = séance dates[start + i]).
+                             nine = {start, days:[[[symbole, index de l'industrie]]]} : breakouts 9M des actions retenues à
+                             chaque séance (scan de config/sources.toml [tv_breadth.breakouts], cache Polygon ; 31/10/2026).
   industries/<f>.js          window.TV_STOCKS[<f>] = {asof, dates, vu (unité des volumes), rows:[[symbole, nom, cap, [clôtures], [volumes / vu],
                              [ouvertures], [plus hauts], [plus bas]]]} (les trois derniers : seulement si le cache a l'OHLC)
                              (dernières stock_sessions séances ; chargé par le navigateur à l'ouverture de l'industrie).
@@ -222,6 +224,48 @@ def leaders(dates, close, members, industries, themes=None, keep=LD["list_sessio
     return {"l": l_all, "v": v_all}, out_th, {"start": start, "days": days}
 
 
+def strong_candle(t, k, close, ohlc, bo):
+    """Bougie forte du jour k (01/11/2026, mêmes repères que le bloc 9M, config/sources.toml [tv_breadth.breakouts]) : clôture à
+    au moins candle_close_pct % de la bougie, range >= candle_range_adr x ADR (moyenne des ranges en $ des adr_sessions
+    séances d'avant, 14 comme l'ADR TradingView) et range en % > candle_range_prev x celui de la veille (comme le repère rp du relevé
+    TradingView). False sans OHLC en cache."""
+    if t not in ohlc:
+        return False
+    na = bo["adr_sessions"]
+    if k < na:
+        return False
+    _, h, l = ohlc[t]
+    rs = [None if h[j] is None or l[j] is None else h[j] - l[j] for j in range(k - na, k + 1)]
+    if None in rs or close[t][k] is None or not l[k] or not l[k - 1]:
+        return False
+    rg, adr = rs[-1], sum(rs[:-1]) / na
+    rp = (h[k] / l[k] - 1) / (h[k - 1] / l[k - 1] - 1) if h[k - 1] > l[k - 1] else None   # en %, comme le repère rp du relevé
+    return (rg > 0 and adr > 0 and rp is not None and 100 * (close[t][k] - l[k]) / rg >= bo["candle_close_pct"]
+            and rg >= bo["candle_range_adr"] * adr and rp > bo["candle_range_prev"])
+
+
+def nine(close, vol, members, industries, bo=None, ohlc=None):
+    """Breakouts 9M de chaque séance (31/10/2026, demande de l'utilisateur : historique des 9M par groupe) : actions retenues qui
+    passent le scan TC2000 de config/sources.toml [tv_breadth.breakouts] (C / C1 >= 1 + pct / 100, V > min_volume, V > V1 si
+    volume_up, C > min_price), sur les clôtures et volumes ajustés des splits du cache Polygon. La liste TradingView du soir
+    n'a pas d'historique ; celle-ci couvre toute la fenêtre. Renvoie {start, days : [[[symbole, index de l'industrie(, repères)], ...]]}
+    (days[i] = séance dates[start + i]) ; repères (01/11/2026), absents s'ils valent 0 : 1 = bougie forte (strong_candle : le vert du
+    tableau par zone), 2 = étendu (+extended_pct % sur 5 séances, comme Perf.W) ; historique de la case « 9M à regarder »."""
+    bo = bo or mmconfig.load("sources")["tv_breadth"]["breakouts"]
+    ohlc = ohlc or {}
+    up, mv, vu, mp = 1 + bo["pct"] / 100, bo["min_volume"], bo["volume_up"], bo["min_price"]
+    ix = {x["k"]: i for i, x in enumerate(industries)}
+    n = len(next(iter(close.values()))) if close else 0
+    hit = lambda t, k: (None not in (close[t][k], close[t][k - 1], vol[t][k], vol[t][k - 1]) and close[t][k - 1] > 0
+                        and close[t][k] / close[t][k - 1] >= up and vol[t][k] > mv and (vol[t][k] > vol[t][k - 1] or not vu)
+                        and close[t][k] > mp)
+    ext = lambda t, k: k >= 5 and close[t][k - 5] and close[t][k] / close[t][k - 5] >= 1 + bo["extended_pct"] / 100
+    flags = lambda t, k: (1 if strong_candle(t, k, close, ohlc, bo) else 0) | (2 if ext(t, k) else 0)
+    row = lambda m, k: [m["s"], ix[m["ind"]]] + ([flags(m["s"], k)] if flags(m["s"], k) else [])
+    days = [sorted(row(m, k) for m in members if hit(m["s"], k)) for k in range(1, n)]
+    return {"start": 1, "days": days}
+
+
 def slug(name, taken):
     """Nom de fichier d'une industrie : minuscules, chiffres, tirets ; unique."""
     base = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "industrie"
@@ -296,7 +340,7 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     lv, themes, lead = leaders(dates, close, members, industries, themes)   # groupes actifs (refonte du 27/10/2026)
     stocks.update(lv)
     return {"asof": dates[-1], "dates": dates, "sectors": sectors, "industries": industries, "stocks": stocks,
-            "themes": themes, "leaders": lead}, files
+            "themes": themes, "leaders": lead, "nine": nine(close, vol, members, industries, ohlc=ohlc)}, files
 
 
 def universe_rows(tv_rows, cfg=CFG["universe"]):

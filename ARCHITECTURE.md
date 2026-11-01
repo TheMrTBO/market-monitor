@@ -70,12 +70,12 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 |---|---|---|
 | `market.toml` | fuseau, heures de clôture / fin du post-market / début du pre-market | robot, front |
 | `schedule.toml` | expressions cron (cron-job.org) et créneaux GitHub de secours, par workflow | front (prochaine mise à jour), `--check` (compare aux workflows) |
-| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[stockbee]` (Google Sheet, un gid par année, délai) ; `[tv_breadth]` (relevé TradingView) et `[tv_breadth.breakouts]` (scan 9M +4 % : hausse, volume, volume en hausse, prix minimum, séances gardées, limite d'affichage ; lu aussi par le front) ; `[history]` : profondeur de l'historique Polygon (séances : 490 depuis le 28/10/2026, gardées, appels/min) ; `[breadth_soir]` : contrôles du calcul du soir (tolérance, part identique, split, couverture) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
+| `sources.toml` | étapes du robot : script, fichier, essais, attentes, libellés, **fraîcheur** ; `[stockbee]` (Google Sheet, un gid par année, délai) ; `[tv_breadth]` (relevé TradingView) et `[tv_breadth.breakouts]` (scan 9M +4 % : hausse, volume, volume en hausse, prix minimum, séances gardées, limite d'affichage ; repères : bougie forte `candle_*`, étendu `extended_pct`, « 9M ×n » `repeat_*`, couloirs `lanes` / `lanes_sub`, `edge_note` ; lu aussi par le front) ; `[history]` : profondeur de l'historique Polygon (séances : 490 depuis le 28/10/2026, gardées, appels/min) ; `[breadth_soir]` : contrôles du calcul du soir (tolérance, part identique, split, couverture) | `update_all.py`, `validate_data.py`, `fetch_history.py`, front |
 | `postmarket.toml` | filtres du scan (prix, volume, variation), limites, séances gardées, essais / attentes / délai des requêtes au screener (`request_*`), lien de la fiche (`[[links]]` : Finviz ; `{sym}`, `{symd}`, `{tv}`) | `fetch_postmarket.py`, front |
 | `sectors.toml` | univers des ETF : symbole, nom, groupe, origine, libellé court, description | `fetch_sectors.py`, front |
 | `industries.toml` | vue TradingView : requête du scanner (marché, type, bourses, limite de lignes), filtres des actions retenues (sous-type, prix, volume moyen, capitalisation), indice (base, plafond des variations, titres minimum / « peu de titres »), volume en dollars relatif (`[volume]`), leaders et grappes des groupes actifs (`[leaders]`), séances du calcul (`[output] sessions`, 190 : fenêtre prise à la fin du cache Polygon, plus long depuis le 28/10/2026) et par action, dossier, unité des volumes | `fetch_industries.py`, `validate_data.py`, front |
 | `themes.toml` | thèmes suivis (`[[theme]]` : nom, tickers, ETF de confirmation facultatif ; au moins `[index] min_members` symboles) | `fetch_industries.py` (`mmconfig.themes()`), front (noms), `--check` |
-| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, fenêtre des records « ▲ / ▼ 3M » du MM (`[breadth] record_sessions`), contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]`, dont `th` : thèmes chauds), groupes actifs et Leaders actifs (`[sectors.actifs]` : fraîcheur, fenêtre du neuf, limite de la liste, pionniers, phases d'alerte, familles refuges, libellés), carte de rotation (`[sectors.rrg]` : repliée `folded`, traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]` ; `[phases.own]` : priorité `primary` (sb / own), série maison, choc rapporté à `n`, début `since`, libellés de source, fenêtre du contrôle), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
+| `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, fenêtre des records « ▲ / ▼ 3M » du MM (`[breadth] record_sessions`), contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]` : `tiles` = ind, rot, bo9, t9 depuis le 31/10/2026 ; th, sec, rr, stk réactivables), groupes actifs et Leaders actifs (`[sectors.actifs]` : fraîcheur, fenêtre du neuf, limite de la liste, 9M par groupe `nine_*`, Réveil `reveil_*`, phases d'alerte, familles refuges, libellés), carte des thèmes (`[sectors.map]` : seuil `x_hot`, `y_max`, zones et notes mesurées, bulle), carte de rotation (`[sectors.rrg]` : repliée `folded`, traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]` ; `[phases.own]` : priorité `primary` (sb / own), série maison, choc rapporté à `n`, début `since`, libellés de source, fenêtre du contrôle), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique), `[generated]` (publiés sans être commités : fichiers, dossiers, URL du site, préfixe du cache ; `--check` vérifie `.gitignore`, `[site]` et les mêmes chemins de cache dans les trois workflows) | `mm/store/`, `build_site.py`, `generated.py` |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
@@ -145,7 +145,7 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
-colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
 phases de marché maison affichées d'abord, Stockbee prioritaire dès sa publication (« tout calculer juste après la clôture »), avec
 l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
@@ -229,6 +229,81 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   à Paris entre le changement d'heure européen et l'américain (fin octobre → 1er dimanche de novembre ; 2e → dernier dimanche
   de mars). Les créneaux cron-job.org sont en **UTC** (vérifié sur les heures des commits) : ils ne bougent pas aux
   changements d'heure. Le soir, la vue TradingView montre la veille (alerte « séance … pas encore publiée » dans l'onglet).
+- **Audit de l'onglet Secteurs** (31/10/2026, à la demande de l'utilisateur ; tests hors dépôt 2008-2025) : 4 cases par défaut
+  (`tiles = ["ind", "rot", "bo9", "t9"]` : Industries TI65 > 1, Rotation, **9M à regarder** = bougies fortes pas étendues de la
+  liste 9M de la séance (`boCountAt`), **Thèmes 9M** = industries à `nine_min` titres et `nine_share` % en 9M sur `nine_window`
+  séances, dont « Réveil » ; secteurs, ratio de rotation, actions, thèmes chauds : code gardé, réactivable par la config) ;
+  Breakouts 9M avant Groupes actifs ; Groupes actifs : 9M par groupe (`nineAt` : listes 9M gardées × index Tickers, chargé à la
+  demande), chauds triés par 9M puis leaders, section **Réveil** (9M fort, ni chaud ni neuf ; toucher = actions de l'industrie),
+  **pionniers retirés** (test 8), ⚑ s'essouffle et ◆ refuge au survol seulement ; courbe « Score TI65 » repliée par défaut
+  (`mm.fold.score`) ; « + N autres » de Leaders actifs : ligne `tr.rkmore` (la classe `more` est la feuille « Plus » du mobile,
+  en position fixe : le bouton flottait en bas de l'écran). Tests : 20, 23, 24, 25.
+  **Carte des thèmes** (`#secMap`, bloc déplaçable `map`, repli `mm.fold.map`, `config/display.toml [sectors.map]`) : à la place
+  de la carte de rotation (masquée, zones sans avance). Chaque industrie classée : x = rang TI65 parmi les industries (0-100),
+  y = part de ses actions retenues en 9M sur `nine_window` séances (`nineAt`), taille = leaders, couleur = neuf, chaud + 9M fort,
+  9M fort seul (Réveil), chaud, autre ; traits `x_hot` et `nine_share` / `nine_intense` ; zones et notes mesurées hors dépôt
+  (revérifiées le 01/11/2026 avec les définitions du site, actions retenues : Réveil +1,8 % sur 21 séances mais 11 années
+  sur 18 (13 / 18 à 42 séances), thème qui dure +0,7 % instable, tendance seule et calme ≈ 0 ; bougie forte du site + 9M
+  ×1,19 sur +8 % en 5 j, 18 / 18 ; couloir étendu : plus de gros mouvements, médiane à 21 j plus faible). SVG à la largeur du bloc (texte lisible sur mobile, zones de droite sur deux
+  lignes). Évolution (demande du 01/11/2026) : traînée des `trail` dernières séances (`mapAt` par séance), toujours sur les
+  points 9M fort ou neufs, au survol pour les autres ; toucher un point le choisit (`mapSel` : traînée appuyée, barre « rang TI65 a → b,
+  9M a → b, leaders » et bouton « Ses leaders › » (`goAct`) ou « Ses actions › » (`goInd`)). Test : 23 (et 25 pour l'ordre).
+  Lisibilité (retour du 01/11/2026 : « on n'est pas censé aller que de gauche à droite ? ») : titres d'axes et ligne de lecture
+  (`x_title`, `y_title`, `read_hint` : ce n'est pas un graphique dans le temps), flèche au bout de la traînée (sens du mouvement),
+  axe des 9M de 0 à 100 % (`y_max`) en pseudo-log (`y_scale = "log"`, log(1 + part / `y_log_k`) : log au-delà de
+  quelques %, 0 % gardé, ce qu'un vrai log ne peut pas ; `sqrt` et `linear` possibles ; `y_ticks`), notes des zones sous le graphique ; bascule
+  **Tableau par zone** (`#secZone`, `renderSecZone` + `mapBoardHtml`, `[sectors.map.board]`, demande du 01/11/2026 : « 2
+  composants côte à côte ») : remplace la bascule Carte / Dans le temps. Deux cartes dans `#secMapRow` (bloc déplaçable `map`,
+  poignée sur les deux) en flex (`row-reverse wrap`) : côte à côte quand la place le permet (`map_min` + `zone_min` px, parts
+  `side_share`), l'une au-dessus de l'autre sinon (le tableau d'abord) ; côte à côte, même hauteur (étirement) et la carte grandit
+  d'au plus `grow_max` px (`mapFill`) pour ne pas laisser de vide ; repli propre (`mm.fold.zone`) ; Copier : tout le tableau ou une zone. Une ligne par industrie Réveil, thème qui dure ou neuve, triée par titres en 9M ; dans la zone Réveil, les industries **délaissées** (rang TI65 sous `[sectors.map.board] low_rank` = 40) d'abord, avec l'étiquette `low_label` et sa bulle (`low_tip` : tests 2008-2025 hors dépôt, `cache/analyse_scans/verif_reveil_rang.txt`, 01/11/2026 : rang < 40 +2,8 % sur 21 s, 12 ans / 18, contre +0,7 % au rang ≥ 60 ; pente du rang sans effet)) ; **ordre des zones selon la phase de la séance** (`phase_rule` : phases, `order` des zones rev / both / neuf, `low` = étiquette « délaissée » ou non, `tip` ; `default_order` si la phase est inconnue ; séance pas encore calculée = dernière phase calculée, comme le bandeau ; ligne de tête `phase_label` « Phase X : zone d'abord » ; `mmconfig --check` exige chaque phase dans une seule règle). Tests hors dépôt `verif_zones_phases.txt` (phases du site 2019-2025) : Expansion → Thème qui dure d'abord, Réveil délaissée sans étiquette en Expansion A-B-C ; Choc, Lessivage, Reprise, Surchauffe, Contraction → Réveil d'abord : pastilles = membres (remplies : en
+  9M ; jusqu'à `dots_max`), courbe de la part en 9M sur `time_sessions` séances (ligne `nine_share`), titres en 9M triés bougie forte puis 9M le plus récent (▲ vert : bougie
+  forte d'après l'historique `nine`, et les listes TradingView gardées), rang TI65, leaders, `basket` (≥ 2 titres 9M dans un panier de
+  `config/themes.toml`), `same_day` (tous partis la même séance, d'après `nine` ; non testé à part) ; `lift_label` (concentration : part des membres en 9M ÷ part de toutes les actions
+  retenues en 9M, mise en avant dès `lift_hi`, aussi dans « 9M actif ailleurs » ; information : verif_sousgroupes, les sous-groupes
+  par corrélation ont été testés et rejetés le 01/11/2026) ; `age_label` (âge de la grappe : séances
+  consécutives avec ≥ `nine_min` titres en 9M sur `nine_window`, « ≥ » au bout de l'historique ; tranches `age_buckets` et notes
+  `age_notes` mesurées hors dépôt, verif_age.txt : l'avance moyenne grandit après 5 séances, pas la régularité) ; puis « 9M actif ailleurs »
+  (≥ 2 titres, `other_max` puis « + N autres », `mapOther`). Toucher une ligne = choisir le point (`mapSel`) ; toucher un titre =
+  sa fenêtre graphique. Test : 23.
+- **Fenêtre graphique d'un ticker** (`#tkPop`, `openPop`, 01/11/2026) : titres du tableau par zone et du bloc 9M (le bloc garde
+  son bouton vers le Classement). Bougies et MM de l'onglet Tickers (`tkRow`, `tkStock(r, after)`, fichier de l'industrie),
+  moteur commun avec son contexte `popCtx` (genre `pop` dans `withCtx`, `isPrice`, `setHover`, la boucle des canvas, `render`) ;
+  « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer. Tests : 23, 24, 27.
+- **Bougies 9M sur les graphiques de prix** (`nineFlags`, `nineTag`, `config/display.toml [chart_nine]`, 01/11/2026) : seuils du
+  scan 9M (`[tv_breadth.breakouts]` pct, min_volume, volume_up, min_price) recalculés sur les barres ; couleur `--c9m` (cyan) ;
+  ▲ dessous plein = bougie forte (candle_close_pct, ADR 14 j en $, range de la veille), creux = faible ; « · 9M » dans la
+  légende OHLC. `drawPrice` (MM, Secteurs, Tickers, Post-market, fenêtre) et `drawMini` (QQQ · IWM) ; pas sur `skip` (BTC) ni
+  le VIX (sans volume). Test : 18.
+- **Copier** : ajouté au tableau par zone (tout, par zone) et aux Groupes actifs (leaders actifs, `actSyms`).
+- **Thèmes ETF** (01/11/2026, `fetch_etf_themes.py`, `config/etf_themes.toml`, étape séparée `etf_themes` →
+  `.github/workflows/etf_themes.yml`, le 3 de chaque mois, secret `SEC_UA`) : dernière composition N-PORT-P (SEC EDGAR, gratuit)
+  de 31 ETF thématiques, reliée aux tickers de `tickers_data.js` (ticker, CUSIP appris, nom normalisé ; écartés : hors actions,
+  cotés hors des États-Unis, CUSIP « N/A ») → `etf_themes_data.js` (`window.ETF_THEMES` : themes, etfs, h = compositions,
+  stocks = au plus `max_per_stock` thèmes par action, poids ≥ `min_weight`) ; ETF illisible : composition publiée gardée ;
+  `--from-dir` : fichiers N-PORT déjà téléchargés. Contrôle : `validate_data.py etf_themes` ; tests : `tests/test_etf_themes.py`,
+  node 23. Page : `themesOf` / `themesSum` → ligne « thèmes 9M » du tableau par zone, infobulles des titres (tableau, bloc 9M,
+  « 9M actif ailleurs »), fenêtre graphique. ÉTIQUETTES d'information : comme signal, ces paniers font moins bien que les
+  industries (hors dépôt : cache/analyse_scans/verif_etf.txt).
+- **Courbes de l'onglet Secteurs sur 12 mois** (01/11/2026, « au moins 6 mois, voire 12 ») : `industries.toml [output]`
+  `sessions = stock_sessions = 316` (252 séances de courbes + 64 de recul du TI65 ; `industries_data.js` ≈ 1,2 Mo, ≈ 320 Ko
+  compressé ; fichiers d'industrie ≈ +65 %), `[ti65] spark = 252`, `[sectors.map] time_sessions = 252`, `[phases] mq_spark = 252`,
+  `[sectors.kpis] record_sessions = 252` (jauge `record_label`, « plus haut / plus bas `record_text` »), fenêtre graphique
+  `[ticker_popup] range = "1A"`. `mmconfig.py` borne les fenêtres par `industries.output.sessions`. En local, le cache Polygon
+  peut être plus court (287 séances le 01/11/2026) : courbes plus courtes, pas d'erreur. Case « 9M à regarder » : courbe et jauge
+  depuis l'historique `nine` (repères 1 = bougie forte, 2 = étendu, `nineBo`), chiffre du jour de la liste TradingView quand elle
+  existe, sinon calcul maison (`tiles_text.bo9_own`).
+- **Libellés en config** (audit du 01/11/2026) : `[sectors.map.text]` (carte, tableau, barre d'information ; paires
+  [singulier, pluriel]), `[ticker_popup]`, `[sectors.kpis] tiles_text` (cases 9M), `[tv_breadth.breakouts] marks_text` (repères du
+  bloc 9M) et `adr_sessions` (ADR de la bougie forte, robot et page) ; `tpl(s, o)` remplit les `{x}`, `plu(paire, n)` accorde.
+  Style de la carte allégé (grille et zones plus pâles, points calmes plus petits, traînées plus fines) ; les noms évitent
+  les libellés des zones, un nom décalé est relié à son point par un trait fin, un nom sans place libre n'est pas écrit.
+  **Historique des 9M** (01/11/2026) : `fetch_industries.py` publie `nine` = actions retenues en 9M à chaque séance de la fenêtre
+  (scan `[tv_breadth.breakouts]` sur clôtures et volumes du cache Polygon ajustés des splits) ; `nineAt` le lit d'abord (9M des
+  groupes, case Thèmes 9M, carte), les listes TradingView gardées × index Tickers ne servent plus que de secours (ancien fichier).
+  Depuis le 01/11/2026, une 3e valeur 1 marque la bougie forte (`strong_candle` : repères de `[tv_breadth.breakouts]` sur l'OHLC du
+  cache ; 10 / 10 d'accord avec les repères TradingView du 30/10) : le vert du tableau par zone couvre toute la fenêtre.
+  Contrôle : `validate_data.py` (industries) ; test : `tests/test_industries.py`.
 - **Cases de la vue TradingView** (Secteurs, décision du 20/10/2026) : industries, secteurs et actions au TI65 > 1, rotation
   = industries qui **franchissent 1** en `rotation_window` séances (solde en grand, « +entrées / −sorties » dessous, comme le ±4 % ;
   pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) (`config/display.toml [sectors.kpis]` :
@@ -249,7 +324,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
 - **Ordre de l'onglet Secteurs**, une seule page (choix de l'utilisateur, 20/10/2026 : pas de sous-vues) : **cases** (point
   d'ancrage, jamais repliées), **frise des phases** en séparateur (bordures haut et bas ; titre = phase de la séance, depuis
   combien de séances, setups recommandés ; `#secKpiNote` = séance ; survol = aperçu, clic = « Stats du »), flux par secteur (au
-  toucher de la case Rotation), **Groupes actifs**, **Breakouts 9M +4 %** (`mm.fold.bo`), **Classement** (liste et graphique) :
+  toucher de la case Rotation), **Breakouts 9M +4 %** (`mm.fold.bo`), **Groupes actifs** (ordre inversé le 31/10/2026), **Carte des thèmes** (`mm.fold.map`), **Classement** (liste et graphique) :
   ordre par défaut, que l'utilisateur change par glisser-déposer (exception au gel du 27/10/2026) : poignée ⠿ (`.dragh`,
   `data-drag`) en tête de ces 4 blocs, au pointeur (souris, doigt) ou aux flèches ↑ ↓ ; ordre mémorisé (`mm.secorder`,
   `SEC_BLK` / `applySecOrder` / `moveSec`), carte de rotation toujours en fin d'onglet ; test `tests/node/25_secteurs_ordre_blocs.js`. Retours UX du 27/10/2026 (règles NN/g :
@@ -267,11 +342,11 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   (panier suivi comme une industrie ; `h` = au moins `theme_share_pct` % du panier leader) ; la **liste des leaders** des
   `list_sessions` dernières séances. Le navigateur en déduit, à la séance des cases : **chaud** (règle de l'onglet Tickers, seuil du
   top 20 % calculé sur les industries seules), **neuf** (signal parti depuis au plus `neuf_window` séances, sans signal ni état
-  chaud dans les `fresh_sessions` d'avant), **pionniers** et l'information « s'essouffle » (`config/display.toml [sectors.actifs]`).
+  chaud dans les `fresh_sessions` d'avant), l'information « s'essouffle » (au survol) et les 9M du groupe (`nine_*`) (`config/display.toml [sectors.actifs]`).
   Bloc à l'écran : une ligne d'état (phase, setups recommandés, alerte en pastille), une ligne « Sur `trend_sessions` s » qui
   montre ce qui change (phase, chauds, neufs, leaders, groupes qui s'essoufflent : biais de statu quo, « voir à temps qu'il faut
-  lever le pied » ; des faits, pas de consigne), puis des cartes d'une ligne (nom, signes ⚑ s'essouffle / ◆ refuge / thème, leaders ;
-  détail au survol) : tous les neufs, les `chauds_shown` chauds qui ont le plus de leaders, le reste derrière « + N autres ».
+  lever le pied » ; des faits, pas de consigne), puis des cartes d'une ligne (nom, « thème », 9M « n · part % », leaders ; s'essouffle et
+  famille refuge au survol) : tous les neufs, les Réveils, les `chauds_shown` chauds qui ont le plus de 9M puis de leaders, le reste derrière « + N autres ».
   **Lien avec la carte de rotation** : au niveau secteurs, pastille du nombre d'industries actives par secteur (couleur Neuf s'il y
   en a une) ; au niveau industries, anneau ; tableau « Depuis la veille » : état Neuf / Chaud devant les industries actives ;
   toucher un point : ses groupes actifs en boutons (leurs leaders).
@@ -290,7 +365,13 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   (`min_price = 0.8`, sens confirmé le 27/10/2026) ; volumes TradingView ≠ TC2000 : la liste peut différer un peu. Comme TC2000
   (choix de l'utilisateur du 27/10/2026), la liste ajoute les ADR (`dr`) et les ETF (`fund/etf`), CBOE compris (`extra`,
   `extra_exchanges`) : le relevé les demande au screener, mais T2108 et ±4 % restent sur les actions ordinaires des bourses de
-  `[tv_breadth]` (`common()`). Contrôle du 27/10/2026 : 62 titres sur 62 de la liste TC2000 finale, même ordre, ON en plus. Test : `tests/node/24_secteurs_breakouts_9m.js`,
+  `[tv_breadth]` (`common()`). Contrôle du 27/10/2026 : 62 titres sur 62 de la liste TC2000 finale, même ordre, ON en plus.
+  **Repères** (31/10/2026, tests hors dépôt 2008-2025 : bougie forte + 9M = 41 % de +8 % en 5 séances contre 32 %, 18 années sur
+  18) : le même relevé demande `high`, `low`, `high[1]`, `low[1]`, `ADR` (TradingView, 14 j, en $) et `Perf.W` ; chaque titre reçoit
+  `pos` (clôture dans la bougie, 0-100), `rr` (range ÷ ADR), `rp` (range ÷ range de la veille), `w` (semaine, %) : valeurs brutes,
+  seuils dans `[tv_breadth.breakouts]`. Le front range la liste en trois couloirs (bougie forte pas étendue, bougie forte étendue,
+  bougie faible repliée : `boWeak`), dessine une mini-bougie (`boCdl`) et ajoute « +X % sem. » et « 9M ×n » (listes gardées des
+  `repeat_sessions` séances d'avant). Listes d'avant le 31/10/2026 (sans repères) : grille d'origine. Test : `tests/node/24_secteurs_breakouts_9m.js`,
   `tests/test_tv_breadth.py`.
   **Volume en dollars** (exception au gel du 27/10/2026) : colonne `dvol` (clôture × volume du jour, 5e de `bo_columns` ; absente
   des listes d'avant) ; ordre de la liste = `sort` (`"dvol"` : du plus haut au plus bas, choix de l'utilisateur ; `"pct"` : hausse),

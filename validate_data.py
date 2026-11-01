@@ -143,12 +143,18 @@ def check_tv_breadth(data, today):
     if len(rows) < f["min_rows"]:
         errors.append(f"tv_breadth : seulement {len(rows)} seances (minimum {f['min_rows']})")
     # liste 9M +4 % (cle absente avant le 27/10/2026) : [ticker, % du jour >= 0, volume, volume / veille, volume en dollars] par
-    # seance (volume en dollars : 5e colonne depuis le 27/10/2026 au soir, absente des listes d'avant)
+    # seance (volume en dollars : 5e colonne depuis le 27/10/2026 au soir, absente des listes d'avant) ; reperes depuis le
+    # 31/10/2026 (colonnes 6 a 9, absentes avant) : position de la cloture 0-100, range / ADR et range / veille >= 0, semaine
     bo = data.get("breakouts") or {}
+    num = lambda v: isinstance(v, (int, float)) and not isinstance(v, bool)
+    bad_mark = lambda x: len(x) > 5 and (
+        (x[5] is not None and (not isinstance(x[5], int) or not 0 <= x[5] <= 100))
+        or any(len(x) > i and x[i] is not None and (not num(x[i]) or x[i] < 0) for i in (6, 7))
+        or (len(x) > 8 and x[8] is not None and not num(x[8])))
     bad_bo = [d for d, lst in bo.items() if not isinstance(lst, list) or any(
         not isinstance(x, list) or len(x) < 3 or not isinstance(x[0], str) or not x[0]
         or not isinstance(x[1], (int, float)) or x[1] < 0 or not isinstance(x[2], int) or x[2] < 0
-        or (len(x) > 4 and x[4] is not None and (not isinstance(x[4], int) or x[4] < 0)) for x in lst)]
+        or (len(x) > 4 and x[4] is not None and (not isinstance(x[4], int) or x[4] < 0)) or bad_mark(x) for x in lst)]
     if bad_bo:
         errors.append(f"tv_breadth : liste {len(bad_bo)} seance(s) incoherente(s) ({', '.join(sorted(bad_bo)[:3])})")
     if not rows:
@@ -286,6 +292,12 @@ def check_industries(data, today, folder=None):
                 or (days and len(days[-1]) != st["l"][-1]):
             errors.append(f"industries : groupes actifs incohérents (industries {', '.join(bad_l[:3]) or 'ok'}, "
                           f"thèmes {', '.join(str(k) for k in bad_t[:3]) or 'ok'}, liste des leaders ou séries de l'univers)")
+    # 9M par séance (31/10/2026, absent des anciens fichiers) : une liste par séance depuis start, industries connues, membres retenus ;
+    # repères en troisième position (01/11/2026) : 1 = bougie forte, 2 = étendu, 3 = les deux
+    if "nine" in data:
+        nn, ns = data["nine"].get("days", []), data["nine"].get("start", -1)
+        if ns < 0 or ns + len(nn) != len(dates) or any(len(r) not in (2, 3) or not isinstance(r[0], str) or not 0 <= r[1] < len(inds) or r[2:] not in ([], [1], [2], [3]) for day in nn for r in day):
+            errors.append("industries : listes 9M par séance incohérentes (nombre de séances, symbole ou industrie)")
     if folder is not None:
         missing = []
         for i in inds:
@@ -340,8 +352,30 @@ def check_short(data, today):
     return errors
 
 
+def check_etf_themes(data, today):
+    """Thèmes ETF (fetch_etf_themes.py) : actions étiquetées, fraîcheur du passage, thèmes et ETF connus, poids plausibles,
+    compositions pas trop vieilles (stale_days de config/etf_themes.toml)."""
+    errors, f, cfg = [], fresh("etf_themes"), mmconfig.load("etf_themes")
+    themes, etfs, stocks, h = data.get("themes", []), data.get("etfs", {}), data.get("stocks", {}), data.get("h", {})
+    if len(stocks) < f["min_rows"]:
+        errors.append(f"etf_themes : seulement {len(stocks)} actions étiquetées (minimum {f['min_rows']})")
+    age = _age_days(data["updated"][:10], today)
+    if age > f["max_age"]:
+        errors.append(f"etf_themes : dernier passage il y a {age} jours (maximum {f['max_age']})")
+    if themes != list(dict.fromkeys(cfg["etfs"].values())) or not set(etfs) <= set(cfg["etfs"]) or len(etfs) < cfg["min_etfs"]:
+        errors.append(f"etf_themes : thèmes ou ETF différents de config/etf_themes.toml ({len(etfs)} ETF, minimum {cfg['min_etfs']})")
+    bad = [s for s, lst in stocks.items() if not lst or len(lst) > cfg["max_per_stock"]
+           or any(not (0 <= t < len(themes)) or not (0 < v <= 100) for t, v in lst)]
+    if bad:
+        errors.append(f"etf_themes : {len(bad)} action(s) aux thèmes incohérents ({', '.join(bad[:3])})")
+    old = [e for e, m in etfs.items() if _age_days(m["d"], today) > cfg["stale_days"] or not h.get(e)]
+    if old:
+        errors.append(f"etf_themes : composition trop vieille ou absente ({', '.join(old[:5])})")
+    return errors
+
+
 CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "tv_breadth": check_tv_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
-          "industries": check_industries, "short": check_short}
+          "industries": check_industries, "short": check_short, "etf_themes": check_etf_themes}
 
 
 def validate(name, path=None, today=None):

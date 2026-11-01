@@ -106,7 +106,7 @@ for(const id of ['phase','phfond','phsetups'])assert(hf.includes(`data-tip="${id
 assert(F.$('phLeg')._h.includes('data-tip="phrules"')&&!F.$('secPhLeg').hidden&&F.$('secPhLeg')._h.includes('data-tip="phrules"'),'légendes des frises (MM, Secteurs) avec bulle des règles attendues');
 // 7 ter bis. évolution (décision du 29/10/2026) : mini-courbe du momentum trimestre dans le bandeau ; seuils de bascule de la
 // phase affichée tracés sur les graphiques Ratio 5 j, Ratio mois (échelle log) et détail ±4 %, avec leur légende
-assert(/class="phspark"/.test(hf)&&/Courbe du mq · 3 mois/.test(strip(hf))&&/63 séances · trait = 1/.test(strip(hf)),'courbe du momentum trimestre sur 3 mois attendue : '+strip(hf));
+assert(/class="phspark"/.test(hf)&&strip(hf).includes(`Courbe du mq · ${PH.mq_spark_label}`)&&strip(hf).includes(`${PH.mq_spark} séances · trait = 1`),`courbe du momentum trimestre sur ${PH.mq_spark_label} (config) attendue : `+strip(hf));
 { const sp={classList:{_s:new Set(),toggle(c,f){f?this._s.add(c):this._s.delete(c);},contains(c){return this._s.has(c);}}};   // clic sur son titre : masquée, mémorisé
   F.$('phaseBar').querySelector=()=>sp;
   F.L.phaseBar.click({target:{closest:q=>q==='.phsptog'?{setAttribute(){}}:null}});

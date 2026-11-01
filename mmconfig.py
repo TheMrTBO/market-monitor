@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage", "etf_themes")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -67,9 +67,10 @@ def front_config():
                        "links": [{"label": l["label"], "url": l["url"]} for l in pm.get("links", [])]},
         "breadth": {**d["breadth"], "tv_sma": load("sources")["tv_breadth"]["sma"]},
         "vix": d["vix"],
-        "colors": d["colors"],
+        "colors": d["colors"], "chart_nine": d["chart_nine"], "ticker_popup": d["ticker_popup"],
+        "etf_themes": {**{k: load("etf_themes")[k] for k in ("label", "tip", "row_label", "row_max")}, "file": step("etf_themes")["output"]},
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"],
                     "breakouts": load("sources")["tv_breadth"]["breakouts"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
@@ -167,17 +168,72 @@ def check():
             errors.append(f"sectors.{e.get('symbol', '?')} : groupe « {e.get('group')} » absent de display.sectors.groups")
     kp = load("display")["sectors"]["kpis"]
     rr = kp.get("rotation_ratio", [])
-    if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk", "th"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
-            or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not kp["record_sessions"] > 1 \
+    if not kp["tiles"] or set(kp["tiles"]) - {"ind", "sec", "rot", "rr", "stk", "th", "bo9", "t9"} or len(set(kp["tiles"])) != len(kp["tiles"]) \
+            or not (isinstance(kp["rotation_window"], int) and kp["rotation_window"] > 0) or not 1 < kp["record_sessions"] < load("industries")["output"]["sessions"] or not kp.get("record_label") or not kp.get("record_text") \
             or not (isinstance(kp.get("rotation_ratio_sessions"), int) and kp["rotation_ratio_sessions"] > 0) \
             or not (len(rr) == 2 and 0 < rr[0] <= rr[1]) or not 0 < kp.get("breadth_mid", -1) < 100 or not kp.get("benchmark"):
-        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk, th (sans doublon), rotation_window, record_sessions, "
+        errors.append("display.sectors.kpis : tiles parmi ind, sec, rot, rr, stk, th, bo9, t9 (sans doublon), rotation_window, record_sessions (< industries.output.sessions), record_label, record_text, "
                       "rotation_ratio_sessions entier > 0, rotation_ratio = [bas, haut] croissant, breadth_mid entre 0 et 100 et benchmark attendus")
     ad = load("display")["adr"]
     if not (isinstance(ad.get("sessions"), int) and ad["sessions"] > 1 and ad.get("step", 0) > 0):
         errors.append("display.adr : sessions entier > 1 et step > 0 attendus")
     elif ad["sessions"] > load("industries")["output"]["stock_sessions"]:
         errors.append("display.adr.sessions : plus de séances que les fichiers d'actions n'en contiennent (industries.output.stock_sessions)")
+    mp = load("display")["sectors"].get("map", {})
+    zk = {"reveil", "lasting", "trend", "calm"}
+    if not (isinstance(mp.get("shown"), bool) and mp.get("label") and 0 < mp.get("x_hot", 0) < 100 and 0 < mp.get("y_max", 0) <= 100
+            and isinstance(mp.get("trail"), int) and 2 <= mp["trail"] <= 21
+            and mp.get("y_scale") in ("log", "sqrt", "linear") and (mp["y_scale"] != "log" or 0 < mp.get("y_log_k", 0) < 100) and isinstance(mp.get("y_ticks"), list) and len(mp["y_ticks"]) >= 2
+            and all(0 <= v <= mp.get("y_max", 0) for v in mp["y_ticks"]) and mp.get("x_title") and mp.get("y_title") and mp.get("read_hint")
+            and isinstance(mp.get("time_sessions"), int) and 10 <= mp["time_sessions"] < load("industries")["output"]["sessions"] and mp.get("time_label")
+            and isinstance(mp.get("side_share"), int) and 40 <= mp["side_share"] <= 75 and all(isinstance(mp.get(k), int) and 200 <= mp[k] <= 1200 for k in ("map_min", "zone_min")) and isinstance(mp.get("grow_max"), int) and 0 <= mp["grow_max"] <= 1000
+            and set(mp.get("zones", {})) == zk and all(mp["zones"].values()) and set(mp.get("zone_notes", {})) == zk and mp.get("tip")):
+        errors.append("display.sectors.map : shown (booléen), label, 0 < x_hot < 100, 0 < y_max ≤ 100, trail entier de 2 à 21, y_scale (log et y_log_k / sqrt / linear), y_ticks, titres d'axes, read_hint, time_sessions de 10 à industries.output.sessions, time_label, side_share 40-75, map_min et zone_min 200-1200, grow_max 0-1000, zones et zone_notes "
+                      "(reveil, lasting, trend, calm) et tip attendus")
+    bd = mp.get("board", {})
+    if not (bd.get("label") and bd.get("copy_tip") and "{z}" in bd.get("copy_zone_tip", "") and bd.get("neuf_label") and set(bd.get("notes", {})) == {"neuf", "other"} and all(bd["notes"].values()) and bd.get("other_label")
+            and isinstance(bd.get("other_max"), int) and bd["other_max"] >= 1 and isinstance(bd.get("dots_max"), int) and bd["dots_max"] >= 1
+            and "{x}" in bd.get("lift_label", "") and "{x}" in bd.get("lift_short", "") and isinstance(bd.get("lift_hi"), (int, float)) and bd.get("lift_tip") and "{n}" in bd.get("age_label", "") and isinstance(bd.get("age_buckets"), list) and len(bd.get("age_notes", [])) == len(bd["age_buckets"]) + 1 and bd.get("age_tip") and "{k}" in bd.get("basket", "") and "{n}" in bd.get("same_day", "") and bd.get("same_day_tip") and isinstance(bd.get("low_rank"), (int, float)) and 0 < bd["low_rank"] < 100 and bd.get("low_label") and "{r}" in bd.get("low_tip", "") and bd.get("legend") and bd.get("empty")):
+        errors.append("display.sectors.map.board : label, copy_tip, copy_zone_tip ({z}), neuf_label, notes (neuf, other), other_label, other_max ≥ 1, dots_max ≥ 1, lift_label et lift_short ({x}), lift_hi, lift_tip, age_label ({n}), age_buckets, age_notes (une de plus que les bornes), age_tip, basket ({k}), same_day ({n}), "
+                      "same_day_tip, low_rank (0-100), low_label, low_tip ({r}), legend et empty attendus")
+    zk, pk = {"rev", "both", "neuf"}, [x.get("key") for x in load("display").get("phases", {}).get("phase", [])]
+    rules = bd.get("phase_rule", [])
+    seen = [k for r in rules for k in r.get("phases", [])]
+    perm = lambda o: isinstance(o, list) and sorted(o) == sorted(zk)
+    if not (perm(bd.get("default_order")) and "{p}" in bd.get("phase_label", "") and "{z}" in bd.get("phase_label", "") and rules
+            and all(perm(r.get("order")) and isinstance(r.get("low"), bool) and r.get("tip") for r in rules)
+            and sorted(seen) == sorted(pk)):
+        errors.append("display.sectors.map.board : default_order (rev, both, neuf), phase_label ({p}, {z}) et phase_rule "
+                      "(phases, order = rev / both / neuf dans un ordre, low vrai ou faux, tip) attendus ; chaque phase de [[phases.phase]] dans une seule règle")
+    cn = load("display").get("chart_nine", {})
+    if not (isinstance(cn.get("shown"), bool) and cn.get("label") and cn.get("strong_label") and cn.get("tip") and cn.get("legend") and isinstance(cn.get("skip"), list)):
+        errors.append("display.chart_nine : shown (booléen), label, strong_label, tip, legend et skip (liste) attendus")
+    tx = mp.get("text", {})
+    need_tx = ("notes_title", "no_list", "loading", "nine_some", "nine_none", "point_tip", "rank", "go_leaders", "go_actions", "close",
+               "row_tip", "row_tip_none", "chip_tip", "copy")
+    pairs = ("over", "leader", "titre", "industrie", "titre_9m")
+    if not (all(isinstance(tx.get(k), str) and tx[k] for k in need_tx) and all(isinstance(tx.get(k), list) and len(tx[k]) == 2 for k in pairs)
+            and set(tx.get("legend", {})) == {"reveil", "lasting", "neuf", "hot", "read"} and set(tx.get("state", {})) == {"neuf", "hot"}):
+        errors.append("display.sectors.map.text : libellés de la carte et du tableau attendus (" + ", ".join(need_tx) + ", paires "
+                      + ", ".join(pairs) + ", legend et state)")
+    tp = load("display").get("ticker_popup", {})
+    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close"))):
+        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close) attendus")
+    if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
+        errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
+    mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})
+    mk_need = ("close", "range", "prev", "week", "strong", "weak", "leader", "touch", "leg_strong", "leg_weak", "leg_ext_tag", "leg_ext", "leg_repeat", "leg_leader", "leg_hover")
+    if not (all(mt.get(k) for k in mk_need) and isinstance(mt.get("repeat"), list) and len(mt["repeat"]) == 2):
+        errors.append("sources.tv_breadth.breakouts.marks_text : libellés des repères attendus (" + ", ".join(mk_need) + ", repeat [singulier, pluriel])")
+    tt = load("display")["sectors"]["kpis"].get("tiles_text", {})
+    if not (all(tt.get(k) for k in ("bo9", "bo9_none", "bo9_kw", "bo9_own", "t9", "t9_none", "t9_loading", "t9_sub", "t9_kw")) and isinstance(tt.get("bo9_ext"), list) and len(tt["bo9_ext"]) == 2):
+        errors.append("display.sectors.kpis.tiles_text : libellés des cases 9M attendus (bo9, bo9_none, bo9_ext [singulier, pluriel], bo9_kw, bo9_own, t9, t9_none, t9_loading, t9_sub, t9_kw)")
+    et = load("etf_themes")
+    if not (isinstance(et.get("etfs"), dict) and len(et["etfs"]) >= 5 and all(isinstance(v, str) and v for v in et["etfs"].values())
+            and all(isinstance(et.get(k), (int, float)) and et[k] > 0 for k in ("min_weight", "max_per_stock", "pause", "timeout", "stale_days", "min_etfs"))
+            and et["min_etfs"] <= len(et["etfs"]) and et.get("label") and et.get("tip") and "{t}" in et.get("row_label", "") and isinstance(et.get("row_max"), int)):
+        errors.append("etf_themes : etfs (au moins 5, ETF = thème), min_weight, max_per_stock, pause, timeout, stale_days, "
+                      "min_etfs (≤ nombre d'ETF), label, tip, row_label ({t}) et row_max attendus")
     rg = load("display")["sectors"]["rrg"]
     if not (isinstance(rg["trail"], int) and rg["trail"] > 0 and isinstance(rg["momentum"], int) and rg["momentum"] > 0
             and isinstance(rg.get("delta_windows"), list) and len(rg["delta_windows"]) == 2 and all(isinstance(w, int) and w > 0 for w in rg["delta_windows"])
@@ -199,8 +255,11 @@ def check():
         errors.append("display.ti65 : name non vide et 0 < short < long (entiers) attendus")
     if set(load("display")["sectors"]["group_tips"]) != {g for g, _ in load("display")["sectors"]["groups"]}:
         errors.append("display.sectors.group_tips : une bulle par filtre de display.sectors.groups attendue")
-    if not (isinstance(ti.get("spark"), int) and 2 <= ti["spark"] <= ti["long"]) or not ti.get("spark_label"):
-        errors.append("display.ti65.spark : entier entre 2 et long attendu, avec spark_label")
+    # borne réelle (01/11/2026) : les données, pas la longueur du TI65 (spark + long − 1 séances publiées ; 6 mois = 126)
+    if not (isinstance(ti.get("spark"), int) and ti["spark"] >= 2) or not ti.get("spark_label"):
+        errors.append("display.ti65.spark : entier ≥ 2 attendu, avec spark_label")
+    if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["sessions"]:
+        errors.append("display.ti65.spark : la miniature des indices demande spark + long − 1 séances ≤ industries.output.sessions")
     if ti.get("spark", 0) + ti["long"] - 1 > ind["output"]["stock_sessions"]:
         errors.append("display.ti65.spark : la miniature des actions demande spark + long − 1 séances ≤ industries.output.stock_sessions")
     hist = load("sources").get("history", {})
@@ -224,6 +283,12 @@ def check():
         errors.append("sources.tv_breadth.breakouts : extra (« type » ou « type/sous-type ») et extra_exchanges (bourses) en listes attendus")
     if load("sources")["tv_breadth"]["breakouts"].get("sort") not in ("dvol", "pct"):
         errors.append("sources.tv_breadth.breakouts : sort = \"dvol\" ou \"pct\" attendu")
+    if not (0 < bo.get("candle_close_pct", -1) <= 100 and bo.get("candle_range_adr", -1) >= 0 and bo.get("candle_range_prev", -1) >= 0
+            and bo.get("extended_pct", 0) > 0 and isinstance(bo.get("repeat_min"), int) and bo["repeat_min"] >= 1
+            and isinstance(bo.get("repeat_sessions"), int) and 1 <= bo["repeat_sessions"] <= bo.get("keep_sessions", 0)
+            and len(bo.get("lanes", [])) == 3 and len(bo.get("lanes_sub", [])) == 3 and bo.get("edge_note")):
+        errors.append("sources.tv_breadth.breakouts : repères attendus (0 < candle_close_pct ≤ 100, candle_range_adr et candle_range_prev ≥ 0, "
+                      "extended_pct > 0, repeat_min ≥ 1, 1 ≤ repeat_sessions ≤ keep_sessions, 3 lanes et 3 lanes_sub, edge_note)")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
@@ -261,13 +326,14 @@ def check():
     ac = load("display")["sectors"].get("actifs", {})
     phase_keys = {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
     if not (all(isinstance(ac.get(k), int) and not isinstance(ac.get(k), bool) and ac[k] > 0
-                for k in ("fresh_sessions", "neuf_window", "old_sessions", "list_limit", "pioneer_window", "high_sessions", "chauds_shown", "trend_sessions"))
-            and isinstance(ac.get("pioneer_gain_pct"), (int, float)) and ac["pioneer_gain_pct"] > ld.get("gain_pct", 0)
+                for k in ("fresh_sessions", "neuf_window", "old_sessions", "list_limit", "high_sessions", "chauds_shown", "trend_sessions",
+                          "nine_window", "nine_min"))
+            and 0 < ac.get("nine_share", 0) < ac.get("nine_intense", 0) <= 100
             and set(ac.get("alert_phases", [])) <= phase_keys
             and ac["fresh_sessions"] + ac["neuf_window"] <= ld.get("list_sessions", 0)
-            and all(ac.get(k) for k in ("label", "leaders_label", "alert_text", "neuf_tip", "pioneer_tip"))
+            and all(ac.get(k) for k in ("label", "leaders_label", "alert_text", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
             and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
-        errors.append("display.sectors.actifs : séances entières > 0, pioneer_gain_pct > leaders.gain_pct, alert_phases parmi les "
+        errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, alert_phases parmi les "
                       "phases, fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
     if "th" in load("display")["sectors"]["kpis"]["tiles"] and not themes():
         errors.append("display.sectors.kpis : case « th » sans thème dans config/themes.toml")

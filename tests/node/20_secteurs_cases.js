@@ -31,6 +31,8 @@ function boot(ls,opts={}){
     getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
+  // cases d'avant l'audit du 31/10/2026 (code toujours là, réactivable par la config) : ce test les vérifie ; défaut actuel : opts.tiles=false
+  if(opts.tiles!==false)vm.runInContext('MM_CONFIG.sectors.kpis.tiles=["sec","ind","rot","rr","stk","th"];',sb);
   if(opts.after)vm.runInContext(opts.after,sb);
   vm.runInContext(main,sb);
   return {L,els,DL,R,Sx,M,sb,$,document};
@@ -141,4 +143,10 @@ A.L.secCanvas.pointermove({clientX:200,clientY:50,pageX:200,pageY:50,pointerType
 const note1=strip(A.$('secKpiNote')._t);
 A.L.secCanvas.mouseleave({});
 ok('survol : « Survol : <séance> », puis retour à la séance du classement',/^Séance du /.test(note0)&&/^Survol : /.test(note1)&&strip(A.$('secKpiNote')._t)===note0,note1);
-if(bad) console.log('Error : '+bad+' contrôle(s) en échec');
+if(bad) console.log('Error : '+bad+' contrôle(s) en échec');// --- cases par défaut depuis l'audit du 31/10/2026 : Industries, Rotation, 9M à regarder (sans liste 9M : absente), Thèmes 9M
+{ const D=boot({},{tiles:false}); tab(D); view(D,'tv');
+  const ks=[...D.$('secKpis')._h.matchAll(/data-sk="([^"]+)"/g)].map(m=>m[1]);
+  ok('cases par défaut : '+D.sb.MM_CONFIG.sectors.kpis.tiles.join(', ')+' (9M à regarder masquée sans liste 9M)',ks.join(',')==='ind,rot,t9'&&!/data-sk="(sec|rr|stk|th)"/.test(D.$('secKpis')._h),ks.join(','));
+  ok('Thèmes 9M sans liste 9M : « pas de liste 9M »',/Thèmes 9M[\s\S]*pas de liste 9M/.test(strip(D.$('secKpis')._h)));
+  ok('Thèmes 9M sans liste : ni repère « plus haut 3 mois » ni jauge',!/data-sk="t9"[\s\S]*?kban/.test(D.$('secKpis')._h.split('data-sk="t9"').slice(1).join('').split('<div class="kpi')[0]||'')); }
+

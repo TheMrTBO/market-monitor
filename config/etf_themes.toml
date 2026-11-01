@@ -1,0 +1,51 @@
+# Thèmes des actions d'après les ETF thématiques (01/11/2026) : étiquettes du tableau par zone (onglet Secteurs) et de la
+# fenêtre graphique d'un ticker. Une ÉTIQUETTE dit de quel thème est une action (CRWD : cybersécurité, cloud), pas une règle :
+# tests 2019-2025 hors dépôt (cache/analyse_scans/verif_etf.txt), le 9M fort sur ces paniers fait moins bien que sur les
+# industries (+1,35 % sur 21 séances, 4 ans / 6, contre +1,94 %, 6 / 6).
+# Source : SEC EDGAR, formulaire N-PORT-P (composition trimestrielle de chaque ETF, publiée ~60 jours après la fin du trimestre),
+# gratuite et sans clé ; la SEC exige un contact dans chaque requête : secret GitHub SEC_UA (« Nom contact@domaine ») ou variable
+# d'environnement locale, jamais dans un fichier du dépôt. Script : fetch_etf_themes.py ; workflow : .github/workflows/etf_themes.yml.
+
+min_weight = 0.3          # % de l'actif de l'ETF à partir duquel une action reçoit le thème de l'ETF
+max_per_stock = 2         # étiquettes au plus par action (les thèmes où elle pèse le plus)
+pause = 0.15              # secondes entre deux requêtes (SEC : 10 par seconde au plus)
+timeout = 60              # secondes par requête
+stale_days = 200          # composition plus vieille (date du rapport) : gardée mais signalée par le contrôle
+min_etfs = 20             # ETF lus au minimum, sinon le passage est un échec (le fichier publié est gardé)
+label = "Thèmes ETF"      # libellés de la page
+tip = "Thèmes de l'action d'après les ETF thématiques qui la détiennent (composition déclarée à la SEC, trimestrielle). Une étiquette pour savoir de quel thème est une action ; pas une règle d'achat (tests 2019-2025 : comme signal, ces paniers font moins bien que les industries)."
+row_label = "thèmes 9M : {t}"   # ligne du tableau par zone : thèmes des titres en 9M de l'industrie ({t} = « Cloud 3 · IA 2 »)
+row_max = 3               # thèmes au plus sur cette ligne
+
+[etfs]                    # ETF = thème ; ETF larges ou de secteur exclus (IGV, FDN, KRE, XBI, XOP, OIH, XHB, JETS : ils doublent les industries)
+CIBR = "Cybersécurité"
+BUG = "Cybersécurité"
+SKYY = "Cloud"
+WCLD = "Cloud"
+CLOU = "Cloud"
+AIQ = "Intelligence artificielle"
+BOTZ = "Robotique et IA"
+ROBO = "Robotique et IA"
+ARKF = "Fintech"
+FINX = "Fintech"
+SMH = "Semi-conducteurs"
+SOXX = "Semi-conducteurs"
+QTUM = "Quantique"
+URA = "Uranium"
+NLR = "Nucléaire"
+TAN = "Solaire"
+ICLN = "Énergie propre"
+GRID = "Réseau électrique"
+ITA = "Défense"
+UFO = "Spatial"
+ARKX = "Spatial"
+WGMI = "Mineurs de bitcoin"
+BLOK = "Blockchain"
+GDX = "Mineurs d'or"
+SIL = "Mineurs d'argent"
+LIT = "Lithium"
+REMX = "Terres rares"
+DRIV = "Véhicules électriques"
+ARKG = "Génomique"
+ESPO = "Jeux vidéo"
+IBUY = "Commerce en ligne"
