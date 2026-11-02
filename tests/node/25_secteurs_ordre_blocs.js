@@ -1,11 +1,11 @@
 // Onglet Secteurs, ordre des blocs sous la frise (exception au gel du 27/10/2026) : poignée dans l'en-tête des 4 blocs (flux,
-// Groupes actifs, Breakouts 9M +4 %, Classement), glisser-déposer au pointeur (souris, doigt) et flèches ↑ ↓ au clavier, ordre
+// Breakouts 9M +4 %, Convergence des 9M, Classement ; Leaders actifs dans le Classement depuis le 02/11/2026), glisser-déposer au pointeur (souris, doigt) et flèches ↑ ↓ au clavier, ordre
 // mémorisé (mm.secorder) et relu au chargement ; ordre par défaut = HTML (rien n'est déplacé) ; clés inconnues ignorées.
 const fs=require('fs'),vm=require('vm');
 require('./lib/fixtures');   // industries_data.js, tickers_data.js, industries/ : copie figée (tests/fixtures/)
 const html=fs.readFileSync('stockbee_dashboard.html','utf8');
 const main=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].pop()[1];
-const BLK={flow:'secFlow',act:'secAct',bo:'secBo',map:'secMapRow',list:'secSplit'};
+const BLK={flow:'secFlow',bo:'secBo',map:'secMapRow',list:'secSplit'};
 function boot(ls){
   const L={},els={},DL={};
   const mkCtx=()=>new Proxy({},{get:(t,k)=>k==='measureText'?()=>({width:10}):()=>{},set:()=>true});
@@ -17,7 +17,7 @@ function boot(ls){
   const $=id=>els[id]||(els[id]=mkEl(id));
   let focused=null;
   // la vue : enfants dans l'ordre du HTML ; chaque bloc fait 100 px de haut, empilé dans l'ordre courant
-  const view=$('view-sec'); view.kids=['secFlow','secBo','secAct','secMapRow','secSplit','secRrg']; view.moves=0;   // ordre du HTML (Breakouts 9M avant Groupes actifs)
+  const view=$('view-sec'); view.kids=['secFlow','secBo','secMapRow','secSplit','secRrg']; view.moves=0;   // ordre du HTML
   view.insertBefore=(el,ref)=>{view.moves++;view.kids=view.kids.filter(x=>x!==el.id);const i=view.kids.indexOf(ref.id);view.kids.splice(i<0?view.kids.length:i,0,el.id);return el;};
   for(const id of Object.values(BLK))$(id).getBoundingClientRect=()=>{const top=view.kids.filter(x=>!$(x).hidden).indexOf(id)*100;return {left:0,top,right:900,bottom:top+100,width:900,height:100};};
   let seq=0;
@@ -44,35 +44,33 @@ const key=(A,k,kk)=>A.L['view-sec'].keydown({target:handle(k),key:kk,preventDefa
 
 // --- ordre par défaut : rien n'est déplacé ; une poignée dans chaque en-tête
 let ls={'mm.secview':'tv'}, A=boot(ls); tab(A);
-ok('ordre par défaut (HTML) : aucun bloc déplacé au chargement, Breakouts 9M avant Groupes actifs, carte des thèmes avant le Classement',A.view.moves===0&&order(A)==='secFlow,secBo,secAct,secMapRow,secSplit',A.view.moves+' '+order(A));
-ok('poignée dans Groupes actifs, Breakouts 9M +4 %, carte des thèmes et Classement (flux : à son rendu)',/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)&&/data-drag="map"/.test(A.$('secMap')._h)
+ok('ordre par défaut (HTML) : aucun bloc déplacé au chargement, Breakouts 9M, Convergence des 9M, Classement',A.view.moves===0&&order(A)==='secFlow,secBo,secMapRow,secSplit',A.view.moves+' '+order(A));
+ok('poignée dans Breakouts 9M +4 %, Convergence des 9M (avec sa carte) et Classement (flux : à son rendu) ; plus de bloc Leaders actifs à part',!/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)&&/data-drag="map"/.test(A.$('secZone')._h)
    &&/class="dragh"[^>]*data-drag="list"/.test(html)&&html.includes("<h4>${dragH('flow')}"));
 
-// --- glisser Groupes actifs au-dessus de Breakouts (flux masqué : bo 0-100, act 100-200, map 200-300, list 300-400)
-down(A,'act');
-ok('prise de la poignée : bloc marqué, curseur de glisser',A.$('secAct').classList.contains('dragging')&&A.sb.document.body.classList.contains('secdrag'));
+// --- glisser Convergence au-dessus de Breakouts (flux masqué : bo 0-100, map 100-200, list 200-300)
+down(A,'map');
+ok('prise de la poignée : bloc marqué, curseur de glisser',A.$('secMapRow').classList.contains('dragging')&&A.sb.document.body.classList.contains('secdrag'));
 move(A,40);
-ok('glissé au-dessus du milieu de Breakouts : Groupes actifs passe devant',order(A)==='secFlow,secAct,secBo,secMapRow,secSplit',order(A));
+ok('glissé au-dessus du milieu de Breakouts : Convergence passe devant',order(A)==='secFlow,secMapRow,secBo,secSplit',order(A));
 move(A,45);
-ok('pointeur immobile sur la même place : pas de nouveau déplacement',order(A)==='secFlow,secAct,secBo,secMapRow,secSplit');
-move(A,390);
-ok('glissé sous le milieu du Classement : Groupes actifs en dernier (avant la carte de rotation)',order(A)==='secFlow,secBo,secMapRow,secSplit,secAct'&&A.view.kids[5]==='secRrg',order(A));
+ok('pointeur immobile sur la même place : pas de nouveau déplacement',order(A)==='secFlow,secMapRow,secBo,secSplit');
+move(A,290);
+ok('glissé sous le milieu du Classement : Convergence en dernier (avant la carte de rotation)',order(A)==='secFlow,secBo,secSplit,secMapRow'&&A.view.kids[4]==='secRrg',order(A));
 up(A);
-ok('relâché : marque retirée, ordre mémorisé',!A.$('secAct').classList.contains('dragging')&&!A.sb.document.body.classList.contains('secdrag')&&ls['mm.secorder']==='flow,bo,map,list,act',ls['mm.secorder']);
+ok('relâché : marque retirée, ordre mémorisé',!A.$('secMapRow').classList.contains('dragging')&&!A.sb.document.body.classList.contains('secdrag')&&ls['mm.secorder']==='flow,bo,list,map',ls['mm.secorder']);
 move(A,10);
-ok('après le relâché : le pointeur ne déplace plus rien',order(A)==='secFlow,secBo,secMapRow,secSplit,secAct');
+ok('après le relâché : le pointeur ne déplace plus rien',order(A)==='secFlow,secBo,secSplit,secMapRow');
 
 // --- clavier : ↑ sur la poignée du Classement ; en tête des blocs visibles (flux masqué : saute par-dessus) ; ↓ en dernier : rien
 key(A,'list','ArrowUp');
-ok('flèche ↑ : le Classement passe au-dessus de la carte, ordre mémorisé',order(A)==='secFlow,secBo,secSplit,secMapRow,secAct'&&ls['mm.secorder']==='flow,bo,list,map,act',order(A));
+ok('flèche ↑ : le Classement passe au-dessus de Breakouts, ordre mémorisé',order(A)==='secFlow,secSplit,secBo,secMapRow'&&ls['mm.secorder']==='flow,list,bo,map',order(A));
 key(A,'list','ArrowUp');
-ok('flèche ↑ : puis au-dessus de Breakouts',order(A)==='secFlow,secSplit,secBo,secMapRow,secAct',order(A));
-key(A,'list','ArrowUp');
-ok('flèche ↑ en tête des blocs visibles : rien ne bouge (le flux masqué ne compte pas)',order(A)==='secFlow,secSplit,secBo,secMapRow,secAct');
-key(A,'act','ArrowDown');
-ok('flèche ↓ sur le dernier bloc : rien ne bouge',ls['mm.secorder']==='flow,list,bo,map,act');
+ok('flèche ↑ en tête des blocs visibles : rien ne bouge (le flux masqué ne compte pas)',order(A)==='secFlow,secSplit,secBo,secMapRow');
+key(A,'map','ArrowDown');
+ok('flèche ↓ sur le dernier bloc : rien ne bouge',ls['mm.secorder']==='flow,list,bo,map');
 
-// --- relu au chargement ; clés inconnues ignorées, blocs manquants complétés dans l'ordre du HTML
-A=boot({'mm.secview':'tv','mm.secorder':'bo,zz,list'}); tab(A);
-ok('ordre mémorisé relu au chargement (clé inconnue ignorée, blocs manquants complétés)',order(A)==='secBo,secSplit,secFlow,secAct,secMapRow',order(A));
+// --- relu au chargement ; clés inconnues ignorées (dont l'ancien « act »), blocs manquants complétés dans l'ordre du HTML
+A=boot({'mm.secview':'tv','mm.secorder':'bo,act,zz,list'}); tab(A);
+ok('ordre mémorisé relu au chargement (clé inconnue ignorée, blocs manquants complétés)',order(A)==='secBo,secSplit,secFlow,secMapRow',order(A));
 process.exit(bad?1:0);

@@ -95,7 +95,7 @@ tapAt(A,X(far.p[0]),Y(far.p[1]));
 ok('second toucher : ouvre le secteur (industries filtrées) et la carte montre ses industries',crumbs(A).length===2&&chips(A).some(c=>c.on&&c.k===far.k)&&/industries · /.test(A.$('rrgWhat')._t),A.$('rrgWhat')._t);
 // une seule page, dans l'ordre (demande du 20/10/2026 ; refonte du 27/10/2026 : groupes actifs avant le classement, carte en fin d'onglet)
 { const H=fs.readFileSync('stockbee_dashboard.html','utf8'), at=id=>H.indexOf('id="'+id+'"');
-  const ids=['secKpis','secFrise','frisePh','secKpiNote','secFlow','secAct','listFold','secTable','secRrg','view-pm'];   // 27/10 : cases fixes, frise en séparateur
+  const ids=['secKpis','secFrise','frisePh','secKpiNote','secNow','secFlow','listFold','secAct','secTable','secRrg','view-pm'];   // 27/10 : cases fixes, frise en séparateur ; 02/11 : « Ce matin » sous la frise, Leaders actifs dans le Classement
   ok('ordre de la page : '+ids.join(' → '),ids.every((id,i)=>at(id)>0&&(!i||at(id)>at(ids[i-1])))&&!/id="secSub"/.test(H)); }
 // tableau « Depuis la veille » (21/10/2026) : au niveau secteurs de la carte, il liste les industries de tout le marché (secteur
 // sous le nom) ; vues Pistes (par défaut) / Confirmés / Changements, Tous en lien ; lignes recalculées indépendamment (marché

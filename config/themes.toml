@@ -8,7 +8,7 @@
 
 [[theme]]
 name = "Espace"
-tickers = ["ASTS", "RKLB", "LUNR", "RDW", "PL", "BKSY"]
+tickers = ["ASTS", "RKLB", "LUNR", "RDW", "PL", "BKSY", "SIDU", "FLY", "VOYG", "KRMN"]   # SIDU, FLY, VOYG, KRMN : validés le 02/11/2026
 etf = "UFO"
 
 [[theme]]
@@ -18,7 +18,7 @@ etf = "XAR"
 
 [[theme]]
 name = "Quantique"
-tickers = ["QUBT", "IONQ", "RGTI", "QBTS"]
+tickers = ["QUBT", "IONQ", "RGTI", "QBTS", "ARQQ", "LAES"]   # ARQQ, LAES (post-quantique) : validés le 02/11/2026
 etf = "QTUM"
 
 [[theme]]
@@ -34,6 +34,11 @@ etf = "URA"
 [[theme]]
 name = "Neocloud / mineurs IA"
 tickers = ["IREN", "CIFR", "WULF", "CRWV", "APLD", "CORZ", "NBIS"]
+etf = "BKCH"
+
+[[theme]]
+name = "Mineurs bitcoin"     # validé le 02/11/2026 : les mineurs restés sur le bitcoin (les reconvertis IA sont au-dessus)
+tickers = ["MARA", "RIOT", "CLSK", "HUT", "BTDR", "BTBT"]
 etf = "BKCH"
 
 [[theme]]
@@ -88,3 +93,8 @@ etf = "CIBR"
 name = "Logiciel IA"
 tickers = ["PLTR", "APP", "AI", "SOUN"]
 etf = "IGV"
+
+[[theme]]
+name = "Hydrogène"           # validé le 02/11/2026 (BE aussi dans « Data center énergie »)
+tickers = ["PLUG", "FCEL", "BE", "BLDP"]
+etf = "HYDR"

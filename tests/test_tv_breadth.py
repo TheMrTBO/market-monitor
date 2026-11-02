@@ -127,10 +127,11 @@ bo = tb.breakouts(bo_items)
 check("9M +4 % : formule TC2000 (seuil +4 % inclus, volume > 8,9 M strict, volume en hausse, clôture > 0,80 $ strict, actions ordinaires, ADR et ETF, sans autre fonds)",
       [x[0] for x in bo] == ["EEE", "DRX", "ETX", "AAA"])
 check("9M +4 % : % du jour, volume, volume ÷ veille, volume en dollars ; repères vides sans plus haut / plus bas",
-      bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000, None, None, None, None]
-      and bo[3] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000, None, None, None, None])
+      bo[0] == ["EEE", 20.0, 20_000_000, 2.0, 240_000_000, None, None, None, None, "s", None]
+      and bo[3] == ["AAA", 4.0, 9_000_000, 1.8, 93_600_000, None, None, None, None, "s", None])
+check("9M +4 % : type du titre (s action, d ADR, e ETF)", {x[0]: x[9] for x in bo} == {"EEE": "s", "DRX": "d", "ETX": "e", "AAA": "s"})
 # repères (31/10/2026) : colonnes high, low, high[1], low[1], ADR, Perf.W ajoutées en fin de SCAN_COLS
-assert tb.SCAN_COLS[-6:] == ["high", "low", "high[1]", "low[1]", "ADR", "Perf.W"], "ordre des colonnes du test"
+assert tb.SCAN_COLS[-8:-2] == ["high", "low", "high[1]", "low[1]", "ADR", "Perf.W"], "ordre des colonnes du test"
 mk = lambda name, c, h, l, h1, l1, adr, w: [c, 10, "common", BAR_1019, P, 10.0, 20_000_000, 10_000_000, name, None, None, h, l, h1, l1, adr, w]
 # KKK : clôture 11,9 dans 10,2-12,0 → 94 % ; range 1,8 ÷ ADR 0,9 = 2,0 ; (12/10,2−1) ÷ (10,5/10−1) = 3,53 ; semaine +8,26 %
 marked = tb.breakouts([mk("KKK", 11.9, 12.0, 10.2, 10.5, 10.0, 0.9, 8.26),
@@ -138,8 +139,23 @@ marked = tb.breakouts([mk("KKK", 11.9, 12.0, 10.2, 10.5, 10.0, 0.9, 8.26),
                        mk("MMM", 11.0, 11.5, 10.5, 10.0, 10.0, 1.0, 25.0)])      # range de la veille nul
 by = {x[0]: x for x in marked}
 check("repères : clôture dans la bougie (%), range ÷ ADR, range ÷ veille, semaine",
-      by["KKK"][5:] == [94, 2.0, 3.53, 8.3] and by["LLL"][5:] == [None, None, 0.0, None] and by["MMM"][5:] == [50, 1.0, None, 25.0])
-check("repères : colonnes publiées (bo_columns)", tb.BO_COLUMNS[5:] == ["pos", "rr", "rp", "w"])
+      by["KKK"][5:9] == [94, 2.0, 3.53, 8.3] and by["LLL"][5:9] == [None, None, 0.0, None] and by["MMM"][5:9] == [50, 1.0, None, 25.0])
+check("repères : colonnes publiées (bo_columns)", tb.BO_COLUMNS[5:] == ["pos", "rr", "rp", "w", "kind", "ep"])
+# EP probable du soir (02/11/2026) : moyenne TradingView (jour même retiré), +10 %, volume ≥ 3 × moyenne d'avant, cap ≥ 40 M$ hors thèmes
+n = B["ep_avg_sessions"]
+avg = lambda v, before: (before * (n - 1) + v) / n                               # moyenne TradingView qui compte le jour
+ep = lambda name, c, v, before, cap, typ=None: [c, 10, "etf" if typ == "fund" else "common", BAR_1019, P, 10.0, v, 5_000_000, name, typ, None, None, None, None, None, None, None, avg(v, before), cap]
+E = {x[0]: x[10] for x in tb.breakouts([ep("EPA", 11.0, 30_000_000, 9_000_000, 5e8),        # +10 %, 30 M ≥ 3 × 9 M : EP
+                                         ep("EPB", 11.0, 30_000_000, 11_000_000, 5e8),       # 30 M < 3 × 11 M : non
+                                         ep("EPC", 10.9, 30_000_000, 9_000_000, 5e8),        # +9 % : non
+                                         ep("EPD", 11.0, 30_000_000, 9_000_000, 2e7),        # cap 20 M$ < 40 M$ : non
+                                         ep("EPE", 11.0, 30_000_000, 9_000_000, 5e8, "fund")])}   # ETF : non
+check("EP du soir : +10 %, volume ≥ 3 × moyenne d'avant (jour retiré de la moyenne TradingView), cap ≥ 40 M$, actions seulement",
+      E == {"EPA": 1, "EPB": 0, "EPC": 0, "EPD": 0, "EPE": 0})
+th = next(iter(tb.THEME_TICKERS), None)
+if th:
+    check("EP du soir : titre d'un thème suivi gardé sous 40 M$ de capitalisation",
+          tb.breakouts([ep(th, 11.0, 30_000_000, 9_000_000, 2e7)])[0][10] == 1)
 # ordre : volume en dollars du plus haut au plus bas (sort = "dvol", choix de l'utilisateur) ; "pct" : plus forte hausse d'abord
 two = [[10.5, 10, "common", BAR_1019, P, 10.0, 30_000_000, 5_000_000, "BIG"],    # +5 %, 315 M$
        [6.0, 10, "common", BAR_1019, P, 5.0, 10_000_000, 5_000_000, "HOT"]]      # +20 %, 60 M$

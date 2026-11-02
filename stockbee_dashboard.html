@@ -18,18 +18,19 @@
     --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
   }
   :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
-          --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px; }
+          --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px;
+          --zlo: #7c5cd6; --zrev: #64748b; }   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
   /* thème sombre : préférence du système, sauf si l'utilisateur force le clair (Réglages) ; ou forcé */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
   }
   :root[data-theme="dark"] { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
@@ -275,11 +276,11 @@
   .smap .pt.sel .trl polyline { stroke-width: 2.5; opacity: 1; } .smap .pt.sel .mp { stroke: var(--text); stroke-width: 2.5; opacity: 1; }
   .secmap .mapinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); }
   .secmap .mapinfo .asp { flex: 1 1 auto; } .secmap .mapinfo .mi-x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; min-height: 30px; }
-  .secmap .mk.calm { background: var(--faint); }
+  .secmap i.mk.calm { background: var(--faint); }
   .smap .mat { fill: var(--muted); font-size: 11.5px; font-weight: 600; } .smap .tra { fill: var(--faint); }
   .smap .pt.rev .tra { fill: var(--ok); } .smap .pt.both .tra, .smap .pt.neuf .tra { fill: var(--up); } .smap .pt.hot .tra { fill: var(--warn); }
   .secmap .mhint { margin: 0; }
-  .maprow { display: flex; flex-flow: row-reverse wrap; gap: 12px; align-items: stretch; } .maprow > .card { min-width: 0; margin: 0; } .maprow[hidden] { display: none; }
+  .maprow { display: flex; flex-flow: row-reverse wrap; gap: 12px; align-items: stretch; } .maprow > .card { min-width: 0; margin: 0; } .maprow[hidden], .maprow > .card[hidden] { display: none; }
   .maprow > .card.folded { align-self: flex-start; }   /* une carte repliée ne s'étire pas à la hauteur de l'autre */
   .seczone .ahead .copybtn { align-self: center; } .secmap .mbz .copybtn { margin-left: auto; padding: 1px 7px; font-size: 11px; }
   .secmap .mb-t[data-pop] { cursor: pointer; display: inline-flex; align-items: center; min-height: 22px; }
@@ -291,6 +292,7 @@
   .popx { border: 0; background: none; color: var(--muted); font-size: 18px; cursor: pointer; min-width: 36px; min-height: 36px; }
   .popbox .ovl { position: static; } .popbox canvas { width: 100%; height: min(460px, 58vh); display: block; border-radius: 6px; touch-action: none; }
   .popleg { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .popleg .kmk { display: inline-block; width: 0; height: 11px; border-left: 2px dotted var(--text); margin: 0 6px 0 3px; vertical-align: -1px; }
   .popleg .k9 { display: inline-block; width: 8px; height: 10px; border-radius: 1px; background: var(--c9m); margin-right: 5px; vertical-align: -1px; }
   .ohlc .t9 { color: var(--c9m); font-weight: 600; }
   body.popopen { overflow: hidden; } body.popopen .tip { z-index: 61; }   /* fenêtre ouverte : page figée, infobulle du réticule au-dessus */
@@ -316,6 +318,90 @@
   .secmap .mbo b { color: var(--text); font-weight: 600; } .secmap .mbo button { border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; padding: 2px 0; min-height: 28px; }
   .secmap .mbo button.on { color: var(--up); } .secmap .mbo button.mbmore { color: var(--up); }
   .secmap .mbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  /* grille de convergence (02/11/2026) : cases des grid_sessions dernières séances, barre du rang TI65, entrés / sortis, sortis grisés */
+  .secmap .gw { margin: 0 -2px; } .secmap table.g { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; font-size: 11px; font-variant-numeric: tabular-nums; }   /* toujours à la largeur du bloc */
+  .secmap table.g th { font-weight: 400; color: var(--faint); padding: 0; height: 14px; position: relative; white-space: nowrap; font-size: 10px; overflow: visible; }
+  .secmap table.g th span { position: absolute; right: 0; bottom: 2px; }   /* date calée sur le bord droit de sa case */
+  .secmap table.g th:first-child { width: 260px; } .secmap table.g td.n { padding: 4px 8px 4px 2px; vertical-align: top; overflow: hidden; }
+  .secmap tr.zr { cursor: pointer; } .secmap tr.zr:hover td.n, .secmap tr.zr:focus-visible td.n { background: var(--hover); } .secmap tr.zr:focus-visible { outline: none; }
+  .secmap tr.zr.on td.n { background: var(--panel2); box-shadow: inset 2px 0 0 var(--up); }
+  .secmap .gn, .secmap .gt { display: flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; }
+  .secmap .gn b { font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; } .secmap .gn > span { flex: none; }
+  .secmap .gt { margin-top: 3px; color: var(--muted); gap: 5px; } .secmap .gt .mb-c, .secmap .gt .sep { flex: none; } .secmap .gt .sep { color: var(--faint); }
+  .secmap .gt .tks { overflow: hidden; text-overflow: ellipsis; min-width: 0; } .secmap .gt .tk { color: var(--text); cursor: pointer; } .secmap .gt .tk.ok { color: var(--ok); }
+  .secmap .gt .tk:hover, .secmap .gt .tk:focus-visible { text-decoration: underline; outline: none; }
+  .secmap .zb { font-size: 10px; font-weight: 600; padding: 0 6px; border-radius: 999px; white-space: nowrap; cursor: help; }
+  .secmap .zb.lo { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); } .secmap .zb.rev { background: var(--neutralbg); color: var(--muted); }
+  .secmap .zb.both { background: var(--upbg); color: var(--up); } .secmap .zb.neuf { border: 1px solid var(--up); color: var(--up); }
+  .secmap .zg { font-size: 10px; color: var(--muted); } .secmap tr.gone { opacity: .5; }
+  .secmap .mb-more { font-size: 11px; color: var(--muted); }
+  .secmap table.g td.c { height: 20px; overflow: hidden; text-align: center; border-radius: 4px; position: relative; color: var(--text); background: var(--neutralbg); }
+  .secmap table.g td.c.c0 { color: transparent; } .secmap table.g td.c.x { background: none; border: 1px dashed var(--border); }
+  .secmap table.g td.c.c1 { background: color-mix(in srgb, var(--c9m) 30%, transparent); } .secmap table.g td.c.c2 { background: color-mix(in srgb, var(--c9m) 58%, transparent); }
+  .secmap table.g td.c.c3 { background: color-mix(in srgb, var(--c9m) 85%, transparent); font-weight: 600; }
+  .secmap table.g td.c[data-zday] { cursor: pointer; } .secmap table.g td.c[data-zday]:hover, .secmap table.g td.c[data-zday]:focus-visible { outline: 1.5px solid var(--text); outline-offset: -1px; }
+  .secmap table.g td.c.on { outline: 2px solid var(--text); outline-offset: -1px; }
+  .secmap .zdi.secbo .bogrid { margin-top: 6px; }
+  .secmap table.g td.c.ep::after { content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 1.5px var(--c9m); }   /* EP : point contrasté cerclé de cyan (le cyan = 9M) */
+  .secmap tr.zd > td { padding: 0 0 6px; } .secmap .zdi { padding: 10px 14px 12px; margin: 2px 0 6px; background: var(--panel2); border-radius: 8px; white-space: normal; text-align: left; }
+  .secmap .zdi .mbr { cursor: default; padding-left: 0; padding-right: 0; }
+  .secmap .zdh { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
+  .secmap .zdh .mi-x { border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; min-width: 32px; min-height: 28px; }
+  /* zones de la grille : couleur par zone (--zc), en-têtes, filtres (02/11/2026) */
+  /* « Ce matin » (02/11/2026) */
+  .secnow { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+  .secnow .nowh { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .secnow .nowl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .secnow .nowk { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .secnow .nowt, .secnow .nowg { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12.5px; padding: 3px 9px; min-height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); cursor: pointer; }
+  .secnow .nowt:hover, .secnow .nowg:hover, .secnow .nowt:focus-visible, .secnow .nowg:focus-visible { border-color: var(--faint); outline: none; }
+  .secnow .nowg { --zc: var(--zrev); } .secnow .nowg.z-lo { --zc: var(--zlo); } .secnow .nowg.z-both { --zc: var(--up); } .secnow .nowg.z-neuf { --zc: var(--warn); }
+  .secnow .nowg i { width: 8px; height: 8px; border-radius: 50%; background: var(--zc); }
+  .botg.cv.z-lo { --zc: var(--zlo); } .botg.cv.z-rev { --zc: var(--zrev); } .botg.cv.z-both { --zc: var(--up); } .botg.cv.z-neuf { --zc: var(--warn); }
+  .secbo .bofx { font-size: 11.5px; color: var(--muted); margin: 6px 0 2px; } .secbo .bomini.fx { margin-top: 4px; }
+  .secact-in { padding: 4px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+  .secact-in .ahead { flex-wrap: nowrap; } .secact-in .ahead .foldh, .secact-in .ahead .copybtn, .secact-in .ahead .tipbtn { flex: none; }
+  .secact-in .ahead .fsum { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .secact-in .actfold { font-size: 12px; margin: 2px 0 0 22px; }
+  .secact .ahot { display: flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; padding: 4px 0; min-height: 30px; text-align: left; }
+  .secact .ahot small { color: var(--muted); font-size: 11.5px; }
+  .secmap .z-lo { --zc: var(--zlo); } .secmap .z-rev { --zc: var(--zrev); } .secmap .z-both { --zc: var(--up); } .secmap .z-neuf { --zc: var(--warn); } .secmap .z-gone { --zc: var(--faint); } .secmap .z-all { --zc: var(--text); }
+  .secmap tr.zr td.n { box-shadow: inset 3px 0 0 var(--zc, transparent); padding-left: 9px; } .secmap tr.zr.on td.n { box-shadow: inset 3px 0 0 var(--zc), inset 0 0 0 9999px var(--panel2); }
+  .secmap tr.zh td { padding: 12px 0 4px; } .secmap tr.zh:first-of-type td { padding-top: 4px; }
+  .secmap .zhl { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 5px 8px; border-radius: 6px; background: color-mix(in srgb, var(--zc) 12%, transparent); }
+  .secmap .zhl i { width: 10px; height: 10px; border-radius: 50%; background: var(--zc); flex: none; } .secmap .zhl b { color: var(--text); }
+  .secmap .zhn { color: var(--muted); font-variant-numeric: tabular-nums; } .secmap .zh1 { font-size: 10.5px; font-weight: 650; padding: 1px 8px; border-radius: 999px; background: var(--zc); color: var(--panel); }
+  .secmap .zf { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .secmap .zfb { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12px; padding: 4px 10px; min-height: 30px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; }
+  .secmap .zfb i { width: 8px; height: 8px; border-radius: 50%; background: var(--zc); } .secmap .zfb b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .secmap .zfb.on { border-color: var(--zc); color: var(--text); background: color-mix(in srgb, var(--zc) 14%, transparent); }
+  .secmap .mbt { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; } .secmap .mbtl { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; } .secmap .mbp .tipbtn, .secmap .mbm .tipbtn, .secmap .zdh .tipbtn { margin-left: 4px; }
+  .secmap .mbh { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 2px 0 12px; max-width: 72ch; }
+  .secmap .mboard .mbp { margin: 4px 0 8px; } .secmap .mboard .gw { margin-top: 6px; }
+  .secmap .mboard .mbl { margin-top: 12px; line-height: 1.5; } .secmap .mboard .mbo { padding: 10px 4px; margin-top: 8px; line-height: 1.7; }
+  .secmap .zdi .mbr { row-gap: 10px; padding-top: 6px; } .secmap .zdi .mb-s { line-height: 1.65; } .secmap .zdi .mb-r { gap: 6px 10px; } .secmap .zdi .mbl { margin-top: 10px; }
+  .secmap .zdh { margin-bottom: 2px; }
+  .secmap .mbf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 4px; } .secmap .mbf .mbmore { border: 0; background: none; color: var(--up); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 0; min-height: 28px; }
+  .secmap .mb-rk { display: inline-flex; align-items: center; gap: 4px; cursor: help; white-space: nowrap; }
+  .secmap .mb-rk .rb { position: relative; width: 44px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--zlo) 40%, transparent) var(--low), var(--neutralbg) var(--low)); }
+  .secmap .mb-rk .rb i { position: absolute; top: -2px; width: 3px; height: 9px; margin-left: -1.5px; border-radius: 1px; background: var(--text); }
+  .secmap .mb-up { color: var(--text); font-weight: 700; cursor: help; }
+  .secmap .mb-tt { font-size: 10px; font-weight: 600; padding: 0 5px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); cursor: help; }
+  .secmap .mb-g { font-weight: 600; color: var(--muted); }
+  .secmap .mbr.gone { opacity: .5; } .secmap i.mk.gone { background: none; border: 1.5px solid var(--faint); box-sizing: border-box; }
+  .secmap .mbr.th { cursor: default; }
+  .secmap .mbm { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; line-height: 1.5; color: var(--muted); margin-bottom: 14px; padding: 8px 10px; background: var(--panel2); border-radius: 8px; } .secmap .mbm .mbm-t { color: var(--text); font-weight: 600; }
+  .secmap .mbm b { color: var(--text); font-weight: 600; }
+  .botg.ep { color: var(--text); background: color-mix(in srgb, var(--c9m) 30%, transparent); box-shadow: inset 0 0 0 1px var(--c9m); } .botg.cv { color: var(--text); background: color-mix(in srgb, var(--zc, var(--zrev)) 22%, transparent); border-left: 3px solid var(--zc, var(--zrev)); max-width: 130px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; }
+  /* carte des thèmes = vue du bloc Convergence des 9M (bascule Grille / Carte) : les deux cartes n'en font qu'une */
+  .maprow.joined { flex-direction: column; gap: 0; } .maprow.joined > #secZone { border-bottom: 0; border-radius: var(--r) var(--r) 0 0; padding-bottom: 4px; }
+  .maprow.joined > #secMap { border-top: 0; border-radius: 0 0 var(--r) var(--r); padding-top: 0; }
+  .seczone .zview button { padding: 3px 10px; font-size: 12px; } .seczone .ahead { flex-wrap: nowrap; } .seczone .ahead .fsum { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seczone .ahead .zview, .seczone .ahead .copybtn, .seczone .ahead .foldh { flex: none; } .seczone .ahead .foldh b { white-space: nowrap; } .secmap .mapsum { font-size: 12px; color: var(--muted); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  @media (max-width: 640px) { #secMap { display: none !important; } .seczone .zview { display: none; }
+    .secmap table.g { border-spacing: 1px; } .secmap table.g th:first-child { width: 158px; } .secmap .mb-rk .rkl { display: none; }
+    .secmap .gn { flex-wrap: wrap; row-gap: 2px; } .secmap .gn b { flex: 1 0 100%; }   /* mobile : nom sur sa ligne, zone dessous */
+    .secmap .gt .tks, .secmap .gt .sep2, .secmap .gt .in9 { display: none; }   /* mobile : titres dans le détail et la liste du jour */
+    .secmap table.g td.c { font-size: 0; height: 18px; border-radius: 2px; } .secmap table.g td.c.ep::after { right: 50%; margin-right: -2.5px; top: 6px; } }   /* mobile : cases sans chiffre (compte au toucher) */   /* mobile : grille seule (choix du 02/11/2026, carte illisible) */
   .secmap .mm-t { stroke: var(--muted); stroke-dasharray: 3 3; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: .7; }
   .secmap .mm-l polyline { fill: none; stroke: var(--faint); stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke-linejoin: round; } .secmap .mm-a polygon { fill: var(--faint); opacity: .12; }
   .secmap .mbr.rev .mm-l polyline { stroke: var(--ok); } .secmap .mbr.rev .mm-a polygon { fill: var(--ok); }
@@ -324,8 +410,8 @@
 
   .smap .ml { fill: var(--text); font-size: 11px; font-weight: 550; paint-order: stroke; stroke: var(--panel); stroke-width: 3px; pointer-events: none; }
   .smap .mll { stroke: var(--muted); stroke-width: 0.8; opacity: .55; pointer-events: none; }
-  .secmap .mk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
-  .secmap .mk.rev { background: var(--ok); } .secmap .mk.both { background: var(--up); } .secmap .mk.neuf { background: var(--up); box-shadow: 0 0 0 1.5px var(--text); } .secmap .mk.hot { background: var(--warn); }
+  .secmap i.mk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .secmap i.mk.rev { background: var(--ok); } .secmap i.mk.both { background: var(--up); } .secmap i.mk.neuf { background: var(--up); box-shadow: 0 0 0 1.5px var(--text); } .secmap i.mk.hot { background: var(--warn); }
   @media (max-width: 900px) { .secbo .bolanes { grid-template-columns: minmax(0, 1fr); } }
   .etat { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 5px; white-space: nowrap; }
   /* Leaders actifs : symbole toujours lisible, gain et écart au plus haut à droite ; écrans moyens (liste à côté du graphique) :
@@ -982,11 +1068,11 @@
     <div class="secfrise" id="secFrise" hidden>
       <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
+    <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
-    <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
     <div class="maprow" id="secMapRow" hidden>
-      <div class="card secact secmap seczone" id="secZone" role="region" aria-label="Thèmes par zone" hidden></div>
+      <div class="card secact secmap seczone" id="secZone" role="region" aria-label="Convergence des 9M" hidden></div>
       <div class="card secact secmap" id="secMap" role="region" aria-label="Carte des thèmes" hidden></div>
     </div>
     <div class="secsplit" id="secSplit">
@@ -996,6 +1082,7 @@
           <span class="viewbox" hidden><span class="seg sm" id="secView" role="group" aria-label="Liste classée"></span><button class="tipbtn" data-tip="secview" aria-label="Explication : ETF ou TradingView" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button></span>
           <span class="secmeta" id="secMeta"></span>
         </div>
+        <div class="secact secact-in" id="secAct" role="region" aria-label="Leaders actifs" hidden></div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
         <div class="secadr" id="secAdr" hidden><label>ADR <span id="adrN"></span> &gt; <input id="adrMin" type="number" min="0" inputmode="decimal" placeholder="0"> %</label>
@@ -1963,6 +2050,12 @@
   }
 
   function cursor(c) {
+    if (popCtx.active && popMark) {                   // fenêtre graphique ouverte depuis la liste d'un jour (02/11/2026) : ce jour en pointillé
+      const j = T.indexOf(popMark);
+      if (j >= 0 && j < c.n) { const x = Math.round(c.X(j)) + 0.5, g = c.g;
+        g.save(); g.strokeStyle = css('--text'); g.globalAlpha = .7; g.lineWidth = 1.5; g.setLineDash([2, 3]);
+        g.beginPath(); g.moveTo(x, PAD.t); g.lineTo(x, PAD.t + c.ph); g.stroke(); g.restore(); }
+    }
     const i = secCtx.active || pmCtx.active || tkCtx.active || popCtx.active ? (hover >= 0 ? hover : pinned ? T.indexOf(pinned) : -1) : selIdx();
     if (i < 0 || i >= c.n) return;
     const { g, X, ph } = c, x = Math.round(X(i)) + 0.5;
@@ -3029,6 +3122,7 @@
   //   leaders actifs = leaders des groupes neufs ou chauds (pionniers retirés le 31/10/2026 : pas d'avance mesurée, test 8).
   // Information, pas un signal d'achat : le document d'analyse (tests 5 à 16) dit ce que chaque état a valu sur 2019-2026.
   const AC = CFG.sectors.actifs;
+  let actHot = store.get('mm.acthot') === '1', actFam = 'def';   // actFam : famille de phases du dépliage de Leaders actifs (exp / def)          // Leaders actifs : groupes chauds dépliés (repliés par défaut, 02/11/2026)
   let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [], actSyms = [];   // actSyms : leaders actifs (bouton Copier)   // actZero : groupes chauds sans leader dépliés
   function actData() {
     if (!IND || !IND.leaders || !Array.isArray(IND.themes) || !IND.industries.every(x => Array.isArray(x.l) && typeof x.g === 'string')) return null;
@@ -3200,8 +3294,8 @@
   // ordre des blocs sous la frise (exception au gel du 27/10/2026) : choisi par glisser-déposer, mémorisé (mm.secorder) ; par
   // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
   // ordre par défaut = HTML ; Breakouts 9M avant Groupes actifs depuis le 31/10/2026 (seul bloc à l'avance mesurée, audit de l'onglet)
-  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', act: 'secAct', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : carte des thèmes (31/10/2026)
-  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Groupes actifs', bo: 'Breakouts 9M +4 %', map: 'Carte des thèmes', list: 'Classement' };
+  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : Convergence des 9M ; Leaders actifs dans le Classement (02/11/2026)
+  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Leaders actifs', bo: 'Breakouts 9M +4 %', map: 'Convergence des 9M', list: 'Classement' };
   let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
   const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
     `title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button>`;
@@ -3222,9 +3316,12 @@
     // « je vois trop tard que je dois lever le pied ») : une ligne d'état, une ligne « Sur N s » qui montre ce qui se dégrade, des
     // cartes d'une ligne (nom, signes, leaders) ; définitions et détails dans les bulles ⓘ et au survol
     const box = $('secAct'); if (!box) return;
-    const at = IND ? actAt(e) : null; box.hidden = !at; if (!at) return;   // aussi au niveau ETF : le haut de page ne bouge pas
+    // 02/11/2026 : dans la carte du Classement, au niveau Leaders actifs seulement ; déplié par défaut dans les phases où les
+    // breakouts de leaders sont les setups (open_phases), replié ailleurs ; un choix à la main est gardé par famille de phases
+    const at = IND ? actAt(e) : null; box.hidden = !at || secView !== 'tv' || tvNav.lvl !== 'act'; if (box.hidden) return;
     const d = IND.dates[e], pi = phaseIdx(d), P = pi >= 0 ? PHASES[pi] : null, ph = P ? PHK[P.k] : null;
-    const nHot = at.active.filter(x => x.hot).length, alert = ph && AC.alert_phases.includes(P.k) && nHot;
+    actFam = P && AC.open_phases.includes(P.k) ? 'exp' : 'def';
+    const sv = store.get('mm.fold.act@' + actFam); actOpen = sv == null ? actFam === 'exp' : sv !== '1';
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
     // ce qui change sur trend_sessions séances : moins de groupes chauds ou de leaders = le flux se retire (faits, pas de consigne)
     const T = AC.trend_sessions, pv = e - T >= 0 ? actAt(e - T) : null, P0 = pv ? phaseIdx(IND.dates[e - T]) : -1;
@@ -3237,20 +3334,19 @@
       mv('leaders', now.lead, was.lead, `Leaders actifs ${T} séances avant → à cette séance`)].filter(Boolean) : [];   // « s'essouffle » : au survol des cartes (31/10/2026)
     // replié : seulement ce qui baisse (groupes chauds, leaders), pour le voir sans ouvrir le bloc
     const N9 = nineAt(e), n9 = x => N9 ? N9.get(x.g.key) || null : null;   // 9M par groupe (null : index Tickers en chargement)
-    const RV0 = N9 ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(n9(x))) : [];
     const worse = !was ? [] : [now.hot < was.hot ? `chauds ${was.hot} → ${now.hot}` : null, now.lead != null && was.lead != null && now.lead < was.lead ? `leaders ${was.lead} → ${now.lead}` : null].filter(Boolean);
     const dt = fmtDate(d, { day: 'numeric', month: 'short' });
-    const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')}${RV0.length ? ` · ${RV0.length} ${escH(AC.reveil_label.toLowerCase())}` : ''} · ${pl(at.chauds.length, 'chaud')}` +
-      (!actOpen && alert ? ` · <span class="w">⚠ ${escH(ph.name)}</span>` : '') + (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
-    const head = `<div class="ahead">${dragH('act')}<button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
+    // bloc « Leaders actifs » (02/11/2026, ancien « Groupes actifs ») : la section Réveil (en double avec Convergence des 9M) et
+    // l'alerte « phase avec groupes chauds » (réfutée : −0,2 % sur 65 épisodes 2008-2025) sont retirées ; chauds repliés (information)
+    const sum = `· ${dt} · ${pl(at.leaders.length, 'leader')} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
+      (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
+    const head = `<div class="ahead"><button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
-      (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
-        `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+      (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` : '') + '</div>' +
+      (!actOpen && actFam === 'def' ? `<div class="note actfold">${escH(AC.fold_note)}</div>` : '');   // raison du repli, sous l'en-tête
     actSyms = at.leaders.map(r => r.s);
     if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
-    // la phase et ses setups sont dans le titre de la frise (une seule source) ; ici, seulement l'alerte qui concerne les groupes
-    const phl = alert ? `<div class="phl"><span class="alrt" title="${escA(AC.alert_text)}" tabindex="0">⚠ ${escH(ph.name)} avec ${pl(nHot, 'groupe')} chaud${nHot > 1 ? 's' : ''}</span></div>` : '';
     const trl = trend.length ? `<div class="atrend"><span class="note">Sur ${T} s</span>${trend.join('')}</div>` : '';
     const ago = n => n === 0 ? 'cette séance' : `${n} séance${n > 1 ? 's' : ''}`;
     // carte : nom, « thème », 9M du groupe (titres · part ; vert à partir de nine_share %, plein à partir de nine_intense %), leaders.
@@ -3272,16 +3368,16 @@
     // chauds : d'abord ceux qui ont le plus de titres en 9M, puis de leaders (« chaud » seul : pas d'avance mesurée, audit du 31/10/2026)
     const byLead = (a, b) => b.lead - a.lead || (a.g.k < b.g.k ? -1 : 1), by9 = (a, b) => ((n9(b) || {}).n || 0) - ((n9(a) || {}).n || 0) || byLead(a, b);
     const N = at.neufs.slice().sort(by9), C = at.chauds.slice().sort(by9), Cw = C.filter(x => x.lead > 0 || n9(x)).slice(0, AC.chauds_shown), rest = C.length - Cw.length;
-    // Réveil : 9M fort (nine_min titres, nine_share %) dans une industrie ni chaude ni neuve (+1,6 % sur 21 s, 14 ans sur 18)
-    const RV = RV0.slice().sort(by9);
-    const shown = N.concat(actZero ? C : Cw);
+    const shown = N.concat(actHot ? (actZero ? C : Cw) : []);
     const sec = (cls, lbl, arr, list) => arr.length ? `<div class="asec"><span class="etat ${cls}">${lbl} ${arr.length}</span></div><div class="agrid">${list.map(card).join('')}</div>` : '';
     const more = rest ? `<button type="button" class="amore" data-actzero="1" aria-expanded="${actZero}">${actZero ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
-    const rvs = RV.length ? `<div class="asec"><span class="etat rv" title="${escA(AC.reveil_tip)}">${escH(AC.reveil_label)} ${RV.length}</span></div><div class="agrid">${RV.map(card).join('')}</div>` : '';
+    // chauds repliés par défaut : « chaud » seul n'a pas d'avance mesurée ; chaud + 9M fort = Thème qui dure, dans Convergence des 9M
+    const hot = C.length ? `<div class="asec"><button type="button" class="ahot" data-acthot="1" aria-expanded="${actHot}"><span class="car">${actHot ? '▾' : '▸'}</span>` +
+      `<span class="etat chaud">Chauds ${C.length}</span><small>${escH(AC.hot_note)}</small></button></div>` + (actHot ? `<div class="agrid">${(actZero ? C : Cw).map(card).join('')}</div>${more}` : '') : '';
     const leg = [N9 ? `<span><span class="n9">9M 3 · 12 %</span> titres en 9M sur ${AC.nine_window} séances · part du groupe ; <span class="n9 f">vert</span> dès ${AC.nine_min} titres et ${AC.nine_share} %, <span class="n9 i">plein</span> dès ${AC.nine_intense} %</span>` : '',
       'nombre = leaders · survol : détail'].filter(Boolean).join('');
-    box.innerHTML = head + phl + trl +
-      (at.day ? sec('neuf', 'Neufs', N, N) + rvs + sec('chaud', 'Chauds', C, actZero ? C : Cw) + more + (shown.length || RV.length ? `<div class="aleg">${leg}</div>` : '')
+    box.innerHTML = head + trl +
+      (at.day ? sec('neuf', 'Neufs', N, N) + hot + (shown.length ? `<div class="aleg">${leg}</div>` : '')
         : `<div class="note">Leaders disponibles sur les ${CFG.industries.leaders.list_sessions} dernières séances seulement.</div>`) +
       (at.day && !at.active.length ? '<div class="note">Aucun groupe neuf ou chaud à cette séance.</div>' : '');
   }
@@ -3289,7 +3385,7 @@
   // (tv_breadth_data.js, clé breakouts, fetch_tv_breadth.py). Séance des cases si elle est choisie ou survolée, sinon le
   // dernier relevé : le soir même, avant que Polygon publie la séance (les cases montrent encore la veille)
   const BOC = CFG.sectors.breakouts, BMT = BOC.marks_text;   // libellés des repères : config/sources.toml [tv_breadth.breakouts] marks_text
-  let boOpen = foldGet('bo'), boAll = false, boWeak = false, boShown = [], boDay = null;   // boWeak : couloir « bougie faible » déplié
+  let boOpen = foldGet('bo'), boAll = false, boWeak = false, boShown = [], boDay = null, boNow = null;   // boNow : liste du jour pour « Ce matin »   // boWeak : couloir « bougie faible » déplié
   const usdFmt = v => v == null ? '—' : capFmt(v) + ' $';
   // repères 9M (31/10/2026) : bougie forte et étendu, seuils de config/sources.toml [tv_breadth.breakouts] (bloc et case « 9M à regarder »)
   const boStrong = (pos, rr, rp) => pos != null && rr != null && rp != null && pos >= BOC.candle_close_pct && rr >= BOC.candle_range_adr && rp > BOC.candle_range_prev;
@@ -3316,6 +3412,23 @@
     ? (b.dv ?? -1) - (a.dv ?? -1) || b.p - a.p : b.p - a.p || (a.s < b.s ? -1 : 1));
   const boRule = () => `clôture ≥ ${nf((100 + BOC.pct) / 100, 2)} × celle de la veille, volume &gt; ${nf(BOC.min_volume)}` +
     (BOC.volume_up ? ' et supérieur à celui de la veille' : '') + (BOC.min_price > 0 ? `, clôture > ${nf(BOC.min_price, 2)} $` : '');
+  // pastille d'un titre 9M (bloc Breakouts 9M et liste d'un jour de la grille de convergence, 02/11/2026) : mini-bougie, hausse,
+  // volume en dollars, repères ; o = { marked : repères disponibles, nPrev : séances comptées pour « 9M ×n », attr : data-bos ou data-pop }
+  const x1 = x => nf(x, x >= 10 ? 0 : 1);
+  function boChip(r, o) {
+    const mk = r.pos != null ? [tpl(BMT.close, { p: r.pos }), r.rr != null ? tpl(BMT.range, { r: nf(r.rr, 1) }) : null, r.rp != null ? tpl(BMT.prev, { r: nf(r.rp, 1) }) : null,
+      r.w != null ? tpl(BMT.week, { w: `${r.w >= 0 ? '+' : ''}${nf(r.w, 1)}` }) : null, r.bq ? BMT.strong : BMT.weak] : [];
+    const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
+      ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: o.nPrev }) : null,
+      r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, r.ep ? tpl(BMT.ep, { p: BOC.ep_pct, m: BOC.ep_vol_mult, s: BOC.ep_vol_sessions }) : null,
+      r.cv ? tpl(BMT.conv, { g: r.cv.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
+    const tags = (r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : '') + (r.cv ? `<span class="botg cv${r.cz ? ' z-' + r.cz : ''}" title="${escA(tpl(BMT.conv, { g: r.cv.join(', ') }))}">${escH(r.cv[0])}</span>` : '') +
+      (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
+    return `<button type="button" class="bochip${r.l ? ' lead' : ''}${o.marked ? ' mk' : ''}" ${o.attr}="${escA(r.s)}"${o.more || ''} title="${escA(tip)}" aria-label="${escA(tip)}">` +
+      (o.marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
+      `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span>` +   // ×veille : détail au survol
+      (tags ? `<span class="bt">${tags}</span>` : '') + '</button>';
+  }
   function renderSecBo(e, latest) {
     const box = $('secBo'); if (!box) return;
     const X = window.TV_BREADTH || {}, L = X.breakouts || {}, ds = Object.keys(L).sort();
@@ -3329,14 +3442,22 @@
     const prevDays = ds.filter(x => x < d).slice(-BOC.repeat_sessions), seen = new Map();
     prevDays.forEach(x => (L[x] || []).forEach(r => seen.set(r[C.ticker], (seen.get(r[C.ticker]) || 0) + 1)));
     const items = boSort((rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio],
-      dv: col(r, 'dvol'), l: lead ? lead.get(r[C.ticker]) : null, pos: col(r, 'pos'), rr: col(r, 'rr'), rp: col(r, 'rp'), w: col(r, 'w'),
+      dv: col(r, 'dvol'), l: lead ? lead.get(r[C.ticker]) : null, pos: col(r, 'pos'), rr: col(r, 'rr'), rp: col(r, 'rp'), w: col(r, 'w'), kind: col(r, 'kind'), epx: col(r, 'ep'),
       n9: seen.get(r[C.ticker]) || 0 })));
     items.forEach(r => {   // repères (31/10/2026) : seuils dans config/sources.toml [tv_breadth.breakouts]
       r.bq = boStrong(r.pos, r.rr, r.rp); r.ext = boExt(r.w);
       r.lane = r.bq ? (r.ext ? 1 : 0) : 2;
     });
+    // EP probable (repère 4 de l'historique nine, calculé le lendemain matin) et groupe en convergence (zones du tableau, même
+    // séance que les leaders actifs ; 02/11/2026)
+    const NI = IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null, ki = IND.dates.indexOf(d), epS = new Set(), conv = new Map();
+    if (NI && ki >= NI.start) (NI.days[ki - NI.start] || []).forEach(([s_, , q]) => { if (q & 4) epS.add(s_); });
+    const MZ = mapAt(k);
+    if (MZ && MZ.ok9) [...MZ.pts, ...MZ.th].filter(o => o.m && ['rev', 'both', 'neuf'].includes(o.cl)).forEach(o => o.m.t.forEach(s_ => {   // nom et zone du groupe sur l'étiquette
+      const z = o.cl === 'rev' && !o.th && o.px < MP.board.low_rank ? 'lo' : o.cl; (conv.get(s_) || conv.set(s_, []).get(s_)).push(o.x.g.k); if (!conv.z) conv.z = new Map(); if (!conv.z.has(s_)) conv.z.set(s_, z); }));
+    items.forEach(r => { r.ep = epS.has(r.s) || r.epx === 1; r.cv = conv.get(r.s) || null; r.cz = conv.z ? conv.z.get(r.s) || null : null; });   // EP : matin (nine) ou soir (TradingView)
     const marked = items.some(r => r.pos != null), lanesN = [0, 1, 2].map(i => items.filter(r => r.lane === i).length);
-    boShown = items.map(r => r.s); boDay = rows ? d : null;
+    boShown = items.map(r => r.s); boDay = rows ? d : null; boNow = rows ? { d, items, k } : null;
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`, nl = items.filter(r => r.l).length, dt = fmtDate(d, { day: 'numeric', month: 'short' });
     const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (marked ? ` · <b class="bo-a">${lanesN[0]}</b> à regarder · ${pl(lanesN[1], 'étendu')}` : '') +
       (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
@@ -3348,19 +3469,7 @@
       `<span class="fsum">${sum}</span>${tipI('bo', BOC.label)}<span class="asp"></span>${btns}</div>`;
     if (!boOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
-    const x1 = x => nf(x, x >= 10 ? 0 : 1);
-    const chip = r => {
-      const mk = r.pos != null ? [tpl(BMT.close, { p: r.pos }), r.rr != null ? tpl(BMT.range, { r: nf(r.rr, 1) }) : null, r.rp != null ? tpl(BMT.prev, { r: nf(r.rp, 1) }) : null,
-        r.w != null ? tpl(BMT.week, { w: `${r.w >= 0 ? '+' : ''}${nf(r.w, 1)}` }) : null, r.bq ? BMT.strong : BMT.weak] : [];
-      const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
-        ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: prevDays.length }) : null,
-        r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
-      const tags = (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
-      return `<button type="button" class="bochip${r.l ? ' lead' : ''}${marked ? ' mk' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
-        (marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
-        `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span>` +   // ×veille : détail au survol
-        (tags ? `<span class="bt">${tags}</span>` : '') + '</button>';
-    };
+    const chip = r => boChip(r, { marked, nPrev: prevDays.length, attr: 'data-bos' });
     const shown = boAll ? items : items.slice(0, BOC.list_limit), rest = items.length - shown.length;
     const more = items.length > BOC.list_limit ? `<button type="button" class="amore" data-boall="1" aria-expanded="${boAll}">${boAll ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
     const ahead = latest && d > IND.dates[last] ? `<div class="note">Relevé TradingView du soir : la séance du ${dt} n'est pas encore dans les cases (Polygon la publie le lendemain matin)${lead ? ` ; ★ : leaders actifs du ${fmtDate(IND.dates[k], { day: 'numeric', month: 'short' })}` : ''}</div>` : '';
@@ -3369,21 +3478,55 @@
       const rs = items.filter(r => r.lane === i), sub = escH(BOC.lanes_sub[i].replace('{ext}', BOC.extended_pct));
       const h = `<div class="bolh"><span class="boln">${rs.length}</span><span><b>${escH(BOC.lanes[i])}</b><small>${sub}</small></span></div>`;
       if (i < 2) return `<div class="bolane l${i}">${h}${rs.length ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : ''}</div>`;
-      return `<div class="bolane l2${boWeak ? ' open' : ''}">${h}` + (boWeak ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : rs.length ? `<p class="bomini">${rs.map(r => escH(r.s)).join(', ')}</p>` : '') +
+      const sk = rs.filter(r => r.kind !== 'e' && r.kind !== 'd'), fx = rs.filter(r => r.kind === 'e' || r.kind === 'd');   // ETF et ADR à part (02/11/2026)
+      const fxh = fx.length ? `<div class="bofx">${escH(BOC.etf_label)} ${fx.length}</div>` : '';
+      return `<div class="bolane l2${boWeak ? ' open' : ''}">${h}` + (boWeak ? `<div class="bogrid">${sk.map(chip).join('')}</div>${fxh}${fx.length ? `<div class="bogrid">${fx.map(chip).join('')}</div>` : ''}`
+        : rs.length ? `${sk.length ? `<p class="bomini">${sk.map(r => escH(r.s)).join(', ')}</p>` : ''}${fx.length ? `<p class="bomini fx"><b>${escH(BOC.etf_label)}</b> : ${fx.map(r => escH(r.s)).join(', ')}</p>` : ''}` : '') +
         (rs.length ? `<button type="button" class="amore" data-boweak="1" aria-expanded="${boWeak}">${boWeak ? 'Replier' : `Voir les ${rs.length}`}</button>` : '') + '</div>';
     };
     const legM = `<span>${boCdl({ pos: 92, rr: 1.5, bq: true })} ${escH(BMT.leg_strong)}</span><span>${boCdl({ pos: 40, rr: 0.7, bq: false })} ${escH(BMT.leg_weak)}</span>` +   // bougies d'exemple
-      `<span><span class="botg w">${escH(tpl(BMT.leg_ext_tag, { ext: BOC.extended_pct }))}</span> ${escH(BMT.leg_ext)}</span><span><span class="botg m">9M ×${BOC.repeat_min}</span> ${escH(tpl(BMT.leg_repeat, { n: BOC.repeat_min, s: BOC.repeat_sessions }))}</span>`;
+      `<span><span class="botg w">${escH(tpl(BMT.leg_ext_tag, { ext: BOC.extended_pct }))}</span> ${escH(BMT.leg_ext)}</span><span><span class="botg m">9M ×${BOC.repeat_min}</span> ${escH(tpl(BMT.leg_repeat, { n: BOC.repeat_min, s: BOC.repeat_sessions }))}</span>` +
+      `<span><span class="botg ep">${escH(BMT.ep_tag)}</span> ${escH(tpl(BMT.leg_ep, { p: BOC.ep_pct, m: BOC.ep_vol_mult }))}</span><span><span class="botg cv">${escH(BMT.conv_tag)}</span> ${escH(BMT.leg_conv)}</span>`;
     const leg = (marked || nl) ? `<div class="aleg">${marked ? legM : ''}${nl ? `<span><span class="star" style="color:var(--up)">★</span> ${escH(BMT.leg_leader)}</span>` : ''}<span>${escH(BMT.leg_hover)}</span></div>` : '';
     box.innerHTML = head + ahead + (!rows ? `<div class="note">Pas de relevé pour cette séance : la liste commence le ${fmtDate(ds[0], { day: 'numeric', month: 'short', year: 'numeric' })} (TradingView ne garde pas d'historique de ce scan).</div>`
       : items.length ? (marked ? `<div class="bolanes">${lane(0)}${lane(1)}${lane(2)}</div>` : `<div class="bogrid">${shown.map(chip).join('')}</div>${more}`) + leg
       : '<div class="note">Aucun titre à cette séance.</div>');
   }
+  // « Ce matin » (02/11/2026, audit UX : « je ne sais pas où regarder quand j'arrive ») : sous la frise, ce que la page croise déjà,
+  // en une carte : les 9M à bougie forte pas étendus de la liste du jour (EP d'abord, puis ceux d'un groupe en convergence), et les
+  // groupes de la première zone de la phase. Information : le croisement EP × groupe n'est pas testé à part
+  const NW = CFG.sectors.now;
+  function renderSecNow(e) {
+    const box = $('secNow'); if (!box) return;
+    const L = boNow && boNow.items ? boNow.items.filter(r => r.lane === 0) : [], Z = zoneAt(e);
+    box.hidden = !IND || (!L.length && !(Z && Z.length)); if (box.hidden) return;
+    const rk = r => (r.ep ? 0 : 2) + (r.cv ? 0 : 1);
+    const T = L.slice().sort((a, b) => rk(a) - rk(b)), shown = T.slice(0, NW.max), more = T.length - shown.length;
+    const tk = r => `<button type="button" class="nowt" data-pop="${escA(r.s)}" title="${escA(tpl(NW.tk_tip, { s: r.s }))}"><b>${escH(r.s)}</b>${r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : ''}` +
+      `${r.cv ? `<span class="botg cv${r.cz ? ' z-' + r.cz : ''}">${escH(r.cv[0])}</span>` : ''}</button>`;
+    const pd = IND.dates[e], pk = phaseKeyAt(pd) || (PHASES.length && pd > PHASES[PHASES.length - 1].d ? PHASES[PHASES.length - 1].k : null);
+    const PR = pk ? (MP.board.phase_rule || []).find(r => r.phases.includes(pk)) || null : null, order = PR ? PR.order : MP.board.default_order, low = PR ? PR.low : true;
+    const zk = o => low && o.cl === 'rev' && !o.th && o.px < MP.board.low_rank ? 'lo' : o.cl, secs = order.flatMap(c => c === 'rev' ? ['lo', 'rev'] : [c]);
+    const first = Z ? secs.find(z => Z.some(o => zk(o) === z)) : null;
+    const G = first ? Z.filter(o => zk(o) === first).sort((a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py) : [];
+    const ZL = { lo: `${MP.zones.reveil} ${MP.board.low_label}`, rev: MP.zones.reveil, both: MP.zones.lasting, neuf: MP.board.neuf_label };
+    const day = boNow && boNow.d ? fmtDate(boNow.d, { day: 'numeric', month: 'short' }) : '';
+    box.innerHTML = `<div class="nowh"><b>${escH(NW.label)}</b>${tipI('now', NW.label)}</div>` +
+      `<div class="nowl"><span class="nowk">${escH(tpl(NW.tickers, { d: day }).replace(' ()', ''))}</span>${shown.length ? shown.map(tk).join('') + (more ? `<span class="note">+${more}</span>` : '') : `<span class="note">${escH(NW.none)}</span>`}</div>` +
+      (G.length ? `<div class="nowl"><span class="nowk">${escH(tpl(NW.groups, { z: ZL[first] }))}</span>${G.slice(0, NW.groups_max).map(o => `<button type="button" class="nowg z-${first}" data-nowg="${escA(o.x.g.key)}">` +
+        `<i></i>${escH(o.x.g.k)} <b>${o.m ? o.m.n : 0}</b></button>`).join('')}${G.length > NW.groups_max ? `<span class="note">+${G.length - NW.groups_max}</span>` : ''}</div>` : '');
+  }
+  $('secNow').addEventListener('click', e => {
+    const b = e.target.closest('[data-pop],[data-nowg]'); if (!b) return;
+    if (b.dataset.pop != null) { openPop(b.dataset.pop, boNow && boNow.d); return; }
+    mapSel = b.dataset.nowg; zoneDay = null; zoneFilter = 'all'; zoneOpen = true; foldSet('zone', true); renderSecKpis();   // le groupe ouvert dans la grille
+    setTimeout(() => { const r = document.querySelector(`#secZone tr.zr.on`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 0);
+  });
   // carte des thèmes (31/10/2026, config/display.toml [sectors.map]) : industries placées par tendance (rang TI65, x) et demande
   // (part en 9M sur nine_window séances, y) ; taille = leaders ; couleur = neuf, chaud + 9M fort, 9M fort seul (Réveil), chaud, autre.
   // Zones mesurées hors dépôt 2008-2025 (notes de la config). SVG à la largeur du bloc : texte lisible sur mobile
   const MP = CFG.sectors.map, MT = MP.text, TPC = CFG.ticker_popup;
-  let mapOpen = foldGet('map'), mapSel = null;          // mapSel : industrie choisie (traînée, barre d'information)
+  let mapSel = null;                                    // mapSel : industrie choisie (traînée, barre d'information) ; la carte n'a plus de repli propre (vue du bloc, 02/11/2026)
   // positions des industries à la séance k (mémorisé) : px = rang TI65 parmi les industries classées (0-100), py = part en 9M
   const mapMemo = new Map();
   function mapAt(k) {
@@ -3394,13 +3537,29 @@
       const m = ok9 ? N9.get(o.x.g.key) || null : null; o.px = pts.length > 1 ? 100 * i / (pts.length - 1) : 50; o.py = m ? m.share : 0; o.m = m;
       o.strong = !!nineLvl(m); o.cl = o.x.neuf ? 'neuf' : o.strong && o.x.hot ? 'both' : o.strong ? 'rev' : o.x.hot ? 'hot' : 'calm';
     });
-    const r = { pts, by: new Map(pts.map(o => [o.x.g.key, o])), ok9, N9 };
+    // thèmes suivis (config/themes.toml, 02/11/2026) : rang de leur indice placé parmi les industries, mêmes zones ; dans le
+    // tableau seulement (la carte reste celle des industries)
+    const th = at.groups.filter(x => x.g.kind === 'th').map(x => {
+      const sc = secScore(x.g.c, k); if (sc == null) return null;
+      const m = ok9 ? N9.get(x.g.key) || null : null, below = pts.filter(o => o.s < sc).length;
+      const o = { x, s: sc, th: true, px: pts.length > 1 ? Math.min(100, 100 * below / (pts.length - 1)) : 50, py: m ? m.share : 0, m, strong: !!nineLvl(m) };
+      o.cl = x.neuf ? 'neuf' : o.strong && x.hot ? 'both' : o.strong ? 'rev' : x.hot ? 'hot' : 'calm'; return o;
+    }).filter(Boolean);
+    const r = { pts, th, by: new Map(pts.map(o => [o.x.g.key, o])), tby: new Map(th.map(o => [o.x.g.key, o])), ok9, N9 };
     if (mapMemo.size > 400) mapMemo.clear();
     if (N9) mapMemo.set(k, r);                          // index Tickers en chargement (secours) : pas mémorisé
     return r;
   }
   const MAP_TRAIL = MP.trail;                            // séances de la traînée (la séance affichée comprise)
   let mapOther = false;                                 // tableau par zone : « 9M actif ailleurs » déplié
+  let zoneAll = false;                                  // grille : groupes au-delà de rows_max dépliés
+  let otherOpen = false;                                // grille : « 9M actif ailleurs » déplié
+  let zoneDay = null;                                   // grille : case touchée (« clé|séance ») → liste des titres du jour
+  let zoneFilter = store.get('mm.zonefilter') || 'all'; // grille : zone affichée (all, lo, rev, both, neuf, gone)
+  // vue du bloc Convergence des 9M (02/11/2026, demande de l'utilisateur) : grille ou carte des thèmes, bascule dans le bloc ;
+  // mobile (≤ 640 px) : grille seule (carte illisible)
+  let zoneView = store.get('mm.zoneview') === 'map' ? 'map' : 'grid';
+  const zoneMapOn = () => zoneView === 'map' && !(typeof matchMedia === 'function' && matchMedia('(max-width: 640px)').matches);
   // axe des 9M (config y_scale) : « log » = log(1 + part / y_log_k), logarithmique au-delà de quelques % et 0 % gardé
   // (un vrai log ne peut pas montrer 0 %) ; « sqrt » racine carrée ; « linear »
   const mapY = v => {
@@ -3415,14 +3574,15 @@
     const box = $('secMap'), zb = $('secZone'), row = $('secMapRow'); if (!box) return;
     const at = IND && MP.shown ? actAt(e) : null, off = !at || !(IND.nine || (window.TV_BREADTH || {}).breakouts);
     box.hidden = zb.hidden = row.hidden = off; if (off) return;
-    box.style.flex = `${MP.side_share} 1 ${MP.map_min}px`; zb.style.flex = `${100 - MP.side_share} 1 ${MP.zone_min}px`;
+    const onMap = zoneMapOn() && zoneOpen;              // carte = vue du bloc Convergence des 9M, sous son titre
+    box.hidden = !onMap; row.classList.toggle('joined', onMap);
+    box.style.flex = zb.style.flex = '1 1 100%';
     const M = mapAt(e), pts = M.pts, ok9 = M.ok9, pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
     renderSecZone(e, M);
+    if (!onMap) { box.innerHTML = ''; return; }
     const nRev = pts.filter(o => o.cl === 'rev').length, nBoth = pts.filter(o => o.cl === 'both').length, dt = fmtDate(IND.dates[e], { day: 'numeric', month: 'short' });
     const sum = `· ${dt}` + (ok9 ? ` · <b class="bo-a">${nRev}</b> ${escH(MP.zones.reveil.toLowerCase())} · ${nBoth} ${escH(MP.zones.lasting.toLowerCase())}` : '');
-    const head = `<div class="ahead">${dragH('map')}<button type="button" class="foldh" data-mapfold="1" aria-expanded="${mapOpen}"><span class="car">${mapOpen ? '▾' : '▸'}</span><b>${escH(MP.label)}</b></button>` +
-      `<span class="fsum">${sum}</span>${tipI('map', MP.label)}</div>`;
-    if (!mapOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
+    const head = `<div class="mapsum">${escH(MP.label)} <span class="fsum">${sum}</span>${tipI('map', MP.label)}</div>`;   // le titre et le repli sont ceux du bloc
     box.classList.remove('folded');
     if (!ok9) { box.innerHTML = head + `<div class="note">${escH(M.N9 ? tpl(MT.no_list, { w: AC.nine_window }) : MT.loading)}</div>`; return; }
     const W = Math.max(300, Math.min(1000, (box.clientWidth || 760) - 24)), small = W < 520;
@@ -3515,7 +3675,7 @@
   let mapGrow = 0, mapGrowing = false;
   function mapFill(box, zb) {
     const kids = el => [...(el.children || [])];
-    if (!zb || !mapOpen || !zoneOpen || zb.hidden || box.offsetTop !== zb.offsetTop || !kids(box).length || !kids(zb).length) return 0;
+    if (!zb || !zoneOpen || zb.hidden || box.offsetTop !== zb.offsetTop || !kids(box).length || !kids(zb).length) return 0;
     const nat = el => { const r = el.getBoundingClientRect(), pb = parseFloat(getComputedStyle(el).paddingBottom) || 0;
       return Math.max(...kids(el).map(c => c.getBoundingClientRect().bottom)) - r.top + pb; };
     return Math.round(Math.max(0, Math.min(MP.grow_max, nat(zb) - (nat(box) - mapGrow))));
@@ -3530,12 +3690,14 @@
     const zb = $('secZone'), BD = MP.board; if (!zb) return;
     const B = M.ok9 ? mapBoardHtml(e, M) : null, dt = fmtDate(IND.dates[e], { day: 'numeric', month: 'short' });
     zoneSyms = B ? B.syms : [];
-    const sum = `· ${dt}` + (B ? ` · ${escH(plu(MT.industrie, B.nz))} · ${escH(plu(MT.titre_9m, zoneSyms.length))}` : '');
+    const sum = `· ${dt}` + (B ? ` · ${escH(plu(BD.groups_word, B.nz))} · ${escH(plu(MT.titre_9m, zoneSyms.length))}` : '');
     const copy = zoneSyms.length ? `<button type="button" class="copybtn" data-zcopy="all" title="${escA(BD.copy_tip)}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(MT.copy)}</span></button>` : '';
+    const onMap = zoneMapOn(), vb = (v, lab) => `<button type="button" data-zview="${v}" class="${(onMap ? 'map' : 'grid') === v ? 'on' : ''}" aria-pressed="${(onMap ? 'map' : 'grid') === v}">${escH(lab)}</button>`;
+    const sw = MP.shown ? `<span class="seg zview" title="${escA(BD.view_tip)}">${vb('grid', BD.view_grid)}${vb('map', BD.view_map)}</span>` : '';
     const head = `<div class="ahead">${dragH('map')}<button type="button" class="foldh" data-zonefold="1" aria-expanded="${zoneOpen}"><span class="car">${zoneOpen ? '▾' : '▸'}</span><b>${escH(BD.label)}</b></button>` +
-      `<span class="fsum">${sum}</span><span class="asp"></span>${copy}</div>`;
+      `<span class="fsum">${sum}</span>${tipI('conv', BD.label)}<span class="asp"></span>${sw}${copy}</div>`;
     zb.classList.toggle('folded', !zoneOpen);
-    zb.innerHTML = head + (!zoneOpen ? '' : B ? B.html : `<div class="note">${escH(M.N9 ? tpl(MT.no_list, { w: AC.nine_window }) : MT.loading)}</div>`);
+    zb.innerHTML = head + (!zoneOpen || onMap ? '' : B ? B.html : `<div class="note">${escH(M.N9 ? tpl(MT.no_list, { w: AC.nine_window }) : MT.loading)}</div>`);
   }
   function mapBoardHtml(e, M) {
     const BD = MP.board, pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
@@ -3550,7 +3712,7 @@
       .forEach(d => (L[d] || []).forEach(r => { if (boStrong(r[C.pos], r[C.rr], r[C.rp])) strong.add(r[C.ticker]); }));
     const spark = key => {
       const w = 96, h = 26, pad = 2, sx = i => pad + (w - 2 * pad) * (ks.length > 1 ? i / (ks.length - 1) : 1), sy = v => pad + (h - 2 * pad) * (1 - mapY(v));
-      const pts = ks.map((k, i) => { const P = mapAt(k), q = P && P.ok9 ? P.by.get(key) : null; return q ? [sx(i), sy(q.py)] : null; });
+      const pts = ks.map((k, i) => { const P = mapAt(k), q = P && P.ok9 ? P.by.get(key) || P.tby.get(key) : null; return q ? [sx(i), sy(q.py)] : null; });
       const segs = []; let cur = []; pts.forEach(p => { if (p) cur.push(p); else if (cur.length) { segs.push(cur); cur = []; } }); if (cur.length) segs.push(cur);
       const xy = sg => sg.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
       return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><line class="mm-t" x1="0" x2="${w}" y1="${sy(AC.nine_share).toFixed(1)}" y2="${sy(AC.nine_share).toFixed(1)}"/>` +
@@ -3574,41 +3736,155 @@
     // calculée : phase de la dernière séance calculée, comme le bandeau ; phase inconnue : default_order, étiquette gardée
     const pd = IND.dates[e], pk = phaseKeyAt(pd) || (PHASES.length && pd > PHASES[PHASES.length - 1].d ? PHASES[PHASES.length - 1].k : null);
     const PR = pk ? (BD.phase_rule || []).find(r => r.phases.includes(pk)) || null : null;
-    const lowOf = o => (PR ? PR.low : true) && o.cl === 'rev' && o.px != null && o.px < BD.low_rank;
+    const lowOf = o => !o.th && (PR ? PR.low : true) && o.cl === 'rev' && o.px != null && o.px < BD.low_rank;
+    // grille de convergence (02/11/2026) : titres du groupe en 9M à chaque séance des grid_sessions dernières (historique nine ;
+    // repère 4 = EP probable) ; industries par leur index, thèmes suivis par leurs membres
+    const TH = (actData() || { G: [] }).G.filter(g => g.kind === 'th');
+    const dayG = k => {
+      const day = NI && k >= NI.start ? NI.days[k - NI.start] : null; if (!day) return null;
+      const out = new Map(), add = (key, s, ep) => { const q = out.get(key) || out.set(key, { n: 0, ep: [], s: [] }).get(key); q.n++; q.s.push(s); if (ep) q.ep.push(s); };
+      day.forEach(([s, ii, q]) => { const ep = !!(q & 4); if (IND.industries[ii]) add('i:' + IND.industries[ii].k, s, ep); TH.forEach(g => { if (g.m.has(s)) add(g.key, s, ep); }); });
+      return out;
+    };
+    const gks = []; for (let k = Math.max(0, e - BD.grid_sessions + 1); k <= e; k++) gks.push(k);
+    const DG = gks.map(dayG), dshort = k => fmtDate(IND.dates[k], { day: 'numeric', month: 'short' });
+    // rang TI65 : barre (zone délaissée ombrée) ; ↑ = rang ≥ low_rank qui a gagné plus de rank_up_pts points en rank_up_sessions
+    // séances (verif_grille_dynamique : le seul cas où la remontée du rang ajoute)
+    const prevP = mapAt(e - BD.rank_up_sessions);
+    const upOf = o => { if (!prevP || o.px < BD.low_rank) return false; const q = (o.th ? prevP.tby : prevP.by).get(o.x.g.key); return !!q && o.px - q.px > BD.rank_up_pts; };
+    const rankHtml = o => `<span class="mb-rk" title="${escA(tpl(BD.rank_tip, { r: nf(o.px, 0), low: BD.low_rank }))}"><span class="rb" style="--low:${BD.low_rank}%"><i style="left:${o.px.toFixed(0)}%"></i></span>` +
+      `<span class="rkl">${escH(tpl(MT.rank, { ti: TIN, r: '' }).trim())}</span> ${nf(o.px, 0)}${upOf(o) ? `<b class="mb-up" title="${escA(tpl(BD.rank_up_tip, { p: BD.rank_up_pts, s: BD.rank_up_sessions, low: BD.low_rank }))}">↑</b>` : ''}</span>`;
+    const ZC = new Set(['rev', 'both', 'neuf']);
+    const zoneKeys = P => P && P.ok9 ? new Map([...P.pts, ...(P.th || [])].filter(o => ZC.has(o.cl)).map(o => [o.x.g.key, o.x.g.k])) : null;
     const ageTip = escA(BD.age_tip.replace('{k}', AC.nine_min).replace('{w}', AC.nine_window).replace('{notes}', BD.age_notes.join(' ; ')));
-    const row = o => {
-      const x = o.x, m = o.m, n = x.g.n, key = x.g.key, sel = key === mapSel;
-      const t = m ? m.t.slice().sort((a, b) => strong.has(b) - strong.has(a) || (last.get(b) ?? -1) - (last.get(a) ?? -1) || (a < b ? -1 : 1)) : [];   // bougie forte, puis 9M le plus récent
+    // grille (02/11/2026, forme de la maquette validée) : une ligne par groupe = nom, zone en clair (ou sortie), rang TI65 en barre,
+    // n / m en 9M et ses premiers titres ; une case par séance (nombre de titres en 9M, point = EP probable). Toucher une ligne :
+    // son détail (contenu de l'ancien tableau : âge, concentration, panier, thèmes ETF, pastilles, courbe 12 mois, tous les titres)
+    // et son point sur la carte.
+    const ZN = { rev: MP.zones.reveil, both: MP.zones.lasting, neuf: BD.neuf_label }, ZT = { rev: MP.zone_notes.reveil, both: MP.zone_notes.lasting, neuf: BD.notes.neuf };
+    const tOf = m => m ? m.t.slice().sort((a, b) => strong.has(b) - strong.has(a) || (last.get(b) ?? -1) - (last.get(a) ?? -1) || (a < b ? -1 : 1)) : [];   // bougie forte, puis 9M le plus récent
+    const chip = s => `<span class="mb-t${strong.has(s) ? ' ok' : ''}" role="button" tabindex="0" data-pop="${escA(s)}" title="${escA([tpl(MT.chip_tip, { s }), themesOf(s).join(', ')].filter(Boolean).join(' · '))}">${escH(s)}${strong.has(s) ? ' ▲' : ''}</span>`;
+    const detail = o => {
+      const x = o.x, m = o.m, n = x.g.n, key = x.g.key, t = tOf(m);
       const ag = m && m.n >= AC.nine_min ? ageOf(key) : null, bi = ag ? BD.age_buckets.filter(b => ag.a > b).length : 0;
       const days = new Set(t.map(s => first.get(s)).filter(k => k != null));
       const sameDay = first.size && m && m.n >= AC.nine_min && days.size === 1;
       let bk = null; (IND.themes || []).forEach(th => { const c = t.filter(s => th.m.includes(s)).length; if (c >= 2 && (!bk || c > bk.c)) bk = { k: th.k, c }; });
-      const sub = [escH(tpl(MT.rank, { ti: TIN, r: nf(o.px, 0) })), lowOf(o) ? `<span class="mb-lo" title="${escA(tpl(BD.low_tip, { r: BD.low_rank }))}">${escH(BD.low_label)}</span>` : null, ag && ag.a ? `<span class="mb-a" title="${escA(BD.age_notes[bi])} · ${ageTip}">${escH(BD.age_label.replace('{n}', (ag.cap ? '≥ ' : '') + ag.a))}</span>` : null, x.lead ? escH(plu(MT.leader, x.lead)) : null, bk ? escH(BD.basket.replace('{k}', bk.k)) : null,
+      const sub = [o.th ? `<span class="mb-tt" title="${escA(BD.theme_tip)}">${escH(BD.theme_tag)}</span>` : null, ZT[o.cl] ? `${escH(ZN[o.cl])} : ${escH(ZT[o.cl])}` : null,
+        lowOf(o) ? `<span class="mb-lo" title="${escA(tpl(BD.low_tip, { r: BD.low_rank }))}">${escH(BD.low_label)}</span>` : null, ag && ag.a ? `<span class="mb-a" title="${escA(BD.age_notes[bi])} · ${ageTip}">${escH(BD.age_label.replace('{n}', (ag.cap ? '≥ ' : '') + ag.a))}</span>` : null, x.lead ? escH(plu(MT.leader, x.lead)) : null, bk ? escH(BD.basket.replace('{k}', bk.k)) : null,
         sameDay ? `<span class="warn" title="${escA(BD.same_day_tip)}">${escH(BD.same_day.replace('{n}', m.n))}</span>` : null,
         themesSum(t) ? `<span class="mb-th" title="${escA(ETC.tip)}">${escH(tpl(ETC.row_label, { t: themesSum(t) }))}</span>` : null].filter(Boolean).join(' · ');
       const dots = n <= BD.dots_max ? `<span class="mb-d" aria-hidden="true">${Array.from({ length: n }, (_, i) => `<i class="${i < (m ? m.n : 0) ? 'y' : ''}"></i>`).join('')}</span>` : '';
+      return `<div class="mbr ${o.cl}"><span class="mb-n"><span class="mb-s">${sub}</span></span>${spark(key)}` +
+        `<span class="mb-r">${dots}<span class="mb-c">${m ? m.n : 0} / ${n}</span>${liftHtml(o, false)}${t.map(chip).join('')}</span></div>` +
+        `<div class="mbl">${escH(BD.legend.replace('{w}', AC.nine_window).replace('{s}', AC.nine_share).replace('{d}', MP.time_label))}</div>`;
+    };
+    const tds = key => gks.map((k, i) => {
+      const q = DG[i] ? DG[i].get(key) : null, n = q ? q.n : 0, ep = q && q.ep.length;
+      const tip = DG[i] ? tpl(BD.cell_tip, { d: dshort(k), n }) + (ep ? ' · ' + tpl(BD.cell_ep, { s: q.ep.join(', ') }) : '') + (n ? ' · ' + BD.cell_touch : '') : tpl(BD.cell_none, { d: dshort(k) });
+      const zd = key + '|' + k, act = n ? ` role="button" tabindex="0" data-zday="${escA(zd)}" aria-pressed="${zoneDay === zd}"` : '';   // toucher : la liste du jour
+      return `<td class="c ${!DG[i] ? 'x' : n >= 3 ? 'c3' : n === 2 ? 'c2' : n === 1 ? 'c1' : 'c0'}${ep ? ' ep' : ''}${zoneDay === zd ? ' on' : ''}"${act} title="${escA(tip)}">${n || ''}</td>`;
+    }).join('');
+    // liste d'un jour (toucher une case, 02/11/2026) : titres du groupe en 9M ce jour-là, même pastille que le bloc Breakouts 9M ;
+    // chiffres du relevé TradingView gardé pour la séance, sinon calculés sur les cours du fichier de l'industrie (chargé à la demande)
+    const barStats = (F, s, d) => {
+      const r = F.rows.find(x => x[0] === s), j = F.dates.indexOf(d); if (!r || j < 1) return {};
+      const C = r[3], V = r[4], H = r[6], Lo = r[7], vu = F.vu || 1, c = C[j], c1 = C[j - 1], v = V[j] != null ? V[j] * vu : null, v1 = V[j - 1] != null ? V[j - 1] * vu : null;
+      const o = { p: c && c1 ? 100 * (c / c1 - 1) : null, v, x: v && v1 ? v / v1 : null, dv: c && v ? c * v : null, w: j >= 5 && C[j - 5] ? 100 * (c / C[j - 5] - 1) : null };
+      if (H && Lo && H[j] != null && Lo[j] != null && H[j] > Lo[j]) {
+        const rg = H[j] - Lo[j], rs = []; for (let q = j - BOC.adr_sessions; q < j; q++) if (q >= 0 && H[q] != null && Lo[q] != null) rs.push(H[q] - Lo[q]);
+        o.pos = Math.round(100 * (c - Lo[j]) / rg); o.rr = rs.length ? rg / (rs.reduce((a, b) => a + b, 0) / rs.length) : null;
+        o.rp = H[j - 1] != null && Lo[j - 1] != null && H[j - 1] > Lo[j - 1] ? (H[j] / Lo[j] - 1) / (H[j - 1] / Lo[j - 1] - 1) : null;
+      }
+      return o;
+    };
+    const dayPanel = (o, k) => {
+      const i = gks.indexOf(k), q = i >= 0 && DG[i] ? DG[i].get(o.x.g.key) : null; if (!q) return '';
+      const X = window.TV_BREADTH || {}, C = Object.fromEntries((X.bo_columns || []).map((c, j) => [c, j])), d = IND.dates[k];
+      const tvRows = new Map(((X.breakouts || {})[d] || []).map(r => [r[C.ticker], r])), fl = new Map((NI.days[k - NI.start] || []).map(([s, ii, f]) => [s, { ii, f: f || 0 }]));
+      const at = actAt(k), lead = at && at.day ? new Map(at.leaders.map(r => [r.s, r])) : null;
+      const prevK = []; for (let j = Math.max(NI.start, k - BOC.repeat_sessions); j < k; j++) prevK.push(j);
+      let wait = false, own = false;
+      const items = q.s.map(s => {
+        const F = fl.get(s) || { f: 0 }, base = { s, n9: prevK.filter(j => (NI.days[j - NI.start] || []).some(r => r[0] === s)).length, l: lead ? lead.get(s) || null : null, ep: !!(F.f & 4), cv: null };
+        const r = tvRows.get(s);
+        if (r) { const c = x => C[x] != null ? r[C[x]] ?? null : null, it = { ...base, p: c('pct'), v: c('volume'), x: c('vol_ratio'), dv: c('dvol'), pos: c('pos'), rr: c('rr'), rp: c('rp'), w: c('w') };
+          return Object.assign(it, { bq: boStrong(it.pos, it.rr, it.rp), ext: boExt(it.w) }); }
+        own = true;
+        const ind = IND.industries[F.ii], Fi = ind && window.TV_STOCKS ? window.TV_STOCKS[ind.f] : null;
+        if (!Fi && ind && !tvFailed.has(ind.f)) { wait = true; tvLoad(ind, renderSecKpis); }
+        return { ...base, ...(Fi ? barStats(Fi, s, d) : {}), bq: !!(F.f & 1), ext: !!(F.f & 2) };
+      });
+      const ok = boSort(items.filter(r => r.p != null && r.v != null)), rest = items.filter(r => r.p == null || r.v == null), marked = ok.some(r => r.pos != null);
+      return `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi secbo"><div class="zdh"><b>${escH(tpl(BD.day_title, { g: o.x.g.k, d: dshort(k), n: q.n }))}${tipI('bo', BOC.label)}</b>` +
+        `<button type="button" class="mi-x" data-zday="" aria-label="${escA(MT.close)}">✕</button></div>` +
+        (wait ? `<div class="note">${escH(BD.day_loading)}</div>` : `<div class="bogrid">${ok.map(r => boChip(r, { marked, nPrev: prevK.length, attr: 'data-pop', more: ` data-popd="${escA(d)}"` })).join('')}${rest.map(r => chip(r.s)).join('')}</div>` +
+          (own ? `<div class="mbl">${escH(BD.day_own)}</div>` : '')) + '</div></td></tr>';
+    };
+    const row = (o, gone) => {
+      const x = o.x, m = o.m, n = x.g.n, key = x.g.key, sel = key === mapSel, t = tOf(m), lo = lowOf(o);
+      const badge = gone ? `<span class="zg" title="${escA(BD.gone_note)}">${escH(tpl(BD.gone_label, { n: gone }))}</span>` : '';   // la zone est dans l'en-tête de section
+      const chips = t.length ? `<span class="tks">${t.slice(0, BD.row_tickers).map(s => `<span class="tk${strong.has(s) ? ' ok' : ''}" role="button" tabindex="0" data-pop="${escA(s)}" title="${escA(tpl(MT.chip_tip, { s }))}">${escH(s)}${strong.has(s) ? '▲' : ''}</span>`).join(' · ')}` +
+        `${t.length > BD.row_tickers ? ` <span class="mb-more">+${t.length - BD.row_tickers}</span>` : ''}</span>` : '';
       const tip = m ? tpl(MT.row_tip, { k: x.g.k, n: m.n, m: n, p: nf(m.share, 0) }) : tpl(MT.row_tip_none, { k: x.g.k, m: n });
-      return `<div class="mbr ${o.cl}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-pressed="${sel}" title="${escA(tip)}">` +
-        `<span class="mb-n"><b>${escH(x.g.k)}</b><span class="mb-s">${sub}</span></span>${spark(key)}` +
-        `<span class="mb-r">${dots}<span class="mb-c">${m ? m.n : 0} / ${n}</span>${liftHtml(o, false)}${t.map(s => `<span class="mb-t${strong.has(s) ? ' ok' : ''}" role="button" tabindex="0" data-pop="${escA(s)}" title="${escA([tpl(MT.chip_tip, { s }), themesOf(s).join(', ')].filter(Boolean).join(' · '))}">${escH(s)}${strong.has(s) ? ' ▲' : ''}</span>`).join('')}</span></div>`;
+      return `<tr class="zr ${o.cl} z-${gone ? 'gone' : lo ? 'lo' : o.cl}${gone ? ' gone' : ''}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-expanded="${sel}" title="${escA(tip)}">` +
+        `<td class="n"><span class="gn"><b>${escH(x.g.k)}</b>${o.th ? `<span class="mb-tt" title="${escA(BD.theme_tip)}">${escH(BD.theme_tag)}</span>` : ''}${badge}</span>` +
+        `<span class="gt">${rankHtml(o)}<span class="sep">·</span><span class="mb-c">${m ? m.n : 0} / ${n}<span class="in9"> ${escH(BD.in9)}</span></span>${chips ? `<span class="sep sep2">·</span>${chips}` : ''}</span></td>${tds(key)}</tr>` +
+        (zoneDay && zoneDay.startsWith(key + '|') ? dayPanel(o, +zoneDay.slice(key.length + 1)) : '') +
+        (sel ? `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi"><div class="zdh"><b>${escH(x.g.k)}${tipI('conv_detail', x.g.k)}</b><button type="button" class="mi-x" data-mapsel="" aria-label="${escA(MT.close)}">✕</button></div>${detail(o)}</div></td></tr>` : '');   // détail sous la ligne
     };
     const byN = (a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py;
-    const ZD = { rev: [MP.zones.reveil, MP.zone_notes.reveil], both: [MP.zones.lasting, MP.zone_notes.lasting], neuf: [BD.neuf_label, BD.notes.neuf] };
-    const zones = (PR ? PR.order : BD.default_order).map(cl => [cl, ...ZD[cl]]);
-    const inZ = new Set(), parts = [], syms = [];
-    zones.forEach(([cl, lab, note]) => {
-      const rs = M.pts.filter(o => o.cl === cl).sort((a, b) => lowOf(b) - lowOf(a) || byN(a, b)); if (!rs.length) return;   // Réveil : délaissées d'abord
-      rs.forEach(o => inZ.add(o.x.g.key));
-      const zs = [...new Set(rs.flatMap(o => o.m ? o.m.t.slice().sort() : []))]; zs.forEach(s => syms.includes(s) || syms.push(s));
-      const cp = zs.length ? `<button type="button" class="copybtn" data-zcopy="${escA(zs.join(','))}" title="${escA(BD.copy_zone_tip.replace('{z}', lab))}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(MT.copy)}</span></button>` : '';
-      parts.push(`<div class="mbz"><i class="mk ${cl}"></i><b>${escH(lab)}</b><small>${escH(note)}</small>${cp}</div>` + rs.map(row).join(''));
-    });
-    const oth = M.pts.filter(o => !inZ.has(o.x.g.key) && o.m && o.m.n >= 2).sort(byN), shown = mapOther ? oth : oth.slice(0, BD.other_max);
-    if (oth.length) parts.push(`<div class="mbo"><span><b>${escH(BD.other_label)}</b> (${escH(BD.notes.other)}) :</span>` +
+    const order = PR ? PR.order : BD.default_order;
+    const rs = [...M.pts, ...(M.th || [])].filter(o => order.includes(o.cl))
+      .sort((a, b) => order.indexOf(a.cl) - order.indexOf(b.cl) || lowOf(b) - lowOf(a) || byN(a, b));   // zone selon la phase, délaissées, nombre de 9M
+    const inZ = new Set(rs.map(o => o.x.g.key)), parts = [], syms = [];
+    rs.forEach(o => (o.m ? o.m.t.slice().sort() : []).forEach(s => syms.includes(s) || syms.push(s)));
+    // sortis depuis au plus gone_sessions séances (47 % reviennent sous 20 séances, verif_grille_dynamique) : grisés, après les zones
+    const gone = [], seenG = new Set();
+    for (let j = 1; j <= BD.gone_sessions; j++) {
+      const Z = zoneKeys(mapAt(e - j)); if (!Z) break;
+      Z.forEach((nm, key) => { if (inZ.has(key) || seenG.has(key)) return; seenG.add(key); const o = M.by.get(key) || (M.tby && M.tby.get(key)); if (o) gone.push([o, j]); });
+    }
+    // sections par zone (02/11/2026, « je ne sais pas où regarder quand j'arrive ») : Réveil délaissée (lo) séparée du Réveil,
+    // dans l'ordre de la phase ; la première zone non vide = « à regarder en premier » ; filtres par zone (zoneFilter) ; couleur par zone
+    if (rs.length || gone.length) {
+      const secs = order.flatMap(cl => cl === 'rev' ? ['lo', 'rev'] : [cl]), zkOf = o => lowOf(o) ? 'lo' : o.cl;
+      const SL = { lo: `${ZN.rev} ${BD.low_label}`, rev: ZN.rev, both: ZN.both, neuf: ZN.neuf, gone: BD.gone_title };
+      const by = Object.fromEntries(secs.map(z => [z, rs.filter(o => zkOf(o) === z)]));
+      const filt = (zoneFilter === 'gone' ? gone.length : secs.includes(zoneFilter) && by[zoneFilter].length) ? zoneFilter : 'all', firstZ = secs.find(z => by[z].length);
+      const fb = (z, n, lab) => `<button type="button" class="zfb z-${z}${filt === z ? ' on' : ''}" data-zfilter="${z}" aria-pressed="${filt === z}">${z === 'all' ? '' : '<i></i>'}${escH(lab)} <b>${n}</b></button>`;
+      parts.push(`<div class="zf" role="group" aria-label="${escA(BD.filter_label)}">${fb('all', rs.length, BD.filter_all)}${secs.filter(z => by[z].length).map(z => fb(z, by[z].length, SL[z])).join('')}` +
+        `${gone.length ? fb('gone', Math.min(gone.length, BD.gone_max), SL.gone) : ''}</div>`);
+      const head = `<tr><th></th>${gks.map((k, i) => `<th>${(gks.length - 1 - i) % 5 === 0 ? `<span>${escH(dshort(k).replace(/\.$/, ''))}</span>` : ''}</th>`).join('')}</tr>`;
+      const sh = (z, n) => `<tr class="zh z-${z}"><td colspan="${gks.length + 1}"><span class="zhl"><i></i><b>${escH(SL[z])}</b><span class="zhn">${n}</span>` +
+        `${z === firstZ ? `<span class="zh1">${escH(BD.first_label)}</span>` : ''}${tipI('conv_' + z, SL[z])}</span></td></tr>`;
+      // « Tout » : chaque zone non vide garde sa première ligne (aucune zone invisible), puis les rows_max places dans l'ordre
+      let body = '', hidden = 0;
+      const cap = filt === 'all' && !zoneAll, ne = secs.filter(z => by[z].length), take = Object.fromEntries(ne.map(z => [z, cap ? 1 : by[z].length]));
+      if (cap) { let left = Math.max(0, BD.rows_max - ne.length); ne.forEach(z => { const k = Math.min(left, by[z].length - 1); take[z] += k; left -= k; }); }
+      secs.forEach(z => { if (filt !== 'all' && filt !== z) return; const L = by[z]; if (!L.length) return;
+        const shown = L.slice(0, take[z]); hidden += L.length - shown.length;
+        body += sh(z, L.length) + shown.map(o => row(o)).join(''); });
+      if ((filt === 'all' || filt === 'gone') && gone.length) body += sh('gone', Math.min(gone.length, BD.gone_max)) + gone.slice(0, BD.gone_max).map(([o, j]) => row(o, j)).join('');
+      parts.push(`<div class="gw"><table class="g">${head}${body}</table></div>`);
+      const cps = secs.map(z => { const zs = [...new Set(by[z].flatMap(o => o.m ? o.m.t.slice().sort() : []))];
+        return zs.length ? `<button type="button" class="copybtn" data-zcopy="${escA(zs.join(','))}" title="${escA(BD.copy_zone_tip.replace('{z}', SL[z]))}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(tpl(BD.copy_zone, { z: SL[z] }))}</span></button>` : ''; }).join('');
+      parts.push(`<div class="mbf">${hidden || zoneAll ? `<button type="button" class="mbmore" data-zoneall="1" aria-expanded="${zoneAll}">${escH(zoneAll ? BD.less_rows : tpl(BD.more_rows, { n: hidden }))}</button>` : ''}${cps}</div>`);
+    }
+    const oth = M.pts.filter(o => !inZ.has(o.x.g.key) && !seenG.has(o.x.g.key) && o.m && o.m.n >= 2).sort(byN), shown = mapOther ? oth : oth.slice(0, BD.other_max);
+    if (oth.length && !otherOpen) parts.push(`<div class="mbo"><button type="button" class="mbmore" data-otheropen="1" aria-expanded="false">▸ <b>${escH(BD.other_label)}</b> ${oth.length}</button> <span>(${escH(BD.notes.other)})</span></div>`);   // replié (information faible)
+    else if (oth.length) parts.push(`<div class="mbo"><span><button type="button" class="mbmore" data-otheropen="1" aria-expanded="true">▾ <b>${escH(BD.other_label)}</b></button> (${escH(BD.notes.other)}) :</span>` +
       shown.map(o => `<button type="button" class="${o.x.g.key === mapSel ? 'on' : ''}" data-mapsel="${escA(o.x.g.key)}" aria-pressed="${o.x.g.key === mapSel}"${themesSum(o.m.t) ? ` title="${escA(tpl(ETC.row_label, { t: themesSum(o.m.t) }))}"` : ''}>${escH(o.x.g.k)} ${o.m.n}</button> ${liftHtml(o, true)}`).join(' · ') +
       (oth.length > BD.other_max ? ` <button type="button" class="mbmore" data-mapother="1" aria-expanded="${mapOther}">${mapOther ? 'moins' : `+ ${oth.length - BD.other_max} autres`} ›</button>` : '') + '</div>');
-    if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZD[PR.order[0]][0] }))}</div>`);
-    const legend = `<div class="mbl">${escH(BD.legend.replace('{w}', AC.nine_window).replace('{s}', AC.nine_share).replace('{d}', MP.time_label))}</div>`;
+    const Z0 = zoneKeys(mapAt(e - BD.moves_sessions));   // entrés / sortis des zones sur moves_sessions séances
+    if (Z0 && parts.length) {
+      const now = zoneKeys(M) || new Map(), inn = [...now].filter(([k]) => !Z0.has(k)).map(([, n]) => n).sort(), out = [...Z0].filter(([k]) => !now.has(k)).map(([, n]) => n).sort();
+      const li = (lab, a) => `<span title="${escA(a.join(', '))}"><b>${escH(tpl(lab, { n: a.length }))}</b> ${escH(a.slice(0, BD.moves_names).join(', '))}${a.length > BD.moves_names ? ` +${a.length - BD.moves_names}` : ''}</span>`;   // noms complets au survol
+      parts.unshift(`<div class="mbm"><span class="mbm-t">${escH(tpl(BD.moves_label, { n: BD.moves_sessions }))}${tipI('conv_moves', tpl(BD.moves_label, { n: BD.moves_sessions }))}</span>` +
+        (inn.length || out.length ? (inn.length ? li(BD.moves_in, inn) : '') + (out.length ? li(BD.moves_out, out) : '') : `<span>${escH(BD.moves_none)}</span>`) + '</div>');
+    }
+    if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZN[PR.order[0]] }))}${tipI('conv_phase', BD.phase_label.split(' :')[0])}</div>`);
+    const legend = `<div class="mbl">${escH(tpl(BD.grid_legend, { n: BD.grid_sessions, low: BD.low_rank }))}<div class="mbtl"><span class="mbt">${escH(BD.tip_cells)}${tipI('conv_cells', BD.tip_cells)}</span><span class="mbt">${escH(BD.tip_rank)}${tipI('conv_rank', BD.tip_rank)}</span></div></div>`;
     return { html: `<div class="mboard">${parts.length ? parts.join('') + legend : `<div class="note">${escH(BD.empty)}</div>`}</div>`, syms, nz: inZ.size };
   }
   // mini-bougie d'un titre 9M : trait = range du jour (long si range ≥ ADR), barre = clôture dans la bougie ; vert = bougie forte
@@ -3619,7 +3895,8 @@
       `<rect x="1" y="${(y - 1.5).toFixed(1)}" width="8" height="3" rx="1"/></svg>`;
   }
   // séance sans aucune liste 9M dans la fenêtre (avant le premier relevé) : inconnue, pas zéro (courbe et repère 3 mois justes)
-  const nineCount = e => { const N9 = nineAt(e); return N9 && N9.days ? actData().G.filter(g => g.kind === 'ind' && nineLvl(N9.get(g.key))).length : null; };
+  const zoneAt = e => { const M = mapAt(e); return M && M.ok9 ? [...M.pts, ...M.th].filter(o => o.cl === 'rev' || o.cl === 'both' || o.cl === 'neuf') : null; };   // groupes du bloc Convergence des 9M
+  const nineCount = e => { const Z = zoneAt(e); return Z ? Z.length : null; };
   const skVal = (K, id, e) => { const v = id === 'bo9' ? (nineBo(e) || boCountAt(IND.dates[e]) || {}).a : id === 't9' ? nineCount(e) : id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
   function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
@@ -3647,7 +3924,7 @@
     th: { state: () => tvNav.lvl === 'act' && !actGrp, set: () => { goAct(null); }, unset: () => {} },   // thèmes chauds : leaders actifs
     // 9M à regarder / Thèmes 9M (31/10/2026) : ouvrent leur bloc et y mènent (pas d'état durable)
     bo9: { state: () => false, set: () => { boOpen = true; foldSet('bo', true); setTimeout(() => { const b = $('secBo'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
-    t9: { state: () => false, set: () => { actOpen = true; foldSet('act', true); setTimeout(() => { const b = $('secAct'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
+    t9: { state: () => false, set: () => { zoneOpen = true; foldSet('zone', true); setTimeout(() => { const b = $('secMapRow'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },   // 02/11/2026 : vers Convergence des 9M
     rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
     stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
            set: () => { skStkLvl = tvNav.lvl === 'stk' || tvNav.lvl === 'act' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
@@ -3660,7 +3937,7 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir les groupes et leurs 9M (Groupes actifs)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir la Convergence des 9M (groupes et leurs 9M)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
@@ -3715,8 +3992,8 @@
       t9: () => {                                    // Thèmes 9M : industries en 9M fort (nine_min titres et nine_share % en nine_window séances)
         const TT = SKP.tiles_text, lbl = TT.t9, N9 = nineAt(e);
         if (!N9 || !N9.days) return [lbl, '—', escH(window.TICKERS ? TT.t9_none : TT.t9_loading), '', { html: '', rec: 0 }];
-        const at = actAt(e), nr = at ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(N9.get(x.g.key))).length : 0, v = nineCount(e);
-        return [lbl, String(v), `${escH(tpl(TT.t9_sub, { n: nr, r: AC.reveil_label.toLowerCase() }))}<span class="kw"> · ${escH(tpl(TT.t9_kw, { k: AC.nine_min, p: AC.nine_share, w: AC.nine_window }))}</span>`,
+        const Z = zoneAt(e) || [], nr = Z.filter(o => o.cl === 'rev' && !o.th && o.px < MP.board.low_rank).length, v = Z.length;
+        return [lbl, String(v), `${escH(tpl(TT.t9_sub, { n: nr, r: MP.board.low_label + (nr > 1 ? 's' : '') }))}<span class="kw"> · ${escH(tpl(TT.t9_kw, { k: AC.nine_min, p: AC.nine_share, w: AC.nine_window }))}</span>`,
           spark(series('t9'), { ref: 0 }, css(v ? '--ok' : '--muted')), skGauge(K, 't9', e, x => String(x))];
       },
       stk: () => {
@@ -3744,6 +4021,7 @@
     renderSecAct(e);
     renderSecMap(e);
     renderSecBo(e, !dHover && !pinned);
+    renderSecNow(e);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
       fp.hidden = !skFlow;
@@ -4405,16 +4683,16 @@
   });
   $('secAct').addEventListener('click', e => {        // groupes actifs : un groupe = ses leaders ; « Leaders actifs › » = tous
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act', actOpen); renderSecKpis(); return; }
+    if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act@' + actFam, actOpen); renderSecKpis(); return; }   // choix gardé pour cette famille de phases
     if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
+    if (b.dataset.acthot != null) { actHot = !actHot; store.set('mm.acthot', actHot ? '1' : '0'); renderSecKpis(); return; }
     if (b.dataset.actcopy != null) { copyTickers(b, actSyms); return; }
     if (b.dataset.actg != null) goAct(tvNav.lvl === 'act' && actGrp === b.dataset.actg ? null : b.dataset.actg);
     else if (b.dataset.actind != null) goInd(b.dataset.actind);   // carte Réveil (ni chaude ni neuve) : les actions de l'industrie
     else if (b.dataset.actgo != null) goAct(null);
   });
   $('secMap').addEventListener('click', e => {        // carte des thèmes : repli ; un point = sa traînée et sa barre ; la barre = ses leaders ou ses actions
-    const b = e.target.closest('[data-mapfold],[data-mapother],[data-mapsel],[data-actg],[data-actind]'); if (!b) return;
-    if (b.dataset.mapfold != null) { mapOpen = !mapOpen; foldSet('map', mapOpen); renderSecKpis(); return; }
+    const b = e.target.closest('[data-mapother],[data-mapsel],[data-actg],[data-actind]'); if (!b) return;
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return; }
     if (b.dataset.mapsel != null) { mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return; }
     if (b.dataset.actg != null) goAct(b.dataset.actg); else if (b.dataset.actind != null) goInd(b.dataset.actind);
@@ -4423,12 +4701,21 @@
     mapSel = t.dataset.mapsel !== mapSel ? t.dataset.mapsel : null; renderSecKpis(); });
   // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
   function zoneAct(t) {
-    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-mapsel]'); if (!b) return false;
-    if (b.dataset.pop != null) { openPop(b.dataset.pop); return true; }
+    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-otheropen],[data-zview],[data-zfilter],[data-zday],[data-mapsel]'); if (!b) return false;
+    if (b.dataset.pop != null) { openPop(b.dataset.pop, b.dataset.popd); return true; }   // depuis la liste d'un jour : ce jour en pointillé
     if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
     if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
-    mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return true;
+    if (b.dataset.zoneall != null) { zoneAll = !zoneAll; renderSecKpis(); return true; }
+    if (b.dataset.otheropen != null) { otherOpen = !otherOpen; renderSecKpis(); return true; }
+    if (b.dataset.zfilter != null) { zoneFilter = b.dataset.zfilter; store.set('mm.zonefilter', zoneFilter); zoneAll = false; renderSecKpis(); return true; }
+    if (b.dataset.zday != null) {                        // un seul groupe ouvert : la liste d'un autre groupe ferme le détail ouvert
+      zoneDay = b.dataset.zday && b.dataset.zday !== zoneDay ? b.dataset.zday : null;
+      if (zoneDay && mapSel && !zoneDay.startsWith(mapSel + '|')) mapSel = null; renderSecKpis(); return true; }
+    if (b.dataset.zview != null) { zoneView = b.dataset.zview === 'map' ? 'map' : 'grid'; store.set('mm.zoneview', zoneView); renderSecKpis(); return true; }
+    mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null;
+    if (zoneDay && (!mapSel || !zoneDay.startsWith(mapSel + '|'))) zoneDay = null;   // un seul groupe ouvert à la fois
+    renderSecKpis(); return true;
   }
   $('secZone').addEventListener('click', e => { zoneAct(e.target); });
   $('secZone').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"]') && zoneAct(e.target)) e.preventDefault(); });
@@ -4952,12 +5239,13 @@
   //     par-dessus l'onglet : bougies et MM de l'onglet Tickers (index des tickers, fichier de son industrie), bougies 9M ; zoom,
   //     déplacement et réticule du moteur commun (contexte popCtx) ; « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer
   const cvPop = $('popCanvas'), popCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null };
-  let popSym = null, popFrom = null;
+  let popSym = null, popFrom = null, popMark = null;   // popMark : séance marquée en pointillé (liste d'un jour de la grille)
   $('popTk').textContent = TPC.fiche; $('popTk').title = TPC.fiche_tip; $('popX').setAttribute('aria-label', TPC.close);
-  function openPop(sym) {
-    popFrom = document.activeElement; popSym = sym; $('tkPop').hidden = false; document.body.classList.add('popopen');
+  function openPop(sym, mark) {
+    popFrom = document.activeElement; popSym = sym; popMark = mark || null; $('tkPop').hidden = false; document.body.classList.add('popopen');
     $('popTitle').textContent = sym; $('popSub').textContent = TPC.loading; $('popOhlc').innerHTML = '';
-    $('popLeg').innerHTML = CN9.shown ? `<span><i class="k9"></i>${escH(CN9.legend)}</span>` : '';
+    $('popLeg').innerHTML = (CN9.shown ? `<span><i class="k9"></i>${escH(CN9.legend)}</span>` : '') +
+      (popMark ? `<span><i class="kmk"></i>${escH(tpl(TPC.mark, { d: fmtDate(popMark, { day: 'numeric', month: 'short' }) }))}</span>` : '');
     inCtx(popCtx, () => { bars = new Map(); ALLT = []; T = []; hover = -1; }); popCtx.sym = null;
     popLoad(); if ($('popX').focus) $('popX').focus();
   }
@@ -4979,7 +5267,7 @@
   function popPreset() { inCtx(popCtx, () => { presetViewport(TPC.range); clampViewport(); }); popRedraw(); }   // config : [ticker_popup] range
   function popRedraw() { if (popSym && popCtx.sym) inCtx(popCtx, () => { applyViewport(); drawPrice(cvPop); popOverlay(); }); }
   function popOverlay() {                                // légende : OHLC (séance survolée, sinon dernière) et marque 9M
-    const d = hover >= 0 ? T[hover] : null, b = (d && bars.get(d)) || [...bars.values()].pop();
+    const d = hover >= 0 ? T[hover] : popMark && bars.get(popMark) ? popMark : null, b = (d && bars.get(d)) || [...bars.values()].pop();
     if (!b) { $('popOhlc').innerHTML = ''; return; }
     const ohl = b.o == null ? '' : `<span class="oh">O <b>${nf(b.o, pxd(b.o))}</b></span><span class="oh">H <b>${nf(b.h, pxd(b.h))}</b></span><span class="oh">B <b>${nf(b.l, pxd(b.l))}</b></span>`;
     $('popOhlc').innerHTML = `<span class="d">${fmtDate(b.d, { weekday: 'short', day: 'numeric', month: 'short', year: '2-digit' })}</span>` + ohl +
@@ -6248,7 +6536,17 @@
   });
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
+  // paragraphes « Titre : texte » des bulles de Convergence des 9M (config [sectors.map.board] help et tips), valeurs de la config
+  const convHelp = arr => (arr || []).map(x => {
+    const B = MP.board, t = tpl(x, { k: AC.nine_min, w: AC.nine_window, s: AC.nine_share, low: B.low_rank, n: B.grid_sessions, m: B.moves_sessions, r: B.rows_max,
+      g: B.gone_sessions, p: B.rank_up_pts, q: B.rank_up_sessions, hot: CFG.tickers.hot_top_pct, hb: CFG.tickers.hot_min_breadth, nw: AC.neuf_window, fs: AC.fresh_sessions,
+      pct: BOC.pct, vol: nf(BOC.min_volume / 1e6, 1), price: nf(BOC.min_price, 2), ep: BOC.ep_pct, em: BOC.ep_vol_mult, es: BOC.ep_vol_sessions }), i = t.indexOf(' : ');
+    return i < 0 ? `<p>${escH(t)}</p>` : `<p><b>${escH(t.slice(0, i))}</b> : ${escH(t.slice(i + 3))}</p>`; }).join('');
   const SEC_TIPS = () => ({
+    conv: [MP.board.label, convHelp(MP.board.help)],
+    now: [CFG.sectors.now.label, convHelp(CFG.sectors.now.tip)],   // « Ce matin » (02/11/2026)   // bulle du bloc Convergence des 9M : « Titre : texte » de la config
+    ...Object.fromEntries(Object.entries(MP.board.tips || {}).map(([k, v]) => ['conv_' + k, [v.title, convHelp(v.text)]])),   // une bulle par calcul (02/11/2026)
+    conv_phase: [MP.board.tips_phase_title, MP.board.phase_rule.map(r => `<p><b>${escH(r.phases.map(k => PHK[k] ? PHK[k].name : k).join(', '))}</b> : ${escH(r.tip)}</p>`).join('')],
     map: [MP.label, `<p>${escH(MP.tip)}</p><ul>${['reveil', 'lasting', 'trend', 'calm'].map(k => `<li><b>${escH(MP.zones[k])}</b> : ${escH(MP.zone_notes[k])}</li>`).join('')}</ul>` +
       `<p class="src">Traits pointillés : rang ${TIN} ${MP.x_hot} (haut du classement), ${AC.nine_share} % et ${AC.nine_intense} % des actions en 9M. Mesure : indice de l'industrie sur 21 séances moins la moyenne des industries, à élan 10 j et tendance 63 j égaux (tests hors dépôt, yfinance, industries d'aujourd'hui).</p>`],
     bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux ${escH(BOC.universe_label)} du screener TradingView : ${boRule()}.</p>

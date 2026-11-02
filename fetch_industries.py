@@ -250,7 +250,9 @@ def nine(close, vol, members, industries, bo=None, ohlc=None):
     volume_up, C > min_price), sur les clôtures et volumes ajustés des splits du cache Polygon. La liste TradingView du soir
     n'a pas d'historique ; celle-ci couvre toute la fenêtre. Renvoie {start, days : [[[symbole, index de l'industrie(, repères)], ...]]}
     (days[i] = séance dates[start + i]) ; repères (01/11/2026), absents s'ils valent 0 : 1 = bougie forte (strong_candle : le vert du
-    tableau par zone), 2 = étendu (+extended_pct % sur 5 séances, comme Perf.W) ; historique de la case « 9M à regarder »."""
+    tableau par zone), 2 = étendu (+extended_pct % sur 5 séances, comme Perf.W) ; historique de la case « 9M à regarder » ;
+    4 = EP probable (02/11/2026 : +ep_pct %, volume ≥ ep_vol_mult × moyenne des ep_vol_sessions séances d'avant, clôture
+    ≥ ep_min_price ; repère de la grille de convergence et du bloc 9M)."""
     bo = bo or mmconfig.load("sources")["tv_breadth"]["breakouts"]
     ohlc = ohlc or {}
     up, mv, vu, mp = 1 + bo["pct"] / 100, bo["min_volume"], bo["volume_up"], bo["min_price"]
@@ -260,7 +262,14 @@ def nine(close, vol, members, industries, bo=None, ohlc=None):
                         and close[t][k] / close[t][k - 1] >= up and vol[t][k] > mv and (vol[t][k] > vol[t][k - 1] or not vu)
                         and close[t][k] > mp)
     ext = lambda t, k: k >= 5 and close[t][k - 5] and close[t][k] / close[t][k - 5] >= 1 + bo["extended_pct"] / 100
-    flags = lambda t, k: (1 if strong_candle(t, k, close, ohlc, bo) else 0) | (2 if ext(t, k) else 0)
+
+    def ep(t, k):                                      # EP probable (02/11/2026) : hausse ep_pct %, volume ≥ ep_vol_mult × moyenne
+        if "ep_pct" not in bo:                         # des ep_vol_sessions séances d'avant, clôture ≥ ep_min_price
+            return False
+        w = [v for v in vol[t][max(0, k - bo["ep_vol_sessions"]):k] if v is not None]
+        return (len(w) == bo["ep_vol_sessions"] and close[t][k] / close[t][k - 1] >= 1 + bo["ep_pct"] / 100
+                and vol[t][k] >= bo["ep_vol_mult"] * sum(w) / len(w) and close[t][k] >= bo["ep_min_price"])
+    flags = lambda t, k: (1 if strong_candle(t, k, close, ohlc, bo) else 0) | (2 if ext(t, k) else 0) | (4 if ep(t, k) else 0)
     row = lambda m, k: [m["s"], ix[m["ind"]]] + ([flags(m["s"], k)] if flags(m["s"], k) else [])
     days = [sorted(row(m, k) for m in members if hit(m["s"], k)) for k in range(1, n)]
     return {"start": 1, "days": days}

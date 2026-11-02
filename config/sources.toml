@@ -77,12 +77,24 @@ candle_close_pct = 70         # bougie forte : clôture à au moins 70 % de la b
 candle_range_adr = 1.0        # …range du jour ≥ ce multiple de l'ADR…
 adr_sessions = 14             # ADR de la bougie forte : moyenne des ranges ($) des N séances d'avant (TradingView : 14)
 # libellés des repères (pastilles et légende du bloc 9M, 01/11/2026) ; {x} = valeur remplie par la page ; repeat : [singulier, pluriel]
-marks_text = { close = "clôture à {p} % de la bougie", range = "range {r} × ADR", prev = "{r} × celui de la veille", week = "{w} % sur la semaine", strong = "bougie forte", weak = "bougie faible", repeat = ["{n} liste 9M sur les {s} séances gardées d'avant", "{n} listes 9M sur les {s} séances gardées d'avant"], leader = "leader actif ({e}) : {g}", touch = "toucher : son graphique", leg_strong = "bougie forte : clôture en haut, range ≥ ADR et > veille", leg_weak = "bougie faible", leg_ext_tag = "+{ext} % sem.", leg_ext = "étendu", leg_repeat = "{n} listes 9M ou plus sur {s} séances", leg_leader = "leader actif (groupe neuf ou chaud)", leg_hover = "survol : détail" }
+marks_text = { close = "clôture à {p} % de la bougie", range = "range {r} × ADR", prev = "{r} × celui de la veille", week = "{w} % sur la semaine", strong = "bougie forte", weak = "bougie faible", repeat = ["{n} liste 9M sur les {s} séances gardées d'avant", "{n} listes 9M sur les {s} séances gardées d'avant"], leader = "leader actif ({e}) : {g}", touch = "toucher : son graphique", leg_strong = "bougie forte : clôture en haut, range ≥ ADR et > veille", leg_weak = "bougie faible", leg_ext_tag = "+{ext} % sem.", leg_ext = "étendu", leg_repeat = "{n} listes 9M ou plus sur {s} séances", leg_leader = "leader actif (groupe neuf ou chaud)", leg_hover = "survol : détail", ep = "EP probable : +{p} % et volume ≥ {m} × la moyenne des {s} séances d'avant", ep_tag = "EP", leg_ep = "EP probable (+{p} %, volume ≥ {m} × moyenne ; repérée le lendemain matin)", conv = "groupe en convergence : {g}", conv_tag = "groupe", leg_conv = "dans un groupe en convergence (tableau par zone)" }
 candle_range_prev = 1.0       # …et strictement au-dessus de ce multiple du range de la veille
 extended_pct = 20             # étendu : performance de la semaine ≥ ce pourcentage
+# EP probable (02/11/2026, repère 4 de l'historique nine : grille de convergence et bloc 9M de l'onglet Secteurs) : définition
+# des tests hors dépôt (cache/analyse_scans/verif_ep_replay.txt : 5-8 EP par séance en 2024-2026 ; une 2e EP du même thème sous
+# 2 semaines = confirmation). Calculé le lendemain matin sur le cache Polygon (actions retenues seulement).
+ep_pct = 10                   # hausse minimale sur la clôture de la veille (%)
+ep_vol_mult = 3               # volume ≥ ce multiple de la moyenne…
+ep_vol_sessions = 50          # …des N séances d'avant (séance du jour exclue)
+ep_min_price = 1              # clôture minimale ($)
+# EP du soir (liste TradingView, 02/11/2026) : moyenne de volume TradingView sur ep_avg_sessions séances (10, 30, 60 ou 90 ; jour
+# même retiré) ; capitalisation minimale hors thèmes suivis (choix de l'utilisateur : en dessous, surtout des pump-and-dump)
+ep_avg_sessions = 60
+ep_min_cap = 40_000_000
 repeat_min = 3                # « 9M ×n » : au moins repeat_min listes 9M sur les repeat_sessions séances d'avant (titre où la
 repeat_sessions = 40          # demande revient : +0,44 ADR sur 63 séances, 14 années sur 18 ; compté sur les listes gardées)
 lanes = ["À regarder en premier", "Bougie forte, déjà étendu", "Bougie faible"]   # couloirs : titres des trois groupes
+etf_label = "ETF et ADR"     # couloir « bougie faible » : rangés à part (02/11/2026), pas retirés (liste = TC2000)
 lanes_sub = ["pas encore étendu : rendement médian le meilleur", "+{ext} % sur la semaine : plus de gros mouvements, médiane plus faible", "clôture basse ou range étroit : comme un breakout ordinaire"]
 edge_note = "Tests 2008-2025 avec les définitions du site (verif_site.txt), breakouts 4 % à ADR > 4 % : bougie forte + 9M, 41 % font +8 % avant le stop en 5 séances contre 32 % pour les autres, 23 % font +25 % en 21 séances contre 14 % (mieux 18 années sur 18). Pas encore étendus : 38 % et 20 %, rendement médian à 21 séances au-dessus des autres (14 années sur 18). Déjà étendus : 51 % et 31 %, plus de gros mouvements, mais rendement médian sous les autres. Bougie faible : comme un breakout ordinaire."
 

@@ -70,7 +70,7 @@ def front_config():
         "colors": d["colors"], "chart_nine": d["chart_nine"], "ticker_popup": d["ticker_popup"],
         "etf_themes": {**{k: load("etf_themes")[k] for k in ("label", "tip", "row_label", "row_max")}, "file": step("etf_themes")["output"]},
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"], "now": d["sectors"]["now"],
                     "breakouts": load("sources")["tv_breadth"]["breakouts"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
@@ -196,6 +196,23 @@ def check():
             and "{x}" in bd.get("lift_label", "") and "{x}" in bd.get("lift_short", "") and isinstance(bd.get("lift_hi"), (int, float)) and bd.get("lift_tip") and "{n}" in bd.get("age_label", "") and isinstance(bd.get("age_buckets"), list) and len(bd.get("age_notes", [])) == len(bd["age_buckets"]) + 1 and bd.get("age_tip") and "{k}" in bd.get("basket", "") and "{n}" in bd.get("same_day", "") and bd.get("same_day_tip") and isinstance(bd.get("low_rank"), (int, float)) and 0 < bd["low_rank"] < 100 and bd.get("low_label") and "{r}" in bd.get("low_tip", "") and bd.get("legend") and bd.get("empty")):
         errors.append("display.sectors.map.board : label, copy_tip, copy_zone_tip ({z}), neuf_label, notes (neuf, other), other_label, other_max ≥ 1, dots_max ≥ 1, lift_label et lift_short ({x}), lift_hi, lift_tip, age_label ({n}), age_buckets, age_notes (une de plus que les bornes), age_tip, basket ({k}), same_day ({n}), "
                       "same_day_tip, low_rank (0-100), low_label, low_tip ({r}), legend et empty attendus")
+    ints = lambda *ks: all(isinstance(bd.get(k), int) and bd[k] >= 1 for k in ks)
+    if not (ints("grid_sessions", "rank_up_sessions", "moves_sessions", "gone_sessions", "gone_max") and bd["grid_sessions"] <= 63
+            and isinstance(bd.get("rank_up_pts"), (int, float)) and bd["rank_up_pts"] > 0 and "{n}" in bd.get("grid_legend", "")
+            and "{d}" in bd.get("cell_tip", "") and "{n}" in bd.get("cell_tip", "") and "{s}" in bd.get("cell_ep", "") and "{d}" in bd.get("cell_none", "") and bd.get("cell_touch") and "{g}" in bd.get("day_title", "") and bd.get("day_loading") and bd.get("day_own")
+            and "{r}" in bd.get("rank_tip", "") and bd.get("rank_up_tip") and "{n}" in bd.get("moves_label", "") and "{n}" in bd.get("moves_in", "")
+            and "{n}" in bd.get("moves_out", "") and bd.get("moves_none") and bd.get("gone_note") and "{n}" in bd.get("gone_label", "")
+            and bd.get("theme_tag") and bd.get("theme_tip") and bd.get("howto") and ints("rows_max", "row_tickers") and bd.get("in9") and ints("moves_names") and isinstance(bd.get("groups_word"), list) and len(bd["groups_word"]) == 2
+            and "{n}" in bd.get("more_rows", "") and bd.get("less_rows") and "{z}" in bd.get("copy_zone", "") and bd.get("view_grid") and bd.get("view_map") and bd.get("view_tip")
+            and isinstance(bd.get("help"), list) and bd["help"] and all(isinstance(x, str) and " : " in x for x in bd["help"])
+            and all(bd.get(k) for k in ("gone_title", "first_label", "filter_label", "filter_all", "tip_cells", "tip_rank", "tips_phase_title"))
+            and set(bd.get("tips", {})) >= {"lo", "rev", "both", "neuf", "gone", "moves", "cells", "rank", "detail"}
+            and all(v.get("title") and isinstance(v.get("text"), list) and v["text"] for v in bd.get("tips", {}).values())):
+        errors.append("display.sectors.map.board : grille de convergence attendue (grid_sessions 1-63, grid_legend ({n}), cell_tip ({d}, {n}), cell_ep ({s}), "
+                      "cell_none ({d}), cell_touch, day_title ({g}), day_loading, day_own, rank_tip ({r}), rank_up_sessions, rank_up_pts > 0, rank_up_tip, moves_sessions, moves_label / moves_in / moves_out ({n}), "
+                      "moves_none, gone_sessions, gone_max, gone_note, gone_label ({n}), theme_tag, theme_tip, howto, rows_max, row_tickers, in9, "
+                      "more_rows ({n}), less_rows, copy_zone ({z}), view_grid, view_map, view_tip, help (paragraphes « Titre : texte »), gone_title, first_label, filter_label, filter_all, tip_cells, "
+                      "tip_rank, tips_phase_title, tips (lo, rev, both, neuf, gone, moves, cells, rank, detail : title, text))")
     zk, pk = {"rev", "both", "neuf"}, [x.get("key") for x in load("display").get("phases", {}).get("phase", [])]
     rules = bd.get("phase_rule", [])
     seen = [k for r in rules for k in r.get("phases", [])]
@@ -217,12 +234,13 @@ def check():
         errors.append("display.sectors.map.text : libellés de la carte et du tableau attendus (" + ", ".join(need_tx) + ", paires "
                       + ", ".join(pairs) + ", legend et state)")
     tp = load("display").get("ticker_popup", {})
-    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close"))):
-        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close) attendus")
+    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close")) and "{d}" in tp.get("mark", "")):
+        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close, mark ({d})) attendus")
     if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
         errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
     mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})
-    mk_need = ("close", "range", "prev", "week", "strong", "weak", "leader", "touch", "leg_strong", "leg_weak", "leg_ext_tag", "leg_ext", "leg_repeat", "leg_leader", "leg_hover")
+    mk_need = ("close", "range", "prev", "week", "strong", "weak", "leader", "touch", "leg_strong", "leg_weak", "leg_ext_tag", "leg_ext", "leg_repeat", "leg_leader", "leg_hover",
+               "ep", "ep_tag", "leg_ep", "conv", "conv_tag", "leg_conv")
     if not (all(mt.get(k) for k in mk_need) and isinstance(mt.get("repeat"), list) and len(mt["repeat"]) == 2):
         errors.append("sources.tv_breadth.breakouts.marks_text : libellés des repères attendus (" + ", ".join(mk_need) + ", repeat [singulier, pluriel])")
     tt = load("display")["sectors"]["kpis"].get("tiles_text", {})
@@ -289,6 +307,15 @@ def check():
             and len(bo.get("lanes", [])) == 3 and len(bo.get("lanes_sub", [])) == 3 and bo.get("edge_note")):
         errors.append("sources.tv_breadth.breakouts : repères attendus (0 < candle_close_pct ≤ 100, candle_range_adr et candle_range_prev ≥ 0, "
                       "extended_pct > 0, repeat_min ≥ 1, 1 ≤ repeat_sessions ≤ keep_sessions, 3 lanes et 3 lanes_sub, edge_note)")
+    nw = load("display")["sectors"].get("now", {})
+    if not (all(nw.get(k) for k in ("label", "tickers", "groups", "none", "tk_tip")) and isinstance(nw.get("max"), int) and nw["max"] >= 1
+            and isinstance(nw.get("groups_max"), int) and nw["groups_max"] >= 1 and isinstance(nw.get("tip"), list) and nw["tip"] and bo.get("etf_label")):
+        errors.append("display.sectors.now : label, tickers, groups, none, tk_tip, max ≥ 1, groups_max ≥ 1, tip (paragraphes) attendus ; sources.tv_breadth.breakouts.etf_label")
+    if not (bo.get("ep_pct", 0) > 0 and bo.get("ep_vol_mult", 0) > 0 and bo.get("ep_min_price", -1) >= 0
+            and bo.get("ep_avg_sessions") in (10, 30, 60, 90) and bo.get("ep_min_cap", -1) >= 0
+            and isinstance(bo.get("ep_vol_sessions"), int) and 1 <= bo["ep_vol_sessions"] < load("industries")["output"]["sessions"]):
+        errors.append("sources.tv_breadth.breakouts : EP attendu (ep_pct > 0, ep_vol_mult > 0, ep_min_price ≥ 0, "
+                      "1 ≤ ep_vol_sessions < industries.output.sessions, ep_avg_sessions parmi 10 / 30 / 60 / 90, ep_min_cap ≥ 0)")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
@@ -324,17 +351,16 @@ def check():
     if len(set(names)) != len(names):
         errors.append("themes : noms en double")
     ac = load("display")["sectors"].get("actifs", {})
-    phase_keys = {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
     if not (all(isinstance(ac.get(k), int) and not isinstance(ac.get(k), bool) and ac[k] > 0
                 for k in ("fresh_sessions", "neuf_window", "old_sessions", "list_limit", "high_sessions", "chauds_shown", "trend_sessions",
                           "nine_window", "nine_min"))
             and 0 < ac.get("nine_share", 0) < ac.get("nine_intense", 0) <= 100
-            and set(ac.get("alert_phases", [])) <= phase_keys
             and ac["fresh_sessions"] + ac["neuf_window"] <= ld.get("list_sessions", 0)
-            and all(ac.get(k) for k in ("label", "leaders_label", "alert_text", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
+            and all(ac.get(k) for k in ("label", "leaders_label", "fold_note", "hot_note", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
+            and isinstance(ac.get("open_phases"), list) and set(ac["open_phases"]) <= {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
             and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
-        errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, alert_phases parmi les "
-                      "phases, fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
+        errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, "
+                      "fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
     if "th" in load("display")["sectors"]["kpis"]["tiles"] and not themes():
         errors.append("display.sectors.kpis : case « th » sans thème dans config/themes.toml")
     for key, ds in load("datasets")["datasets"].items():

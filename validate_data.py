@@ -150,7 +150,8 @@ def check_tv_breadth(data, today):
     bad_mark = lambda x: len(x) > 5 and (
         (x[5] is not None and (not isinstance(x[5], int) or not 0 <= x[5] <= 100))
         or any(len(x) > i and x[i] is not None and (not num(x[i]) or x[i] < 0) for i in (6, 7))
-        or (len(x) > 8 and x[8] is not None and not num(x[8])))
+        or (len(x) > 8 and x[8] is not None and not num(x[8]))
+        or (len(x) > 9 and x[9] not in ("s", "d", "e")) or (len(x) > 10 and x[10] not in (0, 1, None)))   # type et EP du soir (02/11/2026)
     bad_bo = [d for d, lst in bo.items() if not isinstance(lst, list) or any(
         not isinstance(x, list) or len(x) < 3 or not isinstance(x[0], str) or not x[0]
         or not isinstance(x[1], (int, float)) or x[1] < 0 or not isinstance(x[2], int) or x[2] < 0
@@ -296,7 +297,7 @@ def check_industries(data, today, folder=None):
     # repères en troisième position (01/11/2026) : 1 = bougie forte, 2 = étendu, 3 = les deux
     if "nine" in data:
         nn, ns = data["nine"].get("days", []), data["nine"].get("start", -1)
-        if ns < 0 or ns + len(nn) != len(dates) or any(len(r) not in (2, 3) or not isinstance(r[0], str) or not 0 <= r[1] < len(inds) or r[2:] not in ([], [1], [2], [3]) for day in nn for r in day):
+        if ns < 0 or ns + len(nn) != len(dates) or any(len(r) not in (2, 3) or not isinstance(r[0], str) or not 0 <= r[1] < len(inds) or r[2:] not in ([], *([q] for q in range(1, 8))) for day in nn for r in day):   # repères 1 | 2 | 4 (EP, 02/11/2026)
             errors.append("industries : listes 9M par séance incohérentes (nombre de séances, symbole ou industrie)")
     if folder is not None:
         missing = []

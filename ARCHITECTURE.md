@@ -21,9 +21,9 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `update_all.py` | Orchestrateur : lance les étapes de `config/sources.toml`, contrôle chaque fichier, restaure l'ancien si invalide, écrit `status_data.js`. |
 | `fetch_stockbee.py` · `breadth_own.py` · `fetch_vix.py` · `fetch_prices.py` · `fetch_sectors.py` · `fetch_postmarket.py` | Une source chacun → un fichier `*_data.js`. |
 | `breadth_soir.py` | **Calcul maison du soir** (28/10/2026) : séance du jour **provisoire** dans `breadth_data.js` (`provisional`), dès le relevé TradingView (≈ 16 h 20 à New York) = cache Polygon jusqu'à la veille (63 dernières séances, restauré en lecture seule par `postmarket.yml`) + clôtures du screener (`fetch_tv_breadth.screener()`), mêmes fonctions que `breadth_own.py` (±25 % mois / trimestre, T2108, `n`) ; ±4 % du relevé TradingView. Contrôles `[breadth_soir]` : cache à la veille (clôtures de la veille identiques), split du jour détecté par l'écart, couverture. `breadth_own.py` recalcule la séance le lendemain matin et retire la marque. `--needed` : séance du relevé absente de `breadth_data.js` ? |
-| `fetch_tv_breadth.py` | T2108 (champ SMA40) et **±4 % du jour** (formule TC2000 de `breadth_own.count_breadth`, appliquée à close / close[1] / volume / volume[1]) relevés sur le screener TradingView (actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance ; même relevé, **liste « 9M +4 % »** de l'onglet Secteurs (clé `breakouts` : tickers par séance, `[tv_breadth.breakouts]`) (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
+| `fetch_tv_breadth.py` | T2108 (champ SMA40) et **±4 % du jour** (formule TC2000 de `breadth_own.count_breadth`, appliquée à close / close[1] / volume / volume[1]) relevés sur le screener TradingView (actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance ; même relevé, **liste « 9M +4 % »** de l'onglet Secteurs (clé `breakouts` : tickers par séance, `[tv_breadth.breakouts]` ; depuis le 02/11/2026 colonnes `kind` et `ep` = type du titre et EP probable du soir) (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
 | `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, affichés en courbe de tendance ; % de titres au TI65 > 1 ; même % pour toutes les actions retenues, série `stocks`) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie) et `tickers_data.js` (toutes les actions US, retenues ou non : secteur, industrie, cap, flottant, TI65, rang dans l'industrie ; onglet Tickers ; sert aussi de composition publiée et de secours si TradingView ne répond pas). |
-| `config/themes.toml` | Thèmes suivis de l'onglet Secteurs (refonte du 27/10/2026) : un panier d'actions par thème, suivi comme une industrie (indice, TI65, largeur, leaders) ; liste de départ = paniers des tests 2024-2026, **à valider par l'utilisateur**. |
+| `config/themes.toml` | Thèmes suivis de l'onglet Secteurs (refonte du 27/10/2026) : un panier d'actions par thème, suivi comme une industrie (indice, TI65, largeur, leaders) ; liste de départ = paniers des tests 2024-2026 ; le 02/11/2026, l'utilisateur a validé 4 ajouts (Mineurs bitcoin, Hydrogène, compléments Espace et Quantique) : je propose, il accepte ou retire. |
 | `fetch_short.py` | Short interest de l'onglet Tickers (flottant, actions à découvert, % du flottant, days to cover ; Yahoo via yfinance) → `short_data.js`, par lots (`config/short.toml`), lancé seul par `short.yml` l'après-midi. |
 | `build_site.py` | Prépare `_site` (GitHub Pages) depuis la liste unique `config/storage.toml [site]` ; appelé par les trois workflows. |
 | `generated.py` | Fichiers **générés non versionnés** (`config/storage.toml [generated]` : `industries_data.js`, `tickers_data.js`, `industries/`) : `check` (absents ?), `fetch` (secours : version du site publié, installée en bloc), `snapshot` / `restore` (annulation dans `update.yml`). |
@@ -145,7 +145,7 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 §9, « Groupes actifs »), à la demande de l'utilisateur après les tests 5 à 16 du document d'analyse ; le 27/10/2026 aussi : bloc
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
-colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
 phases de marché maison affichées d'abord, Stockbee prioritaire dès sa publication (« tout calculer juste après la clôture »), avec
 l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
@@ -276,6 +276,65 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   légende OHLC. `drawPrice` (MM, Secteurs, Tickers, Post-market, fenêtre) et `drawMini` (QQQ · IWM) ; pas sur `skip` (BTC) ni
   le VIX (sans volume). Test : 18.
 - **Copier** : ajouté au tableau par zone (tout, par zone) et aux Groupes actifs (leaders actifs, `actSyms`).
+- **Audit UX du 02/11/2026** (« rendre les infos cohérentes et actionnables », 8 points tous faits) :
+  1. **« Ce matin »** (`#secNow`, `renderSecNow`, `config/display.toml [sectors.now]`, bulle `now`) sous la frise : les 9M à bougie
+     forte pas étendus de la liste du jour (EP d'abord, puis ceux d'un groupe en convergence, puis les autres ; `max`), et les groupes
+     de la première zone de la phase (`groups_max`) ; toucher un titre = graphique avec le jour en pointillé, un groupe = ouvert dans
+     la grille. Le croisement EP × groupe n'est pas testé à part (information).
+  2. **Noms et comptes** : case « Groupes en convergence » (`tiles_text.t9`) = même compte que le bloc (`zoneAt` : industries, thèmes
+     suivis et neufs des zones), « dont N en Réveil délaissée » ; « 11 groupes » (`groups_word`) ; « groupe » défini dans la bulle.
+  3. **Leaders actifs selon la phase** : déplié par défaut dans `[sectors.actifs] open_phases` (Expansion A, B, C, chaude), replié
+     ailleurs avec `fold_note` ; un choix à la main est gardé par famille de phases (`mm.fold.act@exp` / `@def`).
+  4. **Convergence allégée** : phrase de lecture retirée (dans « Ce matin » et la bulle), « Sur N séances » en une ligne (`moves_names`
+     noms puis « +N », tous au survol), « 9M actif ailleurs » replié (`otherOpen`).
+  5. **Une couleur par sens** : cyan = 9M (cases, EP cerclé de cyan, pastille EP) ; vert = bougie forte ; zones : Réveil délaissée
+     `--zlo` (violet), Réveil `--zrev` (ardoise), Thème qui dure `--up`, Neuf `--warn` ; l'étiquette de groupe du bloc 9M prend la
+     couleur de sa zone ; l'étiquette « thème » est neutre.
+  6. **Leaders actifs dans le Classement** (ancien bloc « Groupes actifs », `renderSecAct`, `#secAct` dans `.seclist`, niveau Leaders
+     actifs seulement ; plus de bloc déplaçable `act`, `SEC_BLK`) : section Réveil (en double) et alerte « phase avec groupes chauds »
+     (réfutée : −0,2 % sur 65 épisodes 2008-2025) retirées ; restent leaders, Copier, « Sur N s », neufs, chauds repliés (`actHot`).
+     La case mène à Convergence des 9M (`SK_ACT.t9`).
+  7. **ETF et ADR à part** dans le couloir « bougie faible » (`etf_label`), rien de retiré (liste = TC2000) ; type publié par le robot.
+  8. **EP du soir** : `fetch_tv_breadth.py` publie `kind` (s / d / e) et `ep` dans la liste 9M (`ep_evening` : moyenne TradingView
+     `average_volume_{ep_avg_sessions}d_calc` sans le jour même, +`ep_pct` %, ≥ `ep_vol_mult` ×, cap ≥ `ep_min_cap` sauf thèmes suivis ;
+     vérifié sur le 30/10/2026 : mêmes EP que le calcul du lendemain matin) ; le bloc 9M et « Ce matin » l'affichent dès le soir.
+- **Grille de convergence des 9M** (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que
+  je fais de tête chaque matin sur TC2000 », sans perdre d'information ; forme de la maquette validée hors dépôt, même jour) : le
+  tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label` ; bulle ⓘ `conv` = paragraphes « Titre : texte »
+  de `help` : à quoi sert le bloc, entrée d'un groupe, zones, ordre, lecture d'une ligne et des cases, entrées / sorties, ce que ça
+  vaut, détail), un **tableau** (`mapBoardHtml`) : ligne de phase,
+  ligne de lecture `howto`, « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis), **filtres par zone** (`zoneFilter`,
+  `mm.zonefilter`, pastilles `filter_all` + une par zone non vide ; zone vide ce jour-là = Tout), puis les groupes **par section de zone**
+  (Réveil délaissée séparée du Réveil ; en-tête coloré `--zc`, nombre, « `first_label` » sur la première zone non vide, bulle ⓘ ;
+  liseré de la couleur de zone sur chaque ligne ; « `gone_title` » en dernier). **Bulles ⓘ de chaque calcul** (`[sectors.map.board.tips.*]`
+  : lo, rev, both, neuf, gone, moves, cells, rank, detail ; `conv_phase` = règles de phase ; `convHelp` remplit les {x} de la config).
+  **Un seul groupe ouvert** : toucher le jour ou la ligne d'un autre groupe ferme le détail ou la liste ouverts. Dans les sections, une ligne par groupe des
+  zones (Réveil, thème qui dure, neuf ; ordre de la phase, délaissées, nombre de 9M ; `rows_max` puis « + N autres groupes »,
+  `zoneAll`) : nom, zone en clair (`zb` : « Réveil délaissée » sous `low_rank`, bulle des tests), rang TI65 en barre (↑ = rang ≥
+  `low_rank` qui gagne plus de `rank_up_pts` points en `rank_up_sessions` séances), n / m en 9M, `row_tickers` premiers titres
+  (▲ bougie forte, toucher = fenêtre graphique) ; à droite `grid_sessions` cases = titres du groupe en 9M **à chaque séance**
+  (historique `nine`, chiffre et teinte cyan ; point vert = EP probable, bulle avec les titres) ; tableau à la largeur du bloc
+  (`table-layout: fixed`, sans défilement ; mobile : cases fines sans chiffre, compte au toucher, nom puis zone sur deux lignes) ; groupes sortis depuis au plus `gone_sessions` séances grisés (`gone_max`). **Toucher une case** (`zoneDay`, `data-zday`) : juste
+  sous la ligne, la liste des titres du groupe en 9M ce jour-là avec la **même pastille que le bloc Breakouts 9M** (`boChip`, partagée :
+  mini-bougie, hausse, volume en $, repères, EP, « 9M ×n », ★) ; chiffres du relevé TradingView gardé pour la séance, sinon calculés
+  sur les cours du fichier de l'industrie (`barStats`, chargé à la demande ; note `day_own`) ; toucher un de ces titres ouvre sa fenêtre graphique avec ce jour
+  en **pointillé vertical** (`openPop(sym, mark)`, `popMark`, dessiné dans `cursor` ; légende `[ticker_popup] mark` ; OHLC du jour marqué
+  tant qu'aucune séance n'est survolée). **Toucher une
+  ligne** (`mapSel`) : son point sur la carte et, **juste sous la ligne** (cohérence demandée le 02/11/2026), son **détail** = tout le contenu de l'ancienne ligne (note de la
+  zone, âge de la grappe, leaders, concentration, panier, « le même jour », thèmes ETF, pastilles, courbe 12 mois, tous les titres) ;
+  ✕ referme. Puis Copier par zone (`copy_zone`), « 9M actif ailleurs », légende `grid_legend`. **Thèmes suivis** (`config/themes.toml`)
+  dans les zones comme les industries (`mapAt` → `th` / `tby` : rang de l'indice du panier placé parmi les industries ; étiquette
+  `theme_tag`, jamais « délaissée » ; pas de point sur la carte). **Carte des thèmes = vue du bloc** (02/11/2026) : bascule « Grille / Carte »
+  (`view_grid`, `view_map`, `view_tip` ; `mm.zoneview`) dans le titre du bloc ; en vue Carte, `#secMap` s'affiche sous le titre du
+  bloc (`#secMapRow.joined` : une seule carte, plus de titre ni de repli propres à la carte). Mobile (≤ 640 px) : grille seule, bascule
+  et carte masquées (illisible ; choix de l'utilisateur). Bloc 9M : étiquettes « EP » (repère 4 de `nine` : la séance doit être dans l'historique, donc le
+  lendemain matin) et nom du groupe en convergence (même séance que les leaders actifs), libellés dans `[tv_breadth.breakouts]
+  marks_text`. **EP probable** : `fetch_industries.nine()` ajoute le repère 4 (C / C1 ≥ 1 + `ep_pct` %, volume ≥ `ep_vol_mult` ×
+  moyenne des `ep_vol_sessions` séances d'avant, clôture ≥ `ep_min_price`) ; actions retenues seulement ; `validate_data.py` accepte
+  les repères 1 à 7. Tests hors dépôt (cache/analyse_scans/verif_grille_alerte.txt, verif_grille_dynamique.txt, verif_ep_replay.txt,
+  verif_2026_hors_echantillon.txt) : convergence = dérive sur 21-42 séances (lignes affichées +1,4 % sur 21 s, 13 ans / 18), pas un
+  déclencheur à 5 j. Pas fait (données absentes du site) : capitulations (−20 % en 5 j + −9M). Tests : `tests/test_industries.py`
+  (EP, contrôle), node 23 (ligne, détail, cases, barre, entrés, EP, sortis, Copier, ✕).
 - **Thèmes ETF** (01/11/2026, `fetch_etf_themes.py`, `config/etf_themes.toml`, étape séparée `etf_themes` →
   `.github/workflows/etf_themes.yml`, le 3 de chaque mois, secret `SEC_UA`) : dernière composition N-PORT-P (SEC EDGAR, gratuit)
   de 31 ETF thématiques, reliée aux tickers de `tickers_data.js` (ticker, CUSIP appris, nom normalisé ; écartés : hors actions,
