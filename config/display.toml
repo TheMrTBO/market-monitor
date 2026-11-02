@@ -371,7 +371,9 @@ key = "recovery"
 name = "Reprise"
 color = "#3fbf74"
 setups = "EP + Breakouts A+"
-detail = "breakouts A+ des leaders sur un setup excellent · préparer la liste des leaders"   # breakouts A+ : décision du 29/10/2026
+detail = "breakouts de qualité A+ sur titres à 35 % ou plus sous leur plus haut 1 an, avec bougie forte + 9M · préparer la liste des leaders pour l'expansion"
+# breakouts A+ : décision du 29/10/2026 ; titres délaissés : 02/11/2026 (hors dépôt, breakouts à ADR égal 2008-2025) :
+# délaissé + bougie forte + 9M ×1,11 / ×1,53 (+8 % 5 j / +25 % 21 j, 8/13 ans) ; titres près du plus haut ×0,79 / ×0,72
 rule = "en contraction, ratio 5 jours (hausses ÷ baisses de 4 % sur 5 séances) à {rep_r5} ou plus dans les {rep_window} séances après un lessivage ; dure jusqu'à l'expansion, un choc ou un nouveau lessivage (ratio mois qui repasse sous {wash_rm})"
 
 [[phases.phase]]
