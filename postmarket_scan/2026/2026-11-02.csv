@@ -91,3 +91,31 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-02,2026-11-02T22:07:34+00:00,false,NYSE:SXT,SXT,Sensient Technologies Corporation,Consumer Non-Durables,Food: Specialty/Candy,118.22,0.5,47.49,-59.83,231265,0.52,5031775611,42017655,
 2026-11-02,2026-11-02T22:07:34+00:00,false,NYSE:VOYG,VOYG,"Voyager Technologies, Inc. Class A",Technology Services,Information Technology Services,24.59,-6.96,26.0,5.73,179266,0.1,1523787146,53573934,amc
 2026-11-02,2026-11-02T22:07:34+00:00,false,OTC:HWLDF,HWLDF,H World Group Limited,Consumer Services,Hotels/Resorts/Cruise lines,4.235,-0.35,4.8466,14.44,3363000,,12795102261,1835662530,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:ADEA,ADEA,Adeia Inc.,Technology Services,Packaged Software,20.67,-3.59,15.56,-24.72,437560,0.37,2279490785,107064566,bmo
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:AEHR,AEHR,Aehr Test Systems,Electronic Technology,Electronic Production Equipment,51.47,-6.23,60.14,16.84,715368,0.26,1680986808,31068688,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:AEIS,AEIS,"Advanced Energy Industries, Inc.",Electronic Technology,Electronic Production Equipment,217.19,-2.19,239.7,10.36,133034,0.2,8698555345,39679533,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:BLZE,BLZE,"Backblaze, Inc. Class A",Electronic Technology,Computer Peripherals,7.4,-2.5,9.21,24.46,747434,0.29,458060020,58570832,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:BMRN,BMRN,BioMarin Pharmaceutical Inc.,Health Technology,Biotechnology,57.44,-1.83,53.69,-6.53,545209,0.26,11118876511,191080379,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:EVER,EVER,"EverQuote, Inc. Class A",Technology Services,Internet Software/Services,24.27,3.23,26.2,7.95,106254,0.15,855268789,26496500,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:HLIT,HLIT,Harmonic Inc.,Electronic Technology,Telecommunications Equipment,10.19,-0.39,12.04,18.16,556572,0.35,1111387018,107066165,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:HLMN,HLMN,Hillman Solutions Corp.,Distribution Services,Wholesale Distributors,8.39,7.56,7.55,-10.01,435944,0.27,1632232574,190793588,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:LIFE,LIFE,Ethos Technologies Inc. Class A,Technology Services,Packaged Software,42.62,-1.77,47.1,10.51,397139,0.3,2769617645,16695971,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:LSCC,LSCC,Lattice Semiconductor Corporation,Electronic Technology,Semiconductors,95.44,2.66,103.55,8.5,911019,0.48,13555368018,140849446,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:NBIX,NBIX,"Neurocrine Biosciences, Inc.",Health Technology,Biotechnology,145.35,-0.51,160.0,10.08,320961,0.25,14774708574,100421385,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:PPLI,PPLI,People Incorporated,Technology Services,Internet Software/Services,36.88,3.54,35.198,-4.56,194564,0.18,2746211247,61452806,bmo
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:RMNI,RMNI,Rimini Street Inc Class A,Technology Services,Information Technology Services,4.88,-1.61,5.22,6.97,104375,0.24,452356479,47514208,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:UPWK,UPWK,"Upwork, Inc.",Commercial Services,Personnel Services,9.72,6.23,10.8137,11.25,1211382,0.39,1214060667,118385061,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:VCIG,VCIG,VCI Global Limited,Commercial Services,Miscellaneous Commercial Services,8.16,168.4,6.81,-16.54,955780,4.02,3850401,850265,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NASDAQ:WAY,WAY,Waystar Holding Corp.,Technology Services,Packaged Software,28.14,0.5,26.8,-4.76,494755,0.2,5395800773,133008777,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:AESI,AESI,Atlas Energy Solutions Inc.,Industrial Services,Oilfield Services/Equipment,8.23,-10.74,7.83,-4.86,381293,0.11,1028778473,79999332,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:BE,BE,Bloom Energy Corporation Class A,Electronic Technology,Electronic Production Equipment,196.25,-3.41,204.88,4.4,804313,0.05,58022622386,277968433,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:CWH,CWH,"Camping World Holdings, Inc. Class A",Retail Trade,Specialty Stores,5.35,7.0,4.79,-10.47,325464,0.15,552622656,59226192,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:EBS,EBS,Emergent BioSolutions Inc.,Health Technology,Pharmaceuticals: Major,6.44,-5.43,5.08,-21.12,187857,0.17,330200271,48214898,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:FN,FN,Fabrinet,Electronic Technology,Semiconductors,314.7,-3.85,355.0,12.81,149007,0.15,11276917961,35681856,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:HBM,HBM,Hudbay Minerals Inc,Non-Energy Minerals,Other Metals/Minerals,21.7,0.0,22.76,4.88,146155,0.03,9638124498,427320489,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:HLF,HLF,Herbalife Ltd.,Consumer Non-Durables,Food: Major Diversified,13.28,1.76,13.84,4.22,334031,0.21,1391788944,101822507,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:PHIN,PHIN,PHINIA Inc.,Producer Manufacturing,Auto Parts: OEM,70.79,12.51,73.93,4.44,102047,0.26,2545585847,35225169,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:SXT,SXT,Sensient Technologies Corporation,Consumer Non-Durables,Food: Specialty/Candy,118.22,0.5,47.49,-59.83,231265,0.52,5031775611,42017655,
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:TTI,TTI,"TETRA Technologies, Inc.",Process Industries,Chemicals: Specialty,5.53,-5.63,5.79,4.7,396980,0.19,818842516,139079045,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,NYSE:VOYG,VOYG,"Voyager Technologies, Inc. Class A",Technology Services,Information Technology Services,24.59,-6.96,25.9702,5.61,180080,0.1,1523787146,53573934,amc
+2026-11-02,2026-11-02T22:19:28+00:00,false,OTC:HWLDF,HWLDF,H World Group Limited,Consumer Services,Hotels/Resorts/Cruise lines,4.235,-0.35,4.8466,14.44,3363000,,12795102261,1835662530,
