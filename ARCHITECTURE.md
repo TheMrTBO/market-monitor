@@ -290,7 +290,9 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   (`table-layout: fixed`, sans défilement ; mobile : cases fines sans chiffre, compte au toucher, nom puis zone sur deux lignes) ; groupes sortis depuis au plus `gone_sessions` séances grisés (`gone_max`). **Toucher une case** (`zoneDay`, `data-zday`) : juste
   sous la ligne, la liste des titres du groupe en 9M ce jour-là avec la **même pastille que le bloc Breakouts 9M** (`boChip`, partagée :
   mini-bougie, hausse, volume en $, repères, EP, « 9M ×n », ★) ; chiffres du relevé TradingView gardé pour la séance, sinon calculés
-  sur les cours du fichier de l'industrie (`barStats`, chargé à la demande ; note `day_own`). **Toucher une
+  sur les cours du fichier de l'industrie (`barStats`, chargé à la demande ; note `day_own`) ; toucher un de ces titres ouvre sa fenêtre graphique avec ce jour
+  en **pointillé vertical** (`openPop(sym, mark)`, `popMark`, dessiné dans `cursor` ; légende `[ticker_popup] mark` ; OHLC du jour marqué
+  tant qu'aucune séance n'est survolée). **Toucher une
   ligne** (`mapSel`) : son point sur la carte et, **juste sous la ligne** (cohérence demandée le 02/11/2026), son **détail** = tout le contenu de l'ancienne ligne (note de la
   zone, âge de la grappe, leaders, concentration, panier, « le même jour », thèmes ETF, pastilles, courbe 12 mois, tous les titres) ;
   ✕ referme. Puis Copier par zone (`copy_zone`), « 9M actif ailleurs », légende `grid_legend`. **Thèmes suivis** (`config/themes.toml`)

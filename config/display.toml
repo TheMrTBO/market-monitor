@@ -229,6 +229,7 @@ no_chart = "pas de graphique pour ce titre"
 fiche = "Fiche ›"
 fiche_tip = "Ouvrir la fiche complète dans l'onglet Tickers"
 close = "Fermer"
+mark = "pointillé = {d}, jour choisi dans la grille"   # séance marquée quand la fenêtre vient de la liste d'un jour (02/11/2026)
 
 [sectors.rrg]
 # carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :

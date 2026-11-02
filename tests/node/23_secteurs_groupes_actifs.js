@@ -274,7 +274,12 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     zClick({zcopy:pick.join(',')}); ok('Copier (zone) : les titres de la zone',copied===pick.join(', '),String(copied)); }
   zClick({pop:pick[0]});
   ok('toucher un titre : sa fenêtre graphique',TV9.$('tkPop').hidden===false&&String(TV9.$('popTitle').textContent)===pick[0]);
+  ok('sans jour choisi : pas de pointillé dans la légende',!String(TV9.$('popLeg')._h||'').includes('kmk'));
   TV9.L.popX.click({});
+  { const dm=IND.dates[e-1], TPC=TV9.sb.MM_CONFIG.ticker_popup; zClick({pop:pick[0],popd:dm});
+    ok('titre touché dans la liste d\'un jour : fenêtre graphique avec le jour en pointillé (légende « '+TPC.mark.split('{d}')[0]+'… »)',
+       TV9.$('tkPop').hidden===false&&String(TV9.$('popLeg')._h).includes('class="kmk"')&&String(TV9.$('popLeg')._h).includes(TPC.mark.split('{d}')[0]));
+    TV9.L.popX.click({}); }
   zClick({mapsel:'i:'+cand.g.k});
   ok('toucher une ligne : ligne choisie, détail juste sous elle',new RegExp(`class="zr rev[^"]* on" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(TV9.$('secZone')._h)
      &&new RegExp(`data-mapsel="i:${kE}"[^>]*>[\\s\\S]*?</tr><tr class="zd">`).test(TV9.$('secZone')._h));

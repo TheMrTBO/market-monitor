@@ -230,8 +230,8 @@ def check():
         errors.append("display.sectors.map.text : libellés de la carte et du tableau attendus (" + ", ".join(need_tx) + ", paires "
                       + ", ".join(pairs) + ", legend et state)")
     tp = load("display").get("ticker_popup", {})
-    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close"))):
-        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close) attendus")
+    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close")) and "{d}" in tp.get("mark", "")):
+        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close, mark ({d})) attendus")
     if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
         errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
     mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})
