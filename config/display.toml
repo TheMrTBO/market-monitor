@@ -150,6 +150,10 @@ view_tip = "Grille : les groupes et leurs 9M séance par séance. Carte : les m�
 cell_tip = "{d} : {n} en 9M"
 cell_ep = "EP probable : {s}"
 cell_none = "{d} : pas d'historique 9M"
+cell_touch = "toucher : la liste du jour"
+day_title = "{g} · {d} : {n} en 9M"   # liste d'un jour (toucher une case) : même pastille que le bloc Breakouts 9M
+day_loading = "Chargement des cours du groupe…"
+day_own = "Chiffres calculés sur les cours du site (cache Polygon) : pas de relevé TradingView gardé pour cette séance."
 rank_tip = "Rang TI65 {r} sur 100 parmi les industries (0 = la plus faible). Zone ombrée : sous {low}, groupe délaissé."
 rank_up_sessions = 10         # ↑ : rang au moins low_rank qui a gagné plus de rank_up_pts points sur rank_up_sessions séances
 rank_up_pts = 5

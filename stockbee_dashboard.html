@@ -275,7 +275,7 @@
   .smap .pt.sel .trl polyline { stroke-width: 2.5; opacity: 1; } .smap .pt.sel .mp { stroke: var(--text); stroke-width: 2.5; opacity: 1; }
   .secmap .mapinfo { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--panel2); }
   .secmap .mapinfo .asp { flex: 1 1 auto; } .secmap .mapinfo .mi-x { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; min-height: 30px; }
-  .secmap .mk.calm { background: var(--faint); }
+  .secmap i.mk.calm { background: var(--faint); }
   .smap .mat { fill: var(--muted); font-size: 11.5px; font-weight: 600; } .smap .tra { fill: var(--faint); }
   .smap .pt.rev .tra { fill: var(--ok); } .smap .pt.both .tra, .smap .pt.neuf .tra { fill: var(--up); } .smap .pt.hot .tra { fill: var(--warn); }
   .secmap .mhint { margin: 0; }
@@ -337,6 +337,9 @@
   .secmap table.g td.c.c0 { color: transparent; } .secmap table.g td.c.x { background: none; border: 1px dashed var(--border); }
   .secmap table.g td.c.c1 { background: color-mix(in srgb, var(--c9m) 30%, transparent); } .secmap table.g td.c.c2 { background: color-mix(in srgb, var(--c9m) 58%, transparent); }
   .secmap table.g td.c.c3 { background: color-mix(in srgb, var(--c9m) 85%, transparent); font-weight: 600; }
+  .secmap table.g td.c[data-zday] { cursor: pointer; } .secmap table.g td.c[data-zday]:hover, .secmap table.g td.c[data-zday]:focus-visible { outline: 1.5px solid var(--text); outline-offset: -1px; }
+  .secmap table.g td.c.on { outline: 2px solid var(--text); outline-offset: -1px; }
+  .secmap .zdi.secbo .bogrid { margin-top: 6px; }
   .secmap table.g td.c.ep::after { content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 1px var(--panel); }
   .secmap tr.zd > td { padding: 0 0 6px; } .secmap .zdi { padding: 10px 14px 12px; margin: 2px 0 6px; background: var(--panel2); border-radius: 8px; white-space: normal; text-align: left; }
   .secmap .zdi .mbr { cursor: default; padding-left: 0; padding-right: 0; }
@@ -354,7 +357,7 @@
   .secmap .mb-up { color: var(--ok); cursor: help; }
   .secmap .mb-tt { font-size: 10px; font-weight: 600; padding: 0 5px; border-radius: 999px; background: var(--upbg); color: var(--up); cursor: help; }
   .secmap .mb-g { font-weight: 600; color: var(--muted); }
-  .secmap .mbr.gone { opacity: .5; } .secmap .mk.gone { background: none; border: 1.5px solid var(--faint); box-sizing: border-box; }
+  .secmap .mbr.gone { opacity: .5; } .secmap i.mk.gone { background: none; border: 1.5px solid var(--faint); box-sizing: border-box; }
   .secmap .mbr.th { cursor: default; }
   .secmap .mbm { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; line-height: 1.5; color: var(--muted); margin-bottom: 14px; padding: 8px 10px; background: var(--panel2); border-radius: 8px; } .secmap .mbm .mbm-t { color: var(--text); font-weight: 600; }
   .secmap .mbm b { color: var(--text); font-weight: 600; }
@@ -376,8 +379,8 @@
 
   .smap .ml { fill: var(--text); font-size: 11px; font-weight: 550; paint-order: stroke; stroke: var(--panel); stroke-width: 3px; pointer-events: none; }
   .smap .mll { stroke: var(--muted); stroke-width: 0.8; opacity: .55; pointer-events: none; }
-  .secmap .mk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
-  .secmap .mk.rev { background: var(--ok); } .secmap .mk.both { background: var(--up); } .secmap .mk.neuf { background: var(--up); box-shadow: 0 0 0 1.5px var(--text); } .secmap .mk.hot { background: var(--warn); }
+  .secmap i.mk { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+  .secmap i.mk.rev { background: var(--ok); } .secmap i.mk.both { background: var(--up); } .secmap i.mk.neuf { background: var(--up); box-shadow: 0 0 0 1.5px var(--text); } .secmap i.mk.hot { background: var(--warn); }
   @media (max-width: 900px) { .secbo .bolanes { grid-template-columns: minmax(0, 1fr); } }
   .etat { font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 0 6px; margin-right: 5px; white-space: nowrap; }
   /* Leaders actifs : symbole toujours lisible, gain et écart au plus haut à droite ; écrans moyens (liste à côté du graphique) :
@@ -3368,6 +3371,23 @@
     ? (b.dv ?? -1) - (a.dv ?? -1) || b.p - a.p : b.p - a.p || (a.s < b.s ? -1 : 1));
   const boRule = () => `clôture ≥ ${nf((100 + BOC.pct) / 100, 2)} × celle de la veille, volume &gt; ${nf(BOC.min_volume)}` +
     (BOC.volume_up ? ' et supérieur à celui de la veille' : '') + (BOC.min_price > 0 ? `, clôture > ${nf(BOC.min_price, 2)} $` : '');
+  // pastille d'un titre 9M (bloc Breakouts 9M et liste d'un jour de la grille de convergence, 02/11/2026) : mini-bougie, hausse,
+  // volume en dollars, repères ; o = { marked : repères disponibles, nPrev : séances comptées pour « 9M ×n », attr : data-bos ou data-pop }
+  const x1 = x => nf(x, x >= 10 ? 0 : 1);
+  function boChip(r, o) {
+    const mk = r.pos != null ? [tpl(BMT.close, { p: r.pos }), r.rr != null ? tpl(BMT.range, { r: nf(r.rr, 1) }) : null, r.rp != null ? tpl(BMT.prev, { r: nf(r.rp, 1) }) : null,
+      r.w != null ? tpl(BMT.week, { w: `${r.w >= 0 ? '+' : ''}${nf(r.w, 1)}` }) : null, r.bq ? BMT.strong : BMT.weak] : [];
+    const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
+      ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: o.nPrev }) : null,
+      r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, r.ep ? tpl(BMT.ep, { p: BOC.ep_pct, m: BOC.ep_vol_mult, s: BOC.ep_vol_sessions }) : null,
+      r.cv ? tpl(BMT.conv, { g: r.cv.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
+    const tags = (r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : '') + (r.cv ? `<span class="botg cv" title="${escA(tpl(BMT.conv, { g: r.cv.join(', ') }))}">${escH(r.cv[0])}</span>` : '') +
+      (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
+    return `<button type="button" class="bochip${r.l ? ' lead' : ''}${o.marked ? ' mk' : ''}" ${o.attr}="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
+      (o.marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
+      `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span>` +   // ×veille : détail au survol
+      (tags ? `<span class="bt">${tags}</span>` : '') + '</button>';
+  }
   function renderSecBo(e, latest) {
     const box = $('secBo'); if (!box) return;
     const X = window.TV_BREADTH || {}, L = X.breakouts || {}, ds = Object.keys(L).sort();
@@ -3407,21 +3427,7 @@
       `<span class="fsum">${sum}</span>${tipI('bo', BOC.label)}<span class="asp"></span>${btns}</div>`;
     if (!boOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
-    const x1 = x => nf(x, x >= 10 ? 0 : 1);
-    const chip = r => {
-      const mk = r.pos != null ? [tpl(BMT.close, { p: r.pos }), r.rr != null ? tpl(BMT.range, { r: nf(r.rr, 1) }) : null, r.rp != null ? tpl(BMT.prev, { r: nf(r.rp, 1) }) : null,
-        r.w != null ? tpl(BMT.week, { w: `${r.w >= 0 ? '+' : ''}${nf(r.w, 1)}` }) : null, r.bq ? BMT.strong : BMT.weak] : [];
-      const tip = [`${r.s} : +${nf(r.p, 1)} % sur la veille`, r.dv != null ? `volume en dollars ${usdFmt(r.dv)}` : null, `volume ${nf(r.v / 1e6, 1)} M actions`, r.x != null ? `${x1(r.x)} × celui de la veille` : null,
-        ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: prevDays.length }) : null,
-        r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, r.ep ? tpl(BMT.ep, { p: BOC.ep_pct, m: BOC.ep_vol_mult, s: BOC.ep_vol_sessions }) : null,
-        r.cv ? tpl(BMT.conv, { g: r.cv.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
-      const tags = (r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : '') + (r.cv ? `<span class="botg cv" title="${escA(tpl(BMT.conv, { g: r.cv.join(', ') }))}">${escH(r.cv[0])}</span>` : '') +
-        (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
-      return `<button type="button" class="bochip${r.l ? ' lead' : ''}${marked ? ' mk' : ''}" data-bos="${escA(r.s)}" title="${escA(tip)}" aria-label="${escA(tip)}">` +
-        (marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
-        `<span class="bv">${r.dv != null ? `<b>${usdFmt(r.dv)}</b> · ` : ''}${nf(r.v / 1e6, 1)} M${r.x != null ? ' · ×' + x1(r.x) : ''}</span>` +   // ×veille : détail au survol
-        (tags ? `<span class="bt">${tags}</span>` : '') + '</button>';
-    };
+    const chip = r => boChip(r, { marked, nPrev: prevDays.length, attr: 'data-bos' });
     const shown = boAll ? items : items.slice(0, BOC.list_limit), rest = items.length - shown.length;
     const more = items.length > BOC.list_limit ? `<button type="button" class="amore" data-boall="1" aria-expanded="${boAll}">${boAll ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
     const ahead = latest && d > IND.dates[last] ? `<div class="note">Relevé TradingView du soir : la séance du ${dt} n'est pas encore dans les cases (Polygon la publie le lendemain matin)${lead ? ` ; ★ : leaders actifs du ${fmtDate(IND.dates[k], { day: 'numeric', month: 'short' })}` : ''}</div>` : '';
@@ -3472,6 +3478,7 @@
   const MAP_TRAIL = MP.trail;                            // séances de la traînée (la séance affichée comprise)
   let mapOther = false;                                 // tableau par zone : « 9M actif ailleurs » déplié
   let zoneAll = false;                                  // grille : groupes au-delà de rows_max dépliés
+  let zoneDay = null;                                   // grille : case touchée (« clé|séance ») → liste des titres du jour
   // vue du bloc Convergence des 9M (02/11/2026, demande de l'utilisateur) : grille ou carte des thèmes, bascule dans le bloc ;
   // mobile (≤ 640 px) : grille seule (carte illisible)
   let zoneView = store.get('mm.zoneview') === 'map' ? 'map' : 'grid';
@@ -3658,7 +3665,7 @@
     const TH = (actData() || { G: [] }).G.filter(g => g.kind === 'th');
     const dayG = k => {
       const day = NI && k >= NI.start ? NI.days[k - NI.start] : null; if (!day) return null;
-      const out = new Map(), add = (key, s, ep) => { const q = out.get(key) || out.set(key, { n: 0, ep: [] }).get(key); q.n++; if (ep) q.ep.push(s); };
+      const out = new Map(), add = (key, s, ep) => { const q = out.get(key) || out.set(key, { n: 0, ep: [], s: [] }).get(key); q.n++; q.s.push(s); if (ep) q.ep.push(s); };
       day.forEach(([s, ii, q]) => { const ep = !!(q & 4); if (IND.industries[ii]) add('i:' + IND.industries[ii].k, s, ep); TH.forEach(g => { if (g.m.has(s)) add(g.key, s, ep); }); });
       return out;
     };
@@ -3697,9 +3704,46 @@
     };
     const tds = key => gks.map((k, i) => {
       const q = DG[i] ? DG[i].get(key) : null, n = q ? q.n : 0, ep = q && q.ep.length;
-      const tip = DG[i] ? tpl(BD.cell_tip, { d: dshort(k), n }) + (ep ? ' · ' + tpl(BD.cell_ep, { s: q.ep.join(', ') }) : '') : tpl(BD.cell_none, { d: dshort(k) });
-      return `<td class="c ${!DG[i] ? 'x' : n >= 3 ? 'c3' : n === 2 ? 'c2' : n === 1 ? 'c1' : 'c0'}${ep ? ' ep' : ''}" title="${escA(tip)}">${n || ''}</td>`;
+      const tip = DG[i] ? tpl(BD.cell_tip, { d: dshort(k), n }) + (ep ? ' · ' + tpl(BD.cell_ep, { s: q.ep.join(', ') }) : '') + (n ? ' · ' + BD.cell_touch : '') : tpl(BD.cell_none, { d: dshort(k) });
+      const zd = key + '|' + k, act = n ? ` role="button" tabindex="0" data-zday="${escA(zd)}" aria-pressed="${zoneDay === zd}"` : '';   // toucher : la liste du jour
+      return `<td class="c ${!DG[i] ? 'x' : n >= 3 ? 'c3' : n === 2 ? 'c2' : n === 1 ? 'c1' : 'c0'}${ep ? ' ep' : ''}${zoneDay === zd ? ' on' : ''}"${act} title="${escA(tip)}">${n || ''}</td>`;
     }).join('');
+    // liste d'un jour (toucher une case, 02/11/2026) : titres du groupe en 9M ce jour-là, même pastille que le bloc Breakouts 9M ;
+    // chiffres du relevé TradingView gardé pour la séance, sinon calculés sur les cours du fichier de l'industrie (chargé à la demande)
+    const barStats = (F, s, d) => {
+      const r = F.rows.find(x => x[0] === s), j = F.dates.indexOf(d); if (!r || j < 1) return {};
+      const C = r[3], V = r[4], H = r[6], Lo = r[7], vu = F.vu || 1, c = C[j], c1 = C[j - 1], v = V[j] != null ? V[j] * vu : null, v1 = V[j - 1] != null ? V[j - 1] * vu : null;
+      const o = { p: c && c1 ? 100 * (c / c1 - 1) : null, v, x: v && v1 ? v / v1 : null, dv: c && v ? c * v : null, w: j >= 5 && C[j - 5] ? 100 * (c / C[j - 5] - 1) : null };
+      if (H && Lo && H[j] != null && Lo[j] != null && H[j] > Lo[j]) {
+        const rg = H[j] - Lo[j], rs = []; for (let q = j - BOC.adr_sessions; q < j; q++) if (q >= 0 && H[q] != null && Lo[q] != null) rs.push(H[q] - Lo[q]);
+        o.pos = Math.round(100 * (c - Lo[j]) / rg); o.rr = rs.length ? rg / (rs.reduce((a, b) => a + b, 0) / rs.length) : null;
+        o.rp = H[j - 1] != null && Lo[j - 1] != null && H[j - 1] > Lo[j - 1] ? (H[j] / Lo[j] - 1) / (H[j - 1] / Lo[j - 1] - 1) : null;
+      }
+      return o;
+    };
+    const dayPanel = (o, k) => {
+      const i = gks.indexOf(k), q = i >= 0 && DG[i] ? DG[i].get(o.x.g.key) : null; if (!q) return '';
+      const X = window.TV_BREADTH || {}, C = Object.fromEntries((X.bo_columns || []).map((c, j) => [c, j])), d = IND.dates[k];
+      const tvRows = new Map(((X.breakouts || {})[d] || []).map(r => [r[C.ticker], r])), fl = new Map((NI.days[k - NI.start] || []).map(([s, ii, f]) => [s, { ii, f: f || 0 }]));
+      const at = actAt(k), lead = at && at.day ? new Map(at.leaders.map(r => [r.s, r])) : null;
+      const prevK = []; for (let j = Math.max(NI.start, k - BOC.repeat_sessions); j < k; j++) prevK.push(j);
+      let wait = false, own = false;
+      const items = q.s.map(s => {
+        const F = fl.get(s) || { f: 0 }, base = { s, n9: prevK.filter(j => (NI.days[j - NI.start] || []).some(r => r[0] === s)).length, l: lead ? lead.get(s) || null : null, ep: !!(F.f & 4), cv: null };
+        const r = tvRows.get(s);
+        if (r) { const c = x => C[x] != null ? r[C[x]] ?? null : null, it = { ...base, p: c('pct'), v: c('volume'), x: c('vol_ratio'), dv: c('dvol'), pos: c('pos'), rr: c('rr'), rp: c('rp'), w: c('w') };
+          return Object.assign(it, { bq: boStrong(it.pos, it.rr, it.rp), ext: boExt(it.w) }); }
+        own = true;
+        const ind = IND.industries[F.ii], Fi = ind && window.TV_STOCKS ? window.TV_STOCKS[ind.f] : null;
+        if (!Fi && ind && !tvFailed.has(ind.f)) { wait = true; tvLoad(ind, renderSecKpis); }
+        return { ...base, ...(Fi ? barStats(Fi, s, d) : {}), bq: !!(F.f & 1), ext: !!(F.f & 2) };
+      });
+      const ok = boSort(items.filter(r => r.p != null && r.v != null)), rest = items.filter(r => r.p == null || r.v == null), marked = ok.some(r => r.pos != null);
+      return `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi secbo"><div class="zdh"><b>${escH(tpl(BD.day_title, { g: o.x.g.k, d: dshort(k), n: q.n }))}</b>` +
+        `<button type="button" class="mi-x" data-zday="" aria-label="${escA(MT.close)}">✕</button></div>` +
+        (wait ? `<div class="note">${escH(BD.day_loading)}</div>` : `<div class="bogrid">${ok.map(r => boChip(r, { marked, nPrev: prevK.length, attr: 'data-pop' })).join('')}${rest.map(r => chip(r.s)).join('')}</div>` +
+          (own ? `<div class="mbl">${escH(BD.day_own)}</div>` : '')) + '</div></td></tr>';
+    };
     const row = (o, gone) => {
       const x = o.x, m = o.m, n = x.g.n, key = x.g.key, sel = key === mapSel, t = tOf(m), lo = lowOf(o);
       const badge = gone ? `<span class="zg" title="${escA(BD.gone_note)}">${escH(tpl(BD.gone_label, { n: gone }))}</span>`
@@ -3710,6 +3754,7 @@
       return `<tr class="zr ${o.cl}${gone ? ' gone' : ''}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-expanded="${sel}" title="${escA(tip)}">` +
         `<td class="n"><span class="gn"><b>${escH(x.g.k)}</b>${o.th ? `<span class="mb-tt" title="${escA(BD.theme_tip)}">${escH(BD.theme_tag)}</span>` : ''}${badge}</span>` +
         `<span class="gt">${rankHtml(o)}<span class="mb-c">${m ? m.n : 0} / ${n} ${escH(BD.in9)}</span>${chips}</span></td>${tds(key)}</tr>` +
+        (zoneDay && zoneDay.startsWith(key + '|') ? dayPanel(o, +zoneDay.slice(key.length + 1)) : '') +
         (sel ? `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi"><div class="zdh"><b>${escH(x.g.k)}</b><button type="button" class="mi-x" data-mapsel="" aria-label="${escA(MT.close)}">✕</button></div>${detail(o)}</div></td></tr>` : '');   // détail sous la ligne
     };
     const byN = (a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py;
@@ -4558,12 +4603,13 @@
     mapSel = t.dataset.mapsel !== mapSel ? t.dataset.mapsel : null; renderSecKpis(); });
   // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
   function zoneAct(t) {
-    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-zview],[data-mapsel]'); if (!b) return false;
+    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-zview],[data-zday],[data-mapsel]'); if (!b) return false;
     if (b.dataset.pop != null) { openPop(b.dataset.pop); return true; }
     if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
     if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
     if (b.dataset.zoneall != null) { zoneAll = !zoneAll; renderSecKpis(); return true; }
+    if (b.dataset.zday != null) { zoneDay = b.dataset.zday && b.dataset.zday !== zoneDay ? b.dataset.zday : null; renderSecKpis(); return true; }
     if (b.dataset.zview != null) { zoneView = b.dataset.zview === 'map' ? 'map' : 'grid'; store.set('mm.zoneview', zoneView); renderSecKpis(); return true; }
     mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return true;
   }

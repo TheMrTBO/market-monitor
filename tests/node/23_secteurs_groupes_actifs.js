@@ -229,10 +229,20 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     ok('légende de la grille (config)',strip(hb).includes(BD.grid_legend.replace('{n}',BD.grid_sessions).slice(0,40)));
     const dE=days.map(x=>x.slice()); dE[e]=dE[e].map((r,j)=>j===0?[r[0],r[1],4]:r);
     const re=(bootN(dE).$('secZone')._h.match(rowRe)||[''])[0];
-    ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<td class="c ${cl(AC.nine_min-1)} ep" title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
+    ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<td class="c ${cl(AC.nine_min-1)} ep"[^>]*title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
     const dG=Array.from({length:N},()=>[]); for(let k=e-AC.nine_window-4;k<=e-AC.nine_window-1;k++)dG[k]=pick.map(s=>[s,ii]);   // hors de la fenêtre 9M depuis 2 séances
     const hg=bootN(dG).$('secZone')._h;
     ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_label.replace('{n}',2)+' »',new RegExp(`<tr class="zr [a-z]+ gone" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(hg)&&hg.includes(BD.gone_label.replace('{n}',2))); }
+  // toucher une case : la liste des titres du jour, même pastille que le bloc Breakouts 9M (relevé TradingView gardé)
+  { const d=IND.dates[e], cols=['ticker','pct','volume','vol_ratio','dvol','pos','rr','rp','w'];
+    const TVB={bo_columns:cols,breakouts:{[d]:pick.slice(1).map((s,j)=>[s,6.5+j,12e6,1.4,9e8-j,88,1.4,1.6,5])}};
+    const DB=bootN(days,`window.TV_BREADTH=Object.assign(window.TV_BREADTH||{},${JSON.stringify(TVB)});`), h0=DB.$('secZone')._h, zk='i:'+cand.g.k+'|'+e;
+    ok('case du jour touchable (bulle « '+BD.cell_touch+' »)',h0.includes(`data-zday="${zk.replace(/&/g,'&amp;')}"`)&&h0.includes(BD.cell_touch));
+    zc(DB,{zday:zk}); const hd=DB.$('secZone')._h, pn=(hd.match(/<tr class="zd"><td[^>]*><div class="zdi secbo">[\s\S]*?<\/td><\/tr>/)||[''])[0];
+    ok('liste du jour : titre « '+BD.day_title.replace('{g}',kE).split('{d}')[0]+'… », une pastille 9M par titre (mini-bougie, hausse, volume en $), toucher = graphique',
+       pn.includes(BD.day_title.replace('{g}',kE).split('{d}')[0])&&(pn.match(/class="bochip[^"]*"/g)||[]).length===pick.length-1&&/class="cdl ok"/.test(pn)
+       &&pick.slice(1).every(t=>pn.includes(`data-pop="${t}"`))&&pn.includes('+6,5 %'),strip(pn).slice(0,120));
+    zc(DB,{zday:''}); ok('✕ de la liste du jour : refermée',!DB.$('secZone')._h.includes('class="zdi secbo"')); }
   { const days2=Array.from({length:N},()=>[]); for(let k=e-7;k<=e;k++)days2[k]=pick.map(s=>[s,ii]);
     const dt=det(bootN(days2));
     ok('grappe tenue 8 séances : « '+BD.age_label.replace('{n}',8)+' », tranche 6-20',dt.includes(BD.age_label.replace('{n}',8))&&dt.includes(BD.age_notes[1].replace(/&/g,'&amp;'))); }

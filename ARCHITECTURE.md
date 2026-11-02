@@ -287,7 +287,10 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   `low_rank` qui gagne plus de `rank_up_pts` points en `rank_up_sessions` séances), n / m en 9M, `row_tickers` premiers titres
   (▲ bougie forte, toucher = fenêtre graphique) ; à droite `grid_sessions` cases = titres du groupe en 9M **à chaque séance**
   (historique `nine`, chiffre et teinte cyan ; point vert = EP probable, bulle avec les titres) ; tableau à la largeur du bloc
-  (`table-layout: fixed`, sans défilement ; mobile : cases fines sans chiffre, compte au toucher, nom puis zone sur deux lignes) ; groupes sortis depuis au plus `gone_sessions` séances grisés (`gone_max`). **Toucher une
+  (`table-layout: fixed`, sans défilement ; mobile : cases fines sans chiffre, compte au toucher, nom puis zone sur deux lignes) ; groupes sortis depuis au plus `gone_sessions` séances grisés (`gone_max`). **Toucher une case** (`zoneDay`, `data-zday`) : juste
+  sous la ligne, la liste des titres du groupe en 9M ce jour-là avec la **même pastille que le bloc Breakouts 9M** (`boChip`, partagée :
+  mini-bougie, hausse, volume en $, repères, EP, « 9M ×n », ★) ; chiffres du relevé TradingView gardé pour la séance, sinon calculés
+  sur les cours du fichier de l'industrie (`barStats`, chargé à la demande ; note `day_own`). **Toucher une
   ligne** (`mapSel`) : son point sur la carte et, **juste sous la ligne** (cohérence demandée le 02/11/2026), son **détail** = tout le contenu de l'ancienne ligne (note de la
   zone, âge de la grappe, leaders, concentration, panier, « le même jour », thèmes ETF, pastilles, courbe 12 mois, tous les titres) ;
   ✕ referme. Puis Copier par zone (`copy_zone`), « 9M actif ailleurs », légende `grid_legend`. **Thèmes suivis** (`config/themes.toml`)
