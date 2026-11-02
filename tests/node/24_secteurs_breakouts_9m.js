@@ -65,9 +65,9 @@ A.L.dPick.change({target:{value:last}});
 
 // --- ★ : tous les leaders de la séance dans la liste → autant d'étoiles que de « Leaders actifs (N) » (groupes neufs ou chauds)
 const C=boot({'mm.secview':'tv'},{after:tvb({[last]:D0.map(([s],i)=>[s,30-i/100,9e6,1.2])})}); tab(C); boClick(C,{boall:'1'});
-const nAct=+((C.$('secAct')._h.match(/data-actgo="1">[^(]*\((\d+)\)/)||[])[1]);
+const nAct=+((C.$('secAct')._h.match(/data-actgo="1"[^>]*>[^(]*\((\d+)\)/)||[])[1]);
 const nStar=(C.$('secBo')._h.match(/class="bochip lead"/g)||[]).length;
-ok('★ = leaders actifs de la séance (même compte que le bloc Groupes actifs)',nAct>0&&nStar===nAct&&strip(C.$('secBo')._h).includes(`★ ${nAct} leader`),`${nStar} / ${nAct}`);
+ok('★ = leaders actifs de la séance (même compte que le bloc Leaders actifs)',nAct>0&&nStar===nAct&&strip(C.$('secBo')._h).includes(`★ ${nAct} leader`),`${nStar} / ${nAct}`);
 
 // --- envoi vers Tickers (fiche d'un titre), repli mémorisé, bulle
 boClick(A,{bos:'ZZZ'});

@@ -276,6 +276,11 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   légende OHLC. `drawPrice` (MM, Secteurs, Tickers, Post-market, fenêtre) et `drawMini` (QQQ · IWM) ; pas sur `skip` (BTC) ni
   le VIX (sans volume). Test : 18.
 - **Copier** : ajouté au tableau par zone (tout, par zone) et aux Groupes actifs (leaders actifs, `actSyms`).
+- **Leaders actifs** (02/11/2026, ancien bloc « Groupes actifs », `renderSecAct`, `[sectors.actifs] label`) : la section Réveil (en
+  double avec Convergence des 9M) et l'alerte « phase avec groupes chauds » (réfutée hors dépôt : −0,2 % sur 65 épisodes 2008-2025 ;
+  `alert_phases` / `alert_text` retirés) sont supprimées ; restent le nombre de leaders, Copier, le bouton vers le Classement
+  (`go_label`), « Sur N s », les groupes neufs, et les chauds **repliés** (`actHot`, `mm.acthot`, note `hot_note` : « chaud » seul sans
+  avance mesurée). La case « Thèmes 9M » mène à Convergence des 9M (`SK_ACT.t9`).
 - **Grille de convergence des 9M** (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que
   je fais de tête chaque matin sur TC2000 », sans perdre d'information ; forme de la maquette validée hors dépôt, même jour) : le
   tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label` ; bulle ⓘ `conv` = paragraphes « Titre : texte »

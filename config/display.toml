@@ -353,7 +353,7 @@ neuf_window = 10              # …et parti depuis au plus ce nombre de séances
 old_sessions = 42             # « s'essouffle » (information, pas une règle de sortie : test 9) : chaud depuis au moins ce nombre de séances
 list_limit = 30               # Leaders actifs : lignes affichées avant « + N autres » (tri par gain sur 21 séances : test 11)
 high_sessions = 20            # colonne « / plus haut » : écart au plus haut de ce nombre de séances (0 = au plus haut : encore en base ou déjà parti)
-alert_phases = ["wash", "shock"]   # alerte « phase avec groupes chauds » : clés de [[phases.phase]] (test 9 : seul signal net)
+# alerte « phase avec groupes chauds » retirée le 02/11/2026 : réfutée hors dépôt (−0,2 % sur 65 épisodes 2008-2025, verif_grille_alerte.txt)
 # pionniers retirés le 31/10/2026 (audit de l'onglet : pas d'avance moyenne mesurée, test 8)
 chauds_shown = 6              # groupes chauds affichés avant « + N autres » : d'abord ceux qui ont le plus de titres en 9M, puis de leaders
 # 9M par groupe (31/10/2026, tests hors dépôt 2008-2025 : neuf avec 9M +1,28 % sur 21 séances contre +0,07 % sans ; chaud avec
@@ -368,9 +368,11 @@ nine_tip = "Tests 2008-2025 avec les définitions du site (verif_site.txt) : neu
 reveil_label = "Réveil"
 reveil_tip = "9M fort (au moins 3 titres et 20 % du groupe en breakout 9M sur 10 séances) sans que le groupe soit chaud ni neuf : la demande arrive avant la tendance. Tests 2008-2025 avec les définitions du site : +1,8 % sur 21 séances contre les autres industries, 11 années sur 18 (13 sur 18 à 42 séances)."
 trend_sessions = 5            # ligne « Sur N s » : groupes chauds, neufs et leaders comparés à N séances avant (voir à temps qu'il faut lever le pied)
-label = "Groupes actifs"
+label = "Leaders actifs"       # bloc (« Groupes actifs » jusqu'au 02/11/2026 : section Réveil en double avec Convergence des 9M, retirée)
 leaders_label = "Leaders actifs"
-alert_text = "Repère 2019-2026 : le premier jour de lessivage ou de choc, les thèmes chauds n'ont battu le marché que 28 à 41 % du temps sur les 42 séances suivantes."
+go_label = "Classement"
+go_tip = "Ouvrir les leaders actifs dans le Classement : tableau, graphique et fiche"
+hot_note = "repliés : « chaud » seul n'a pas d'avance mesurée (−0,1 % sur 21 s) ; chaud + 9M fort = Thème qui dure, dans Convergence des 9M"
 neuf_tip = "Grappe de leaders (au moins 3 actions à +25 % sur 21 séances, 2 fois plus que le marché) ou moitié d'un panier de thème leader, sans signal dans les 42 séances d'avant. Signal le plus solide des tests (53 % devant le marché à 42 séances sur 2019-2026) : il dit où et quand, pas si le thème va marcher."
 # familles refuges (étiquette sur les groupes et les tickers) : pas de liste fixe qui tienne d'une contraction à l'autre (test 12)
 refuges = { "Énergie" = ["Integrated Oil", "Oil & Gas Production", "Oil Refining/Marketing", "Oilfield Services/Equipment", "Contract Drilling", "Oil & Gas Pipelines", "Coal", "Marine Shipping"], "Métaux" = ["Precious Metals", "Other Metals/Minerals", "Steel", "Aluminum"], "Services publics" = ["Electric Utilities", "Gas Distributors", "Water Utilities", "Alternative Power Generation"], "Conso. de base" = ["Food: Major Diversified", "Food: Specialty/Candy", "Food: Meat/Fish/Dairy", "Beverages: Non-Alcoholic", "Beverages: Alcoholic", "Household/Personal Care", "Tobacco", "Food Retail", "Discount Stores", "Food Distributors"], "Santé défensive" = ["Pharmaceuticals: Major", "Managed Health Care", "Medical Distributors", "Hospital/Nursing Management"], "Assurance" = ["Property/Casualty Insurance", "Multi-Line Insurance", "Life/Health Insurance", "Specialty Insurance", "Insurance Brokers/Services"], "Défense" = ["Aerospace & Defense"] }

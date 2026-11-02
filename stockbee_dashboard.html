@@ -347,6 +347,8 @@
   .secmap .zdh { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
   .secmap .zdh .mi-x { border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; min-width: 32px; min-height: 28px; }
   /* zones de la grille : couleur par zone (--zc), en-têtes, filtres (02/11/2026) */
+  .secact .ahot { display: flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; padding: 4px 0; min-height: 30px; text-align: left; }
+  .secact .ahot small { color: var(--muted); font-size: 11.5px; }
   .secmap .z-lo { --zc: var(--ok); } .secmap .z-rev { --zc: var(--g2); } .secmap .z-both { --zc: var(--up); } .secmap .z-neuf { --zc: var(--warn); } .secmap .z-gone { --zc: var(--faint); } .secmap .z-all { --zc: var(--text); }
   .secmap tr.zr td.n { box-shadow: inset 3px 0 0 var(--zc, transparent); padding-left: 9px; } .secmap tr.zr.on td.n { box-shadow: inset 3px 0 0 var(--zc), inset 0 0 0 9999px var(--panel2); }
   .secmap tr.zh td { padding: 12px 0 4px; } .secmap tr.zh:first-of-type td { padding-top: 4px; }
@@ -3103,6 +3105,7 @@
   //   leaders actifs = leaders des groupes neufs ou chauds (pionniers retirés le 31/10/2026 : pas d'avance mesurée, test 8).
   // Information, pas un signal d'achat : le document d'analyse (tests 5 à 16) dit ce que chaque état a valu sur 2019-2026.
   const AC = CFG.sectors.actifs;
+  let actHot = store.get('mm.acthot') === '1';          // Leaders actifs : groupes chauds dépliés (repliés par défaut, 02/11/2026)
   let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [], actSyms = [];   // actSyms : leaders actifs (bouton Copier)   // actZero : groupes chauds sans leader dépliés
   function actData() {
     if (!IND || !IND.leaders || !Array.isArray(IND.themes) || !IND.industries.every(x => Array.isArray(x.l) && typeof x.g === 'string')) return null;
@@ -3275,7 +3278,7 @@
   // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
   // ordre par défaut = HTML ; Breakouts 9M avant Groupes actifs depuis le 31/10/2026 (seul bloc à l'avance mesurée, audit de l'onglet)
   const SEC_BLK = { flow: 'secFlow', bo: 'secBo', act: 'secAct', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : carte des thèmes (31/10/2026)
-  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Groupes actifs', bo: 'Breakouts 9M +4 %', map: 'Carte des thèmes', list: 'Classement' };
+  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Leaders actifs', bo: 'Breakouts 9M +4 %', map: 'Convergence des 9M', list: 'Classement' };
   let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
   const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
     `title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button>`;
@@ -3298,7 +3301,6 @@
     const box = $('secAct'); if (!box) return;
     const at = IND ? actAt(e) : null; box.hidden = !at; if (!at) return;   // aussi au niveau ETF : le haut de page ne bouge pas
     const d = IND.dates[e], pi = phaseIdx(d), P = pi >= 0 ? PHASES[pi] : null, ph = P ? PHK[P.k] : null;
-    const nHot = at.active.filter(x => x.hot).length, alert = ph && AC.alert_phases.includes(P.k) && nHot;
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
     // ce qui change sur trend_sessions séances : moins de groupes chauds ou de leaders = le flux se retire (faits, pas de consigne)
     const T = AC.trend_sessions, pv = e - T >= 0 ? actAt(e - T) : null, P0 = pv ? phaseIdx(IND.dates[e - T]) : -1;
@@ -3311,20 +3313,19 @@
       mv('leaders', now.lead, was.lead, `Leaders actifs ${T} séances avant → à cette séance`)].filter(Boolean) : [];   // « s'essouffle » : au survol des cartes (31/10/2026)
     // replié : seulement ce qui baisse (groupes chauds, leaders), pour le voir sans ouvrir le bloc
     const N9 = nineAt(e), n9 = x => N9 ? N9.get(x.g.key) || null : null;   // 9M par groupe (null : index Tickers en chargement)
-    const RV0 = N9 ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(n9(x))) : [];
     const worse = !was ? [] : [now.hot < was.hot ? `chauds ${was.hot} → ${now.hot}` : null, now.lead != null && was.lead != null && now.lead < was.lead ? `leaders ${was.lead} → ${now.lead}` : null].filter(Boolean);
     const dt = fmtDate(d, { day: 'numeric', month: 'short' });
-    const sum = `· ${dt} · ${pl(at.neufs.length, 'neuf')}${RV0.length ? ` · ${RV0.length} ${escH(AC.reveil_label.toLowerCase())}` : ''} · ${pl(at.chauds.length, 'chaud')}` +
-      (!actOpen && alert ? ` · <span class="w">⚠ ${escH(ph.name)}</span>` : '') + (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
+    // bloc « Leaders actifs » (02/11/2026, ancien « Groupes actifs ») : la section Réveil (en double avec Convergence des 9M) et
+    // l'alerte « phase avec groupes chauds » (réfutée : −0,2 % sur 65 épisodes 2008-2025) sont retirées ; chauds repliés (information)
+    const sum = `· ${dt} · ${pl(at.leaders.length, 'leader')} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
+      (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
     const head = `<div class="ahead">${dragH('act')}<button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
       `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
       (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
-        `<button type="button" class="go" data-actgo="1">${escH(AC.leaders_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+        `<button type="button" class="go" data-actgo="1" title="${escA(AC.go_tip)}">${escH(AC.go_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
     actSyms = at.leaders.map(r => r.s);
     if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
-    // la phase et ses setups sont dans le titre de la frise (une seule source) ; ici, seulement l'alerte qui concerne les groupes
-    const phl = alert ? `<div class="phl"><span class="alrt" title="${escA(AC.alert_text)}" tabindex="0">⚠ ${escH(ph.name)} avec ${pl(nHot, 'groupe')} chaud${nHot > 1 ? 's' : ''}</span></div>` : '';
     const trl = trend.length ? `<div class="atrend"><span class="note">Sur ${T} s</span>${trend.join('')}</div>` : '';
     const ago = n => n === 0 ? 'cette séance' : `${n} séance${n > 1 ? 's' : ''}`;
     // carte : nom, « thème », 9M du groupe (titres · part ; vert à partir de nine_share %, plein à partir de nine_intense %), leaders.
@@ -3346,16 +3347,16 @@
     // chauds : d'abord ceux qui ont le plus de titres en 9M, puis de leaders (« chaud » seul : pas d'avance mesurée, audit du 31/10/2026)
     const byLead = (a, b) => b.lead - a.lead || (a.g.k < b.g.k ? -1 : 1), by9 = (a, b) => ((n9(b) || {}).n || 0) - ((n9(a) || {}).n || 0) || byLead(a, b);
     const N = at.neufs.slice().sort(by9), C = at.chauds.slice().sort(by9), Cw = C.filter(x => x.lead > 0 || n9(x)).slice(0, AC.chauds_shown), rest = C.length - Cw.length;
-    // Réveil : 9M fort (nine_min titres, nine_share %) dans une industrie ni chaude ni neuve (+1,6 % sur 21 s, 14 ans sur 18)
-    const RV = RV0.slice().sort(by9);
-    const shown = N.concat(actZero ? C : Cw);
+    const shown = N.concat(actHot ? (actZero ? C : Cw) : []);
     const sec = (cls, lbl, arr, list) => arr.length ? `<div class="asec"><span class="etat ${cls}">${lbl} ${arr.length}</span></div><div class="agrid">${list.map(card).join('')}</div>` : '';
     const more = rest ? `<button type="button" class="amore" data-actzero="1" aria-expanded="${actZero}">${actZero ? 'Afficher moins' : `+ ${rest} autre${rest > 1 ? 's' : ''}`}</button>` : '';
-    const rvs = RV.length ? `<div class="asec"><span class="etat rv" title="${escA(AC.reveil_tip)}">${escH(AC.reveil_label)} ${RV.length}</span></div><div class="agrid">${RV.map(card).join('')}</div>` : '';
+    // chauds repliés par défaut : « chaud » seul n'a pas d'avance mesurée ; chaud + 9M fort = Thème qui dure, dans Convergence des 9M
+    const hot = C.length ? `<div class="asec"><button type="button" class="ahot" data-acthot="1" aria-expanded="${actHot}"><span class="car">${actHot ? '▾' : '▸'}</span>` +
+      `<span class="etat chaud">Chauds ${C.length}</span><small>${escH(AC.hot_note)}</small></button></div>` + (actHot ? `<div class="agrid">${(actZero ? C : Cw).map(card).join('')}</div>${more}` : '') : '';
     const leg = [N9 ? `<span><span class="n9">9M 3 · 12 %</span> titres en 9M sur ${AC.nine_window} séances · part du groupe ; <span class="n9 f">vert</span> dès ${AC.nine_min} titres et ${AC.nine_share} %, <span class="n9 i">plein</span> dès ${AC.nine_intense} %</span>` : '',
       'nombre = leaders · survol : détail'].filter(Boolean).join('');
-    box.innerHTML = head + phl + trl +
-      (at.day ? sec('neuf', 'Neufs', N, N) + rvs + sec('chaud', 'Chauds', C, actZero ? C : Cw) + more + (shown.length || RV.length ? `<div class="aleg">${leg}</div>` : '')
+    box.innerHTML = head + trl +
+      (at.day ? sec('neuf', 'Neufs', N, N) + hot + (shown.length ? `<div class="aleg">${leg}</div>` : '')
         : `<div class="note">Leaders disponibles sur les ${CFG.industries.leaders.list_sessions} dernières séances seulement.</div>`) +
       (at.day && !at.active.length ? '<div class="note">Aucun groupe neuf ou chaud à cette séance.</div>' : '');
   }
@@ -3863,7 +3864,7 @@
     th: { state: () => tvNav.lvl === 'act' && !actGrp, set: () => { goAct(null); }, unset: () => {} },   // thèmes chauds : leaders actifs
     // 9M à regarder / Thèmes 9M (31/10/2026) : ouvrent leur bloc et y mènent (pas d'état durable)
     bo9: { state: () => false, set: () => { boOpen = true; foldSet('bo', true); setTimeout(() => { const b = $('secBo'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
-    t9: { state: () => false, set: () => { actOpen = true; foldSet('act', true); setTimeout(() => { const b = $('secAct'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },
+    t9: { state: () => false, set: () => { zoneOpen = true; foldSet('zone', true); setTimeout(() => { const b = $('secMapRow'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 0); }, unset: () => {} },   // 02/11/2026 : vers Convergence des 9M
     rr: { state: () => tvNav.lvl === 'ind' && skEntries === 'rr', set: () => { goLevel('ind'); skEntries = 'rr'; }, unset: () => { skEntries = false; } },
     stk: { state: () => tvNav.lvl === skStkLvl && secSort.k === 'brd' && secSort.dir < 0,
            set: () => { skStkLvl = tvNav.lvl === 'stk' || tvNav.lvl === 'act' ? 'sec' : tvNav.lvl; goLevel(skStkLvl); sortLevel(skStkLvl, { k: 'brd', dir: -1 }); },
@@ -3876,7 +3877,7 @@
     if (was === id) { skMode = null; return; }             // case active touchée : retour au classement
     SK_ACT[id].set(); skMode = id;
   }
-  const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir les groupes et leurs 9M (Groupes actifs)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
+  const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir la Convergence des 9M (groupes et leurs 9M)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
@@ -4623,6 +4624,7 @@
     const b = e.target.closest('button'); if (!b) return;
     if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act', actOpen); renderSecKpis(); return; }
     if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
+    if (b.dataset.acthot != null) { actHot = !actHot; store.set('mm.acthot', actHot ? '1' : '0'); renderSecKpis(); return; }
     if (b.dataset.actcopy != null) { copyTickers(b, actSyms); return; }
     if (b.dataset.actg != null) goAct(tvNav.lvl === 'act' && actGrp === b.dataset.actg ? null : b.dataset.actg);
     else if (b.dataset.actind != null) goInd(b.dataset.actind);   // carte Réveil (ni chaude ni neuve) : les actions de l'industrie

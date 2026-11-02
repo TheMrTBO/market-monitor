@@ -346,17 +346,15 @@ def check():
     if len(set(names)) != len(names):
         errors.append("themes : noms en double")
     ac = load("display")["sectors"].get("actifs", {})
-    phase_keys = {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
     if not (all(isinstance(ac.get(k), int) and not isinstance(ac.get(k), bool) and ac[k] > 0
                 for k in ("fresh_sessions", "neuf_window", "old_sessions", "list_limit", "high_sessions", "chauds_shown", "trend_sessions",
                           "nine_window", "nine_min"))
             and 0 < ac.get("nine_share", 0) < ac.get("nine_intense", 0) <= 100
-            and set(ac.get("alert_phases", [])) <= phase_keys
             and ac["fresh_sessions"] + ac["neuf_window"] <= ld.get("list_sessions", 0)
-            and all(ac.get(k) for k in ("label", "leaders_label", "alert_text", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
+            and all(ac.get(k) for k in ("label", "leaders_label", "go_label", "go_tip", "hot_note", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
             and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
-        errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, alert_phases parmi les "
-                      "phases, fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
+        errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, "
+                      "fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
     if "th" in load("display")["sectors"]["kpis"]["tiles"] and not themes():
         errors.append("display.sectors.kpis : case « th » sans thème dans config/themes.toml")
     for key, ds in load("datasets")["datasets"].items():

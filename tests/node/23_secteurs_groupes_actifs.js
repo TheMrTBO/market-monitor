@@ -99,24 +99,28 @@ ok('groupes neufs = recalcul',(nNeufHtml?+nNeufHtml:0)===neufs.length,(nNeufHtml
 const nLead=act.filter(g=>(g.l[e]||0)>0).length, nZero=act.length-nLead;
 // retour UX du 27/10/2026 : tous les neufs, puis les chauds_shown chauds qui ont le plus de leaders ; le reste derrière « + N autres »
 const nNeufs=neufs.length, chW=act.filter(g=>!neufAt(g,e)&&(g.l[e]||0)>0).length, nShown=nNeufs+Math.min(AC.chauds_shown,chW), nRest=act.length-nShown;
-ok('cartes : tous les neufs, puis les '+AC.chauds_shown+' chauds qui ont le plus de leaders (« + N autres » pour le reste)',(box._h.match(/data-actg="/g)||[]).length===nShown&&(!nRest||new RegExp('data-actzero="1"[^>]*>\\+ '+nRest+' autre').test(box._h)),(box._h.match(/data-actg="/g)||[]).length+' / '+nShown+' (+'+nRest+')');
-if(nRest){actClick(A,{actzero:'1'});ok('« + N autres » : tous les groupes actifs',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===act.length);actClick(A,{actzero:'1'});}
+// 02/11/2026 : bloc « Leaders actifs » ; chauds repliés par défaut (« chaud » seul : pas d'avance mesurée)
+ok('cartes : tous les neufs ; chauds repliés derrière « Chauds N »',(box._h.match(/data-actg="/g)||[]).length===nNeufs&&(!chW||/data-acthot="1" aria-expanded="false"/.test(box._h))&&box._h.includes(AC.hot_note.slice(0,30)),(box._h.match(/data-actg="/g)||[]).length+' / '+nNeufs);
+if(chW){actClick(A,{acthot:'1'});
+  ok('déplier les chauds : les '+AC.chauds_shown+' qui ont le plus de leaders (« + N autres » pour le reste), choix mémorisé',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===nShown&&(!nRest||new RegExp('data-actzero="1"[^>]*>\\+ '+nRest+' autre').test(A.$('secAct')._h))&&ls['mm.acthot']==='1');
+  if(nRest){actClick(A,{actzero:'1'});ok('« + N autres » : tous les groupes actifs',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===act.length);actClick(A,{actzero:'1'});}
+  actClick(A,{acthot:'1'});}
 ok('ligne « Sur N s » : groupes chauds comparés à '+AC.trend_sessions+' séances avant',new RegExp('Sur '+AC.trend_sessions+' s').test(strip(box._h))&&/chauds \d+ → \d+/.test(strip(box._h)),strip(box._h).match(/Sur \d+ s.{0,80}/)?.[0]);
 // repli du bloc mémorisé ; replié, le titre garde le nombre de neufs et de chauds
 actClick(A,{actfold:'1'});
-ok('replier « Groupes actifs » : titre seul avec son résumé, choix mémorisé',!/data-actg="/.test(A.$('secAct')._h)&&new RegExp(nNeufs+' neufs? · ').test(strip(A.$('secAct')._h))&&ls['mm.fold.act']==='1',strip(A.$('secAct')._h).slice(0,120));
+ok('replier « Leaders actifs » : titre seul avec son résumé, choix mémorisé',!/data-actg="/.test(A.$('secAct')._h)&&new RegExp(nNeufs+' neufs? · ').test(strip(A.$('secAct')._h))&&ls['mm.fold.act']==='1',strip(A.$('secAct')._h).slice(0,120));
 actClick(A,{actfold:'1'});
-ok('déplier : cartes revenues',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===nShown&&ls['mm.fold.act']==='0');
+ok('déplier : cartes revenues',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===nNeufs&&ls['mm.fold.act']==='0');
+actClick(A,{acthot:'1'});
 const g0=act.find(g=>exp.some(([s,ii])=>g.kind==='ind'?IND.industries[ii].k===g.k:g.m.has(s)));
 actClick(A,{actg:g0.key});
 const expG=exp.filter(([s,ii])=>g0.kind==='ind'?IND.industries[ii].k===g0.k:g0.m.has(s));
 ok('toucher un groupe : seulement ses leaders, pastille du groupe pour revenir',rows(A).length===Math.min(lim,expG.length)&&rows(A).every(r=>expG.some(x=>x[0]===r.s))&&/data-actg="" class="on"/.test(A.$('secChips')._h),g0.k+' : '+rows(A).length);
 A.L.secChips.click({target:{closest:()=>({dataset:{actg:''}})}});
 ok('pastille ✕ : retour à tous les leaders actifs',rows(A).length===Math.min(lim,exp.length));
-// alerte : seulement si la phase du jour fait partie de alert_phases et qu'il y a des groupes chauds
-const alertShown=/class="alrt"/.test(box._h);
-const phaseKey=(CFG.phases.phase.find(p=>p.name===phaseName)||{}).key;
-ok('alerte « phase avec groupes chauds » cohérente avec la phase et la config',alertShown===(AC.alert_phases.includes(phaseKey)&&act.some(g=>hotAt(e).has(g.key))),phaseName+' · alerte '+alertShown);
+actClick(A,{acthot:'1'});
+// alerte « phase avec groupes chauds » retirée le 02/11/2026 (réfutée hors dépôt : −0,2 % sur 65 épisodes)
+ok('alerte « phase avec groupes chauds » retirée',!/class="alrt"/.test(A.$('secAct')._h)&&!('alert_phases' in AC));
 
 // --- case Thèmes chauds
 const th=kp(A).find(x=>x.k==='th'), thN=G.filter(g=>g.kind==='th').length, thHot=G.filter(g=>g.kind==='th'&&hotAt(e).has(g.key)).length;
@@ -153,12 +157,9 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     `breakouts:${JSON.stringify({[prev]:[[pick[0],5,1e7,1.2]],[d]:pick.slice(1).map(s=>[s,5,1e7,1.2])})}};`;
   const lsR={'mm.secview':'tv','mm.zoneview':'map'}, R9=boot(lsR,{after:files+tv}); tab(R9);
   const h=R9.$('secAct')._h, share=Math.round(100*AC.nine_min/cand.g.n);
-  ok('Réveil : industrie ni chaude ni neuve à '+AC.nine_min+' titres en 9M sur '+AC.nine_window+' séances (≥ '+AC.nine_share+' %)',
-     new RegExp(AC.reveil_label+' \\d+').test(strip(h))&&h.includes(`data-actind="${cand.g.k.replace(/&/g,'&amp;')}"`),strip(h).slice(0,160));
-  ok('carte : marque « 9M n · part % » (vert dès nine_share, plein dès nine_intense)',new RegExp(`class="n9 ${share>=AC.nine_intense?'i':'f'}">9M ${AC.nine_min} · ${share} %`).test(h),share+' %');
-  ok('résumé : nombre de réveils',new RegExp('\\d+ '+AC.reveil_label.toLowerCase()).test(strip(h)));
-  actClick(R9,{actind:cand.g.k});
-  ok('toucher une carte Réveil : les actions de l\'industrie dans le Classement',JSON.parse(lsR['mm.tvnav']).lvl==='stk'&&JSON.parse(lsR['mm.tvnav']).ind===cand.g.k,lsR['mm.tvnav']);
+  ok('Réveil : plus dans « Leaders actifs » (en double), dans Convergence des 9M',!new RegExp(AC.reveil_label+' \\d+').test(strip(h))&&!h.includes(`data-actind="${cand.g.k.replace(/&/g,'&amp;')}"`)
+     &&R9.$('secMap')._h.includes(`data-mapsel="i:${cand.g.k.replace(/&/g,'&amp;')}"`),strip(h).slice(0,160));
+  ok('résumé : nombre de leaders, de neufs et de chauds',new RegExp('\\d+ leaders? · \\d+ neufs? · \\d+ chauds?').test(strip(h)),strip(h).slice(0,100));
   ok('Groupes actifs : bouton Copier des leaders actifs (01/11/2026)',/data-actcopy="1"/.test(R9.$('secAct')._h));
   ok('bulle : 9M et Réveil expliqués (config)',tip(R9,'act:neuf').includes(AC.reveil_label)&&tip(R9,'act:neuf').includes(AC.nine_tip.slice(0,30)));
   // --- carte des thèmes (31/10/2026) : même séance, points = industries classées, l'industrie Réveil en vert
@@ -185,8 +186,8 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   days[e-1]=[[pick[0],ii]]; days[e]=pick.slice(1).map(s=>[s,ii]);
   const P9=boot({'mm.secview':'tv','mm.zoneview':'map'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};`}); tab(P9);
   const hp=P9.$('secAct')._h;
-  ok('9M depuis l\'historique du robot (sans liste TradingView) : même Réveil et même marque',new RegExp(AC.reveil_label+' \\d+').test(strip(hp))&&hp.includes(`data-actind="${kE}"`)
-     &&new RegExp(`class="n9 ${share>=AC.nine_intense?'i':'f'}">9M ${AC.nine_min} · ${share} %`).test(hp)&&P9.$('secMap').hidden===false);
+  ok('9M depuis l\'historique du robot (sans liste TradingView) : même Réveil, sur la carte de Convergence des 9M (plus dans Leaders actifs)',!hp.includes(`data-actind="${kE}"`)
+     &&P9.$('secMap')._h.includes(`data-mapsel="i:${kE}"`)&&P9.$('secMap').hidden===false);
   const P0=boot({'mm.secview':'tv','mm.zoneview':'map'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:Array.from({length:N},()=>[])})};`}); tab(P0);
   ok('historique sans aucun 9M : pas de Réveil, carte affichée',!new RegExp(AC.reveil_label+' \\d').test(strip(P0.$('secAct')._h))&&P0.$('secMap').hidden===false);
   // --- lecture de la carte (01/11/2026) : titres d'axes, ligne de lecture, flèche de sens, axe des 9M (log par défaut)
