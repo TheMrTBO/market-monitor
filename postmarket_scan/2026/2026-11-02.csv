@@ -1,0 +1,18 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:ADEA,ADEA,Adeia Inc.,Technology Services,Packaged Software,20.67,-3.59,17.3,-16.3,329701,0.28,2279490785,107064566,bmo
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:AEHR,AEHR,Aehr Test Systems,Electronic Technology,Electronic Production Equipment,51.47,-6.23,55.91,8.63,233992,0.09,1680986808,31068688,
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:AEIS,AEIS,"Advanced Energy Industries, Inc.",Electronic Technology,Electronic Production Equipment,217.19,-2.19,236.46,8.87,112054,0.17,8698555345,39679533,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:BLZE,BLZE,"Backblaze, Inc. Class A",Electronic Technology,Computer Peripherals,7.4,-2.5,9.11,23.11,279350,0.11,458060020,58570832,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:BMRN,BMRN,BioMarin Pharmaceutical Inc.,Health Technology,Biotechnology,57.44,-1.83,54.7922,-4.61,504888,0.24,11118876511,191080379,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:HLIT,HLIT,Harmonic Inc.,Electronic Technology,Telecommunications Equipment,10.19,-0.39,12.1507,19.24,350754,0.22,1111387018,107066165,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:LIFE,LIFE,Ethos Technologies Inc. Class A,Technology Services,Packaged Software,42.62,-1.77,44.49,4.39,100087,0.08,2769617645,16695971,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:LSCC,LSCC,Lattice Semiconductor Corporation,Electronic Technology,Semiconductors,95.44,2.66,102.01,6.88,696172,0.37,13555368018,140849446,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:RMNI,RMNI,Rimini Street Inc Class A,Technology Services,Information Technology Services,4.88,-1.61,5.22,6.97,104375,0.24,452356479,47514208,
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:TVTX,TVTX,"Travere Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,49.26,-2.24,45.99,-6.64,261321,0.15,4643300640,91475495,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:UPWK,UPWK,"Upwork, Inc.",Commercial Services,Personnel Services,9.72,6.23,10.75,10.6,974806,0.31,1214060667,118385061,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NASDAQ:VRTX,VRTX,Vertex Pharmaceuticals Incorporated,Health Technology,Pharmaceuticals: Major,553.15,-1.03,579.98,4.85,360726,0.26,140201910362,252881588,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.95,11.85,10.37,-5.3,240448,0.24,991359525,26541431,
+2026-11-02,2026-11-02T21:22:40+00:00,false,NYSE:DT,DT,"Dynatrace, Inc.",Technology Services,Packaged Software,55.13,-4.44,57.8597,4.95,1187560,0.18,15932687390,286733623,
+2026-11-02,2026-11-02T21:22:40+00:00,false,NYSE:EBS,EBS,Emergent BioSolutions Inc.,Health Technology,Pharmaceuticals: Major,6.44,-5.43,6.1,-5.28,127243,0.12,330200271,48214898,amc
+2026-11-02,2026-11-02T21:22:40+00:00,false,NYSE:PHIN,PHIN,PHINIA Inc.,Producer Manufacturing,Auto Parts: OEM,70.79,12.51,73.93,4.44,101847,0.26,2545585847,35225169,
+2026-11-02,2026-11-02T21:22:40+00:00,false,OTC:HWLDF,HWLDF,H World Group Limited,Consumer Services,Hotels/Resorts/Cruise lines,4.235,-0.35,4.8364,14.2,1681500,,12795102261,1835662530,
