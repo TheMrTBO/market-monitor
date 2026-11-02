@@ -147,6 +147,6 @@ if(bad) console.log('Error : '+bad+' contrôle(s) en échec');// --- cases par d
 { const D=boot({},{tiles:false}); tab(D); view(D,'tv');
   const ks=[...D.$('secKpis')._h.matchAll(/data-sk="([^"]+)"/g)].map(m=>m[1]);
   ok('cases par défaut : '+D.sb.MM_CONFIG.sectors.kpis.tiles.join(', ')+' (9M à regarder masquée sans liste 9M)',ks.join(',')==='ind,rot,t9'&&!/data-sk="(sec|rr|stk|th)"/.test(D.$('secKpis')._h),ks.join(','));
-  ok('Thèmes 9M sans liste 9M : « pas de liste 9M »',/Thèmes 9M[\s\S]*pas de liste 9M/.test(strip(D.$('secKpis')._h)));
+  ok('Groupes en convergence sans liste 9M : « pas de liste 9M »',/Groupes en convergence[\s\S]*pas de liste 9M/.test(strip(D.$('secKpis')._h)));
   ok('Thèmes 9M sans liste : ni repère « plus haut 3 mois » ni jauge',!/data-sk="t9"[\s\S]*?kban/.test(D.$('secKpis')._h.split('data-sk="t9"').slice(1).join('').split('<div class="kpi')[0]||'')); }
 

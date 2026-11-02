@@ -44,9 +44,10 @@ COLUMNS = ["date", "t2108", "n", "up4", "down4"]   # n = actions avec clôture e
 # liste 9M +4 % : % du jour, volume, volume ÷ veille, clôture × volume ($) ; puis repères (31/10/2026) : pos = clôture dans la
 # bougie du jour (0 = plus bas, 100 = plus haut), rr = range du jour ÷ ADR TradingView (moyenne 14 j de plus haut − plus bas),
 # rp = range du jour ÷ range de la veille (en % du plus bas), w = performance de la semaine (Perf.W, %)
-BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol", "pos", "rr", "rp", "w"]
+# kind = s (action ordinaire), d (ADR), e (ETF ou autre fonds) ; ep = EP probable du soir (1 / 0, None sans moyenne de volume)
+BO_COLUMNS = ["ticker", "pct", "volume", "vol_ratio", "dvol", "pos", "rr", "rp", "w", "kind", "ep"]
 SCAN_COLS = ["close", f"SMA{CFG['sma']}", "subtype", "time", "current_session", "close[1]", "volume", "volume[1]", "name", "type", "exchange",
-             "high", "low", "high[1]", "low[1]", "ADR", "Perf.W"]
+             "high", "low", "high[1]", "low[1]", "ADR", "Perf.W", f"average_volume_{BO['ep_avg_sessions']}d_calc", "market_cap_basic"]
 
 
 def load_existing(path):
@@ -118,6 +119,29 @@ def marks(r):
     return [pos, rr, rp, round(w, 1) if w is not None else None]
 
 
+THEME_TICKERS = {t for th in mmconfig.themes() for t in th.get("tickers", [])}
+
+
+def kind(r):
+    """Type du titre de la liste 9M : s = action ordinaire, d = ADR, e = ETF ou autre fonds (bloc 9M : rangés à part, 02/11/2026)."""
+    return "d" if r.get("type") == "dr" else "e" if r.get("type") == "fund" else "s"
+
+
+def ep_evening(r, pct):
+    """EP probable du soir (02/11/2026), même règle que le repère 4 du matin (fetch_industries.nine) : hausse ≥ ep_pct %, volume ≥
+    ep_vol_mult × la moyenne des séances d'avant, clôture ≥ ep_min_price ; la moyenne TradingView (ep_avg_sessions séances) compte le
+    jour même : retirée. Actions ordinaires seulement, capitalisation ≥ ep_min_cap sauf titres des thèmes suivis (choix du 02/11).
+    Vérifié sur le 30/10/2026 : mêmes EP que le calcul du lendemain matin (GPN, FMC). None si la moyenne manque."""
+    a, v, c, cap, n = r.get(f"average_volume_{BO['ep_avg_sessions']}d_calc"), r.get("volume"), r.get("close"), r.get("market_cap_basic"), BO["ep_avg_sessions"]
+    if not common(r):
+        return 0
+    if None in (a, v, c) or a <= 0 or n * a <= v:
+        return None
+    before = (n * a - v) / (n - 1)
+    return int(pct >= BO["ep_pct"] and v >= BO["ep_vol_mult"] * before and c >= BO["ep_min_price"]
+               and ((cap or 0) >= BO["ep_min_cap"] or r.get("name") in THEME_TICKERS))
+
+
 def breakouts(items):
     """Liste 9M +4 % d'un relevé (formule TC2000 de l'utilisateur, seuils dans [tv_breadth.breakouts]) : lignes BO_COLUMNS,
     du plus fort volume en dollars au plus faible (sort = "dvol") ou de la plus forte hausse (sort = "pct"). Titres sans clôture,
@@ -130,7 +154,8 @@ def breakouts(items):
             continue
         if (c / c1 >= (100 + BO["pct"]) / 100 and v > BO["min_volume"] and (v > v1 or not BO["volume_up"])
                 and c > BO["min_price"]):
-            out.append([sym, round(100 * (c / c1 - 1), 2), int(v), round(v / v1, 2) if v1 > 0 else None, int(round(c * v)), *marks(r)])
+            pct = round(100 * (c / c1 - 1), 2)
+            out.append([sym, pct, int(v), round(v / v1, 2) if v1 > 0 else None, int(round(c * v)), *marks(r), kind(r), ep_evening(r, pct)])
     return sorted(out, key=lambda x: (-x[4], x[0]) if BO["sort"] == "dvol" else (-x[1], x[0]))
 
 

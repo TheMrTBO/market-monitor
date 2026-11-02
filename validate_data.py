@@ -150,7 +150,8 @@ def check_tv_breadth(data, today):
     bad_mark = lambda x: len(x) > 5 and (
         (x[5] is not None and (not isinstance(x[5], int) or not 0 <= x[5] <= 100))
         or any(len(x) > i and x[i] is not None and (not num(x[i]) or x[i] < 0) for i in (6, 7))
-        or (len(x) > 8 and x[8] is not None and not num(x[8])))
+        or (len(x) > 8 and x[8] is not None and not num(x[8]))
+        or (len(x) > 9 and x[9] not in ("s", "d", "e")) or (len(x) > 10 and x[10] not in (0, 1, None)))   # type et EP du soir (02/11/2026)
     bad_bo = [d for d, lst in bo.items() if not isinstance(lst, list) or any(
         not isinstance(x, list) or len(x) < 3 or not isinstance(x[0], str) or not x[0]
         or not isinstance(x[1], (int, float)) or x[1] < 0 or not isinstance(x[2], int) or x[2] < 0

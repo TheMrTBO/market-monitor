@@ -65,7 +65,7 @@ A.L.dPick.change({target:{value:last}});
 
 // --- ★ : tous les leaders de la séance dans la liste → autant d'étoiles que de « Leaders actifs (N) » (groupes neufs ou chauds)
 const C=boot({'mm.secview':'tv'},{after:tvb({[last]:D0.map(([s],i)=>[s,30-i/100,9e6,1.2])})}); tab(C); boClick(C,{boall:'1'});
-const nAct=+((C.$('secAct')._h.match(/data-actgo="1"[^>]*>[^(]*\((\d+)\)/)||[])[1]);
+const nAct=+((strip(C.$('secAct')._h).match(/(\d+) leaders? ·/)||[])[1]);
 const nStar=(C.$('secBo')._h.match(/class="bochip lead"/g)||[]).length;
 ok('★ = leaders actifs de la séance (même compte que le bloc Leaders actifs)',nAct>0&&nStar===nAct&&strip(C.$('secBo')._h).includes(`★ ${nAct} leader`),`${nStar} / ${nAct}`);
 
@@ -109,6 +109,14 @@ boClick(M,{boweak:'1'}); h=M.$('secBo')._h;
 ok('« Voir les 2 » : le couloir faible se déplie, sur toute la largeur',/data-bos="CCC"/.test(lane(2))&&/data-bos="DDD"/.test(lane(2))&&strip(lane(2)).includes('Replier')&&h.includes('class="bolane l2 open"'));
 const kpi=strip((M.$('secKpis')._h.match(/data-sk="bo9"[\s\S]*?(?=<div class="kpi|$)/)||[''])[0]);
 ok('case « 9M à regarder » : bougies fortes pas étendues / liste de la séance, étendues dessous',kpi.includes('9M à regarder')&&kpi.includes('1 / 4')&&kpi.includes('1 étendu'),kpi.slice(0,90));
+// 02/11/2026 : type du titre (kind : s, d, e) et EP du soir (ep) publiés par le robot ; ETF et ADR à part dans le couloir faible
+{ const c11=[...cols9,'kind','ep'], L11={[evening]:[['EPS',12,3e7,2,4e8,P,BOC.candle_range_adr,BOC.candle_range_prev+0.1,1,'s',1],
+                                                 ['STK',5,2e7,1.5,2e8,P-1,2,2,1,'s',0],['ETX',5,2e7,1.5,1e8,P-1,2,2,1,'e',0],['DRX',5,2e7,1.5,9e7,P-1,2,2,1,'d',0]]};
+  L11[last]=L11[evening];
+  const K=boot({'mm.secview':'tv'},{after:`window.TV_BREADTH={columns:['date','t2108','n','up4','down4'],rows:[['${last}',50,5100,100,90]],asof:'${last}',bo_columns:${JSON.stringify(c11)},breakouts:${JSON.stringify(L11)}};`}); tab(K);
+  const hk=K.$('secBo')._h, l2=(hk.split('class="bolane l2')[1]||'').split('class="bolane')[0];
+  ok('EP du soir (colonne ep du relevé TradingView) : étiquette EP sans attendre le lendemain matin',new RegExp(`data-bos="EPS"[\\s\\S]*?botg ep">${BOC.marks_text.ep_tag}<`).test(hk));
+  ok('couloir faible : actions d\'abord, puis « '+BOC.etf_label+' » à part (rien de retiré)',/STK/.test(strip(l2))&&new RegExp(BOC.etf_label+'</b> : ETX, DRX').test(l2)&&strip(l2).indexOf('STK')<strip(l2).indexOf('ETX'),strip(l2).slice(0,120)); }
 // historique maison (01/11/2026) : industries_data.js nine, repères 1 = bougie forte, 2 = étendu ; séance sans liste TradingView
 { const TT=M.sb.MM_CONFIG.sectors.kpis.tiles_text, nD=M.sb.INDUSTRIES.dates.length, dd=Array.from({length:nD},()=>[]);
   dd[nD-2]=[['AAA',0,1],['BBB',0,3],['CCC',0],['DDD',0,1]];

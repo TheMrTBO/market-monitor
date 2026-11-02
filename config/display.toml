@@ -46,7 +46,7 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 # de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
 tiles = ["ind", "rot", "bo9", "t9"]   # audit du 31/10/2026 : 6 → 4 cases (avant : "sec", "ind", "rot", "rr", "stk", "th") ;
-tiles_text = { bo9 = "9M à regarder", bo9_none = "pas de repères pour cette séance", bo9_ext = ["étendu", "étendus"], bo9_kw = "bougie forte", bo9_own = "actions retenues, calcul maison", t9 = "Thèmes 9M", t9_none = "pas de liste 9M", t9_loading = "chargement…", t9_sub = "dont {n} {r}", t9_kw = "{k} titres et {p} % en {w} s" }   # cases 9M (01/11/2026)
+tiles_text = { bo9 = "9M à regarder", bo9_none = "pas de repères pour cette séance", bo9_ext = ["étendu", "étendus"], bo9_kw = "bougie forte", bo9_own = "actions retenues, calcul maison", t9 = "Groupes en convergence", t9_none = "pas de liste 9M", t9_loading = "chargement…", t9_sub = "dont {n} en {r}", t9_kw = "{k} titres et {p} % en {w} s" }   # cases 9M (01/11/2026)
 # secteurs, actions TI65 > 1 : même mesure que les industries ; ratio de rotation : mêmes entrées / sorties que « rot » ; thèmes
 # chauds : « chaud » seul sans avance mesurée. bo9 : 9M à regarder (bougie forte pas étendue) ; t9 : Thèmes 9M (sectors.actifs nine_*)
 # th (thèmes chauds de config/themes.toml, 27/10/2026), sec, rr, stk : toujours disponibles en les remettant dans la liste
@@ -122,11 +122,12 @@ empty = "Aucune industrie en zone Réveil, thème qui dure ou neuve, ni avec 2 t
 # verif_grille_dynamique.txt, verif_2026_hors_echantillon.txt) : groupes affichés +1,4 % sur 21 s (13 ans / 18) ; convergence =
 # dérive sur 21-42 séances, pas un déclencheur à 5 j ; 73 % des séances sans changement de la liste.
 grid_sessions = 20            # cases par ligne : titres du groupe en 9M à chaque séance (historique nine de industries_data.js)
-grid_legend = "case = titres du groupe en 9M ce jour-là ({n} séances ; point vert = EP probable) · barre = rang TI65, zone verte sous {low} = délaissée · ▲ bougie forte · toucher une ligne : détail et point sur la carte"
+grid_legend = "case = titres du groupe en 9M ce jour-là ({n} séances ; point cerclé de cyan = EP probable) · barre = rang TI65, zone violette sous {low} = délaissée · ▲ bougie forte · toucher une ligne : détail et point sur la carte"
 howto = "Où les 9M s'accumulent : leurs titres en 9M = ta liste à surveiller (dérive sur 21-42 séances, pas un signal d'entrée). Ordre selon la phase, puis nombre de 9M."
 rows_max = 8                  # groupes affichés avant « + N autres groupes » (limite de la maquette : coupe 4 % des séances, 2008-2025)
 row_tickers = 5               # titres en 9M montrés sur la ligne (tous dans le détail)
 in9 = "en 9M"
+groups_word = ["groupe", "groupes"]   # un groupe = une industrie TradingView ou un thème suivi
 more_rows = "+ {n} autres groupes"
 less_rows = "Afficher moins"
 copy_zone = "Copier {z}"
@@ -143,12 +144,13 @@ view_map = "Carte"
 # « Titre : texte » ; {k} = nine_min, {w} = nine_window, {s} = nine_share, {low} = low_rank, {n} = grid_sessions, {m} = moves_sessions,
 # {r} = rows_max, {g} = gone_sessions, {p} = rank_up_pts, {q} = rank_up_sessions
 help = [
+  "Groupe : une industrie TradingView ou un thème de ta liste suivie (panier de titres). Un même titre peut être dans les deux.",
   "À quoi sert ce bloc : chaque matin tu passes les 9M en revue sur TC2000. Ce bloc garde leur historique et les range par groupe (industrie TradingView ou thème de ta liste suivie) pour montrer où ils s'accumulent : ce que la tête ne peut pas retenir d'un jour à l'autre.",
   "Quand un groupe apparaît : au moins {k} de ses titres en 9M sur les {w} dernières séances, et au moins {s} % de ses membres (« 9M fort »). Il sort quand ce n'est plus vrai.",
   "Les zones : Réveil = 9M fort sans que le groupe soit chaud (la demande arrive avant la tendance) ; Réveil délaissée = la même chose avec un rang TI65 sous {low} ; Thème qui dure = 9M fort dans un groupe déjà chaud ; Neuf = grappe de leaders apparue récemment.",
   "L'ordre, en 4 clés : 1) la zone, dans l'ordre de la phase de la séance (Expansion A, B, C ou chaude : Thème qui dure, Réveil, Neuf ; Contraction, Lessivage, Reprise, Surchauffe, Choc : Réveil, Thème qui dure, Neuf) ; 2) dans la zone Réveil, les délaissées (rang TI65 sous {low}) d'abord, sauf en Expansion A, B ou C où l'étiquette n'a pas tenu ; 3) le nombre de titres distincts en 9M sur {w} séances ; 4) à égalité, la part du groupe en 9M. Au plus {r} groupes, puis « + N autres groupes » ; les groupes sortis viennent en dernier, grisés, du plus récent au plus ancien. Le nombre classe mieux que la part (tests 2008-2025 : 3 premières lignes +1,6 % sur 21 s contre +1,4 %), mais l'écart entre lignes reste faible : c'est un ordre de lecture, pas un classement d'achat.",
-  "Lire une ligne : la barre = rang TI65 du groupe parmi les industries (0 le plus faible, 100 le plus fort ; zone verte sous {low} = délaissé) ; ↑ = rang d'au moins {low} qui gagne plus de {p} points en {q} séances ; « n / m en 9M » = titres en 9M sur {w} séances / membres ; les titres ▲ ont une bougie forte.",
-  "Les cases : une par séance sur {n} séances, avec le nombre de titres du groupe en 9M ce jour-là (plus la case est foncée, plus il y en a) ; un point vert = EP probable d'un titre du groupe. Une case qui se remplit séance après séance = convergence qui s'installe ; un seul jour plein = souvent une nouvelle commune.",
+  "Lire une ligne : la barre = rang TI65 du groupe parmi les industries (0 le plus faible, 100 le plus fort ; zone violette sous {low} = délaissé) ; ↑ = rang d'au moins {low} qui gagne plus de {p} points en {q} séances ; « n / m en 9M » = titres en 9M sur {w} séances / membres ; les titres ▲ ont une bougie forte.",
+  "Les cases : une par séance sur {n} séances, avec le nombre de titres du groupe en 9M ce jour-là (plus la case est foncée, plus il y en a) ; un point cerclé de cyan = EP probable d'un titre du groupe. Une case qui se remplit séance après séance = convergence qui s'installe ; un seul jour plein = souvent une nouvelle commune.",
   "Entrées et sorties : « Sur {m} séances » liste les groupes entrés et sortis. Un groupe sorti reste grisé {g} séances : près d'un sur deux revient sous 20 séances.",
   "Ce que ça vaut : tests 2008-2025 (indice du groupe sur 21 séances face aux autres industries, à élan égal) : groupes affichés +1,4 % (13 années sur 18) ; Réveil délaissée +2,8 % ; Thème qui dure +0,7 %, instable. C'est une dérive sur 1 à 2 mois, pas un signal d'entrée : l'entrée reste la bougie forte + 9M du titre (bloc Breakouts 9M).",
   "Toucher une ligne : son détail s'ouvre juste dessous (âge de la grappe, concentration, panier, thèmes ETF, courbe 12 mois, tous les titres). Carte : les mêmes groupes en 2D."
@@ -167,6 +169,7 @@ rank_up_pts = 5
 rank_up_tip = "Rang TI65 au-dessus de {low} qui a gagné plus de {p} points en {s} séances : le seul cas où la remontée du rang ajoute (tests 2008-2025, verif_grille_dynamique : +1,3 % sur 21 s contre 0 % au même rang stable ; pour une délaissée, la remontée n'ajoute rien)."
 moves_sessions = 5            # ligne « Sur n séances » : groupes entrés dans les zones et sortis
 moves_label = "Sur {n} séances"
+moves_names = 3               # noms montrés par ligne avant « +N » (tous au survol)
 moves_in = "entrés {n} :"
 moves_out = "sortis {n} :"
 moves_none = "aucune entrée ni sortie"
@@ -250,7 +253,7 @@ title = "Calcul des cases"
 text = [
   "Une case : le nombre de titres du groupe dans la liste 9M de ce jour-là. 9M = ton scan TC2000 : clôture au moins {pct} % au-dessus de la veille, volume au-dessus de {vol} M et de celui de la veille, clôture au-dessus de {price} $. Refait chaque matin sur les cours du site (actions retenues).",
   "Couleur : pâle 1 titre, moyen 2, foncé 3 et plus ; case vide = aucun titre ; pointillés = pas d'historique.",
-  "Point vert : EP probable d'un titre du groupe : hausse d'au moins {ep} % et volume d'au moins {em} fois la moyenne des {es} séances d'avant (repérée le lendemain matin).",
+  "Point cerclé de cyan : EP probable d'un titre du groupe : hausse d'au moins {ep} % et volume d'au moins {em} fois la moyenne des {es} séances d'avant (repérée le lendemain matin).",
   "Lecture : des cases qui se remplissent séance après séance = une convergence qui s'installe ; une seule case pleine = souvent une nouvelle commune (rachat, résultats).",
   "Toucher une case : la liste des titres de ce jour, avec leur bougie."
 ]
@@ -258,7 +261,7 @@ text = [
 title = "Calcul du rang TI65"
 text = [
   "Calcul : indice équipondéré des titres retenus du groupe ; TI65 = moyenne des 7 dernières clôtures de l'indice ÷ moyenne des 65 ; rang = place parmi les industries classées, de 0 (la plus faible) à 100 (la plus forte). Un thème suivi est placé parmi les industries.",
-  "Zone verte : rang sous {low} = groupe délaissé.",
+  "Zone violette : rang sous {low} = groupe délaissé (couleur de la zone Réveil délaissée).",
   "↑ : rang d'au moins {low} qui a gagné plus de {p} points en {q} séances : +1,3 % sur 21 séances contre 0 % pour un rang stable (2008-2025). Pour une délaissée, la remontée n'ajoute rien."
 ]
 [sectors.map.board.tips.detail]
@@ -270,6 +273,24 @@ text = [
   "« Le même jour » : tous ses 9M sont partis la même séance, souvent une nouvelle commune plutôt qu'un thème.",
   "Thèmes 9M : thèmes des ETF thématiques qui détiennent ces titres (déclarations à la SEC).",
   "Pastilles et courbe : une pastille par membre, pleine s'il est en 9M sur {w} séances ; courbe = part du groupe en 9M sur 12 mois, pointillé à {s} %."
+]
+
+[sectors.now]
+# « Ce matin » (02/11/2026, audit UX) : sous la frise, ce que la page croise déjà. 9M à bougie forte pas étendus de la liste du jour
+# (couloir « À regarder ») : EP probable d'abord, puis ceux d'un groupe en convergence, puis les autres ; puis les groupes de la
+# première zone de la phase (comme la grille). Le croisement EP × groupe n'est pas testé à part : une information, pas un tri prouvé.
+label = "Ce matin"
+tickers = "9M à regarder ({d}) :"
+groups = "Groupes · {z} :"
+none = "aucune bougie forte pas étendue dans la liste du jour"
+tk_tip = "{s} : son graphique (le jour de la liste en pointillé)"
+max = 8
+groups_max = 4
+tip = [
+  "Ce que c'est : ce que la page croise déjà, en une carte. Les titres viennent du couloir « À regarder en premier » du bloc Breakouts 9M (bougie forte, pas encore étendus) ; les groupes, de la première zone de Convergence des 9M dans l'ordre de la phase.",
+  "Ordre des titres : EP probable d'abord, puis les titres d'un groupe en convergence (étiquette de la couleur de sa zone), puis les autres, chacun dans l'ordre TC2000 (volume en dollars).",
+  "Ce que ça vaut : bougie forte + 9M ×1,19 sur +8 % en 5 jours (18 années sur 18, 2008-2025) ; les groupes de la grille +1,4 % sur 21 séances. Le croisement EP × groupe n'est pas testé à part : c'est un ordre de lecture, pas un tri prouvé.",
+  "Toucher un titre : son graphique avec le jour de la liste en pointillé ; toucher un groupe : il s'ouvre dans la grille."
 ]
 
 [sectors.map.text]
@@ -370,8 +391,8 @@ reveil_tip = "9M fort (au moins 3 titres et 20 % du groupe en breakout 9M sur 10
 trend_sessions = 5            # ligne « Sur N s » : groupes chauds, neufs et leaders comparés à N séances avant (voir à temps qu'il faut lever le pied)
 label = "Leaders actifs"       # bloc (« Groupes actifs » jusqu'au 02/11/2026 : section Réveil en double avec Convergence des 9M, retirée)
 leaders_label = "Leaders actifs"
-go_label = "Classement"
-go_tip = "Ouvrir les leaders actifs dans le Classement : tableau, graphique et fiche"
+open_phases = ["exp_a", "exp_b", "exp_c", "hot"]   # Leaders actifs déplié par défaut dans ces phases (breakouts de leaders) ; replié ailleurs (02/11/2026)
+fold_note = "replié hors Expansion : les setups de la phase sont d'abord les EP"
 hot_note = "repliés : « chaud » seul n'a pas d'avance mesurée (−0,1 % sur 21 s) ; chaud + 9M fort = Thème qui dure, dans Convergence des 9M"
 neuf_tip = "Grappe de leaders (au moins 3 actions à +25 % sur 21 séances, 2 fois plus que le marché) ou moitié d'un panier de thème leader, sans signal dans les 42 séances d'avant. Signal le plus solide des tests (53 % devant le marché à 42 séances sur 2019-2026) : il dit où et quand, pas si le thème va marcher."
 # familles refuges (étiquette sur les groupes et les tickers) : pas de liste fixe qui tienne d'une contraction à l'autre (test 12)

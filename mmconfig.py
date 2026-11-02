@@ -70,7 +70,7 @@ def front_config():
         "colors": d["colors"], "chart_nine": d["chart_nine"], "ticker_popup": d["ticker_popup"],
         "etf_themes": {**{k: load("etf_themes")[k] for k in ("label", "tip", "row_label", "row_max")}, "file": step("etf_themes")["output"]},
         "sectors": {"groups": d["sectors"]["groups"], "views": d["sectors"]["views"], "group_tips": d["sectors"]["group_tips"],
-                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"],
+                    "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"], "now": d["sectors"]["now"],
                     "breakouts": load("sources")["tv_breadth"]["breakouts"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
         "ti65": d["ti65"],
@@ -202,7 +202,7 @@ def check():
             and "{d}" in bd.get("cell_tip", "") and "{n}" in bd.get("cell_tip", "") and "{s}" in bd.get("cell_ep", "") and "{d}" in bd.get("cell_none", "") and bd.get("cell_touch") and "{g}" in bd.get("day_title", "") and bd.get("day_loading") and bd.get("day_own")
             and "{r}" in bd.get("rank_tip", "") and bd.get("rank_up_tip") and "{n}" in bd.get("moves_label", "") and "{n}" in bd.get("moves_in", "")
             and "{n}" in bd.get("moves_out", "") and bd.get("moves_none") and bd.get("gone_note") and "{n}" in bd.get("gone_label", "")
-            and bd.get("theme_tag") and bd.get("theme_tip") and bd.get("howto") and ints("rows_max", "row_tickers") and bd.get("in9")
+            and bd.get("theme_tag") and bd.get("theme_tip") and bd.get("howto") and ints("rows_max", "row_tickers") and bd.get("in9") and ints("moves_names") and isinstance(bd.get("groups_word"), list) and len(bd["groups_word"]) == 2
             and "{n}" in bd.get("more_rows", "") and bd.get("less_rows") and "{z}" in bd.get("copy_zone", "") and bd.get("view_grid") and bd.get("view_map") and bd.get("view_tip")
             and isinstance(bd.get("help"), list) and bd["help"] and all(isinstance(x, str) and " : " in x for x in bd["help"])
             and all(bd.get(k) for k in ("gone_title", "first_label", "filter_label", "filter_all", "tip_cells", "tip_rank", "tips_phase_title"))
@@ -307,10 +307,15 @@ def check():
             and len(bo.get("lanes", [])) == 3 and len(bo.get("lanes_sub", [])) == 3 and bo.get("edge_note")):
         errors.append("sources.tv_breadth.breakouts : repères attendus (0 < candle_close_pct ≤ 100, candle_range_adr et candle_range_prev ≥ 0, "
                       "extended_pct > 0, repeat_min ≥ 1, 1 ≤ repeat_sessions ≤ keep_sessions, 3 lanes et 3 lanes_sub, edge_note)")
+    nw = load("display")["sectors"].get("now", {})
+    if not (all(nw.get(k) for k in ("label", "tickers", "groups", "none", "tk_tip")) and isinstance(nw.get("max"), int) and nw["max"] >= 1
+            and isinstance(nw.get("groups_max"), int) and nw["groups_max"] >= 1 and isinstance(nw.get("tip"), list) and nw["tip"] and bo.get("etf_label")):
+        errors.append("display.sectors.now : label, tickers, groups, none, tk_tip, max ≥ 1, groups_max ≥ 1, tip (paragraphes) attendus ; sources.tv_breadth.breakouts.etf_label")
     if not (bo.get("ep_pct", 0) > 0 and bo.get("ep_vol_mult", 0) > 0 and bo.get("ep_min_price", -1) >= 0
+            and bo.get("ep_avg_sessions") in (10, 30, 60, 90) and bo.get("ep_min_cap", -1) >= 0
             and isinstance(bo.get("ep_vol_sessions"), int) and 1 <= bo["ep_vol_sessions"] < load("industries")["output"]["sessions"]):
         errors.append("sources.tv_breadth.breakouts : EP attendu (ep_pct > 0, ep_vol_mult > 0, ep_min_price ≥ 0, "
-                      "1 ≤ ep_vol_sessions < industries.output.sessions)")
+                      "1 ≤ ep_vol_sessions < industries.output.sessions, ep_avg_sessions parmi 10 / 30 / 60 / 90, ep_min_cap ≥ 0)")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0
@@ -351,7 +356,8 @@ def check():
                           "nine_window", "nine_min"))
             and 0 < ac.get("nine_share", 0) < ac.get("nine_intense", 0) <= 100
             and ac["fresh_sessions"] + ac["neuf_window"] <= ld.get("list_sessions", 0)
-            and all(ac.get(k) for k in ("label", "leaders_label", "go_label", "go_tip", "hot_note", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
+            and all(ac.get(k) for k in ("label", "leaders_label", "fold_note", "hot_note", "neuf_tip", "nine_tip", "reveil_label", "reveil_tip"))
+            and isinstance(ac.get("open_phases"), list) and set(ac["open_phases"]) <= {x.get("key") for x in load("display").get("phases", {}).get("phase", [])}
             and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
         errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, "
                       "fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")

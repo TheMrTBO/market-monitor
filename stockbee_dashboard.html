@@ -18,18 +18,19 @@
     --t2108: #d4537e; --vix: #1b2230;                                 /* panneaux T2108 et VIX */
   }
   :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
-          --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px; }
+          --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px;
+          --zlo: #7c5cd6; --zrev: #64748b; }   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
   /* thème sombre : préférence du système, sauf si l'utilisateur force le clair (Réglages) ; ou forcé */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
   }
   :root[data-theme="dark"] { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
@@ -341,15 +342,27 @@
   .secmap table.g td.c[data-zday] { cursor: pointer; } .secmap table.g td.c[data-zday]:hover, .secmap table.g td.c[data-zday]:focus-visible { outline: 1.5px solid var(--text); outline-offset: -1px; }
   .secmap table.g td.c.on { outline: 2px solid var(--text); outline-offset: -1px; }
   .secmap .zdi.secbo .bogrid { margin-top: 6px; }
-  .secmap table.g td.c.ep::after { content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 1px var(--panel); }
+  .secmap table.g td.c.ep::after { content: ""; position: absolute; right: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: var(--text); box-shadow: 0 0 0 1.5px var(--c9m); }   /* EP : point contrasté cerclé de cyan (le cyan = 9M) */
   .secmap tr.zd > td { padding: 0 0 6px; } .secmap .zdi { padding: 10px 14px 12px; margin: 2px 0 6px; background: var(--panel2); border-radius: 8px; white-space: normal; text-align: left; }
   .secmap .zdi .mbr { cursor: default; padding-left: 0; padding-right: 0; }
   .secmap .zdh { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
   .secmap .zdh .mi-x { border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; min-width: 32px; min-height: 28px; }
   /* zones de la grille : couleur par zone (--zc), en-têtes, filtres (02/11/2026) */
+  /* « Ce matin » (02/11/2026) */
+  .secnow { display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; }
+  .secnow .nowh { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+  .secnow .nowl { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .secnow .nowk { font-size: 12px; color: var(--muted); margin-right: 4px; }
+  .secnow .nowt, .secnow .nowg { display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12.5px; padding: 3px 9px; min-height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); cursor: pointer; }
+  .secnow .nowt:hover, .secnow .nowg:hover, .secnow .nowt:focus-visible, .secnow .nowg:focus-visible { border-color: var(--faint); outline: none; }
+  .secnow .nowg { --zc: var(--zrev); } .secnow .nowg.z-lo { --zc: var(--zlo); } .secnow .nowg.z-both { --zc: var(--up); } .secnow .nowg.z-neuf { --zc: var(--warn); }
+  .secnow .nowg i { width: 8px; height: 8px; border-radius: 50%; background: var(--zc); }
+  .botg.cv.z-lo { --zc: var(--zlo); } .botg.cv.z-rev { --zc: var(--zrev); } .botg.cv.z-both { --zc: var(--up); } .botg.cv.z-neuf { --zc: var(--warn); }
+  .secbo .bofx { font-size: 11.5px; color: var(--muted); margin: 6px 0 2px; } .secbo .bomini.fx { margin-top: 4px; }
+  .secact-in { padding: 4px 0 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
   .secact .ahot { display: flex; align-items: center; gap: 8px; border: 0; background: none; font: inherit; color: var(--text); cursor: pointer; padding: 4px 0; min-height: 30px; text-align: left; }
   .secact .ahot small { color: var(--muted); font-size: 11.5px; }
-  .secmap .z-lo { --zc: var(--ok); } .secmap .z-rev { --zc: var(--g2); } .secmap .z-both { --zc: var(--up); } .secmap .z-neuf { --zc: var(--warn); } .secmap .z-gone { --zc: var(--faint); } .secmap .z-all { --zc: var(--text); }
+  .secmap .z-lo { --zc: var(--zlo); } .secmap .z-rev { --zc: var(--zrev); } .secmap .z-both { --zc: var(--up); } .secmap .z-neuf { --zc: var(--warn); } .secmap .z-gone { --zc: var(--faint); } .secmap .z-all { --zc: var(--text); }
   .secmap tr.zr td.n { box-shadow: inset 3px 0 0 var(--zc, transparent); padding-left: 9px; } .secmap tr.zr.on td.n { box-shadow: inset 3px 0 0 var(--zc), inset 0 0 0 9999px var(--panel2); }
   .secmap tr.zh td { padding: 12px 0 4px; } .secmap tr.zh:first-of-type td { padding-top: 4px; }
   .secmap .zhl { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 5px 8px; border-radius: 6px; background: color-mix(in srgb, var(--zc) 12%, transparent); }
@@ -367,16 +380,16 @@
   .secmap .zdh { margin-bottom: 2px; }
   .secmap .mbf { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0 4px; } .secmap .mbf .mbmore { border: 0; background: none; color: var(--up); font: inherit; font-size: 12px; cursor: pointer; padding: 4px 0; min-height: 28px; }
   .secmap .mb-rk { display: inline-flex; align-items: center; gap: 4px; cursor: help; white-space: nowrap; }
-  .secmap .mb-rk .rb { position: relative; width: 44px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--ok) 30%, transparent) var(--low), var(--neutralbg) var(--low)); }
+  .secmap .mb-rk .rb { position: relative; width: 44px; height: 5px; border-radius: 3px; background: linear-gradient(90deg, color-mix(in srgb, var(--zlo) 40%, transparent) var(--low), var(--neutralbg) var(--low)); }
   .secmap .mb-rk .rb i { position: absolute; top: -2px; width: 3px; height: 9px; margin-left: -1.5px; border-radius: 1px; background: var(--text); }
-  .secmap .mb-up { color: var(--ok); cursor: help; }
-  .secmap .mb-tt { font-size: 10px; font-weight: 600; padding: 0 5px; border-radius: 999px; background: var(--upbg); color: var(--up); cursor: help; }
+  .secmap .mb-up { color: var(--text); font-weight: 700; cursor: help; }
+  .secmap .mb-tt { font-size: 10px; font-weight: 600; padding: 0 5px; border-radius: 999px; border: 1px solid var(--border); color: var(--muted); cursor: help; }
   .secmap .mb-g { font-weight: 600; color: var(--muted); }
   .secmap .mbr.gone { opacity: .5; } .secmap i.mk.gone { background: none; border: 1.5px solid var(--faint); box-sizing: border-box; }
   .secmap .mbr.th { cursor: default; }
   .secmap .mbm { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; line-height: 1.5; color: var(--muted); margin-bottom: 14px; padding: 8px 10px; background: var(--panel2); border-radius: 8px; } .secmap .mbm .mbm-t { color: var(--text); font-weight: 600; }
   .secmap .mbm b { color: var(--text); font-weight: 600; }
-  .botg.ep { color: var(--text); background: color-mix(in srgb, var(--c9m) 30%, transparent); } .botg.cv { color: var(--ok); background: color-mix(in srgb, var(--ok) 14%, transparent); max-width: 130px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; }
+  .botg.ep { color: var(--text); background: color-mix(in srgb, var(--c9m) 30%, transparent); box-shadow: inset 0 0 0 1px var(--c9m); } .botg.cv { color: var(--text); background: color-mix(in srgb, var(--zc, var(--zrev)) 22%, transparent); border-left: 3px solid var(--zc, var(--zrev)); max-width: 130px; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: bottom; }
   /* carte des thèmes = vue du bloc Convergence des 9M (bascule Grille / Carte) : les deux cartes n'en font qu'une */
   .maprow.joined { flex-direction: column; gap: 0; } .maprow.joined > #secZone { border-bottom: 0; border-radius: var(--r) var(--r) 0 0; padding-bottom: 4px; }
   .maprow.joined > #secMap { border-top: 0; border-radius: 0 0 var(--r) var(--r); padding-top: 0; }
@@ -1052,9 +1065,9 @@
     <div class="secfrise" id="secFrise" hidden>
       <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
+    <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
-    <div class="card secact" id="secAct" role="region" aria-label="Groupes actifs" hidden></div>
     <div class="maprow" id="secMapRow" hidden>
       <div class="card secact secmap seczone" id="secZone" role="region" aria-label="Convergence des 9M" hidden></div>
       <div class="card secact secmap" id="secMap" role="region" aria-label="Carte des thèmes" hidden></div>
@@ -1066,6 +1079,7 @@
           <span class="viewbox" hidden><span class="seg sm" id="secView" role="group" aria-label="Liste classée"></span><button class="tipbtn" data-tip="secview" aria-label="Explication : ETF ou TradingView" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></button></span>
           <span class="secmeta" id="secMeta"></span>
         </div>
+        <div class="secact secact-in" id="secAct" role="region" aria-label="Leaders actifs" hidden></div>
         <div class="secfilt" id="secFilt" role="group" aria-label="Filtrer par groupe"></div>
         <div class="secfilt" id="secChips" role="group" aria-label="Filtres" hidden></div>
         <div class="secadr" id="secAdr" hidden><label>ADR <span id="adrN"></span> &gt; <input id="adrMin" type="number" min="0" inputmode="decimal" placeholder="0"> %</label>
@@ -3105,7 +3119,7 @@
   //   leaders actifs = leaders des groupes neufs ou chauds (pionniers retirés le 31/10/2026 : pas d'avance mesurée, test 8).
   // Information, pas un signal d'achat : le document d'analyse (tests 5 à 16) dit ce que chaque état a valu sur 2019-2026.
   const AC = CFG.sectors.actifs;
-  let actHot = store.get('mm.acthot') === '1';          // Leaders actifs : groupes chauds dépliés (repliés par défaut, 02/11/2026)
+  let actHot = store.get('mm.acthot') === '1', actFam = 'def';   // actFam : famille de phases du dépliage de Leaders actifs (exp / def)          // Leaders actifs : groupes chauds dépliés (repliés par défaut, 02/11/2026)
   let ACD = null, actGrp = null, actAll = false, actZero = false, secShownSyms = [], actSyms = [];   // actSyms : leaders actifs (bouton Copier)   // actZero : groupes chauds sans leader dépliés
   function actData() {
     if (!IND || !IND.leaders || !Array.isArray(IND.themes) || !IND.industries.every(x => Array.isArray(x.l) && typeof x.g === 'string')) return null;
@@ -3277,7 +3291,7 @@
   // ordre des blocs sous la frise (exception au gel du 27/10/2026) : choisi par glisser-déposer, mémorisé (mm.secorder) ; par
   // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
   // ordre par défaut = HTML ; Breakouts 9M avant Groupes actifs depuis le 31/10/2026 (seul bloc à l'avance mesurée, audit de l'onglet)
-  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', act: 'secAct', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : carte des thèmes (31/10/2026)
+  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : Convergence des 9M ; Leaders actifs dans le Classement (02/11/2026)
   const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Leaders actifs', bo: 'Breakouts 9M +4 %', map: 'Convergence des 9M', list: 'Classement' };
   let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
   const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
@@ -3299,8 +3313,12 @@
     // « je vois trop tard que je dois lever le pied ») : une ligne d'état, une ligne « Sur N s » qui montre ce qui se dégrade, des
     // cartes d'une ligne (nom, signes, leaders) ; définitions et détails dans les bulles ⓘ et au survol
     const box = $('secAct'); if (!box) return;
-    const at = IND ? actAt(e) : null; box.hidden = !at; if (!at) return;   // aussi au niveau ETF : le haut de page ne bouge pas
+    // 02/11/2026 : dans la carte du Classement, au niveau Leaders actifs seulement ; déplié par défaut dans les phases où les
+    // breakouts de leaders sont les setups (open_phases), replié ailleurs ; un choix à la main est gardé par famille de phases
+    const at = IND ? actAt(e) : null; box.hidden = !at || secView !== 'tv' || tvNav.lvl !== 'act'; if (box.hidden) return;
     const d = IND.dates[e], pi = phaseIdx(d), P = pi >= 0 ? PHASES[pi] : null, ph = P ? PHK[P.k] : null;
+    actFam = P && AC.open_phases.includes(P.k) ? 'exp' : 'def';
+    const sv = store.get('mm.fold.act@' + actFam); actOpen = sv == null ? actFam === 'exp' : sv !== '1';
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
     // ce qui change sur trend_sessions séances : moins de groupes chauds ou de leaders = le flux se retire (faits, pas de consigne)
     const T = AC.trend_sessions, pv = e - T >= 0 ? actAt(e - T) : null, P0 = pv ? phaseIdx(IND.dates[e - T]) : -1;
@@ -3319,10 +3337,9 @@
     // l'alerte « phase avec groupes chauds » (réfutée : −0,2 % sur 65 épisodes 2008-2025) sont retirées ; chauds repliés (information)
     const sum = `· ${dt} · ${pl(at.leaders.length, 'leader')} · ${pl(at.neufs.length, 'neuf')} · ${pl(at.chauds.length, 'chaud')}` +
       (!actOpen && worse.length ? ` · <span class="w">${T} s : ${worse.join(', ')}</span>` : '');
-    const head = `<div class="ahead">${dragH('act')}<button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
-      `<span class="fsum">${sum}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
-      (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` +
-        `<button type="button" class="go" data-actgo="1" title="${escA(AC.go_tip)}">${escH(AC.go_label)} (${at.leaders.length}) ›</button>` : '') + '</div>';
+    const head = `<div class="ahead"><button type="button" class="foldh" data-actfold="1" aria-expanded="${actOpen}"><span class="car">${actOpen ? '▾' : '▸'}</span><b>${escH(AC.label)}</b></button>` +
+      `<span class="fsum">${sum}${!actOpen && actFam === 'def' ? ` · <span class="note">${escH(AC.fold_note)}</span>` : ''}</span>${tipI('act:neuf', AC.label)}<span class="asp"></span>` +
+      (at.leaders.length ? `<button type="button" class="copybtn" data-actcopy="1" title="Copier les ${at.leaders.length} leaders actifs (tickers séparés par des virgules)"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` : '') + '</div>';
     actSyms = at.leaders.map(r => r.s);
     if (!actOpen) { box.classList.add('folded'); box.innerHTML = head; return; }
     box.classList.remove('folded');
@@ -3364,7 +3381,7 @@
   // (tv_breadth_data.js, clé breakouts, fetch_tv_breadth.py). Séance des cases si elle est choisie ou survolée, sinon le
   // dernier relevé : le soir même, avant que Polygon publie la séance (les cases montrent encore la veille)
   const BOC = CFG.sectors.breakouts, BMT = BOC.marks_text;   // libellés des repères : config/sources.toml [tv_breadth.breakouts] marks_text
-  let boOpen = foldGet('bo'), boAll = false, boWeak = false, boShown = [], boDay = null;   // boWeak : couloir « bougie faible » déplié
+  let boOpen = foldGet('bo'), boAll = false, boWeak = false, boShown = [], boDay = null, boNow = null;   // boNow : liste du jour pour « Ce matin »   // boWeak : couloir « bougie faible » déplié
   const usdFmt = v => v == null ? '—' : capFmt(v) + ' $';
   // repères 9M (31/10/2026) : bougie forte et étendu, seuils de config/sources.toml [tv_breadth.breakouts] (bloc et case « 9M à regarder »)
   const boStrong = (pos, rr, rp) => pos != null && rr != null && rp != null && pos >= BOC.candle_close_pct && rr >= BOC.candle_range_adr && rp > BOC.candle_range_prev;
@@ -3401,7 +3418,7 @@
       ...mk, r.n9 ? tpl(BMT.repeat[r.n9 > 1 ? 1 : 0], { n: r.n9, s: o.nPrev }) : null,
       r.l ? tpl(BMT.leader, { e: r.l.etat, g: r.l.groups.join(', ') }) : null, r.ep ? tpl(BMT.ep, { p: BOC.ep_pct, m: BOC.ep_vol_mult, s: BOC.ep_vol_sessions }) : null,
       r.cv ? tpl(BMT.conv, { g: r.cv.join(', ') }) : null, themesOf(r.s).length ? `${ETC.label} : ${themesOf(r.s).join(', ')}` : null, BMT.touch].filter(Boolean).join(' · ');
-    const tags = (r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : '') + (r.cv ? `<span class="botg cv" title="${escA(tpl(BMT.conv, { g: r.cv.join(', ') }))}">${escH(r.cv[0])}</span>` : '') +
+    const tags = (r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : '') + (r.cv ? `<span class="botg cv${r.cz ? ' z-' + r.cz : ''}" title="${escA(tpl(BMT.conv, { g: r.cv.join(', ') }))}">${escH(r.cv[0])}</span>` : '') +
       (r.ext ? `<span class="botg w">+${nf(r.w, 0)} % sem.</span>` : '') + (r.n9 >= BOC.repeat_min ? `<span class="botg m">9M ×${r.n9}</span>` : '');
     return `<button type="button" class="bochip${r.l ? ' lead' : ''}${o.marked ? ' mk' : ''}" ${o.attr}="${escA(r.s)}"${o.more || ''} title="${escA(tip)}" aria-label="${escA(tip)}">` +
       (o.marked ? boCdl(r) : '') + `<b>${escH(r.s)}</b><span class="star">${r.l ? '★' : ''}</span><span class="pos">+${nf(r.p, 1)} %</span>` +
@@ -3421,7 +3438,7 @@
     const prevDays = ds.filter(x => x < d).slice(-BOC.repeat_sessions), seen = new Map();
     prevDays.forEach(x => (L[x] || []).forEach(r => seen.set(r[C.ticker], (seen.get(r[C.ticker]) || 0) + 1)));
     const items = boSort((rows || []).map(r => ({ s: r[C.ticker], p: r[C.pct], v: r[C.volume], x: r[C.vol_ratio],
-      dv: col(r, 'dvol'), l: lead ? lead.get(r[C.ticker]) : null, pos: col(r, 'pos'), rr: col(r, 'rr'), rp: col(r, 'rp'), w: col(r, 'w'),
+      dv: col(r, 'dvol'), l: lead ? lead.get(r[C.ticker]) : null, pos: col(r, 'pos'), rr: col(r, 'rr'), rp: col(r, 'rp'), w: col(r, 'w'), kind: col(r, 'kind'), epx: col(r, 'ep'),
       n9: seen.get(r[C.ticker]) || 0 })));
     items.forEach(r => {   // repères (31/10/2026) : seuils dans config/sources.toml [tv_breadth.breakouts]
       r.bq = boStrong(r.pos, r.rr, r.rp); r.ext = boExt(r.w);
@@ -3432,10 +3449,11 @@
     const NI = IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null, ki = IND.dates.indexOf(d), epS = new Set(), conv = new Map();
     if (NI && ki >= NI.start) (NI.days[ki - NI.start] || []).forEach(([s_, , q]) => { if (q & 4) epS.add(s_); });
     const MZ = mapAt(k);
-    if (MZ && MZ.ok9) [...MZ.pts, ...MZ.th].filter(o => o.m && ['rev', 'both', 'neuf'].includes(o.cl)).forEach(o => o.m.t.forEach(s_ => (conv.get(s_) || conv.set(s_, []).get(s_)).push(o.x.g.k)));   // nom du groupe sur l'étiquette
-    items.forEach(r => { r.ep = epS.has(r.s); r.cv = conv.get(r.s) || null; });
+    if (MZ && MZ.ok9) [...MZ.pts, ...MZ.th].filter(o => o.m && ['rev', 'both', 'neuf'].includes(o.cl)).forEach(o => o.m.t.forEach(s_ => {   // nom et zone du groupe sur l'étiquette
+      const z = o.cl === 'rev' && !o.th && o.px < MP.board.low_rank ? 'lo' : o.cl; (conv.get(s_) || conv.set(s_, []).get(s_)).push(o.x.g.k); if (!conv.z) conv.z = new Map(); if (!conv.z.has(s_)) conv.z.set(s_, z); }));
+    items.forEach(r => { r.ep = epS.has(r.s) || r.epx === 1; r.cv = conv.get(r.s) || null; r.cz = conv.z ? conv.z.get(r.s) || null : null; });   // EP : matin (nine) ou soir (TradingView)
     const marked = items.some(r => r.pos != null), lanesN = [0, 1, 2].map(i => items.filter(r => r.lane === i).length);
-    boShown = items.map(r => r.s); boDay = rows ? d : null;
+    boShown = items.map(r => r.s); boDay = rows ? d : null; boNow = rows ? { d, items, k } : null;
     const pl = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`, nl = items.filter(r => r.l).length, dt = fmtDate(d, { day: 'numeric', month: 'short' });
     const sum = `· ${dt} · ` + (rows ? pl(items.length, 'titre') + (marked ? ` · <b class="bo-a">${lanesN[0]}</b> à regarder · ${pl(lanesN[1], 'étendu')}` : '') +
       (nl ? ` · ★ ${nl} leader${nl > 1 ? 's' : ''} actif${nl > 1 ? 's' : ''}` : '') +
@@ -3456,7 +3474,10 @@
       const rs = items.filter(r => r.lane === i), sub = escH(BOC.lanes_sub[i].replace('{ext}', BOC.extended_pct));
       const h = `<div class="bolh"><span class="boln">${rs.length}</span><span><b>${escH(BOC.lanes[i])}</b><small>${sub}</small></span></div>`;
       if (i < 2) return `<div class="bolane l${i}">${h}${rs.length ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : ''}</div>`;
-      return `<div class="bolane l2${boWeak ? ' open' : ''}">${h}` + (boWeak ? `<div class="bogrid">${rs.map(chip).join('')}</div>` : rs.length ? `<p class="bomini">${rs.map(r => escH(r.s)).join(', ')}</p>` : '') +
+      const sk = rs.filter(r => r.kind !== 'e' && r.kind !== 'd'), fx = rs.filter(r => r.kind === 'e' || r.kind === 'd');   // ETF et ADR à part (02/11/2026)
+      const fxh = fx.length ? `<div class="bofx">${escH(BOC.etf_label)} ${fx.length}</div>` : '';
+      return `<div class="bolane l2${boWeak ? ' open' : ''}">${h}` + (boWeak ? `<div class="bogrid">${sk.map(chip).join('')}</div>${fxh}${fx.length ? `<div class="bogrid">${fx.map(chip).join('')}</div>` : ''}`
+        : rs.length ? `${sk.length ? `<p class="bomini">${sk.map(r => escH(r.s)).join(', ')}</p>` : ''}${fx.length ? `<p class="bomini fx"><b>${escH(BOC.etf_label)}</b> : ${fx.map(r => escH(r.s)).join(', ')}</p>` : ''}` : '') +
         (rs.length ? `<button type="button" class="amore" data-boweak="1" aria-expanded="${boWeak}">${boWeak ? 'Replier' : `Voir les ${rs.length}`}</button>` : '') + '</div>';
     };
     const legM = `<span>${boCdl({ pos: 92, rr: 1.5, bq: true })} ${escH(BMT.leg_strong)}</span><span>${boCdl({ pos: 40, rr: 0.7, bq: false })} ${escH(BMT.leg_weak)}</span>` +   // bougies d'exemple
@@ -3467,6 +3488,36 @@
       : items.length ? (marked ? `<div class="bolanes">${lane(0)}${lane(1)}${lane(2)}</div>` : `<div class="bogrid">${shown.map(chip).join('')}</div>${more}`) + leg
       : '<div class="note">Aucun titre à cette séance.</div>');
   }
+  // « Ce matin » (02/11/2026, audit UX : « je ne sais pas où regarder quand j'arrive ») : sous la frise, ce que la page croise déjà,
+  // en une carte : les 9M à bougie forte pas étendus de la liste du jour (EP d'abord, puis ceux d'un groupe en convergence), et les
+  // groupes de la première zone de la phase. Information : le croisement EP × groupe n'est pas testé à part
+  const NW = CFG.sectors.now;
+  function renderSecNow(e) {
+    const box = $('secNow'); if (!box) return;
+    const L = boNow && boNow.items ? boNow.items.filter(r => r.lane === 0) : [], Z = zoneAt(e);
+    box.hidden = !IND || (!L.length && !(Z && Z.length)); if (box.hidden) return;
+    const rk = r => (r.ep ? 0 : 2) + (r.cv ? 0 : 1);
+    const T = L.slice().sort((a, b) => rk(a) - rk(b)), shown = T.slice(0, NW.max), more = T.length - shown.length;
+    const tk = r => `<button type="button" class="nowt" data-pop="${escA(r.s)}" title="${escA(tpl(NW.tk_tip, { s: r.s }))}"><b>${escH(r.s)}</b>${r.ep ? `<span class="botg ep">${escH(BMT.ep_tag)}</span>` : ''}` +
+      `${r.cv ? `<span class="botg cv${r.cz ? ' z-' + r.cz : ''}">${escH(r.cv[0])}</span>` : ''}</button>`;
+    const pd = IND.dates[e], pk = phaseKeyAt(pd) || (PHASES.length && pd > PHASES[PHASES.length - 1].d ? PHASES[PHASES.length - 1].k : null);
+    const PR = pk ? (MP.board.phase_rule || []).find(r => r.phases.includes(pk)) || null : null, order = PR ? PR.order : MP.board.default_order, low = PR ? PR.low : true;
+    const zk = o => low && o.cl === 'rev' && !o.th && o.px < MP.board.low_rank ? 'lo' : o.cl, secs = order.flatMap(c => c === 'rev' ? ['lo', 'rev'] : [c]);
+    const first = Z ? secs.find(z => Z.some(o => zk(o) === z)) : null;
+    const G = first ? Z.filter(o => zk(o) === first).sort((a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py) : [];
+    const ZL = { lo: `${MP.zones.reveil} ${MP.board.low_label}`, rev: MP.zones.reveil, both: MP.zones.lasting, neuf: MP.board.neuf_label };
+    const day = boNow && boNow.d ? fmtDate(boNow.d, { day: 'numeric', month: 'short' }) : '';
+    box.innerHTML = `<div class="nowh"><b>${escH(NW.label)}</b>${tipI('now', NW.label)}</div>` +
+      `<div class="nowl"><span class="nowk">${escH(tpl(NW.tickers, { d: day }).replace(' ()', ''))}</span>${shown.length ? shown.map(tk).join('') + (more ? `<span class="note">+${more}</span>` : '') : `<span class="note">${escH(NW.none)}</span>`}</div>` +
+      (G.length ? `<div class="nowl"><span class="nowk">${escH(tpl(NW.groups, { z: ZL[first] }))}</span>${G.slice(0, NW.groups_max).map(o => `<button type="button" class="nowg z-${first}" data-nowg="${escA(o.x.g.key)}">` +
+        `<i></i>${escH(o.x.g.k)} <b>${o.m ? o.m.n : 0}</b></button>`).join('')}${G.length > NW.groups_max ? `<span class="note">+${G.length - NW.groups_max}</span>` : ''}</div>` : '');
+  }
+  $('secNow').addEventListener('click', e => {
+    const b = e.target.closest('[data-pop],[data-nowg]'); if (!b) return;
+    if (b.dataset.pop != null) { openPop(b.dataset.pop, boNow && boNow.d); return; }
+    mapSel = b.dataset.nowg; zoneDay = null; zoneFilter = 'all'; zoneOpen = true; foldSet('zone', true); renderSecKpis();   // le groupe ouvert dans la grille
+    setTimeout(() => { const r = document.querySelector(`#secZone tr.zr.on`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 0);
+  });
   // carte des thèmes (31/10/2026, config/display.toml [sectors.map]) : industries placées par tendance (rang TI65, x) et demande
   // (part en 9M sur nine_window séances, y) ; taille = leaders ; couleur = neuf, chaud + 9M fort, 9M fort seul (Réveil), chaud, autre.
   // Zones mesurées hors dépôt 2008-2025 (notes de la config). SVG à la largeur du bloc : texte lisible sur mobile
@@ -3498,6 +3549,7 @@
   const MAP_TRAIL = MP.trail;                            // séances de la traînée (la séance affichée comprise)
   let mapOther = false;                                 // tableau par zone : « 9M actif ailleurs » déplié
   let zoneAll = false;                                  // grille : groupes au-delà de rows_max dépliés
+  let otherOpen = false;                                // grille : « 9M actif ailleurs » déplié
   let zoneDay = null;                                   // grille : case touchée (« clé|séance ») → liste des titres du jour
   let zoneFilter = store.get('mm.zonefilter') || 'all'; // grille : zone affichée (all, lo, rev, both, neuf, gone)
   // vue du bloc Convergence des 9M (02/11/2026, demande de l'utilisateur) : grille ou carte des thèmes, bascule dans le bloc ;
@@ -3634,7 +3686,7 @@
     const zb = $('secZone'), BD = MP.board; if (!zb) return;
     const B = M.ok9 ? mapBoardHtml(e, M) : null, dt = fmtDate(IND.dates[e], { day: 'numeric', month: 'short' });
     zoneSyms = B ? B.syms : [];
-    const sum = `· ${dt}` + (B ? ` · ${escH(plu(MT.industrie, B.nz))} · ${escH(plu(MT.titre_9m, zoneSyms.length))}` : '');
+    const sum = `· ${dt}` + (B ? ` · ${escH(plu(BD.groups_word, B.nz))} · ${escH(plu(MT.titre_9m, zoneSyms.length))}` : '');
     const copy = zoneSyms.length ? `<button type="button" class="copybtn" data-zcopy="all" title="${escA(BD.copy_tip)}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(MT.copy)}</span></button>` : '';
     const onMap = zoneMapOn(), vb = (v, lab) => `<button type="button" data-zview="${v}" class="${(onMap ? 'map' : 'grid') === v ? 'on' : ''}" aria-pressed="${(onMap ? 'map' : 'grid') === v}">${escH(lab)}</button>`;
     const sw = MP.shown ? `<span class="seg zview" title="${escA(BD.view_tip)}">${vb('grid', BD.view_grid)}${vb('map', BD.view_map)}</span>` : '';
@@ -3813,17 +3865,17 @@
       parts.push(`<div class="mbf">${hidden || zoneAll ? `<button type="button" class="mbmore" data-zoneall="1" aria-expanded="${zoneAll}">${escH(zoneAll ? BD.less_rows : tpl(BD.more_rows, { n: hidden }))}</button>` : ''}${cps}</div>`);
     }
     const oth = M.pts.filter(o => !inZ.has(o.x.g.key) && !seenG.has(o.x.g.key) && o.m && o.m.n >= 2).sort(byN), shown = mapOther ? oth : oth.slice(0, BD.other_max);
-    if (oth.length) parts.push(`<div class="mbo"><span><b>${escH(BD.other_label)}</b> (${escH(BD.notes.other)}) :</span>` +
+    if (oth.length && !otherOpen) parts.push(`<div class="mbo"><button type="button" class="mbmore" data-otheropen="1" aria-expanded="false">▸ <b>${escH(BD.other_label)}</b> ${oth.length}</button> <span>(${escH(BD.notes.other)})</span></div>`);   // replié (information faible)
+    else if (oth.length) parts.push(`<div class="mbo"><span><button type="button" class="mbmore" data-otheropen="1" aria-expanded="true">▾ <b>${escH(BD.other_label)}</b></button> (${escH(BD.notes.other)}) :</span>` +
       shown.map(o => `<button type="button" class="${o.x.g.key === mapSel ? 'on' : ''}" data-mapsel="${escA(o.x.g.key)}" aria-pressed="${o.x.g.key === mapSel}"${themesSum(o.m.t) ? ` title="${escA(tpl(ETC.row_label, { t: themesSum(o.m.t) }))}"` : ''}>${escH(o.x.g.k)} ${o.m.n}</button> ${liftHtml(o, true)}`).join(' · ') +
       (oth.length > BD.other_max ? ` <button type="button" class="mbmore" data-mapother="1" aria-expanded="${mapOther}">${mapOther ? 'moins' : `+ ${oth.length - BD.other_max} autres`} ›</button>` : '') + '</div>');
     const Z0 = zoneKeys(mapAt(e - BD.moves_sessions));   // entrés / sortis des zones sur moves_sessions séances
     if (Z0 && parts.length) {
       const now = zoneKeys(M) || new Map(), inn = [...now].filter(([k]) => !Z0.has(k)).map(([, n]) => n).sort(), out = [...Z0].filter(([k]) => !now.has(k)).map(([, n]) => n).sort();
-      const li = (lab, a) => `<span><b>${escH(tpl(lab, { n: a.length }))}</b> ${escH(a.join(', '))}</span>`;
+      const li = (lab, a) => `<span title="${escA(a.join(', '))}"><b>${escH(tpl(lab, { n: a.length }))}</b> ${escH(a.slice(0, BD.moves_names).join(', '))}${a.length > BD.moves_names ? ` +${a.length - BD.moves_names}` : ''}</span>`;   // noms complets au survol
       parts.unshift(`<div class="mbm"><span class="mbm-t">${escH(tpl(BD.moves_label, { n: BD.moves_sessions }))}${tipI('conv_moves', tpl(BD.moves_label, { n: BD.moves_sessions }))}</span>` +
         (inn.length || out.length ? (inn.length ? li(BD.moves_in, inn) : '') + (out.length ? li(BD.moves_out, out) : '') : `<span>${escH(BD.moves_none)}</span>`) + '</div>');
     }
-    if (parts.length) parts.unshift(`<div class="mbh">${escH(BD.howto)}</div>`);
     if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZN[PR.order[0]] }))}${tipI('conv_phase', BD.phase_label.split(' :')[0])}</div>`);
     const legend = `<div class="mbl">${escH(tpl(BD.grid_legend, { n: BD.grid_sessions, low: BD.low_rank }))} <span class="mbt">${escH(BD.tip_cells)}${tipI('conv_cells', BD.tip_cells)}</span> <span class="mbt">${escH(BD.tip_rank)}${tipI('conv_rank', BD.tip_rank)}</span></div>`;
     return { html: `<div class="mboard">${parts.length ? parts.join('') + legend : `<div class="note">${escH(BD.empty)}</div>`}</div>`, syms, nz: inZ.size };
@@ -3836,7 +3888,8 @@
       `<rect x="1" y="${(y - 1.5).toFixed(1)}" width="8" height="3" rx="1"/></svg>`;
   }
   // séance sans aucune liste 9M dans la fenêtre (avant le premier relevé) : inconnue, pas zéro (courbe et repère 3 mois justes)
-  const nineCount = e => { const N9 = nineAt(e); return N9 && N9.days ? actData().G.filter(g => g.kind === 'ind' && nineLvl(N9.get(g.key))).length : null; };
+  const zoneAt = e => { const M = mapAt(e); return M && M.ok9 ? [...M.pts, ...M.th].filter(o => o.cl === 'rev' || o.cl === 'both' || o.cl === 'neuf') : null; };   // groupes du bloc Convergence des 9M
+  const nineCount = e => { const Z = zoneAt(e); return Z ? Z.length : null; };
   const skVal = (K, id, e) => { const v = id === 'bo9' ? (nineBo(e) || boCountAt(IND.dates[e]) || {}).a : id === 't9' ? nineCount(e) : id === 'th' ? actThAt(e) : id === 'stk' ? K.stk && K.stk[e] : id === 'rot' ? K.rot[e] && K.rot[e].net : id === 'rr' ? K.rr[e] && K.rr[e].ratio : K[id][e] && K[id][e].pct; return v == null ? null : v; };
   const RRT = SKP.rotation_ratio, rrCls = v => v == null ? '' : v < RRT[0] ? 'neg' : v >= RRT[1] ? 'pos' : '';
   function skGauge(K, id, e, fmt) {                  // jauge 3M et record : plage des record_sessions séances précédentes (fenêtre complète)
@@ -3932,8 +3985,8 @@
       t9: () => {                                    // Thèmes 9M : industries en 9M fort (nine_min titres et nine_share % en nine_window séances)
         const TT = SKP.tiles_text, lbl = TT.t9, N9 = nineAt(e);
         if (!N9 || !N9.days) return [lbl, '—', escH(window.TICKERS ? TT.t9_none : TT.t9_loading), '', { html: '', rec: 0 }];
-        const at = actAt(e), nr = at ? at.groups.filter(x => !x.hot && !x.neuf && x.g.kind === 'ind' && nineLvl(N9.get(x.g.key))).length : 0, v = nineCount(e);
-        return [lbl, String(v), `${escH(tpl(TT.t9_sub, { n: nr, r: AC.reveil_label.toLowerCase() }))}<span class="kw"> · ${escH(tpl(TT.t9_kw, { k: AC.nine_min, p: AC.nine_share, w: AC.nine_window }))}</span>`,
+        const Z = zoneAt(e) || [], nr = Z.filter(o => o.cl === 'rev' && !o.th && o.px < MP.board.low_rank).length, v = Z.length;
+        return [lbl, String(v), `${escH(tpl(TT.t9_sub, { n: nr, r: `${MP.zones.reveil} ${MP.board.low_label}` }))}<span class="kw"> · ${escH(tpl(TT.t9_kw, { k: AC.nine_min, p: AC.nine_share, w: AC.nine_window }))}</span>`,
           spark(series('t9'), { ref: 0 }, css(v ? '--ok' : '--muted')), skGauge(K, 't9', e, x => String(x))];
       },
       stk: () => {
@@ -3961,6 +4014,7 @@
     renderSecAct(e);
     renderSecMap(e);
     renderSecBo(e, !dHover && !pinned);
+    renderSecNow(e);
     const fp = $('secFlow'), fl = skFlow ? K.flow(e) : null;   // flux par secteur, à la même séance que les cases (survol compris)
     if (fp) {
       fp.hidden = !skFlow;
@@ -4622,7 +4676,7 @@
   });
   $('secAct').addEventListener('click', e => {        // groupes actifs : un groupe = ses leaders ; « Leaders actifs › » = tous
     const b = e.target.closest('button'); if (!b) return;
-    if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act', actOpen); renderSecKpis(); return; }
+    if (b.dataset.actfold != null) { actOpen = !actOpen; foldSet('act@' + actFam, actOpen); renderSecKpis(); return; }   // choix gardé pour cette famille de phases
     if (b.dataset.actzero != null) { actZero = !actZero; renderSecKpis(); return; }
     if (b.dataset.acthot != null) { actHot = !actHot; store.set('mm.acthot', actHot ? '1' : '0'); renderSecKpis(); return; }
     if (b.dataset.actcopy != null) { copyTickers(b, actSyms); return; }
@@ -4640,12 +4694,13 @@
     mapSel = t.dataset.mapsel !== mapSel ? t.dataset.mapsel : null; renderSecKpis(); });
   // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
   function zoneAct(t) {
-    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-zview],[data-zfilter],[data-zday],[data-mapsel]'); if (!b) return false;
+    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-otheropen],[data-zview],[data-zfilter],[data-zday],[data-mapsel]'); if (!b) return false;
     if (b.dataset.pop != null) { openPop(b.dataset.pop, b.dataset.popd); return true; }   // depuis la liste d'un jour : ce jour en pointillé
     if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
     if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
     if (b.dataset.zoneall != null) { zoneAll = !zoneAll; renderSecKpis(); return true; }
+    if (b.dataset.otheropen != null) { otherOpen = !otherOpen; renderSecKpis(); return true; }
     if (b.dataset.zfilter != null) { zoneFilter = b.dataset.zfilter; store.set('mm.zonefilter', zoneFilter); zoneAll = false; renderSecKpis(); return true; }
     if (b.dataset.zday != null) {                        // un seul groupe ouvert : la liste d'un autre groupe ferme le détail ouvert
       zoneDay = b.dataset.zday && b.dataset.zday !== zoneDay ? b.dataset.zday : null;
@@ -6481,7 +6536,8 @@
       pct: BOC.pct, vol: nf(BOC.min_volume / 1e6, 1), price: nf(BOC.min_price, 2), ep: BOC.ep_pct, em: BOC.ep_vol_mult, es: BOC.ep_vol_sessions }), i = t.indexOf(' : ');
     return i < 0 ? `<p>${escH(t)}</p>` : `<p><b>${escH(t.slice(0, i))}</b> : ${escH(t.slice(i + 3))}</p>`; }).join('');
   const SEC_TIPS = () => ({
-    conv: [MP.board.label, convHelp(MP.board.help)],   // bulle du bloc Convergence des 9M : « Titre : texte » de la config
+    conv: [MP.board.label, convHelp(MP.board.help)],
+    now: [CFG.sectors.now.label, convHelp(CFG.sectors.now.tip)],   // « Ce matin » (02/11/2026)   // bulle du bloc Convergence des 9M : « Titre : texte » de la config
     ...Object.fromEntries(Object.entries(MP.board.tips || {}).map(([k, v]) => ['conv_' + k, [v.title, convHelp(v.text)]])),   // une bulle par calcul (02/11/2026)
     conv_phase: [MP.board.tips_phase_title, MP.board.phase_rule.map(r => `<p><b>${escH(r.phases.map(k => PHK[k] ? PHK[k].name : k).join(', '))}</b> : ${escH(r.tip)}</p>`).join('')],
     map: [MP.label, `<p>${escH(MP.tip)}</p><ul>${['reveil', 'lasting', 'trend', 'calm'].map(k => `<li><b>${escH(MP.zones[k])}</b> : ${escH(MP.zone_notes[k])}</li>`).join('')}</ul>` +

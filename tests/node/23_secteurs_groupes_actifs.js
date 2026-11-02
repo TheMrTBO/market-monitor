@@ -54,8 +54,12 @@ const mkFile=syms=>({asof:IND0.asof,dates:fdates,vu:1000,rows:syms.map((s,j)=>{c
   return [s,s+' Inc.',1e9*(j+1),c,c.map(()=>500),c.map(v=>v*0.99),c.map(v=>v*1.02),c.map(v=>v*0.98)];})});
 const files=`window.TV_STOCKS=window.TV_STOCKS||{};`+[...need].map(([f,syms])=>`window.TV_STOCKS[${JSON.stringify(f)}]=${JSON.stringify(mkFile(syms))};`).join('');
 
-const ls={'mm.secview':'tv'}, A=boot(ls,{after:files});
+// 02/11/2026 : Leaders actifs replié par défaut hors Expansion (open_phases) ; ouvert ici pour tester son contenu
+const ls={'mm.secview':'tv','mm.fold.act@def':'0','mm.fold.act@exp':'0'}, A=boot(ls,{after:files});
 const IND=A.sb.INDUSTRIES, CFG=A.sb.MM_CONFIG, AC=CFG.sectors.actifs, N=IND.dates.length, e=N-1, min=CFG.industries.min_members;
+{ const D0=boot({'mm.secview':'tv'},{after:files}); tab(D0); const h0=D0.$('secAct')._h;
+  ok('Leaders actifs dans le Classement : replié par défaut hors Expansion, avec la raison (config)',D0.$('secAct').hidden===false&&/data-actfold="1" aria-expanded="(true|false)"/.test(h0)
+     &&(h0.includes('aria-expanded="false"')===!AC.open_phases.includes((CFG.phases.phase.find(p=>strip(D0.$('frisePh')._h).includes(p.name))||{}).key))&&!/data-drag="act"/.test(h0)&&!/data-actgo/.test(h0)); }
 tab(A);
 
 // --- recalcul indépendant : chaud, neuf, leaders actifs à la dernière séance
@@ -108,9 +112,9 @@ if(chW){actClick(A,{acthot:'1'});
 ok('ligne « Sur N s » : groupes chauds comparés à '+AC.trend_sessions+' séances avant',new RegExp('Sur '+AC.trend_sessions+' s').test(strip(box._h))&&/chauds \d+ → \d+/.test(strip(box._h)),strip(box._h).match(/Sur \d+ s.{0,80}/)?.[0]);
 // repli du bloc mémorisé ; replié, le titre garde le nombre de neufs et de chauds
 actClick(A,{actfold:'1'});
-ok('replier « Leaders actifs » : titre seul avec son résumé, choix mémorisé',!/data-actg="/.test(A.$('secAct')._h)&&new RegExp(nNeufs+' neufs? · ').test(strip(A.$('secAct')._h))&&ls['mm.fold.act']==='1',strip(A.$('secAct')._h).slice(0,120));
+ok('replier « Leaders actifs » : titre seul avec son résumé, choix mémorisé',!/data-actg="/.test(A.$('secAct')._h)&&new RegExp(nNeufs+' neufs? · ').test(strip(A.$('secAct')._h))&&ls['mm.fold.act@def']==='1',strip(A.$('secAct')._h).slice(0,120));
 actClick(A,{actfold:'1'});
-ok('déplier : cartes revenues',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===nNeufs&&ls['mm.fold.act']==='0');
+ok('déplier : cartes revenues',(A.$('secAct')._h.match(/data-actg="/g)||[]).length===nNeufs&&ls['mm.fold.act@def']==='0');
 actClick(A,{acthot:'1'});
 const g0=act.find(g=>exp.some(([s,ii])=>g.kind==='ind'?IND.industries[ii].k===g.k:g.m.has(s)));
 actClick(A,{actg:g0.key});
@@ -214,7 +218,10 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     ok('bulles ⓘ : une par calcul (bloc, phase, entrées, chaque zone, cases, rang, détail), textes de la config',ids.every(id=>hb.includes(`data-tip="${id}"`)||['conv_both','conv_neuf','conv_gone','conv_detail','conv_lo','conv_rev'].includes(id))
        &&hb.includes('data-tip="conv_cells"')&&hb.includes('data-tip="conv_rank"')&&hb.includes('data-tip="conv_moves"')&&Object.keys(BD.tips).length>=9); }
   ok('ligne : nom, '+AC.nine_min+' / '+nm+' '+BD.in9+', ses titres touchables',row.includes(`<b>${kE}</b>`)&&row.includes(`${AC.nine_min} / ${nm} ${BD.in9}`)&&pick.every(t=>row.includes(`data-pop="${t}"`)),strip(row).slice(0,120));
-  ok('ligne de lecture (config) en tête de la grille',hb.includes(`<div class="mbh">${BD.howto.replace(/'/g,'&#39;')}`)||strip(hb).includes(BD.howto.slice(0,40)));
+  ok('préambule réduit : plus de phrase de lecture dans le bloc (« Ce matin » et la bulle ⓘ la portent)',!hb.includes('class="mbh"'));
+  { const NW=TV9.sb.MM_CONFIG.sectors.now, hn=TV9.$('secNow')._h;
+    ok('« Ce matin » sous la frise : groupes de la première zone de la phase (couleur de zone), bulle ⓘ',TV9.$('secNow').hidden===false&&hn.includes(`<b>${NW.label}</b>`)&&hn.includes('data-tip="now"')
+       &&/class="nowg z-(lo|rev|both|neuf)" data-nowg="/.test(hn),strip(hn).slice(0,140)); }
   { const dt=det(bootN(days));
     ok('détail au toucher : une pastille par membre, courbe 12 mois avec la ligne des '+AC.nine_share+' %, tous les titres, note de la zone',
        (nm>BD.dots_max||(dt.match(/<i class="(y)?"><\/i>/g)||[]).length===nm)&&(dt.match(/<i class="y"><\/i>/g)||[]).length===(nm>BD.dots_max?0:AC.nine_min)
@@ -317,7 +324,7 @@ ok('ancien fichier : niveau Secteurs, pas de case Thèmes ni de bloc Groupes act
 const fil=(A,ds)=>A.L.secFilt.click({target:{closest:()=>({dataset:ds})}});
 ok('fil : niveau ETF au bout, bascule ETF / TradingView masquée',/data-etf="1"/.test(A.$('secFilt')._h)&&/<span class="viewbox" hidden>/.test(html));
 fil(A,{etf:'1'});
-ok('niveau ETF : liste des ETF, retour « ‹ Leaders actifs », cases et Groupes actifs toujours là',ls['mm.secview']==='etf'&&/data-tvback="1"/.test(A.$('secFilt')._h)&&A.$('secAct').hidden===false&&A.$('secKpis').hidden===false);
+ok('niveau ETF : liste des ETF, retour « ‹ Leaders actifs », cases toujours là, Leaders actifs masqué (niveau Leaders actifs seulement)',ls['mm.secview']==='etf'&&/data-tvback="1"/.test(A.$('secFilt')._h)&&A.$('secAct').hidden===true&&A.$('secKpis').hidden===false);
 fil(A,{tvback:'1'});
 ok('« ‹ » : retour au classement TradingView',ls['mm.secview']==='tv'&&/data-etf="1"/.test(A.$('secFilt')._h));
 
@@ -327,6 +334,6 @@ ok('première visite : vue TradingView, Leaders actifs, bascule notée',lsF['mm.
 const lsE={'mm.secview':'etf','mm.tvnav':JSON.stringify({lvl:'ind',sec:'all',ind:null})}, E=boot(lsE,{after:files});tab(E);
 ok('ancien choix ETF : remplacé une fois par TradingView / Leaders actifs',lsE['mm.secview']==='tv'&&E.$('secAct').hidden===false);
 const lsE2={'mm.secview':'etf','mm.secrefonte':'1'}, E2=boot(lsE2,{after:files});tab(E2);
-ok('choix ETF fait après la bascule : respecté (haut de page commun)',lsE2['mm.secview']==='etf'&&E2.$('secAct').hidden===false);
+ok('choix ETF fait après la bascule : respecté (haut de page commun)',lsE2['mm.secview']==='etf'&&E2.$('secKpis').hidden===false);
 
 if(bad)console.log('Error : '+bad+' contrôle(s) en échec');

@@ -87,9 +87,14 @@ ep_pct = 10                   # hausse minimale sur la clôture de la veille (%)
 ep_vol_mult = 3               # volume ≥ ce multiple de la moyenne…
 ep_vol_sessions = 50          # …des N séances d'avant (séance du jour exclue)
 ep_min_price = 1              # clôture minimale ($)
+# EP du soir (liste TradingView, 02/11/2026) : moyenne de volume TradingView sur ep_avg_sessions séances (10, 30, 60 ou 90 ; jour
+# même retiré) ; capitalisation minimale hors thèmes suivis (choix de l'utilisateur : en dessous, surtout des pump-and-dump)
+ep_avg_sessions = 60
+ep_min_cap = 40_000_000
 repeat_min = 3                # « 9M ×n » : au moins repeat_min listes 9M sur les repeat_sessions séances d'avant (titre où la
 repeat_sessions = 40          # demande revient : +0,44 ADR sur 63 séances, 14 années sur 18 ; compté sur les listes gardées)
 lanes = ["À regarder en premier", "Bougie forte, déjà étendu", "Bougie faible"]   # couloirs : titres des trois groupes
+etf_label = "ETF et ADR"     # couloir « bougie faible » : rangés à part (02/11/2026), pas retirés (liste = TC2000)
 lanes_sub = ["pas encore étendu : rendement médian le meilleur", "+{ext} % sur la semaine : plus de gros mouvements, médiane plus faible", "clôture basse ou range étroit : comme un breakout ordinaire"]
 edge_note = "Tests 2008-2025 avec les définitions du site (verif_site.txt), breakouts 4 % à ADR > 4 % : bougie forte + 9M, 41 % font +8 % avant le stop en 5 séances contre 32 % pour les autres, 23 % font +25 % en 21 séances contre 14 % (mieux 18 années sur 18). Pas encore étendus : 38 % et 20 %, rendement médian à 21 séances au-dessus des autres (14 années sur 18). Déjà étendus : 51 % et 31 %, plus de gros mouvements, mais rendement médian sous les autres. Bougie faible : comme un breakout ordinaire."
 
