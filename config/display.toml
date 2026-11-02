@@ -46,7 +46,7 @@ views = [["etf", "ETF"], ["tv", "TradingView"]]
 # de 1 en `rotation_window` séances ; pas les rangs : un classement est à somme nulle, ▲ et ▼ s'y équilibrent toujours) ·
 # stk : actions retenues au TI65 > 1 (série calculée par fetch_industries.py). Ordre d'affichage = ordre de la liste.
 tiles = ["ind", "rot", "bo9", "t9"]   # audit du 31/10/2026 : 6 → 4 cases (avant : "sec", "ind", "rot", "rr", "stk", "th") ;
-tiles_text = { bo9 = "9M à regarder", bo9_none = "pas de repères pour cette séance", bo9_ext = ["étendu", "étendus"], bo9_kw = "bougie forte", bo9_own = "actions retenues, calcul maison", t9 = "Groupes en convergence", t9_none = "pas de liste 9M", t9_loading = "chargement…", t9_sub = "dont {n} en {r}", t9_kw = "{k} titres et {p} % en {w} s" }   # cases 9M (01/11/2026)
+tiles_text = { bo9 = "9M à regarder", bo9_none = "pas de repères pour cette séance", bo9_ext = ["étendu", "étendus"], bo9_kw = "bougie forte", bo9_own = "actions retenues, calcul maison", t9 = "Groupes en convergence", t9_none = "pas de liste 9M", t9_loading = "chargement…", t9_sub = "{n} {r}", t9_kw = "{k} titres et {p} % en {w} s" }   # cases 9M (01/11/2026)
 # secteurs, actions TI65 > 1 : même mesure que les industries ; ratio de rotation : mêmes entrées / sorties que « rot » ; thèmes
 # chauds : « chaud » seul sans avance mesurée. bo9 : 9M à regarder (bougie forte pas étendue) ; t9 : Thèmes 9M (sectors.actifs nine_*)
 # th (thèmes chauds de config/themes.toml, 27/10/2026), sec, rr, stk : toujours disponibles en les remettant dans la liste

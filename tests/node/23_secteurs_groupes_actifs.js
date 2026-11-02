@@ -217,7 +217,7 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   { const SB=TV9.sb, ids=['conv','conv_phase','conv_moves','conv_lo','conv_rev','conv_both','conv_neuf','conv_gone','conv_cells','conv_rank','conv_detail'];
     ok('bulles ⓘ : une par calcul (bloc, phase, entrées, chaque zone, cases, rang, détail), textes de la config',ids.every(id=>hb.includes(`data-tip="${id}"`)||['conv_both','conv_neuf','conv_gone','conv_detail','conv_lo','conv_rev'].includes(id))
        &&hb.includes('data-tip="conv_cells"')&&hb.includes('data-tip="conv_rank"')&&hb.includes('data-tip="conv_moves"')&&Object.keys(BD.tips).length>=9); }
-  ok('ligne : nom, '+AC.nine_min+' / '+nm+' '+BD.in9+', ses titres touchables',row.includes(`<b>${kE}</b>`)&&row.includes(`${AC.nine_min} / ${nm} ${BD.in9}`)&&pick.every(t=>row.includes(`data-pop="${t}"`)),strip(row).slice(0,120));
+  ok('ligne : nom, '+AC.nine_min+' / '+nm+' '+BD.in9+', ses titres touchables',row.includes(`<b>${kE}</b>`)&&strip(row).includes(`${AC.nine_min} / ${nm} ${BD.in9}`)&&pick.every(t=>row.includes(`data-pop="${t}"`)),strip(row).slice(0,120));
   ok('préambule réduit : plus de phrase de lecture dans le bloc (« Ce matin » et la bulle ⓘ la portent)',!hb.includes('class="mbh"'));
   { const NW=TV9.sb.MM_CONFIG.sectors.now, hn=TV9.$('secNow')._h;
     ok('« Ce matin » sous la frise : groupes de la première zone de la phase (couleur de zone), bulle ⓘ',TV9.$('secNow').hidden===false&&hn.includes(`<b>${NW.label}</b>`)&&hn.includes('data-tip="now"')
