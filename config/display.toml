@@ -132,6 +132,20 @@ less_rows = "Afficher moins"
 copy_zone = "Copier {z}"
 view_grid = "Grille"          # bascule du bloc (02/11/2026) : la carte des thèmes est une vue du bloc, plus un bloc à côté
 view_map = "Carte"
+# bulle ⓘ du bloc (02/11/2026, demande de l'utilisateur : « comment fonctionne la convergence 9M ») : un paragraphe par entrée,
+# « Titre : texte » ; {k} = nine_min, {w} = nine_window, {s} = nine_share, {low} = low_rank, {n} = grid_sessions, {m} = moves_sessions,
+# {r} = rows_max, {g} = gone_sessions, {p} = rank_up_pts, {q} = rank_up_sessions
+help = [
+  "À quoi sert ce bloc : chaque matin tu passes les 9M en revue sur TC2000. Ce bloc garde leur historique et les range par groupe (industrie TradingView ou thème de ta liste suivie) pour montrer où ils s'accumulent : ce que la tête ne peut pas retenir d'un jour à l'autre.",
+  "Quand un groupe apparaît : au moins {k} de ses titres en 9M sur les {w} dernières séances, et au moins {s} % de ses membres (« 9M fort »). Il sort quand ce n'est plus vrai.",
+  "Les zones : Réveil = 9M fort sans que le groupe soit chaud (la demande arrive avant la tendance) ; Réveil délaissée = la même chose avec un rang TI65 sous {low} ; Thème qui dure = 9M fort dans un groupe déjà chaud ; Neuf = grappe de leaders apparue récemment.",
+  "L'ordre : selon la phase de marché (en Expansion A, B ou C : Thème qui dure d'abord ; dans les autres phases : Réveil délaissée d'abord), puis le nombre de titres en 9M. Au plus {r} groupes, les autres derrière « + N autres groupes ».",
+  "Lire une ligne : la barre = rang TI65 du groupe parmi les industries (0 le plus faible, 100 le plus fort ; zone verte sous {low} = délaissé) ; ↑ = rang d'au moins {low} qui gagne plus de {p} points en {q} séances ; « n / m en 9M » = titres en 9M sur {w} séances / membres ; les titres ▲ ont une bougie forte.",
+  "Les cases : une par séance sur {n} séances, avec le nombre de titres du groupe en 9M ce jour-là (plus la case est foncée, plus il y en a) ; un point vert = EP probable d'un titre du groupe. Une case qui se remplit séance après séance = convergence qui s'installe ; un seul jour plein = souvent une nouvelle commune.",
+  "Entrées et sorties : « Sur {m} séances » liste les groupes entrés et sortis. Un groupe sorti reste grisé {g} séances : près d'un sur deux revient sous 20 séances.",
+  "Ce que ça vaut : tests 2008-2025 (indice du groupe sur 21 séances face aux autres industries, à élan égal) : groupes affichés +1,4 % (13 années sur 18) ; Réveil délaissée +2,8 % ; Thème qui dure +0,7 %, instable. C'est une dérive sur 1 à 2 mois, pas un signal d'entrée : l'entrée reste la bougie forte + 9M du titre (bloc Breakouts 9M).",
+  "Toucher une ligne : son détail s'ouvre juste dessous (âge de la grappe, concentration, panier, thèmes ETF, courbe 12 mois, tous les titres). Carte : les mêmes groupes en 2D."
+]
 view_tip = "Grille : les groupes et leurs 9M séance par séance. Carte : les mêmes groupes en 2D (rang TI65 × part en 9M, traînée des dernières séances). Sur mobile, grille seule."
 cell_tip = "{d} : {n} en 9M"
 cell_ep = "EP probable : {s}"

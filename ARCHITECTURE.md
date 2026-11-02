@@ -278,7 +278,9 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
 - **Copier** : ajouté au tableau par zone (tout, par zone) et aux Groupes actifs (leaders actifs, `actSyms`).
 - **Grille de convergence des 9M** (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que
   je fais de tête chaque matin sur TC2000 », sans perdre d'information ; forme de la maquette validée hors dépôt, même jour) : le
-  tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label`), un **tableau** (`mapBoardHtml`) : ligne de phase,
+  tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label` ; bulle ⓘ `conv` = paragraphes « Titre : texte »
+  de `help` : à quoi sert le bloc, entrée d'un groupe, zones, ordre, lecture d'une ligne et des cases, entrées / sorties, ce que ça
+  vaut, détail), un **tableau** (`mapBoardHtml`) : ligne de phase,
   ligne de lecture `howto`, « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis), puis une ligne par groupe des
   zones (Réveil, thème qui dure, neuf ; ordre de la phase, délaissées, nombre de 9M ; `rows_max` puis « + N autres groupes »,
   `zoneAll`) : nom, zone en clair (`zb` : « Réveil délaissée » sous `low_rank`, bulle des tests), rang TI65 en barre (↑ = rang ≥
