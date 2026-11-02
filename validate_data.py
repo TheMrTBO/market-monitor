@@ -296,7 +296,7 @@ def check_industries(data, today, folder=None):
     # repères en troisième position (01/11/2026) : 1 = bougie forte, 2 = étendu, 3 = les deux
     if "nine" in data:
         nn, ns = data["nine"].get("days", []), data["nine"].get("start", -1)
-        if ns < 0 or ns + len(nn) != len(dates) or any(len(r) not in (2, 3) or not isinstance(r[0], str) or not 0 <= r[1] < len(inds) or r[2:] not in ([], [1], [2], [3]) for day in nn for r in day):
+        if ns < 0 or ns + len(nn) != len(dates) or any(len(r) not in (2, 3) or not isinstance(r[0], str) or not 0 <= r[1] < len(inds) or r[2:] not in ([], *([q] for q in range(1, 8))) for day in nn for r in day):   # repères 1 | 2 | 4 (EP, 02/11/2026)
             errors.append("industries : listes 9M par séance incohérentes (nombre de séances, symbole ou industrie)")
     if folder is not None:
         missing = []

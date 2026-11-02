@@ -196,6 +196,16 @@ def check():
             and "{x}" in bd.get("lift_label", "") and "{x}" in bd.get("lift_short", "") and isinstance(bd.get("lift_hi"), (int, float)) and bd.get("lift_tip") and "{n}" in bd.get("age_label", "") and isinstance(bd.get("age_buckets"), list) and len(bd.get("age_notes", [])) == len(bd["age_buckets"]) + 1 and bd.get("age_tip") and "{k}" in bd.get("basket", "") and "{n}" in bd.get("same_day", "") and bd.get("same_day_tip") and isinstance(bd.get("low_rank"), (int, float)) and 0 < bd["low_rank"] < 100 and bd.get("low_label") and "{r}" in bd.get("low_tip", "") and bd.get("legend") and bd.get("empty")):
         errors.append("display.sectors.map.board : label, copy_tip, copy_zone_tip ({z}), neuf_label, notes (neuf, other), other_label, other_max ≥ 1, dots_max ≥ 1, lift_label et lift_short ({x}), lift_hi, lift_tip, age_label ({n}), age_buckets, age_notes (une de plus que les bornes), age_tip, basket ({k}), same_day ({n}), "
                       "same_day_tip, low_rank (0-100), low_label, low_tip ({r}), legend et empty attendus")
+    ints = lambda *ks: all(isinstance(bd.get(k), int) and bd[k] >= 1 for k in ks)
+    if not (ints("grid_sessions", "rank_up_sessions", "moves_sessions", "gone_sessions", "gone_max") and bd["grid_sessions"] <= 63
+            and isinstance(bd.get("rank_up_pts"), (int, float)) and bd["rank_up_pts"] > 0 and "{n}" in bd.get("grid_legend", "")
+            and "{d}" in bd.get("cell_tip", "") and "{n}" in bd.get("cell_tip", "") and "{s}" in bd.get("cell_ep", "") and "{d}" in bd.get("cell_none", "")
+            and "{r}" in bd.get("rank_tip", "") and bd.get("rank_up_tip") and "{n}" in bd.get("moves_label", "") and "{n}" in bd.get("moves_in", "")
+            and "{n}" in bd.get("moves_out", "") and bd.get("moves_none") and bd.get("gone_title") and bd.get("gone_note") and "{n}" in bd.get("gone_label", "")
+            and bd.get("theme_tag") and bd.get("theme_tip")):
+        errors.append("display.sectors.map.board : grille de convergence attendue (grid_sessions 1-63, grid_legend ({n}), cell_tip ({d}, {n}), cell_ep ({s}), "
+                      "cell_none ({d}), rank_tip ({r}), rank_up_sessions, rank_up_pts > 0, rank_up_tip, moves_sessions, moves_label / moves_in / moves_out ({n}), "
+                      "moves_none, gone_sessions, gone_max, gone_title, gone_note, gone_label ({n}), theme_tag, theme_tip)")
     zk, pk = {"rev", "both", "neuf"}, [x.get("key") for x in load("display").get("phases", {}).get("phase", [])]
     rules = bd.get("phase_rule", [])
     seen = [k for r in rules for k in r.get("phases", [])]
@@ -222,7 +232,8 @@ def check():
     if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
         errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
     mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})
-    mk_need = ("close", "range", "prev", "week", "strong", "weak", "leader", "touch", "leg_strong", "leg_weak", "leg_ext_tag", "leg_ext", "leg_repeat", "leg_leader", "leg_hover")
+    mk_need = ("close", "range", "prev", "week", "strong", "weak", "leader", "touch", "leg_strong", "leg_weak", "leg_ext_tag", "leg_ext", "leg_repeat", "leg_leader", "leg_hover",
+               "ep", "ep_tag", "leg_ep", "conv", "conv_tag", "leg_conv")
     if not (all(mt.get(k) for k in mk_need) and isinstance(mt.get("repeat"), list) and len(mt["repeat"]) == 2):
         errors.append("sources.tv_breadth.breakouts.marks_text : libellés des repères attendus (" + ", ".join(mk_need) + ", repeat [singulier, pluriel])")
     tt = load("display")["sectors"]["kpis"].get("tiles_text", {})
@@ -289,6 +300,10 @@ def check():
             and len(bo.get("lanes", [])) == 3 and len(bo.get("lanes_sub", [])) == 3 and bo.get("edge_note")):
         errors.append("sources.tv_breadth.breakouts : repères attendus (0 < candle_close_pct ≤ 100, candle_range_adr et candle_range_prev ≥ 0, "
                       "extended_pct > 0, repeat_min ≥ 1, 1 ≤ repeat_sessions ≤ keep_sessions, 3 lanes et 3 lanes_sub, edge_note)")
+    if not (bo.get("ep_pct", 0) > 0 and bo.get("ep_vol_mult", 0) > 0 and bo.get("ep_min_price", -1) >= 0
+            and isinstance(bo.get("ep_vol_sessions"), int) and 1 <= bo["ep_vol_sessions"] < load("industries")["output"]["sessions"]):
+        errors.append("sources.tv_breadth.breakouts : EP attendu (ep_pct > 0, ep_vol_mult > 0, ep_min_price ≥ 0, "
+                      "1 ≤ ep_vol_sessions < industries.output.sessions)")
     if not (isinstance(ti.get("delta"), int) and ti["delta"] >= 1 and 0 < ti.get("breadth_ref", -1) < 100):
         errors.append("display.ti65 : delta (entier ≥ 1) et 0 < breadth_ref < 100 attendus")
     if not (ind["universe"].get("market") and ind["universe"].get("type") and ind["universe"].get("scan_limit", 0) > 0

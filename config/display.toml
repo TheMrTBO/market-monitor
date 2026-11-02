@@ -93,7 +93,7 @@ tip = "Chaque point est une industrie (actions retenues de l'onglet). À droite 
 [sectors.map.board]
 # Tableau par zone (01/11/2026), à côté de la carte : une ligne par industrie Réveil, thème qui dure ou neuve (pastilles = membres,
 # remplies si en 9M ; courbe de la part en 9M ; titres en 9M, ▲ = bougie forte), puis les autres industries à 9M ≥ 2 titres.
-label = "Thèmes par zone"      # titre du composant (à côté de la carte)
+label = "Convergence des 9M"   # titre du composant, à côté de la carte (« Thèmes par zone » jusqu'au 02/11/2026)
 copy_tip = "Copier tous les titres en 9M du tableau (tickers séparés par des virgules)"
 copy_zone_tip = "Copier les titres en 9M de la zone {z}"
 neuf_label = "Neuf"
@@ -117,6 +117,31 @@ low_tip = "Industrie délaissée (rang TI65 sous {r}) dont plusieurs titres sort
 same_day_tip = "Tous ses titres 9M sont partis la même séance : souvent une nouvelle commune (rachat, résultats, réglementation) plutôt qu'un thème qui s'installe. Non testé à part."
 legend = "● = un membre, rempli s'il est en 9M sur {w} séances · courbe = part en 9M sur {d}, pointillé {s} % · ▲ bougie forte · toucher une ligne : son point sur la carte"
 empty = "Aucune industrie en zone Réveil, thème qui dure ou neuve, ni avec 2 titres en 9M, à cette séance."
+# Grille de convergence des 9M (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que je
+# fais de tête chaque matin sur TC2000 »). Tests hors dépôt 2008-2025 et 2026 (cache/analyse_scans/verif_grille_alerte.txt,
+# verif_grille_dynamique.txt, verif_2026_hors_echantillon.txt) : groupes affichés +1,4 % sur 21 s (13 ans / 18) ; convergence =
+# dérive sur 21-42 séances, pas un déclencheur à 5 j ; 73 % des séances sans changement de la liste.
+grid_sessions = 20            # cases par ligne : titres du groupe en 9M à chaque séance (historique nine de industries_data.js)
+grid_legend = "cases = titres du groupe en 9M à chaque séance sur {n} séances (pâle 1, moyen 2, foncé 3 et plus ; point = EP probable) · barre = rang TI65, zone ombrée sous {low} = délaissée"
+cell_tip = "{d} : {n} en 9M"
+cell_ep = "EP probable : {s}"
+cell_none = "{d} : pas d'historique 9M"
+rank_tip = "Rang TI65 {r} sur 100 parmi les industries (0 = la plus faible). Zone ombrée : sous {low}, groupe délaissé."
+rank_up_sessions = 10         # ↑ : rang au moins low_rank qui a gagné plus de rank_up_pts points sur rank_up_sessions séances
+rank_up_pts = 5
+rank_up_tip = "Rang TI65 au-dessus de {low} qui a gagné plus de {p} points en {s} séances : le seul cas où la remontée du rang ajoute (tests 2008-2025, verif_grille_dynamique : +1,3 % sur 21 s contre 0 % au même rang stable ; pour une délaissée, la remontée n'ajoute rien)."
+moves_sessions = 5            # ligne « Sur n séances » : groupes entrés dans les zones et sortis
+moves_label = "Sur {n} séances"
+moves_in = "entrés {n} :"
+moves_out = "sortis {n} :"
+moves_none = "aucune entrée ni sortie"
+gone_sessions = 5             # groupes sortis des zones depuis au plus ce nombre de séances : grisés après les zones
+gone_max = 4
+gone_title = "Sortis récemment"
+gone_note = "47 % des groupes sortis reviennent sous 20 séances (2008-2025)"
+gone_label = "sorti il y a {n} s"
+theme_tag = "thème"
+theme_tip = "Thème suivi (config/themes.toml) : panier suivi comme une industrie, rang TI65 de son indice placé parmi les industries. Pas d'étiquette « délaissée » : l'avance a été mesurée sur les industries ; un panier très volatil touche vite le bas du classement après une baisse (non testé)."
 
 # Ordre des zones du tableau selon la phase de marché de la séance (01/11/2026). Tests hors dépôt, phases du site 2019-2025
 # (7 ans seulement ; cache/analyse_scans/verif_zones_phases.txt) : en Expansion, « Thème qui dure » fait le mieux et la Réveil

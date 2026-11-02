@@ -123,6 +123,20 @@ c9e["AAA"][65] = 8.0                                     # 10,4 contre 8,0 cinq 
 ne = fi.nine(c9e, v9, members, payload["industries"], bo)
 check("9M par séance : titre étendu marqué 2 (+extended_pct % sur 5 séances), sans OHLC donc sans bougie forte",
       [r for day in ne["days"] for r in day] == [["AAA", [i["k"] for i in payload["industries"]].index("Soft"), 2]])
+# EP probable (02/11/2026) : +10 %, volume ≥ 3 × moyenne des 50 séances d'avant, clôture ≥ 1 $ → repère 4
+be = {**bo, "ep_pct": 10, "ep_vol_mult": 3, "ep_vol_sessions": 50, "ep_min_price": 1}
+c9p = {k: list(v) for k, v in c9.items()}
+c9p["AAA"][70] = 11.0                                    # +10 % pile, 9 M ≥ 3 × 1 M : EP
+nep = fi.nine(c9p, v9, members, payload["industries"], be)
+check("9M par séance : EP probable marquée 4 (+10 %, volume ≥ 3 × moyenne 50 séances d'avant, clôture ≥ 1 $)",
+      [r for day in nep["days"] for r in day] == [["AAA", [i["k"] for i in payload["industries"]].index("Soft"), 4]])
+v9p = {k: list(v) for k, v in v9.items()}
+v9p["AAA"][40:70] = [5_000_000] * 30                     # moyenne 50 séances = 3,4 M : 9 M < 3 × 3,4 M → pas d'EP
+nep = fi.nine(c9p, v9p, members, payload["industries"], be)
+check("9M par séance : pas d'EP si le volume n'atteint pas 3 × la moyenne d'avant", [len(r) for day in nep["days"] for r in day] == [2])
+c9p["AAA"][70] = 10.99                                   # +9,9 % : pas d'EP
+nep = fi.nine(c9p, v9, members, payload["industries"], be)
+check("9M par séance : pas d'EP sous +10 %", [len(r) for day in nep["days"] for r in day] == [2])
 check("9M par séance : publiés dans industries_data.js (clé nine)", "nine" in payload and payload["nine"]["start"] + len(payload["nine"]["days"]) == n)
 check("industries et secteurs : effectifs", inds["Soft"]["n"] == 3 and inds["Banks"]["n"] == 1
       and {s["k"]: s["n"] for s in payload["sectors"]} == {"Finance": 1, "Tech": 5})
@@ -227,6 +241,13 @@ with tempfile.TemporaryDirectory() as tmp:
     validate_data.fresh = lambda name: f                      # seuils réduits aux données fabriquées
     today = date.fromisoformat(dates[-1])
     check("contrôle : fichiers valides acceptés", validate_data.check_industries(data, today, fi.FOLDER) == [])
+    ok_nine = json.loads(json.dumps(data))
+    ok_nine["nine"]["days"][-1] = [["AAA", 0, 5]]                                # bougie forte + EP (1 | 4)
+    bad_nine = json.loads(json.dumps(data))
+    bad_nine["nine"]["days"][-1] = [["AAA", 0, 8]]                               # repère inconnu
+    check("contrôle : repère EP (4) accepté dans les 9M par séance, repère inconnu refusé",
+          validate_data.check_industries(ok_nine, today, fi.FOLDER) == []
+          and any("9M par séance" in e for e in validate_data.check_industries(bad_nine, today, fi.FOLDER)))
     p.unlink()
     errs = validate_data.check_industries(data, today, fi.FOLDER)
     check("contrôle : fichier d'industrie manquant refusé", any("fichier(s) d'industrie" in e for e in errs))

@@ -208,6 +208,19 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
      &&/class="mm-t"/.test(row)&&/<g class="mm-l"><polyline/.test(row),strip(row).slice(0,120));
   ok('âge de la grappe : '+AC.nine_min+' titres depuis cette séance seulement → « '+BD.age_label.replace('{n}',1)+' », tranche et tests dans la bulle',row.includes(BD.age_label.replace('{n}',1))
      &&row.includes(BD.age_notes[0].replace(/&/g,'&amp;'))&&!row.includes('≥ 1'));
+  // grille de convergence (02/11/2026) : cases par séance, barre du rang, entrés / sortis, EP probable (repère 4)
+  { const cl=n=>n>=3?'c3':n===2?'c2':n===1?'c1':'', cs=(row.match(/<span class="mb-h">([\s\S]*?)<\/span>/)||['',''])[1].match(/<i class="[^"]*"/g)||[];
+    ok('grille : '+BD.grid_sessions+' cases, titres en 9M de chaque séance (veille 1, jour '+(AC.nine_min-1)+')',cs.length===Math.min(BD.grid_sessions,N)
+       &&cs[cs.length-2]===`<i class="${cl(1)}"`&&cs[cs.length-1]===`<i class="${cl(AC.nine_min-1)}"`,cs.slice(-3).join(' '));
+    ok('rang TI65 : barre avec la zone délaissée (sous '+BD.low_rank+')',row.includes('class="mb-rk"')&&row.includes(`--low:${BD.low_rank}%`));
+    ok('ligne « '+BD.moves_label.replace('{n}',BD.moves_sessions)+' » : l\'industrie entrée',hb.includes(BD.moves_label.replace('{n}',BD.moves_sessions))
+       &&new RegExp(BD.moves_in.replace('{n}','\\d+')+'</b> [^<]*'+kE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(hb));
+    const dE=days.map(x=>x.slice()); dE[e]=dE[e].map((r,j)=>j===0?[r[0],r[1],4]:r);
+    const EB=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:dE})};`}); tab(EB); const re=(EB.$('secZone')._h.match(rowRe)||[''])[0];
+    ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<i class="${cl(AC.nine_min-1)} ep" title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
+    const dG=Array.from({length:N},()=>[]); for(let k=e-AC.nine_window-4;k<=e-AC.nine_window-1;k++)dG[k]=pick.map(s=>[s,ii]);   // hors de la fenêtre 9M depuis 2 séances
+    const GB=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:dG})};`}); tab(GB); const hg=GB.$('secZone')._h;
+    ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_title+' »',hg.includes(`<b>${BD.gone_title}</b>`)&&/<div class="mbr [a-z]+ gone"/.test(hg)&&hg.includes(BD.gone_label.replace('{n}',2))); }
   { const days2=Array.from({length:N},()=>[]); for(let k=e-7;k<=e;k++)days2[k]=pick.map(s=>[s,ii]);
     const AG=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:days2})};`}); tab(AG);
     ok('grappe tenue 8 séances : « '+BD.age_label.replace('{n}',8)+' », tranche 6-20',AG.$('secZone')._h.includes(BD.age_label.replace('{n}',8))&&AG.$('secZone')._h.includes(BD.age_notes[1].replace(/&/g,'&amp;'))); }
