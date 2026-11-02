@@ -45,7 +45,7 @@ const key=(A,k,kk)=>A.L['view-sec'].keydown({target:handle(k),key:kk,preventDefa
 // --- ordre par défaut : rien n'est déplacé ; une poignée dans chaque en-tête
 let ls={'mm.secview':'tv'}, A=boot(ls); tab(A);
 ok('ordre par défaut (HTML) : aucun bloc déplacé au chargement, Breakouts 9M avant Groupes actifs, carte des thèmes avant le Classement',A.view.moves===0&&order(A)==='secFlow,secBo,secAct,secMapRow,secSplit',A.view.moves+' '+order(A));
-ok('poignée dans Groupes actifs, Breakouts 9M +4 %, carte des thèmes et Classement (flux : à son rendu)',/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)&&/data-drag="map"/.test(A.$('secMap')._h)
+ok('poignée dans Groupes actifs, Breakouts 9M +4 %, Convergence des 9M (avec sa carte) et Classement (flux : à son rendu)',/data-drag="act"/.test(A.$('secAct')._h)&&/data-drag="bo"/.test(A.$('secBo')._h)&&/data-drag="map"/.test(A.$('secZone')._h)
    &&/class="dragh"[^>]*data-drag="list"/.test(html)&&html.includes("<h4>${dragH('flow')}"));
 
 // --- glisser Groupes actifs au-dessus de Breakouts (flux masqué : bo 0-100, act 100-200, map 200-300, list 300-400)

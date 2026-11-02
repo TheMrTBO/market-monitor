@@ -115,14 +115,24 @@ low_rank = 40                 # zone Réveil : rang TI65 sous ce seuil = industr
 low_label = "délaissée"
 low_tip = "Industrie délaissée (rang TI65 sous {r}) dont plusieurs titres sortent en 9M : le meilleur cas de la zone Réveil. Tests 2008-2025 (actions retenues du site, verif_reveil_rang.txt), indice de l'industrie sur 21 séances contre les autres à élan égal : rang sous 40 +2,8 % (12 ans / 18, médiane +2,4 %, +5,0 % à 42 s) ; rang 60 et plus +0,7 % (10 ans / 18). Même résultat à volatilité égale ; le sens du rang (monte ou baisse) n'apporte rien. La zone reste irrégulière : une information pour l'ordre de lecture, pas une règle."
 same_day_tip = "Tous ses titres 9M sont partis la même séance : souvent une nouvelle commune (rachat, résultats, réglementation) plutôt qu'un thème qui s'installe. Non testé à part."
-legend = "● = un membre, rempli s'il est en 9M sur {w} séances · courbe = part en 9M sur {d}, pointillé {s} % · ▲ bougie forte · toucher une ligne : son point sur la carte"
+legend = "● = un membre, rempli s'il est en 9M sur {w} séances · courbe = part en 9M sur {d}, pointillé {s} % · ▲ bougie forte"   # détail d'une ligne de la grille
 empty = "Aucune industrie en zone Réveil, thème qui dure ou neuve, ni avec 2 titres en 9M, à cette séance."
 # Grille de convergence des 9M (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que je
 # fais de tête chaque matin sur TC2000 »). Tests hors dépôt 2008-2025 et 2026 (cache/analyse_scans/verif_grille_alerte.txt,
 # verif_grille_dynamique.txt, verif_2026_hors_echantillon.txt) : groupes affichés +1,4 % sur 21 s (13 ans / 18) ; convergence =
 # dérive sur 21-42 séances, pas un déclencheur à 5 j ; 73 % des séances sans changement de la liste.
 grid_sessions = 20            # cases par ligne : titres du groupe en 9M à chaque séance (historique nine de industries_data.js)
-grid_legend = "cases = titres du groupe en 9M à chaque séance sur {n} séances (pâle 1, moyen 2, foncé 3 et plus ; point = EP probable) · barre = rang TI65, zone ombrée sous {low} = délaissée"
+grid_legend = "case = titres du groupe en 9M ce jour-là ({n} séances ; point vert = EP probable) · barre = rang TI65, zone verte sous {low} = délaissée · ▲ bougie forte · toucher une ligne : détail et point sur la carte"
+howto = "Où les 9M s'accumulent : leurs titres en 9M = ta liste à surveiller (dérive sur 21-42 séances, pas un signal d'entrée). Ordre selon la phase, puis nombre de 9M."
+rows_max = 8                  # groupes affichés avant « + N autres groupes » (limite de la maquette : coupe 4 % des séances, 2008-2025)
+row_tickers = 5               # titres en 9M montrés sur la ligne (tous dans le détail)
+in9 = "en 9M"
+more_rows = "+ {n} autres groupes"
+less_rows = "Afficher moins"
+copy_zone = "Copier {z}"
+view_grid = "Grille"          # bascule du bloc (02/11/2026) : la carte des thèmes est une vue du bloc, plus un bloc à côté
+view_map = "Carte"
+view_tip = "Grille : les groupes et leurs 9M séance par séance. Carte : les mêmes groupes en 2D (rang TI65 × part en 9M, traînée des dernières séances). Sur mobile, grille seule."
 cell_tip = "{d} : {n} en 9M"
 cell_ep = "EP probable : {s}"
 cell_none = "{d} : pas d'historique 9M"
@@ -137,7 +147,6 @@ moves_out = "sortis {n} :"
 moves_none = "aucune entrée ni sortie"
 gone_sessions = 5             # groupes sortis des zones depuis au plus ce nombre de séances : grisés après les zones
 gone_max = 4
-gone_title = "Sortis récemment"
 gone_note = "47 % des groupes sortis reviennent sous 20 séances (2008-2025)"
 gone_label = "sorti il y a {n} s"
 theme_tag = "thème"

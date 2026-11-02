@@ -201,11 +201,13 @@ def check():
             and isinstance(bd.get("rank_up_pts"), (int, float)) and bd["rank_up_pts"] > 0 and "{n}" in bd.get("grid_legend", "")
             and "{d}" in bd.get("cell_tip", "") and "{n}" in bd.get("cell_tip", "") and "{s}" in bd.get("cell_ep", "") and "{d}" in bd.get("cell_none", "")
             and "{r}" in bd.get("rank_tip", "") and bd.get("rank_up_tip") and "{n}" in bd.get("moves_label", "") and "{n}" in bd.get("moves_in", "")
-            and "{n}" in bd.get("moves_out", "") and bd.get("moves_none") and bd.get("gone_title") and bd.get("gone_note") and "{n}" in bd.get("gone_label", "")
-            and bd.get("theme_tag") and bd.get("theme_tip")):
+            and "{n}" in bd.get("moves_out", "") and bd.get("moves_none") and bd.get("gone_note") and "{n}" in bd.get("gone_label", "")
+            and bd.get("theme_tag") and bd.get("theme_tip") and bd.get("howto") and ints("rows_max", "row_tickers") and bd.get("in9")
+            and "{n}" in bd.get("more_rows", "") and bd.get("less_rows") and "{z}" in bd.get("copy_zone", "") and bd.get("view_grid") and bd.get("view_map") and bd.get("view_tip")):
         errors.append("display.sectors.map.board : grille de convergence attendue (grid_sessions 1-63, grid_legend ({n}), cell_tip ({d}, {n}), cell_ep ({s}), "
                       "cell_none ({d}), rank_tip ({r}), rank_up_sessions, rank_up_pts > 0, rank_up_tip, moves_sessions, moves_label / moves_in / moves_out ({n}), "
-                      "moves_none, gone_sessions, gone_max, gone_title, gone_note, gone_label ({n}), theme_tag, theme_tip)")
+                      "moves_none, gone_sessions, gone_max, gone_note, gone_label ({n}), theme_tag, theme_tip, howto, rows_max, row_tickers, in9, "
+                      "more_rows ({n}), less_rows, copy_zone ({z}), view_grid, view_map, view_tip)")
     zk, pk = {"rev", "both", "neuf"}, [x.get("key") for x in load("display").get("phases", {}).get("phase", [])]
     rules = bd.get("phase_rule", [])
     seen = [k for r in rules for k in r.get("phases", [])]

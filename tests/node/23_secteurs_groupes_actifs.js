@@ -151,7 +151,7 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   const pick=cand.t.slice(0,AC.nine_min), d=IND.dates[e], prev=IND.dates[e-1];
   const tv=`window.TV_BREADTH={columns:['date','t2108','n','up4','down4'],rows:[['${d}',50,5100,100,90]],asof:'${d}',bo_columns:['ticker','pct','volume','vol_ratio'],`+
     `breakouts:${JSON.stringify({[prev]:[[pick[0],5,1e7,1.2]],[d]:pick.slice(1).map(s=>[s,5,1e7,1.2])})}};`;
-  const lsR={'mm.secview':'tv'}, R9=boot(lsR,{after:files+tv}); tab(R9);
+  const lsR={'mm.secview':'tv','mm.zoneview':'map'}, R9=boot(lsR,{after:files+tv}); tab(R9);
   const h=R9.$('secAct')._h, share=Math.round(100*AC.nine_min/cand.g.n);
   ok('Réveil : industrie ni chaude ni neuve à '+AC.nine_min+' titres en 9M sur '+AC.nine_window+' séances (≥ '+AC.nine_share+' %)',
      new RegExp(AC.reveil_label+' \\d+').test(strip(h))&&h.includes(`data-actind="${cand.g.k.replace(/&/g,'&amp;')}"`),strip(h).slice(0,160));
@@ -178,17 +178,16 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   ok('point d\'un groupe chaud : bouton « Ses leaders »',new RegExp(`data-actg="${hotK1.key.replace(/&/g,'&amp;')}">Ses leaders ›`).test(R9.$('secMap')._h));
   R9.L.secMap.click({target:{closest:()=>({dataset:{mapsel:''}})}});
   ok('✕ : sélection retirée',!/class="mapinfo"/.test(R9.$('secMap')._h));
-  R9.L.secMap.click({target:{closest:()=>({dataset:{mapfold:'1'}})}});
-  ok('replier la carte : titre et résumé seuls, choix mémorisé',!/<svg class="smap"/.test(R9.$('secMap')._h)&&lsR['mm.fold.map']==='1'&&/1 réveil/.test(strip(R9.$('secMap')._h)),strip(R9.$('secMap')._h).slice(0,80));
+  ok('carte = vue du bloc Convergence des 9M : pas de titre ni de repli propres, résumé gardé',!/data-mapfold/.test(R9.$('secMap')._h)&&!/data-drag/.test(R9.$('secMap')._h)&&/1 réveil/.test(strip(R9.$('secMap')._h)),strip(R9.$('secMap')._h).slice(0,80));
   ok('bulle de la carte : zones et notes (config)',tip(R9,'map').includes(MP.zones.lasting)&&tip(R9,'map').includes(MP.zone_notes.lasting));
   // --- historique du robot (industries_data.js, clé nine, cache Polygon) : même résultat sans aucune liste TradingView
   const ii=IND.industries.findIndex(x=>x.k===cand.g.k), days=Array.from({length:N},()=>[]);
   days[e-1]=[[pick[0],ii]]; days[e]=pick.slice(1).map(s=>[s,ii]);
-  const P9=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};`}); tab(P9);
+  const P9=boot({'mm.secview':'tv','mm.zoneview':'map'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};`}); tab(P9);
   const hp=P9.$('secAct')._h;
   ok('9M depuis l\'historique du robot (sans liste TradingView) : même Réveil et même marque',new RegExp(AC.reveil_label+' \\d+').test(strip(hp))&&hp.includes(`data-actind="${kE}"`)
      &&new RegExp(`class="n9 ${share>=AC.nine_intense?'i':'f'}">9M ${AC.nine_min} · ${share} %`).test(hp)&&P9.$('secMap').hidden===false);
-  const P0=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:Array.from({length:N},()=>[])})};`}); tab(P0);
+  const P0=boot({'mm.secview':'tv','mm.zoneview':'map'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:Array.from({length:N},()=>[])})};`}); tab(P0);
   ok('historique sans aucun 9M : pas de Réveil, carte affichée',!new RegExp(AC.reveil_label+' \\d').test(strip(P0.$('secAct')._h))&&P0.$('secMap').hidden===false);
   // --- lecture de la carte (01/11/2026) : titres d'axes, ligne de lecture, flèche de sens, axe des 9M (log par défaut)
   const mp9=P9.$('secMap')._h;
@@ -198,74 +197,89 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   const y0=yOf(0), y5=yOf(5), y50=yOf(MP.y_max);
   const want5=MP.y_scale==='log'?Math.log1p(5/MP.y_log_k)/Math.log1p(MP.y_max/MP.y_log_k):MP.y_scale==='sqrt'?Math.sqrt(5/MP.y_max):5/MP.y_max;
   ok('axe des 9M ('+MP.y_scale+', jusqu\'à '+MP.y_max+' %) : 5 % placé à '+want5.toFixed(2)+' de la hauteur',Math.abs((y0-y5)/(y0-y50)-want5)<0.02,[y0,y5,y50].join(' '));
-  // --- tableau par zone (01/11/2026) : composant à part (#secZone), à côté de la carte dans #secMapRow
+  // --- grille de convergence (tableau par zone, 01/11 puis 02/11/2026) : composant à part (#secZone), à côté de la carte dans #secMapRow ;
+  // une ligne de tableau par groupe (zone en clair, rang, n / m en 9M, cases par séance) ; toucher une ligne : son détail sous la grille
   const BD=MP.board, TV9=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};`}); tab(TV9);
-  const hb=TV9.$('secZone')._h, nm=cand.g.n, rowRe=new RegExp(`<div class="mbr rev" role="button" tabindex="0" data-mapsel="i:${kE}"[\\s\\S]*?</div>`), row=(hb.match(rowRe)||[''])[0];
-  ok('tableau : composant à part (titre, Copier, poignée du bloc), zone Réveil (note de la config), une ligne pour l\'industrie',TV9.$('secZone').hidden===false&&hb.includes(`<b>${BD.label}</b>`)
-     &&/data-zcopy="all"/.test(hb)&&/data-drag="map"/.test(hb)&&hb.includes(`<b>${MP.zones.reveil}</b><small>${MP.zone_notes.reveil.replace(/&/g,'&amp;')}</small>`)&&!!row&&!/class="mboard"/.test(TV9.$('secMap')._h));
-  ok('ligne : nom, '+AC.nine_min+' / '+nm+' en 9M, ses titres (touchables), une pastille par membre, courbe 3 mois avec la ligne des '+AC.nine_share+' %',row.includes(`<b>${kE}</b>`)&&row.includes(`${AC.nine_min} / ${nm}`)
-     &&pick.every(t=>row.includes(`data-pop="${t}"`))&&(nm>BD.dots_max||(row.match(/<i class="(y)?"><\/i>/g)||[]).length===nm)&&(row.match(/<i class="y"><\/i>/g)||[]).length===(nm>BD.dots_max?0:AC.nine_min)
-     &&/class="mm-t"/.test(row)&&/<g class="mm-l"><polyline/.test(row),strip(row).slice(0,120));
-  ok('âge de la grappe : '+AC.nine_min+' titres depuis cette séance seulement → « '+BD.age_label.replace('{n}',1)+' », tranche et tests dans la bulle',row.includes(BD.age_label.replace('{n}',1))
-     &&row.includes(BD.age_notes[0].replace(/&/g,'&amp;'))&&!row.includes('≥ 1'));
-  // grille de convergence (02/11/2026) : cases par séance, barre du rang, entrés / sortis, EP probable (repère 4)
-  { const cl=n=>n>=3?'c3':n===2?'c2':n===1?'c1':'', cs=(row.match(/<span class="mb-h">([\s\S]*?)<\/span>/)||['',''])[1].match(/<i class="[^"]*"/g)||[];
+  const hb=TV9.$('secZone')._h, nm=cand.g.n, rowRe=new RegExp(`<tr class="zr rev[^"]*" role="button" tabindex="0" data-mapsel="i:${kE}"[\\s\\S]*?</tr>`), row=(hb.match(rowRe)||[''])[0];
+  const zc=(B,ds)=>B.L.secZone.click({target:{closest:()=>({dataset:ds,classList:{toggle(){},remove(){}},querySelector:()=>({}),timer:0})}});
+  const det=B=>{zc(B,{mapsel:'i:'+cand.g.k}); const h=B.$('secZone')._h, i=h.indexOf('<tr class="zd">'), j=h.indexOf('</td></tr>',i); return i<0?'':h.slice(i,j<0?undefined:j);};
+  const bootN=(d,x)=>{const B=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:d})};`+(x||'')}); tab(B); return B;};
+  ok('grille : composant à part (titre, Copier, poignée du bloc), une ligne pour l\'industrie avec sa zone en clair et sa bulle',TV9.$('secZone').hidden===false&&hb.includes(`<b>${BD.label}</b>`)
+     &&/data-zcopy="all"/.test(hb)&&/data-drag="map"/.test(hb)&&!!row&&new RegExp(`<span class="zb (rev|lo)" title="[^"]*">${MP.zones.reveil}`).test(row)&&!/class="mboard"/.test(TV9.$('secMap')._h));
+  ok('ligne : nom, '+AC.nine_min+' / '+nm+' '+BD.in9+', ses titres touchables',row.includes(`<b>${kE}</b>`)&&row.includes(`${AC.nine_min} / ${nm} ${BD.in9}`)&&pick.every(t=>row.includes(`data-pop="${t}"`)),strip(row).slice(0,120));
+  ok('ligne de lecture (config) en tête de la grille',hb.includes(`<div class="mbh">${BD.howto.replace(/'/g,'&#39;')}`)||strip(hb).includes(BD.howto.slice(0,40)));
+  { const dt=det(bootN(days));
+    ok('détail au toucher : une pastille par membre, courbe 12 mois avec la ligne des '+AC.nine_share+' %, tous les titres, note de la zone',
+       (nm>BD.dots_max||(dt.match(/<i class="(y)?"><\/i>/g)||[]).length===nm)&&(dt.match(/<i class="y"><\/i>/g)||[]).length===(nm>BD.dots_max?0:AC.nine_min)
+       &&/class="mm-t"/.test(dt)&&/<g class="mm-l"><polyline/.test(dt)&&pick.every(t=>dt.includes(`data-pop="${t}"`))&&dt.includes(MP.zone_notes.reveil.replace(/&/g,'&amp;')),strip(dt).slice(0,120));
+    ok('âge de la grappe (détail) : '+AC.nine_min+' titres depuis cette séance seulement → « '+BD.age_label.replace('{n}',1)+' », tranche et tests dans la bulle',dt.includes(BD.age_label.replace('{n}',1))
+       &&dt.includes(BD.age_notes[0].replace(/&/g,'&amp;'))&&!dt.includes('≥ 1'));
+    const tot=IND.industries.reduce((a,x)=>a+x.n,0), L=(AC.nine_min/nm)/(AC.nine_min/tot), lx=L.toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});
+    ok('concentration (détail) : « '+BD.lift_label.replace('{x}',lx)+' », mise en avant dès '+BD.lift_hi+'×, bulle',
+       dt.includes(BD.lift_label.replace('{x}',lx))&&dt.includes(`class="mb-l${L>=BD.lift_hi?' hi':''}"`)&&dt.includes(BD.lift_tip.slice(0,BD.lift_tip.indexOf('{'))));
+    ok('titres partis sur deux séances : pas d\'alerte « le même jour »',!dt.includes(BD.same_day.replace('{n}',AC.nine_min)));
+    ok('légende du détail (config)',strip(dt).includes(BD.legend.replace('{w}',AC.nine_window).replace('{s}',AC.nine_share).slice(0,40))); }
+  // cases par séance, barre du rang, entrés / sortis, EP probable (repère 4), sortis grisés
+  { const cl=n=>n>=3?'c3':n===2?'c2':n===1?'c1':'c0', cs=row.match(/<td class="c [^"]*"/g)||[];
     ok('grille : '+BD.grid_sessions+' cases, titres en 9M de chaque séance (veille 1, jour '+(AC.nine_min-1)+')',cs.length===Math.min(BD.grid_sessions,N)
-       &&cs[cs.length-2]===`<i class="${cl(1)}"`&&cs[cs.length-1]===`<i class="${cl(AC.nine_min-1)}"`,cs.slice(-3).join(' '));
+       &&cs[cs.length-2]===`<td class="c ${cl(1)}"`&&cs[cs.length-1]===`<td class="c ${cl(AC.nine_min-1)}"`,cs.slice(-3).join(' '));
     ok('rang TI65 : barre avec la zone délaissée (sous '+BD.low_rank+')',row.includes('class="mb-rk"')&&row.includes(`--low:${BD.low_rank}%`));
     ok('ligne « '+BD.moves_label.replace('{n}',BD.moves_sessions)+' » : l\'industrie entrée',hb.includes(BD.moves_label.replace('{n}',BD.moves_sessions))
        &&new RegExp(BD.moves_in.replace('{n}','\\d+')+'</b> [^<]*'+kE.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).test(hb));
+    ok('légende de la grille (config)',strip(hb).includes(BD.grid_legend.replace('{n}',BD.grid_sessions).slice(0,40)));
     const dE=days.map(x=>x.slice()); dE[e]=dE[e].map((r,j)=>j===0?[r[0],r[1],4]:r);
-    const EB=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:dE})};`}); tab(EB); const re=(EB.$('secZone')._h.match(rowRe)||[''])[0];
-    ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<i class="${cl(AC.nine_min-1)} ep" title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
+    const re=(bootN(dE).$('secZone')._h.match(rowRe)||[''])[0];
+    ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<td class="c ${cl(AC.nine_min-1)} ep" title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
     const dG=Array.from({length:N},()=>[]); for(let k=e-AC.nine_window-4;k<=e-AC.nine_window-1;k++)dG[k]=pick.map(s=>[s,ii]);   // hors de la fenêtre 9M depuis 2 séances
-    const GB=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:dG})};`}); tab(GB); const hg=GB.$('secZone')._h;
-    ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_title+' »',hg.includes(`<b>${BD.gone_title}</b>`)&&/<div class="mbr [a-z]+ gone"/.test(hg)&&hg.includes(BD.gone_label.replace('{n}',2))); }
+    const hg=bootN(dG).$('secZone')._h;
+    ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_label.replace('{n}',2)+' »',new RegExp(`<tr class="zr [a-z]+ gone" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(hg)&&hg.includes(BD.gone_label.replace('{n}',2))); }
   { const days2=Array.from({length:N},()=>[]); for(let k=e-7;k<=e;k++)days2[k]=pick.map(s=>[s,ii]);
-    const AG=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:days2})};`}); tab(AG);
-    ok('grappe tenue 8 séances : « '+BD.age_label.replace('{n}',8)+' », tranche 6-20',AG.$('secZone')._h.includes(BD.age_label.replace('{n}',8))&&AG.$('secZone')._h.includes(BD.age_notes[1].replace(/&/g,'&amp;'))); }
-  { const tot=IND.industries.reduce((a,x)=>a+x.n,0), L=(AC.nine_min/nm)/(AC.nine_min/tot), lx=L.toLocaleString('fr-FR',{minimumFractionDigits:1,maximumFractionDigits:1});
-    ok('concentration : '+AC.nine_min+' / '+nm+' contre '+AC.nine_min+' / '+tot+' pour le marché → « '+BD.lift_label.replace('{x}',lx)+' », mise en avant dès '+BD.lift_hi+'×, bulle',
-       row.includes(BD.lift_label.replace('{x}',lx))&&row.includes(`class="mb-l${L>=BD.lift_hi?' hi':''}"`)&&row.includes(BD.lift_tip.slice(0,BD.lift_tip.indexOf('{')))); }
+    const dt=det(bootN(days2));
+    ok('grappe tenue 8 séances : « '+BD.age_label.replace('{n}',8)+' », tranche 6-20',dt.includes(BD.age_label.replace('{n}',8))&&dt.includes(BD.age_notes[1].replace(/&/g,'&amp;'))); }
   { const ETS={themes:['Cloud','IA'],stocks:{[pick[0]]:[[0,2]],[pick[1]]:[[0,1],[1,1]]}};
-    const TH=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};window.ETF_THEMES=${JSON.stringify(ETS)};`}); tab(TH);
-    const ET=TH.sb.MM_CONFIG.etf_themes, rw=(TH.$('secZone')._h.match(rowRe)||[''])[0];
-    ok('thèmes ETF : ligne « '+ET.row_label.replace('{t}','Cloud 2 · IA 1')+' » et thèmes dans l\'infobulle des titres',
+    const TH=bootN(days,`window.ETF_THEMES=${JSON.stringify(ETS)};`), ET=TH.sb.MM_CONFIG.etf_themes, rw=det(TH);
+    ok('thèmes ETF (détail) : ligne « '+ET.row_label.replace('{t}','Cloud 2 · IA 1')+' » et thèmes dans l\'infobulle des titres',
        rw.includes(ET.row_label.replace('{t}','Cloud 2 · IA 1'))&&new RegExp(`data-pop="${pick[1]}" title="[^"]*Cloud, IA`).test(rw));
-    ok('sans fichier de thèmes : pas de ligne de thèmes',!row.includes(ET.row_label.split('{t}')[0].trim())); }
-  { const rk=+((strip(row).match(/rang TI65 (\d+)/)||[])[1]), lo=BD.low_label, has=r=>r.includes(`class="mb-lo"`)&&r.includes(`>${lo}</span>`);
-    ok('Réveil au rang '+rk+' : étiquette « '+lo+' » seulement sous le rang '+BD.low_rank+', seuil dans la bulle',has(row)===(rk<BD.low_rank)
+    ok('sans fichier de thèmes : pas de ligne de thèmes',!det(bootN(days)).includes(ET.row_label.split('{t}')[0].trim())); }
+  { const rk=+((strip(row).match(/rang TI65 (\d+)/)||[])[1]), lo=BD.low_label, has=r=>r.includes(`class="zb lo"`)&&r.includes(`>${MP.zones.reveil} ${lo}</span>`);
+    ok('Réveil au rang '+rk+' : zone « '+MP.zones.reveil+' '+lo+' » seulement sous le rang '+BD.low_rank+', seuil dans la bulle',has(row)===(rk<BD.low_rank)
        &&(!has(row)||row.includes(BD.low_tip.replace('{r}',BD.low_rank).slice(0,60))));
-    const LO=v=>{const B=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};MM_CONFIG.sectors.map.board.low_rank=${v};`});tab(B);return (B.$('secZone')._h.match(rowRe)||[''])[0];};
+    const LO=v=>(bootN(days,`MM_CONFIG.sectors.map.board.low_rank=${v};`).$('secZone')._h.match(rowRe)||[''])[0];
     ok('seuil lu dans la config : étiquette à 100, aucune à 0',has(LO(100))&&!has(LO(0)));
     // ordre des zones selon la phase de la séance (phase_rule) : ligne de tête, première zone, étiquette coupée si low = false
     const PHS=CFG.phases.phase, keys=JSON.stringify(PHS.map(p=>p.key));
-    const RU=(order,low)=>{const B=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days})};MM_CONFIG.sectors.map.board.low_rank=100;`+
-      `MM_CONFIG.sectors.map.board.phase_rule=[{phases:${keys},order:${JSON.stringify(order)},low:${low},tip:'bulle de phase'}];`});tab(B);return B.$('secZone')._h;};
+    const RU=(order,low)=>bootN(days,`MM_CONFIG.sectors.map.board.low_rank=100;MM_CONFIG.sectors.map.board.phase_rule=[{phases:${keys},order:${JSON.stringify(order)},low:${low},tip:'bulle de phase'}];`).$('secZone')._h;
     const pn=PHS.map(p=>p.name).find(n=>hb.includes(BD.phase_label.replace('{p}',n).split('{z}')[0])), rule=BD.phase_rule.find(r=>r.phases.some(k=>PHS.find(p=>p.key===k).name===pn));
     ok('phase de la séance ('+pn+') : ligne « '+(rule&&BD.phase_label.replace('{p}',pn).replace('{z}',{rev:MP.zones.reveil,both:MP.zones.lasting,neuf:BD.neuf_label}[rule.order[0]]))+' » et bulle des tests',
        !!rule&&hb.includes(`class="mbp" title="${rule.tip.replace(/&/g,'&amp;').slice(0,40)}`));
     const h1=RU(['neuf','both','rev'],false), h2=RU(['rev','both','neuf'],true);
     ok('règle de phase lue dans la config : zone de tête annoncée, étiquette « délaissée » coupée si low = false, gardée sinon',
        h1.includes(BD.phase_label.replace('{p}',pn).replace('{z}',BD.neuf_label))&&!has((h1.match(rowRe)||[''])[0])&&has((h2.match(rowRe)||[''])[0])&&h2.includes('title="bulle de phase"')); }
-  ok('titres partis sur deux séances : pas d\'alerte « le même jour »',!row.includes(BD.same_day.replace('{n}',AC.nine_min)));
-  ok('légende du tableau (config)',strip(hb).includes(BD.legend.replace('{w}',AC.nine_window).replace('{s}',AC.nine_share).slice(0,40)));
-  ok('flex : la carte (part '+MP.side_share+', au moins '+MP.map_min+' px) et le tableau ('+(100-MP.side_share)+', au moins '+MP.zone_min+' px), côte à côte ou l\'un sous l\'autre selon la place',
-     TV9.$('secMap').style.flex===`${MP.side_share} 1 ${MP.map_min}px`&&TV9.$('secZone').style.flex===`${100-MP.side_share} 1 ${MP.zone_min}px`);
-  const zClick=ds=>TV9.L.secZone.click({target:{closest:()=>({dataset:ds,classList:{toggle(){},remove(){}},querySelector:()=>({}),timer:0})}});
+  ok('bascule Grille / Carte dans le titre du bloc ; grille par défaut, carte masquée',hb.includes(`data-zview="grid" class="on"`)&&hb.includes(`data-zview="map" class=""`)
+     &&hb.includes(`>${BD.view_map}</button>`)&&TV9.$('secMap').hidden===true&&/<table class="g">/.test(hb));
+  const zClick=ds=>zc(TV9,ds);
   { let copied=null; TV9.sb.navigator={clipboard:{writeText:t=>{copied=t;return Promise.resolve();}}}; TV9.sb.isSecureContext=true; TV9.sb.clearTimeout=TV9.sb.clearTimeout||(()=>{}); TV9.sb.setTimeout=TV9.sb.setTimeout||(()=>0); zClick({zcopy:'all'});
-    ok('Copier (tableau) : tous ses titres en 9M',copied!=null&&pick.every(t=>copied.split(', ').includes(t)),String(copied));
+    ok('Copier (grille) : tous ses titres en 9M',copied!=null&&pick.every(t=>copied.split(', ').includes(t)),String(copied));
+    ok('Copier (zone) : un bouton par zone présente',hb.includes(`data-zcopy="${[...pick].sort().join(',')}"`)&&hb.includes(BD.copy_zone.replace('{z}',MP.zones.reveil)));
     zClick({zcopy:pick.join(',')}); ok('Copier (zone) : les titres de la zone',copied===pick.join(', '),String(copied)); }
   zClick({pop:pick[0]});
   ok('toucher un titre : sa fenêtre graphique',TV9.$('tkPop').hidden===false&&String(TV9.$('popTitle').textContent)===pick[0]);
   TV9.L.popX.click({});
   zClick({mapsel:'i:'+cand.g.k});
-  ok('toucher une ligne : ligne et point choisis, barre d\'information',new RegExp(`class="mbr rev on" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(TV9.$('secZone')._h)&&/<g class="pt rev imp sel">/.test(TV9.$('secMap')._h)&&/class="mapinfo"/.test(TV9.$('secMap')._h));
+  ok('toucher une ligne : ligne choisie, détail juste sous elle',new RegExp(`class="zr rev[^"]* on" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(TV9.$('secZone')._h)
+     &&new RegExp(`data-mapsel="i:${kE}"[^>]*>[\\s\\S]*?</tr><tr class="zd">`).test(TV9.$('secZone')._h));
+  zClick({zview:'map'});
+  ok('vue Carte : carte dans le bloc (un seul titre), grille masquée, point choisi et barre d\'information',TV9.$('secMap').hidden===false&&!/<table class="g">/.test(TV9.$('secZone')._h)
+     &&TV9.$('secZone')._h.includes(`data-zview="map" class="on"`)&&/<g class="pt rev imp sel">/.test(TV9.$('secMap')._h)&&/class="mapinfo"/.test(TV9.$('secMap')._h)&&!/data-mapfold/.test(TV9.$('secMap')._h));
+  zClick({zview:'grid'});
+  ok('retour à la Grille : carte masquée',TV9.$('secMap').hidden===true&&/<table class="g">/.test(TV9.$('secZone')._h));
+  zClick({mapsel:''});
+  ok('✕ du détail : ligne et détail refermés',!TV9.$('secZone')._h.includes('<tr class="zd">'));
   zClick({zonefold:'1'});
-  ok('replier le tableau : titre seul, choix mémorisé, la carte reste ouverte',!/class="mboard"/.test(TV9.$('secZone')._h)&&/<svg class="smap"/.test(TV9.$('secMap')._h));
+  ok('replier le bloc : titre seul, choix mémorisé, carte masquée',!/class="mboard"/.test(TV9.$('secZone')._h)&&TV9.$('secMap').hidden===true);
   const days1=Array.from({length:N},()=>[]); days1[e]=pick.map(s=>[s,ii]);
-  const SD=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:days1})};`}); tab(SD);
-  ok('tous les titres partis la même séance : alerte « '+BD.same_day.replace('{n}',AC.nine_min)+' » avec sa bulle',SD.$('secZone')._h.includes(BD.same_day.replace('{n}',AC.nine_min))&&SD.$('secZone')._h.includes(BD.same_day_tip.slice(0,30))); }
+  const sd=det(bootN(days1));
+  ok('tous les titres partis la même séance : alerte « '+BD.same_day.replace('{n}',AC.nine_min)+' » avec sa bulle (détail)',sd.includes(BD.same_day.replace('{n}',AC.nine_min))&&sd.includes(BD.same_day_tip.slice(0,30))); }
 
 // --- ancien fichier sans groupes actifs ; vue ETF
 const O=boot({'mm.secview':'tv'},{after:'delete INDUSTRIES.leaders;delete INDUSTRIES.themes;'});tab(O);

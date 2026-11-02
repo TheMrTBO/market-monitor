@@ -277,22 +277,30 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   le VIX (sans volume). Test : 18.
 - **Copier** : ajouté au tableau par zone (tout, par zone) et aux Groupes actifs (leaders actifs, `actSyms`).
 - **Grille de convergence des 9M** (02/11/2026, demande de l'utilisateur : « le site fait l'historique et la convergence des 9M que
-  je fais de tête chaque matin sur TC2000 », sans perdre d'information) : le tableau par zone devient « Convergence des 9M »
-  (`[sectors.map.board] label`). Ajouts, rien de retiré : sous chaque ligne, `grid_sessions` cases = titres du groupe en 9M **à
-  chaque séance** (historique `nine` ; pâle 1, moyen 2, foncé 3 et plus ; point = EP probable, bulle avec les titres) ; rang TI65
-  en barre (zone délaissée ombrée sous `low_rank`) et ↑ pour un rang ≥ `low_rank` qui gagne plus de `rank_up_pts` points en
-  `rank_up_sessions` séances ; ligne « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis) ; « Sortis
-  récemment » : groupes sortis depuis au plus `gone_sessions` séances, grisés (`gone_max`). **Thèmes suivis** (`config/themes.toml`)
+  je fais de tête chaque matin sur TC2000 », sans perdre d'information ; forme de la maquette validée hors dépôt, même jour) : le
+  tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label`), un **tableau** (`mapBoardHtml`) : ligne de phase,
+  ligne de lecture `howto`, « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis), puis une ligne par groupe des
+  zones (Réveil, thème qui dure, neuf ; ordre de la phase, délaissées, nombre de 9M ; `rows_max` puis « + N autres groupes »,
+  `zoneAll`) : nom, zone en clair (`zb` : « Réveil délaissée » sous `low_rank`, bulle des tests), rang TI65 en barre (↑ = rang ≥
+  `low_rank` qui gagne plus de `rank_up_pts` points en `rank_up_sessions` séances), n / m en 9M, `row_tickers` premiers titres
+  (▲ bougie forte, toucher = fenêtre graphique) ; à droite `grid_sessions` cases = titres du groupe en 9M **à chaque séance**
+  (historique `nine`, chiffre et teinte cyan ; point vert = EP probable, bulle avec les titres) ; tableau à la largeur du bloc
+  (`table-layout: fixed`, sans défilement ; mobile : cases fines sans chiffre, compte au toucher, nom puis zone sur deux lignes) ; groupes sortis depuis au plus `gone_sessions` séances grisés (`gone_max`). **Toucher une
+  ligne** (`mapSel`) : son point sur la carte et, **juste sous la ligne** (cohérence demandée le 02/11/2026), son **détail** = tout le contenu de l'ancienne ligne (note de la
+  zone, âge de la grappe, leaders, concentration, panier, « le même jour », thèmes ETF, pastilles, courbe 12 mois, tous les titres) ;
+  ✕ referme. Puis Copier par zone (`copy_zone`), « 9M actif ailleurs », légende `grid_legend`. **Thèmes suivis** (`config/themes.toml`)
   dans les zones comme les industries (`mapAt` → `th` / `tby` : rang de l'indice du panier placé parmi les industries ; étiquette
-  `theme_tag`, jamais « délaissée » ; pas de point sur la carte, ligne non sélectionnable). Mobile (≤ 640 px) : grille seule, la
-  carte est masquée (illisible ; choix de l'utilisateur). Bloc 9M : étiquettes « EP » (repère 4 de `nine` : la séance doit être
-  dans l'historique, donc le lendemain matin) et « groupe » (titre d'un groupe en zone, même séance que les leaders actifs),
-  libellés dans `[tv_breadth.breakouts] marks_text`. **EP probable** : `fetch_industries.nine()` ajoute le repère 4 (C / C1 ≥
-  1 + `ep_pct` %, volume ≥ `ep_vol_mult` × moyenne des `ep_vol_sessions` séances d'avant, clôture ≥ `ep_min_price`) ; actions
-  retenues seulement. Tests hors dépôt (cache/analyse_scans/verif_grille_alerte.txt, verif_grille_dynamique.txt,
-  verif_ep_replay.txt, verif_2026_hors_echantillon.txt) : convergence = dérive sur 21-42 séances (lignes affichées +1,4 % sur
-  21 s, 13 ans / 18), pas un déclencheur à 5 j. Pas fait (données absentes du site) : capitulations (−20 % en 5 j + −9M). Tests :
-  `tests/test_industries.py` (EP), node 23 (cases, barre, entrés, EP, sortis).
+  `theme_tag`, jamais « délaissée » ; pas de point sur la carte). **Carte des thèmes = vue du bloc** (02/11/2026) : bascule « Grille / Carte »
+  (`view_grid`, `view_map`, `view_tip` ; `mm.zoneview`) dans le titre du bloc ; en vue Carte, `#secMap` s'affiche sous le titre du
+  bloc (`#secMapRow.joined` : une seule carte, plus de titre ni de repli propres à la carte). Mobile (≤ 640 px) : grille seule, bascule
+  et carte masquées (illisible ; choix de l'utilisateur). Bloc 9M : étiquettes « EP » (repère 4 de `nine` : la séance doit être dans l'historique, donc le
+  lendemain matin) et nom du groupe en convergence (même séance que les leaders actifs), libellés dans `[tv_breadth.breakouts]
+  marks_text`. **EP probable** : `fetch_industries.nine()` ajoute le repère 4 (C / C1 ≥ 1 + `ep_pct` %, volume ≥ `ep_vol_mult` ×
+  moyenne des `ep_vol_sessions` séances d'avant, clôture ≥ `ep_min_price`) ; actions retenues seulement ; `validate_data.py` accepte
+  les repères 1 à 7. Tests hors dépôt (cache/analyse_scans/verif_grille_alerte.txt, verif_grille_dynamique.txt, verif_ep_replay.txt,
+  verif_2026_hors_echantillon.txt) : convergence = dérive sur 21-42 séances (lignes affichées +1,4 % sur 21 s, 13 ans / 18), pas un
+  déclencheur à 5 j. Pas fait (données absentes du site) : capitulations (−20 % en 5 j + −9M). Tests : `tests/test_industries.py`
+  (EP, contrôle), node 23 (ligne, détail, cases, barre, entrés, EP, sortis, Copier, ✕).
 - **Thèmes ETF** (01/11/2026, `fetch_etf_themes.py`, `config/etf_themes.toml`, étape séparée `etf_themes` →
   `.github/workflows/etf_themes.yml`, le 3 de chaque mois, secret `SEC_UA`) : dernière composition N-PORT-P (SEC EDGAR, gratuit)
   de 31 ETF thématiques, reliée aux tickers de `tickers_data.js` (ticker, CUSIP appris, nom normalisé ; écartés : hors actions,
