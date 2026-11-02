@@ -204,8 +204,14 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
   const zc=(B,ds)=>B.L.secZone.click({target:{closest:()=>({dataset:ds,classList:{toggle(){},remove(){}},querySelector:()=>({}),timer:0})}});
   const det=B=>{zc(B,{mapsel:'i:'+cand.g.k}); const h=B.$('secZone')._h, i=h.indexOf('<tr class="zd">'), j=h.indexOf('</td></tr>',i); return i<0?'':h.slice(i,j<0?undefined:j);};
   const bootN=(d,x)=>{const B=boot({'mm.secview':'tv'},{after:files+`INDUSTRIES.nine=${JSON.stringify({start:0,days:d})};`+(x||'')}); tab(B); return B;};
-  ok('grille : composant à part (titre, Copier, poignée du bloc), une ligne pour l\'industrie avec sa zone en clair et sa bulle',TV9.$('secZone').hidden===false&&hb.includes(`<b>${BD.label}</b>`)
-     &&/data-zcopy="all"/.test(hb)&&/data-drag="map"/.test(hb)&&!!row&&new RegExp(`<span class="zb (rev|lo)" title="[^"]*">${MP.zones.reveil}`).test(row)&&!/class="mboard"/.test(TV9.$('secMap')._h));
+  ok('grille : composant à part (titre, Copier, poignée du bloc), une ligne pour l\'industrie sous l\'en-tête de sa zone (couleur, bulle ⓘ, « '+BD.first_label+' »)',TV9.$('secZone').hidden===false&&hb.includes(`<b>${BD.label}</b>`)
+     &&/data-zcopy="all"/.test(hb)&&/data-drag="map"/.test(hb)&&!!row&&/^<tr class="zr rev z-(rev|lo)"/.test(row)
+     &&new RegExp(`<tr class="zh z-(rev|lo)"><td colspan="\\d+"><span class="zhl"><i></i><b>${MP.zones.reveil}[^<]*</b><span class="zhn">\\d+</span><span class="zh1">${BD.first_label}</span><span class="tipbtn mini"[^>]*data-tip="conv_(rev|lo)"`).test(hb)
+     &&!/class="mboard"/.test(TV9.$('secMap')._h));
+  ok('filtres par zone : « '+BD.filter_all+' » choisi, une pastille par zone présente avec son nombre',hb.includes(`data-zfilter="all" aria-pressed="true"`)&&/data-zfilter="(rev|lo)" aria-pressed="false"/.test(hb));
+  { const SB=TV9.sb, ids=['conv','conv_phase','conv_moves','conv_lo','conv_rev','conv_both','conv_neuf','conv_gone','conv_cells','conv_rank','conv_detail'];
+    ok('bulles ⓘ : une par calcul (bloc, phase, entrées, chaque zone, cases, rang, détail), textes de la config',ids.every(id=>hb.includes(`data-tip="${id}"`)||['conv_both','conv_neuf','conv_gone','conv_detail','conv_lo','conv_rev'].includes(id))
+       &&hb.includes('data-tip="conv_cells"')&&hb.includes('data-tip="conv_rank"')&&hb.includes('data-tip="conv_moves"')&&Object.keys(BD.tips).length>=9); }
   ok('ligne : nom, '+AC.nine_min+' / '+nm+' '+BD.in9+', ses titres touchables',row.includes(`<b>${kE}</b>`)&&row.includes(`${AC.nine_min} / ${nm} ${BD.in9}`)&&pick.every(t=>row.includes(`data-pop="${t}"`)),strip(row).slice(0,120));
   ok('ligne de lecture (config) en tête de la grille',hb.includes(`<div class="mbh">${BD.howto.replace(/'/g,'&#39;')}`)||strip(hb).includes(BD.howto.slice(0,40)));
   { const dt=det(bootN(days));
@@ -232,7 +238,7 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     ok('EP probable (repère 4) : point sur la case du jour, titre dans la bulle',new RegExp(`<td class="c ${cl(AC.nine_min-1)} ep"[^>]*title="[^"]*${BD.cell_ep.replace('{s}',pick[1])}`).test(re));
     const dG=Array.from({length:N},()=>[]); for(let k=e-AC.nine_window-4;k<=e-AC.nine_window-1;k++)dG[k]=pick.map(s=>[s,ii]);   // hors de la fenêtre 9M depuis 2 séances
     const hg=bootN(dG).$('secZone')._h;
-    ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_label.replace('{n}',2)+' »',new RegExp(`<tr class="zr [a-z]+ gone" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(hg)&&hg.includes(BD.gone_label.replace('{n}',2))); }
+    ok('groupe sorti des zones depuis peu : ligne grisée « '+BD.gone_label.replace('{n}',2)+' »',new RegExp(`<tr class="zr [a-z]+ z-gone gone" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(hg)&&hg.includes(`<b>${BD.gone_title}</b>`)&&hg.includes(BD.gone_label.replace('{n}',2))); }
   // toucher une case : la liste des titres du jour, même pastille que le bloc Breakouts 9M (relevé TradingView gardé)
   { const d=IND.dates[e], cols=['ticker','pct','volume','vol_ratio','dvol','pos','rr','rp','w'];
     const TVB={bo_columns:cols,breakouts:{[d]:pick.slice(1).map((s,j)=>[s,6.5+j,12e6,1.4,9e8-j,88,1.4,1.6,5])}};
@@ -251,9 +257,9 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     ok('thèmes ETF (détail) : ligne « '+ET.row_label.replace('{t}','Cloud 2 · IA 1')+' » et thèmes dans l\'infobulle des titres',
        rw.includes(ET.row_label.replace('{t}','Cloud 2 · IA 1'))&&new RegExp(`data-pop="${pick[1]}" title="[^"]*Cloud, IA`).test(rw));
     ok('sans fichier de thèmes : pas de ligne de thèmes',!det(bootN(days)).includes(ET.row_label.split('{t}')[0].trim())); }
-  { const rk=+((strip(row).match(/rang TI65 (\d+)/)||[])[1]), lo=BD.low_label, has=r=>r.includes(`class="zb lo"`)&&r.includes(`>${MP.zones.reveil} ${lo}</span>`);
-    ok('Réveil au rang '+rk+' : zone « '+MP.zones.reveil+' '+lo+' » seulement sous le rang '+BD.low_rank+', seuil dans la bulle',has(row)===(rk<BD.low_rank)
-       &&(!has(row)||row.includes(BD.low_tip.replace('{r}',BD.low_rank).slice(0,60))));
+  { const rk=+((strip(row).match(/rang TI65 (\d+)/)||[])[1]), lo=BD.low_label, has=r=>/^<tr class="zr rev z-lo"/.test(r);
+    ok('Réveil au rang '+rk+' : section « '+MP.zones.reveil+' '+lo+' » seulement sous le rang '+BD.low_rank+', avec sa bulle',has(row)===(rk<BD.low_rank)
+       &&(!has(row)||hb.includes('data-tip="conv_lo"')));
     const LO=v=>(bootN(days,`MM_CONFIG.sectors.map.board.low_rank=${v};`).$('secZone')._h.match(rowRe)||[''])[0];
     ok('seuil lu dans la config : étiquette à 100, aucune à 0',has(LO(100))&&!has(LO(0)));
     // ordre des zones selon la phase de la séance (phase_rule) : ligne de tête, première zone, étiquette coupée si low = false
@@ -280,6 +286,13 @@ ok('pionniers, ⚑ et ◆ absents du bloc (information au survol)',!/Pionniers/.
     ok('titre touché dans la liste d\'un jour : fenêtre graphique avec le jour en pointillé (légende « '+TPC.mark.split('{d}')[0]+'… »)',
        TV9.$('tkPop').hidden===false&&String(TV9.$('popLeg')._h).includes('class="kmk"')&&String(TV9.$('popLeg')._h).includes(TPC.mark.split('{d}')[0]));
     TV9.L.popX.click({}); }
+  { const zk='i:'+cand.g.k+'|'+e; zClick({mapsel:'i:'+cand.g.k}); zClick({zday:'i:zzz|'+e});
+    ok('un seul groupe ouvert : toucher le jour d\'un autre groupe ferme le détail ouvert',!/<div class="zdi"><div class="zdh">/.test(TV9.$('secZone')._h));
+    zClick({zday:zk}); zClick({mapsel:'i:zzz'});
+    ok('un seul groupe ouvert : toucher un autre groupe ferme la liste du jour ouverte',!TV9.$('secZone')._h.includes('class="zdi secbo"'));
+    zClick({mapsel:'i:zzz'});
+    zClick({zfilter:'neuf'}); ok('filtre « '+BD.neuf_label+' » : sa pastille choisie, la zone Réveil masquée',TV9.$('secZone')._h.includes(`data-zfilter="neuf" aria-pressed="true"`)===TV9.$('secZone')._h.includes('data-zfilter="neuf"')&&!new RegExp(`data-mapsel="i:${kE}"`).test((TV9.$('secZone')._h.match(/<table class="g">[\s\S]*?<\/table>/)||[''])[0]));
+    zClick({zfilter:'all'}); }
   zClick({mapsel:'i:'+cand.g.k});
   ok('toucher une ligne : ligne choisie, détail juste sous elle',new RegExp(`class="zr rev[^"]* on" role="button" tabindex="0" data-mapsel="i:${kE}"`).test(TV9.$('secZone')._h)
      &&new RegExp(`data-mapsel="i:${kE}"[^>]*>[\\s\\S]*?</tr><tr class="zd">`).test(TV9.$('secZone')._h));

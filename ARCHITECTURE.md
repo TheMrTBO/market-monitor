@@ -281,7 +281,12 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   tableau par zone devient « Convergence des 9M » (`[sectors.map.board] label` ; bulle ⓘ `conv` = paragraphes « Titre : texte »
   de `help` : à quoi sert le bloc, entrée d'un groupe, zones, ordre, lecture d'une ligne et des cases, entrées / sorties, ce que ça
   vaut, détail), un **tableau** (`mapBoardHtml`) : ligne de phase,
-  ligne de lecture `howto`, « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis), puis une ligne par groupe des
+  ligne de lecture `howto`, « Sur `moves_sessions` séances » (groupes entrés dans les zones, sortis), **filtres par zone** (`zoneFilter`,
+  `mm.zonefilter`, pastilles `filter_all` + une par zone non vide ; zone vide ce jour-là = Tout), puis les groupes **par section de zone**
+  (Réveil délaissée séparée du Réveil ; en-tête coloré `--zc`, nombre, « `first_label` » sur la première zone non vide, bulle ⓘ ;
+  liseré de la couleur de zone sur chaque ligne ; « `gone_title` » en dernier). **Bulles ⓘ de chaque calcul** (`[sectors.map.board.tips.*]`
+  : lo, rev, both, neuf, gone, moves, cells, rank, detail ; `conv_phase` = règles de phase ; `convHelp` remplit les {x} de la config).
+  **Un seul groupe ouvert** : toucher le jour ou la ligne d'un autre groupe ferme le détail ou la liste ouverts. Dans les sections, une ligne par groupe des
   zones (Réveil, thème qui dure, neuf ; ordre de la phase, délaissées, nombre de 9M ; `rows_max` puis « + N autres groupes »,
   `zoneAll`) : nom, zone en clair (`zb` : « Réveil délaissée » sous `low_rank`, bulle des tests), rang TI65 en barre (↑ = rang ≥
   `low_rank` qui gagne plus de `rank_up_pts` points en `rank_up_sessions` séances), n / m en 9M, `row_tickers` premiers titres

@@ -130,6 +130,13 @@ in9 = "en 9M"
 more_rows = "+ {n} autres groupes"
 less_rows = "Afficher moins"
 copy_zone = "Copier {z}"
+gone_title = "Sortis récemment"
+first_label = "à regarder en premier"   # première zone non vide, dans l'ordre de la phase
+filter_label = "Afficher une zone"
+filter_all = "Tout"
+tip_cells = "calcul des cases"
+tip_rank = "calcul du rang"
+tips_phase_title = "Ordre des zones selon la phase"
 view_grid = "Grille"          # bascule du bloc (02/11/2026) : la carte des thèmes est une vue du bloc, plus un bloc à côté
 view_map = "Carte"
 # bulle ⓘ du bloc (02/11/2026, demande de l'utilisateur : « comment fonctionne la convergence 9M ») : un paragraphe par entrée,
@@ -193,6 +200,77 @@ phases = ["shock", "wash", "recovery", "overheat", "contraction"]
 order = ["rev", "both", "neuf"]
 low = true
 tip = "En Choc, Lessivage, Reprise, Surchauffe ou Contraction (tests 2019-2025, écart de l'industrie sur 21 séances à élan égal) : Réveil délaissée +4,7 à +5,4 % (5 à 6 ans / 7 sauf Reprise 4 / 6) ; Thème qui dure ≈ 0 ou négatif (Contraction −0,9 %, 1 an / 6 ; Surchauffe −0,5 %)."
+
+# Bulles ⓘ de chaque calcul de la grille (02/11/2026, « des infos bulles partout où il faut expliquer pourquoi et comment on calcule ») :
+# title + text = paragraphes « Titre : texte » ; mêmes {x} que help, plus {hot} = top % du chaud, {hb} = largeur minimale du chaud,
+# {nw} = fenêtre du neuf, {fs} = séances sans signal avant un neuf, {pct} {vol} {price} = scan 9M, {ep} {em} {es} = EP probable.
+[sectors.map.board.tips.lo]
+title = "Réveil délaissée"
+text = [
+  "Ce que c'est : un groupe en Réveil (9M fort, pas chaud) dont le rang TI65 est sous {low} : la demande arrive sur un groupe que le marché avait délaissé.",
+  "Calcul : 9M fort = au moins {k} titres en 9M sur {w} séances et au moins {s} % des membres ; rang TI65 = place de l'indice du groupe parmi les industries, de 0 (le plus faible) à 100.",
+  "Pourquoi en premier : tests 2008-2025 (indice du groupe sur 21 séances face aux autres industries, à élan égal) : +2,8 % (12 années sur 18), +5,0 % à 42 séances ; hors Expansion A, B, C (2019-2025) : +4,7 à +5,4 %. En Expansion A, B ou C : +0,4 % seulement, d'où l'étiquette retirée dans ces phases.",
+  "Ce que ce n'est pas : un signal d'entrée. L'entrée reste la bougie forte + 9M d'un titre du groupe."
+]
+[sectors.map.board.tips.rev]
+title = "Réveil"
+text = [
+  "Ce que c'est : 9M fort sans que le groupe soit chaud, avec un rang TI65 d'au moins {low} : la demande arrive avant la tendance.",
+  "Calcul : 9M fort = au moins {k} titres en 9M sur {w} séances et au moins {s} % des membres ; chaud = dans les {hot} % premières industries au TI65, TI65 au-dessus de 1 et au moins {hb} % de ses titres au-dessus de 1.",
+  "Ce que ça vaut : zone Réveil +1,8 % sur 21 séances face aux autres industries (11 années sur 18 ; 13 sur 18 à 42 séances, 2008-2025) ; en Expansion A, B ou C, Réveil au rang 40 ou plus +4,0 % (2019-2025)."
+]
+[sectors.map.board.tips.both]
+title = "Thème qui dure"
+text = [
+  "Ce que c'est : 9M fort dans un groupe déjà chaud : le thème est installé et la demande continue.",
+  "Calcul : 9M fort = au moins {k} titres en 9M sur {w} séances et au moins {s} % des membres ; chaud = dans les {hot} % premières industries au TI65, TI65 au-dessus de 1 et au moins {hb} % de ses titres au-dessus de 1.",
+  "Ce que ça vaut : +0,7 % sur 21 séances sur 2008-2025 (9 années sur 18, instable) ; mais en Expansion (2019-2025) +4,1 % en A, B ou C et +4,6 % en chaude, d'où sa place en tête dans ces phases ; en Contraction −0,9 %."
+]
+[sectors.map.board.tips.neuf]
+title = "Neuf"
+text = [
+  "Ce que c'est : une grappe de leaders apparue depuis au plus {nw} séances (au moins 3 titres du groupe à +25 % sur 21 séances, 2 fois plus que le marché, ou la moitié d'un panier de thème), sans signal dans les {fs} séances d'avant.",
+  "Particularité : un groupe Neuf entre dans la grille même sans 9M fort.",
+  "Ce que ça vaut : avec des 9M +1,0 % sur 21 séances, sans 9M +0,3 % (2008-2025) ; le signal le plus solide des tests 2019-2026 pour dire où ça part (53 % devant le marché à 42 séances), pas si ça va durer."
+]
+[sectors.map.board.tips.gone]
+title = "Sortis récemment"
+text = [
+  "Ce que c'est : un groupe sorti des zones depuis au plus {g} séances (plus de 9M fort, ou plus neuf).",
+  "Pourquoi le garder : 47 % des groupes sortis reviennent sous 20 séances (2008-2025). Grisé pour ne pas le perdre de vue sans le mettre en avant."
+]
+[sectors.map.board.tips.moves]
+title = "Entrées et sorties"
+text = [
+  "Calcul : les groupes des zones à cette séance comparés à ceux d'il y a {m} séances ; entrés = présents maintenant seulement, sortis = présents alors seulement.",
+  "Lecture : la grille change peu (73 % des séances sans changement, 0,2 entrée par séance en moyenne, 2008-2025) : une entrée est donc un événement à regarder."
+]
+[sectors.map.board.tips.cells]
+title = "Calcul des cases"
+text = [
+  "Une case : le nombre de titres du groupe dans la liste 9M de ce jour-là. 9M = ton scan TC2000 : clôture au moins {pct} % au-dessus de la veille, volume au-dessus de {vol} M et de celui de la veille, clôture au-dessus de {price} $. Refait chaque matin sur les cours du site (actions retenues).",
+  "Couleur : pâle 1 titre, moyen 2, foncé 3 et plus ; case vide = aucun titre ; pointillés = pas d'historique.",
+  "Point vert : EP probable d'un titre du groupe : hausse d'au moins {ep} % et volume d'au moins {em} fois la moyenne des {es} séances d'avant (repérée le lendemain matin).",
+  "Lecture : des cases qui se remplissent séance après séance = une convergence qui s'installe ; une seule case pleine = souvent une nouvelle commune (rachat, résultats).",
+  "Toucher une case : la liste des titres de ce jour, avec leur bougie."
+]
+[sectors.map.board.tips.rank]
+title = "Calcul du rang TI65"
+text = [
+  "Calcul : indice équipondéré des titres retenus du groupe ; TI65 = moyenne des 7 dernières clôtures de l'indice ÷ moyenne des 65 ; rang = place parmi les industries classées, de 0 (la plus faible) à 100 (la plus forte). Un thème suivi est placé parmi les industries.",
+  "Zone verte : rang sous {low} = groupe délaissé.",
+  "↑ : rang d'au moins {low} qui a gagné plus de {p} points en {q} séances : +1,3 % sur 21 séances contre 0 % pour un rang stable (2008-2025). Pour une délaissée, la remontée n'ajoute rien."
+]
+[sectors.map.board.tips.detail]
+title = "Détail d'un groupe"
+text = [
+  "Âge de la grappe : séances de suite avec au moins {k} titres en 9M sur {w} séances ; l'avance grandit après 5 séances (+0,45 % sur 21 s entre 1 et 5 séances, +0,84 % entre 6 et 20).",
+  "Concentration (× le marché) : part du groupe en 9M ÷ part de toutes les actions retenues en 9M ; à 2 fois ou plus, la demande est propre au groupe (+0,8 % sur 21 s, 14 années sur 18).",
+  "Panier : au moins 2 de ses titres en 9M appartiennent au même thème suivi.",
+  "« Le même jour » : tous ses 9M sont partis la même séance, souvent une nouvelle commune plutôt qu'un thème.",
+  "Thèmes 9M : thèmes des ETF thématiques qui détiennent ces titres (déclarations à la SEC).",
+  "Pastilles et courbe : une pastille par membre, pleine s'il est en 9M sur {w} séances ; courbe = part du groupe en 9M sur 12 mois, pointillé à {s} %."
+]
 
 [sectors.map.text]
 # Libellés de la carte et du tableau par zone (01/11/2026, audit « sans valeur en dur ») ; {x} = valeur remplie par la page,

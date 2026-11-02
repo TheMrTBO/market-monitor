@@ -346,6 +346,18 @@
   .secmap .zdi .mbr { cursor: default; padding-left: 0; padding-right: 0; }
   .secmap .zdh { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; }
   .secmap .zdh .mi-x { border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; min-width: 32px; min-height: 28px; }
+  /* zones de la grille : couleur par zone (--zc), en-têtes, filtres (02/11/2026) */
+  .secmap .z-lo { --zc: var(--ok); } .secmap .z-rev { --zc: var(--g2); } .secmap .z-both { --zc: var(--up); } .secmap .z-neuf { --zc: var(--warn); } .secmap .z-gone { --zc: var(--faint); } .secmap .z-all { --zc: var(--text); }
+  .secmap tr.zr td.n { box-shadow: inset 3px 0 0 var(--zc, transparent); padding-left: 9px; } .secmap tr.zr.on td.n { box-shadow: inset 3px 0 0 var(--zc), inset 0 0 0 9999px var(--panel2); }
+  .secmap tr.zh td { padding: 12px 0 4px; } .secmap tr.zh:first-of-type td { padding-top: 4px; }
+  .secmap .zhl { display: flex; align-items: center; gap: 8px; font-size: 12.5px; padding: 5px 8px; border-radius: 6px; background: color-mix(in srgb, var(--zc) 12%, transparent); }
+  .secmap .zhl i { width: 10px; height: 10px; border-radius: 50%; background: var(--zc); flex: none; } .secmap .zhl b { color: var(--text); }
+  .secmap .zhn { color: var(--muted); font-variant-numeric: tabular-nums; } .secmap .zh1 { font-size: 10.5px; font-weight: 650; padding: 1px 8px; border-radius: 999px; background: var(--zc); color: var(--panel); }
+  .secmap .zf { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+  .secmap .zfb { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 12px; padding: 4px 10px; min-height: 30px; border-radius: 999px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; }
+  .secmap .zfb i { width: 8px; height: 8px; border-radius: 50%; background: var(--zc); } .secmap .zfb b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .secmap .zfb.on { border-color: var(--zc); color: var(--text); background: color-mix(in srgb, var(--zc) 14%, transparent); }
+  .secmap .mbt { white-space: nowrap; } .secmap .mbp .tipbtn, .secmap .mbm .tipbtn, .secmap .zdh .tipbtn { margin-left: 4px; }
   .secmap .mbh { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 2px 0 12px; max-width: 72ch; }
   .secmap .mboard .mbp { margin: 4px 0 8px; } .secmap .mboard .gw { margin-top: 6px; }
   .secmap .mboard .mbl { margin-top: 12px; line-height: 1.5; } .secmap .mboard .mbo { padding: 10px 4px; margin-top: 8px; line-height: 1.7; }
@@ -3486,6 +3498,7 @@
   let mapOther = false;                                 // tableau par zone : « 9M actif ailleurs » déplié
   let zoneAll = false;                                  // grille : groupes au-delà de rows_max dépliés
   let zoneDay = null;                                   // grille : case touchée (« clé|séance ») → liste des titres du jour
+  let zoneFilter = store.get('mm.zonefilter') || 'all'; // grille : zone affichée (all, lo, rev, both, neuf, gone)
   // vue du bloc Convergence des 9M (02/11/2026, demande de l'utilisateur) : grille ou carte des thèmes, bascule dans le bloc ;
   // mobile (≤ 640 px) : grille seule (carte illisible)
   let zoneView = store.get('mm.zoneview') === 'map' ? 'map' : 'grid';
@@ -3746,23 +3759,22 @@
         return { ...base, ...(Fi ? barStats(Fi, s, d) : {}), bq: !!(F.f & 1), ext: !!(F.f & 2) };
       });
       const ok = boSort(items.filter(r => r.p != null && r.v != null)), rest = items.filter(r => r.p == null || r.v == null), marked = ok.some(r => r.pos != null);
-      return `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi secbo"><div class="zdh"><b>${escH(tpl(BD.day_title, { g: o.x.g.k, d: dshort(k), n: q.n }))}</b>` +
+      return `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi secbo"><div class="zdh"><b>${escH(tpl(BD.day_title, { g: o.x.g.k, d: dshort(k), n: q.n }))}${tipI('bo', BOC.label)}</b>` +
         `<button type="button" class="mi-x" data-zday="" aria-label="${escA(MT.close)}">✕</button></div>` +
         (wait ? `<div class="note">${escH(BD.day_loading)}</div>` : `<div class="bogrid">${ok.map(r => boChip(r, { marked, nPrev: prevK.length, attr: 'data-pop', more: ` data-popd="${escA(d)}"` })).join('')}${rest.map(r => chip(r.s)).join('')}</div>` +
           (own ? `<div class="mbl">${escH(BD.day_own)}</div>` : '')) + '</div></td></tr>';
     };
     const row = (o, gone) => {
       const x = o.x, m = o.m, n = x.g.n, key = x.g.key, sel = key === mapSel, t = tOf(m), lo = lowOf(o);
-      const badge = gone ? `<span class="zg" title="${escA(BD.gone_note)}">${escH(tpl(BD.gone_label, { n: gone }))}</span>`
-        : `<span class="zb ${lo ? 'lo' : o.cl}" title="${escA(lo ? tpl(BD.low_tip, { r: BD.low_rank }) : ZT[o.cl] || '')}">${escH(lo ? `${ZN.rev} ${BD.low_label}` : ZN[o.cl] || '')}</span>`;
+      const badge = gone ? `<span class="zg" title="${escA(BD.gone_note)}">${escH(tpl(BD.gone_label, { n: gone }))}</span>` : '';   // la zone est dans l'en-tête de section
       const chips = t.length ? `<span class="tks">${t.slice(0, BD.row_tickers).map(s => `<span class="tk${strong.has(s) ? ' ok' : ''}" role="button" tabindex="0" data-pop="${escA(s)}" title="${escA(tpl(MT.chip_tip, { s }))}">${escH(s)}${strong.has(s) ? '▲' : ''}</span>`).join(' · ')}` +
         `${t.length > BD.row_tickers ? ` <span class="mb-more">+${t.length - BD.row_tickers}</span>` : ''}</span>` : '';
       const tip = m ? tpl(MT.row_tip, { k: x.g.k, n: m.n, m: n, p: nf(m.share, 0) }) : tpl(MT.row_tip_none, { k: x.g.k, m: n });
-      return `<tr class="zr ${o.cl}${gone ? ' gone' : ''}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-expanded="${sel}" title="${escA(tip)}">` +
+      return `<tr class="zr ${o.cl} z-${gone ? 'gone' : lo ? 'lo' : o.cl}${gone ? ' gone' : ''}${sel ? ' on' : ''}" role="button" tabindex="0" data-mapsel="${escA(key)}" aria-expanded="${sel}" title="${escA(tip)}">` +
         `<td class="n"><span class="gn"><b>${escH(x.g.k)}</b>${o.th ? `<span class="mb-tt" title="${escA(BD.theme_tip)}">${escH(BD.theme_tag)}</span>` : ''}${badge}</span>` +
         `<span class="gt">${rankHtml(o)}<span class="mb-c">${m ? m.n : 0} / ${n} ${escH(BD.in9)}</span>${chips}</span></td>${tds(key)}</tr>` +
         (zoneDay && zoneDay.startsWith(key + '|') ? dayPanel(o, +zoneDay.slice(key.length + 1)) : '') +
-        (sel ? `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi"><div class="zdh"><b>${escH(x.g.k)}</b><button type="button" class="mi-x" data-mapsel="" aria-label="${escA(MT.close)}">✕</button></div>${detail(o)}</div></td></tr>` : '');   // détail sous la ligne
+        (sel ? `<tr class="zd"><td colspan="${gks.length + 1}"><div class="zdi"><div class="zdh"><b>${escH(x.g.k)}${tipI('conv_detail', x.g.k)}</b><button type="button" class="mi-x" data-mapsel="" aria-label="${escA(MT.close)}">✕</button></div>${detail(o)}</div></td></tr>` : '');   // détail sous la ligne
     };
     const byN = (a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py;
     const order = PR ? PR.order : BD.default_order;
@@ -3776,12 +3788,28 @@
       const Z = zoneKeys(mapAt(e - j)); if (!Z) break;
       Z.forEach((nm, key) => { if (inZ.has(key) || seenG.has(key)) return; seenG.add(key); const o = M.by.get(key) || (M.tby && M.tby.get(key)); if (o) gone.push([o, j]); });
     }
+    // sections par zone (02/11/2026, « je ne sais pas où regarder quand j'arrive ») : Réveil délaissée (lo) séparée du Réveil,
+    // dans l'ordre de la phase ; la première zone non vide = « à regarder en premier » ; filtres par zone (zoneFilter) ; couleur par zone
     if (rs.length || gone.length) {
-      const shownR = zoneAll ? rs : rs.slice(0, BD.rows_max), head = `<tr><th></th>${gks.map((k, i) => `<th>${(gks.length - 1 - i) % 5 === 0 ? `<span>${escH(dshort(k).replace(/\.$/, ''))}</span>` : ''}</th>`).join('')}</tr>`;
-      parts.push(`<div class="gw"><table class="g">${head}${shownR.map(o => row(o)).join('')}${gone.slice(0, BD.gone_max).map(([o, j]) => row(o, j)).join('')}</table></div>`);
-      const cps = order.map(cl => { const zs = [...new Set(rs.filter(o => o.cl === cl).flatMap(o => o.m ? o.m.t.slice().sort() : []))];
-        return zs.length ? `<button type="button" class="copybtn" data-zcopy="${escA(zs.join(','))}" title="${escA(BD.copy_zone_tip.replace('{z}', ZN[cl]))}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(tpl(BD.copy_zone, { z: ZN[cl] }))}</span></button>` : ''; }).join('');
-      parts.push(`<div class="mbf">${rs.length > BD.rows_max ? `<button type="button" class="mbmore" data-zoneall="1" aria-expanded="${zoneAll}">${escH(zoneAll ? BD.less_rows : tpl(BD.more_rows, { n: rs.length - BD.rows_max }))}</button>` : ''}${cps}</div>`);
+      const secs = order.flatMap(cl => cl === 'rev' ? ['lo', 'rev'] : [cl]), zkOf = o => lowOf(o) ? 'lo' : o.cl;
+      const SL = { lo: `${ZN.rev} ${BD.low_label}`, rev: ZN.rev, both: ZN.both, neuf: ZN.neuf, gone: BD.gone_title };
+      const by = Object.fromEntries(secs.map(z => [z, rs.filter(o => zkOf(o) === z)]));
+      const filt = (zoneFilter === 'gone' ? gone.length : secs.includes(zoneFilter) && by[zoneFilter].length) ? zoneFilter : 'all', firstZ = secs.find(z => by[z].length);
+      const fb = (z, n, lab) => `<button type="button" class="zfb z-${z}${filt === z ? ' on' : ''}" data-zfilter="${z}" aria-pressed="${filt === z}">${z === 'all' ? '' : '<i></i>'}${escH(lab)} <b>${n}</b></button>`;
+      parts.push(`<div class="zf" role="group" aria-label="${escA(BD.filter_label)}">${fb('all', rs.length, BD.filter_all)}${secs.filter(z => by[z].length).map(z => fb(z, by[z].length, SL[z])).join('')}` +
+        `${gone.length ? fb('gone', Math.min(gone.length, BD.gone_max), SL.gone) : ''}</div>`);
+      const head = `<tr><th></th>${gks.map((k, i) => `<th>${(gks.length - 1 - i) % 5 === 0 ? `<span>${escH(dshort(k).replace(/\.$/, ''))}</span>` : ''}</th>`).join('')}</tr>`;
+      const sh = (z, n) => `<tr class="zh z-${z}"><td colspan="${gks.length + 1}"><span class="zhl"><i></i><b>${escH(SL[z])}</b><span class="zhn">${n}</span>` +
+        `${z === firstZ ? `<span class="zh1">${escH(BD.first_label)}</span>` : ''}${tipI('conv_' + z, SL[z])}</span></td></tr>`;
+      let body = '', left = filt === 'all' && !zoneAll ? BD.rows_max : Infinity, hidden = 0;
+      secs.forEach(z => { if (filt !== 'all' && filt !== z) return; const L = by[z]; if (!L.length) return;
+        const shown = L.slice(0, Math.max(0, left)); hidden += L.length - shown.length; left -= shown.length; if (!shown.length) return;
+        body += sh(z, L.length) + shown.map(o => row(o)).join(''); });
+      if ((filt === 'all' || filt === 'gone') && gone.length) body += sh('gone', Math.min(gone.length, BD.gone_max)) + gone.slice(0, BD.gone_max).map(([o, j]) => row(o, j)).join('');
+      parts.push(`<div class="gw"><table class="g">${head}${body}</table></div>`);
+      const cps = secs.map(z => { const zs = [...new Set(by[z].flatMap(o => o.m ? o.m.t.slice().sort() : []))];
+        return zs.length ? `<button type="button" class="copybtn" data-zcopy="${escA(zs.join(','))}" title="${escA(BD.copy_zone_tip.replace('{z}', SL[z]))}"><svg class="i"><use href="#i-copy"/></svg><span>${escH(tpl(BD.copy_zone, { z: SL[z] }))}</span></button>` : ''; }).join('');
+      parts.push(`<div class="mbf">${hidden || zoneAll ? `<button type="button" class="mbmore" data-zoneall="1" aria-expanded="${zoneAll}">${escH(zoneAll ? BD.less_rows : tpl(BD.more_rows, { n: hidden }))}</button>` : ''}${cps}</div>`);
     }
     const oth = M.pts.filter(o => !inZ.has(o.x.g.key) && !seenG.has(o.x.g.key) && o.m && o.m.n >= 2).sort(byN), shown = mapOther ? oth : oth.slice(0, BD.other_max);
     if (oth.length) parts.push(`<div class="mbo"><span><b>${escH(BD.other_label)}</b> (${escH(BD.notes.other)}) :</span>` +
@@ -3791,12 +3819,12 @@
     if (Z0 && parts.length) {
       const now = zoneKeys(M) || new Map(), inn = [...now].filter(([k]) => !Z0.has(k)).map(([, n]) => n).sort(), out = [...Z0].filter(([k]) => !now.has(k)).map(([, n]) => n).sort();
       const li = (lab, a) => `<span><b>${escH(tpl(lab, { n: a.length }))}</b> ${escH(a.join(', '))}</span>`;
-      parts.unshift(`<div class="mbm"><span class="mbm-t">${escH(tpl(BD.moves_label, { n: BD.moves_sessions }))}</span>` +
+      parts.unshift(`<div class="mbm"><span class="mbm-t">${escH(tpl(BD.moves_label, { n: BD.moves_sessions }))}${tipI('conv_moves', tpl(BD.moves_label, { n: BD.moves_sessions }))}</span>` +
         (inn.length || out.length ? (inn.length ? li(BD.moves_in, inn) : '') + (out.length ? li(BD.moves_out, out) : '') : `<span>${escH(BD.moves_none)}</span>`) + '</div>');
     }
     if (parts.length) parts.unshift(`<div class="mbh">${escH(BD.howto)}</div>`);
-    if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZN[PR.order[0]] }))}</div>`);
-    const legend = `<div class="mbl">${escH(tpl(BD.grid_legend, { n: BD.grid_sessions, low: BD.low_rank }))}</div>`;
+    if (PR && parts.length) parts.unshift(`<div class="mbp" title="${escA(PR.tip)}"><i class="phdot" style="background:${escA(PHK[pk].color)}"></i>${escH(tpl(BD.phase_label, { p: PHK[pk].name, z: ZN[PR.order[0]] }))}${tipI('conv_phase', BD.phase_label.split(' :')[0])}</div>`);
+    const legend = `<div class="mbl">${escH(tpl(BD.grid_legend, { n: BD.grid_sessions, low: BD.low_rank }))} <span class="mbt">${escH(BD.tip_cells)}${tipI('conv_cells', BD.tip_cells)}</span> <span class="mbt">${escH(BD.tip_rank)}${tipI('conv_rank', BD.tip_rank)}</span></div>`;
     return { html: `<div class="mboard">${parts.length ? parts.join('') + legend : `<div class="note">${escH(BD.empty)}</div>`}</div>`, syms, nz: inZ.size };
   }
   // mini-bougie d'un titre 9M : trait = range du jour (long si range ≥ ADR), barre = clôture dans la bougie ; vert = bougie forte
@@ -4610,15 +4638,20 @@
     mapSel = t.dataset.mapsel !== mapSel ? t.dataset.mapsel : null; renderSecKpis(); });
   // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
   function zoneAct(t) {
-    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-zview],[data-zday],[data-mapsel]'); if (!b) return false;
+    const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-zview],[data-zfilter],[data-zday],[data-mapsel]'); if (!b) return false;
     if (b.dataset.pop != null) { openPop(b.dataset.pop, b.dataset.popd); return true; }   // depuis la liste d'un jour : ce jour en pointillé
     if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
     if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
     if (b.dataset.zoneall != null) { zoneAll = !zoneAll; renderSecKpis(); return true; }
-    if (b.dataset.zday != null) { zoneDay = b.dataset.zday && b.dataset.zday !== zoneDay ? b.dataset.zday : null; renderSecKpis(); return true; }
+    if (b.dataset.zfilter != null) { zoneFilter = b.dataset.zfilter; store.set('mm.zonefilter', zoneFilter); zoneAll = false; renderSecKpis(); return true; }
+    if (b.dataset.zday != null) {                        // un seul groupe ouvert : la liste d'un autre groupe ferme le détail ouvert
+      zoneDay = b.dataset.zday && b.dataset.zday !== zoneDay ? b.dataset.zday : null;
+      if (zoneDay && mapSel && !zoneDay.startsWith(mapSel + '|')) mapSel = null; renderSecKpis(); return true; }
     if (b.dataset.zview != null) { zoneView = b.dataset.zview === 'map' ? 'map' : 'grid'; store.set('mm.zoneview', zoneView); renderSecKpis(); return true; }
-    mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null; renderSecKpis(); return true;
+    mapSel = b.dataset.mapsel && b.dataset.mapsel !== mapSel ? b.dataset.mapsel : null;
+    if (zoneDay && (!mapSel || !zoneDay.startsWith(mapSel + '|'))) zoneDay = null;   // un seul groupe ouvert à la fois
+    renderSecKpis(); return true;
   }
   $('secZone').addEventListener('click', e => { zoneAct(e.target); });
   $('secZone').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches && e.target.matches('[role="button"]') && zoneAct(e.target)) e.preventDefault(); });
@@ -6439,10 +6472,16 @@
   });
 
   // ------------------------------------------------------------------ bulles d'information : clic / toucher / Entrée, et survol à la souris
+  // paragraphes « Titre : texte » des bulles de Convergence des 9M (config [sectors.map.board] help et tips), valeurs de la config
+  const convHelp = arr => (arr || []).map(x => {
+    const B = MP.board, t = tpl(x, { k: AC.nine_min, w: AC.nine_window, s: AC.nine_share, low: B.low_rank, n: B.grid_sessions, m: B.moves_sessions, r: B.rows_max,
+      g: B.gone_sessions, p: B.rank_up_pts, q: B.rank_up_sessions, hot: CFG.tickers.hot_top_pct, hb: CFG.tickers.hot_min_breadth, nw: AC.neuf_window, fs: AC.fresh_sessions,
+      pct: BOC.pct, vol: nf(BOC.min_volume / 1e6, 1), price: nf(BOC.min_price, 2), ep: BOC.ep_pct, em: BOC.ep_vol_mult, es: BOC.ep_vol_sessions }), i = t.indexOf(' : ');
+    return i < 0 ? `<p>${escH(t)}</p>` : `<p><b>${escH(t.slice(0, i))}</b> : ${escH(t.slice(i + 3))}</p>`; }).join('');
   const SEC_TIPS = () => ({
-    conv: [MP.board.label, (MP.board.help || []).map(x => {   // bulle du bloc Convergence des 9M : « Titre : texte » de la config
-      const B = MP.board, t = tpl(x, { k: AC.nine_min, w: AC.nine_window, s: AC.nine_share, low: B.low_rank, n: B.grid_sessions, m: B.moves_sessions, r: B.rows_max, g: B.gone_sessions, p: B.rank_up_pts, q: B.rank_up_sessions }), i = t.indexOf(' : ');
-      return `<p><b>${escH(t.slice(0, i))}</b> : ${escH(t.slice(i + 3))}</p>`; }).join('')],
+    conv: [MP.board.label, convHelp(MP.board.help)],   // bulle du bloc Convergence des 9M : « Titre : texte » de la config
+    ...Object.fromEntries(Object.entries(MP.board.tips || {}).map(([k, v]) => ['conv_' + k, [v.title, convHelp(v.text)]])),   // une bulle par calcul (02/11/2026)
+    conv_phase: [MP.board.tips_phase_title, MP.board.phase_rule.map(r => `<p><b>${escH(r.phases.map(k => PHK[k] ? PHK[k].name : k).join(', '))}</b> : ${escH(r.tip)}</p>`).join('')],
     map: [MP.label, `<p>${escH(MP.tip)}</p><ul>${['reveil', 'lasting', 'trend', 'calm'].map(k => `<li><b>${escH(MP.zones[k])}</b> : ${escH(MP.zone_notes[k])}</li>`).join('')}</ul>` +
       `<p class="src">Traits pointillés : rang ${TIN} ${MP.x_hot} (haut du classement), ${AC.nine_share} % et ${AC.nine_intense} % des actions en 9M. Mesure : indice de l'industrie sur 21 séances moins la moyenne des industries, à élan 10 j et tendance 63 j égaux (tests hors dépôt, yfinance, industries d'aujourd'hui).</p>`],
     bo: [BOC.label, `<p>Votre scan TC2000, appliqué chaque soir aux ${escH(BOC.universe_label)} du screener TradingView : ${boRule()}.</p>
