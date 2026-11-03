@@ -154,8 +154,8 @@
   /* rythme vertical de l'onglet (retour UX du 27/10/2026 : « respecter les espaces entre les composants ») : un seul écart entre
      blocs (--blk), un seul écart dans un bloc (8 px) ; chaque bloc a un titre avec chevron et se replie (résumé d'une ligne) */
   #view-sec { --blk: 16px; }
-  #view-sec > .secact, #view-sec > .secsplit, #view-sec > .secflow { margin: 0 0 var(--blk); }
-  #view-sec > .secrrg { margin: 0 0 var(--blk); }
+  /* même écart sous chaque bloc, quel que soit l'ordre choisi (03/11/2026 : Ce matin et Convergence en avaient un autre) */
+  #view-sec > .secact, #view-sec > .secsplit, #view-sec > .secflow, #view-sec > .secnow, #view-sec > .maprow, #view-sec > .secrrg, #view-sec > .srchbar { margin: 0 0 var(--blk); }
   .foldh { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text); padding: 2px 0; font: inherit; font-size: 13px; cursor: pointer; text-align: left; min-height: 28px; }
   .foldh b { font-weight: 600; }
   /* chevron dessiné (le glyphe ▾ était trop petit) : vers le bas = ouvert, vers la droite = replié ; le texte ▾ / ▸ reste pour les lecteurs */
@@ -313,11 +313,12 @@
   .poptr .lead { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 8px; background: var(--panel2); color: var(--text); margin-left: 6px; }
   .poptr .gi { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; min-height: 28px; border-radius: 8px; cursor: pointer; }
   .poptr .gi:hover, .poptr .gi:focus-visible { border-color: var(--faint); outline: none; }
-  .secfind { position: relative; display: inline-flex; align-items: center; align-self: center; }
+  .srchbar[hidden] { display: none; } .srchbar { display: flex; }
+  .secfind { position: relative; display: flex; align-items: center; width: min(460px, 100%); }
   .secfind > .i { position: absolute; left: 9px; width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
-  .secfind input { width: 150px; font: inherit; font-size: 13px; padding: 4px 8px 4px 29px; min-height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; -webkit-appearance: none; appearance: none; }
+  .secfind input { width: 100%; font: inherit; font-size: 13px; padding: 4px 8px 4px 29px; min-height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; -webkit-appearance: none; appearance: none; }
   .secfind input::placeholder { text-transform: none; color: var(--faint); } .secfind input:focus { outline: none; border-color: var(--faint); }
-  .secfind .sfl { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: min(320px, calc(100vw - 32px)); max-height: 60vh; overflow-y: auto; padding: 4px; border-radius: 10px;
+  .secfind .sfl { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; width: min(380px, calc(100vw - 32px)); max-height: 60vh; overflow-y: auto; padding: 4px; border-radius: 10px;
     border: 1px solid var(--border); background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; }
   .secfind .sfl[hidden] { display: none; }
   .secfind .sfo { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 12.5px; padding: 6px 8px; min-height: 34px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
@@ -994,7 +995,10 @@
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
     .secfrise { padding: 12px; } #friseCv { height: 44px; } #secPhLeg { display: none; }   /* mobile : nom de la phase au toucher (étiquette de la frise) */
     #view-sec { --blk: 12px; } .secfrise .seckpinote { margin-left: 0; } .secact .acard { min-height: 44px; }
-    .secfrise .secfind { margin-left: auto; } .secfind input { width: 150px; font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
+    .secfind { width: 100%; } .secfind input { font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
+    /* récap : ticker et boutons sur une ligne, nom dessous ; en-tête sur une ligne */
+    .secsrch .srh .srn { order: 9; flex-basis: 100%; } .secsrch .srh .srtag { order: 8; }
+    .secsrch .srhd { flex-wrap: nowrap; } .secsrch .srhd b { white-space: nowrap; } .secsrch .srhd .note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .seckpinote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -1105,9 +1109,10 @@
          séparateur net (titre de la phase, séance, bande) entre le contexte et ce qui en découle ; les blocs dessous se replient -->
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="secfrise" id="secFrise" hidden>
-      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
-        <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div></form></div>
+      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
+    <div class="srchbar" id="secSrchBar" hidden>   <!-- barre de recherche sous la frise (03/11/2026) -->
+      <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div></form></div>
     <div class="card secsrch" id="secSrch" role="region" aria-label="Tickers recherchés" aria-live="polite" hidden></div>   <!-- récap de la barre de recherche (03/11/2026) -->
     <style id="srchCss"></style>   <!-- mise en avant des tickers recherchés dans les blocs (règles écrites par srchCss) -->
     <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
@@ -3995,7 +4000,7 @@
     if (!dHover) renderSrch();                         // récap de la barre de recherche et surbrillance (03/11/2026)
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
-    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
+    box.hidden = $('secFrise').hidden = $('secSrchBar').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
     applyFolds();
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
@@ -4285,7 +4290,7 @@
     const TKs = rrgTickers(), tkKey = t => !t.r ? null : lvl === 'sec' ? t.r.secName : lvl === 'ind' ? (t.r.secName === tvNav.sec ? t.r.indName : null) : (t.r.indName === tvNav.ind ? t.s : null);
     const tkFocus = new Set(TKs.list.map(tkKey).filter(Boolean));
     $('rrgChips').innerHTML = TKs.wait ? '<span class="unk">chargement de l\'index des tickers…</span>' : TKs.list.map(t => t.r
-      ? `<button data-tkgo="${escA(t.s)}" title="Ouvrir son industrie sur la carte${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
+      ? `<button data-tkgo="${escA(t.s)}" title="Les industries de son secteur, la sienne en avant (la toucher : ses actions)${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
       : `<span class="unk" title="Ticker absent de l'index (actions ordinaires NYSE / Nasdaq / AMEX)">${escH(t.s)} ?</span>`).join('') + (TKs.list.length ? '<button data-tkclear="1" title="Effacer les tickers">✕</button>' : '');
     if (lvl === 'stk' && !stkItems) { $('rrgInfo').textContent = 'Chargement des actions de l\'industrie…'; }
     const cv = $('rrgCv'), W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
@@ -4526,10 +4531,10 @@
     else { tvNav = { lvl: 'ind', sec: secK, ind: null }; secSel = indK; }
     tvSave(); rrgHot = null; skMode = null; renderSectors();
   });
-  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : la carte (et la liste) descendent jusqu'à son industrie
+  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : les industries de son secteur, la sienne en avant (03/11/2026 : on creuse soi-même)
     const c = ev.target.closest('[data-tkclear]'); if (c) { srchSet(''); return; }   // ✕ : vide la barre de recherche
     const b = ev.target.closest('[data-tkgo]'); if (!b) return; const r = tkRow(b.dataset.tkgo); if (!r) return;
-    tvNav = { lvl: 'stk', sec: r.secName, ind: r.indName }; tvSave(); secSel = r.kept ? r.s : null; rrgHot = null; skMode = null; renderSectors();
+    tvNav = { lvl: 'ind', sec: r.secName, ind: null }; tvSave(); secSel = r.indName; rrgHot = null; skMode = null; renderSectors();
   });
   $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; rrgTabHot = null; drawRrg(rrgE); } });
   $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé

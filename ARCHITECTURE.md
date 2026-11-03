@@ -286,8 +286,8 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   pastille → `zoneShow`, le groupe ouvert dans la grille, fonction partagée avec « Ce matin »), 9M de l'action sur
   `grid_sessions` séances (`nineFlags` des bougies), « leader actif », « Ouvrir l'industrie › » (`tvGoto`). Des faits, aucun
   verdict « en tendance » (pas d'avance mesurée). Écran court : le graphique cède la hauteur (`min-height` 36vh).
-- **Barre de recherche** (`#secFind`, 03/11/2026, demandes de l'utilisateur ; `display.toml [ticker_popup.find]`) : champ
-  unique dans l'en-tête de la frise de Secteurs, **un ou plusieurs tickers** (« NVDA, TSLA » ; `$NVDA`, `NASDAQ:MU`, `BRK-B`
+- **Barre de recherche** (`#secFind` dans `#secSrchBar`, 03/11/2026, demandes de l'utilisateur ; `display.toml [ticker_popup.find]`) : champ
+  unique **sous la frise** de Secteurs (sous sa ligne, affiché avec elle ; d'abord dans l'en-tête de la frise), **un ou plusieurs tickers** (« NVDA, TSLA » ; `$NVDA`, `NASDAQ:MU`, `BRK-B`
   acceptés, `tkParse`), liste mémorisée (`mm.srch` ; l'ancien champ de la carte de rotation, `mm.rrgtk`, est repris puis retiré).
   Suggestions (`sfMatches`) pour le ticker en cours de frappe (`sfTok`) : index Tickers chargé au premier toucher (`tkLoad`),
   symbole exact puis début (capitalisation décroissante), puis nom dès `name_min` lettres ; ↑ ↓, Entrée (suggestion choisie aux
@@ -299,7 +299,11 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   **Mise en avant** (`srchCss` → `<style id="srchCss">`, couleur `--hl` / `--hlbg`) : règles CSS sur les attributs déjà présents,
   sans toucher aux rendus — pastilles `[data-pop]` / `[data-bos]` (Ce matin, grille, bloc 9M), lignes du Classement
   (`#secRows tr[data-s]` : ticker, industrie, secteur), de la grille (`tr.zr[data-mapsel]` : industrie `i:`, thèmes suivis `t:`)
-  et du tableau de la carte de rotation (`#rrgTab tr[data-mv]`) ; la carte met en avant la même liste (`rrgTickers`). Tests 21, 28, 29.
+  et du tableau de la carte de rotation (`#rrgTab tr[data-mv]`) ; la carte met en avant la même liste (`rrgTickers`) ; sa pastille
+  « NVDA → secteur › industrie » ouvre les industries du secteur, la sienne en avant (plus de descente directe aux actions :
+  l'utilisateur creuse lui-même). Tests 21, 28, 29.
+- **Écart entre blocs** : une seule règle (`#view-sec > .secact, .secsplit, .secflow, .secnow, .maprow, .secrrg, .srchbar` →
+  `margin-bottom: var(--blk)`), vraie dans tout ordre ; avant le 03/11/2026, Ce matin (8 px) et Convergence (0 px) n'en avaient pas.
 - **Bougies 9M sur les graphiques de prix** (`nineFlags`, `nineTag`, `config/display.toml [chart_nine]`, 01/11/2026) : seuils du
   scan 9M (`[tv_breadth.breakouts]` pct, min_volume, volume_up, min_price) recalculés sur les barres ; couleur `--c9m` (cyan) ;
   ▲ dessous plein = bougie forte (candle_close_pct, ADR 14 j en $, range de la veille), creux = faible ; « · 9M » dans la
@@ -494,7 +498,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
   fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
   et traînée (datée) en avant, les autres atténués. **Tickers** (barre de recherche de l'onglet depuis le 03/11/2026, `mm.srch` ; avant : champ au-dessus, `mm.rrgtk` ; index `tickers_data.js` chargé à
-  la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker.
+  la demande) : secteurs / industries / actions des tickers en avant ; pastille = industries du secteur du ticker, la sienne en avant (depuis le 03/11/2026 ; avant : ses actions).
   **Tableau « Depuis la veille »** (au-dessus de la carte, demandes du 21/10/2026 : « repérer les changements majeurs assez
   rapidement », « confirmer un secteur hot et donner des pistes sur le prochain » ; remplace la liste « plus gros mouvements », son
   bouton et le choix 1 j / 5 j). **Au niveau secteurs de la carte, il liste les industries de tout le marché** (secteur et nombre
