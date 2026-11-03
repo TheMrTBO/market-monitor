@@ -19,18 +19,18 @@
   }
   :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
           --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px;
-          --zlo: #7c5cd6; --zrev: #64748b; }   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
+          --zlo: #7c5cd6; --zrev: #64748b; --hl: #d97706; --hlbg: rgba(217,119,6,.14); }   /* --hl : tickers de la barre de recherche mis en avant (03/11/2026) */   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
   /* thème sombre : préférence du système, sauf si l'utilisateur force le clair (Réglages) ; ou forcé */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; --hl: #fbbf24; --hlbg: rgba(251,191,36,.13); color-scheme: dark; }
   }
   :root[data-theme="dark"] { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; --hl: #fbbf24; --hlbg: rgba(251,191,36,.13); color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
@@ -323,9 +323,17 @@
   .secfind .sfo { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 12.5px; padding: 6px 8px; min-height: 34px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
   .secfind .sfo b { color: var(--text); min-width: 52px; } .secfind .sfo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .secfind .sfo.on, .secfind .sfo:hover { background: var(--panel2); }
-  .secfind .sfm { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: max-content; max-width: min(320px, calc(100vw - 32px)); font-size: 12px; color: var(--muted);
-    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); }
-  .secfind .sfm[hidden] { display: none; }
+  /* récap des tickers recherchés (sous la frise) */
+  #view-sec > .secsrch { margin: 0 0 var(--blk); padding: 10px 12px; border-color: color-mix(in srgb, var(--hl) 45%, var(--border)); }
+  .secsrch .srhd { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin-bottom: 4px; } .secsrch .srhd .note { color: var(--muted); font-size: 12px; }
+  .secsrch .asp { flex: 1 1 auto; }
+  .secsrch .srow { padding: 7px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .secsrch .srh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; } .secsrch .srh > b { color: var(--hl); font-size: 14px; }
+  .secsrch .srn { color: var(--muted); font-size: 12px; min-width: 0; } .secsrch .unk .srn { color: var(--faint); }
+  .secsrch .srtag { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 8px; background: color-mix(in srgb, var(--c9m) 20%, transparent); color: var(--text); }
+  .secsrch .srx { border: 0; background: none; color: var(--muted); font-size: 15px; min-width: 32px; min-height: 30px; cursor: pointer; border-radius: 6px; } .secsrch .srx:hover { color: var(--text); background: var(--hover); }
+  .secsrch .gi, .secsrch .srmore { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; min-height: 28px; border-radius: 8px; cursor: pointer; }
+  .secsrch .srmore { margin-top: 6px; }
   .secmap .mside { display: grid; gap: 16px; align-items: start; } .secmap .mside > div { min-width: 0; }
   .secmap .mboard { display: flex; flex-direction: column; }
   .secmap .mbz { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12.5px; margin: 10px 0 3px; } .secmap .mbz:first-child { margin-top: 0; }
@@ -986,7 +994,7 @@
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
     .secfrise { padding: 12px; } #friseCv { height: 44px; } #secPhLeg { display: none; }   /* mobile : nom de la phase au toucher (étiquette de la frise) */
     #view-sec { --blk: 12px; } .secfrise .seckpinote { margin-left: 0; } .secact .acard { min-height: 44px; }
-    .secfrise .secfind { margin-left: auto; } .secfind input { width: 112px; font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
+    .secfrise .secfind { margin-left: auto; } .secfind input { width: 150px; font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
     .seckpinote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -1098,8 +1106,10 @@
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="secfrise" id="secFrise" hidden>
       <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
-        <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div><span class="sfm" id="secFindMsg" role="status" aria-live="polite" hidden></span></form></div>
+        <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div></form></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
+    <div class="card secsrch" id="secSrch" role="region" aria-label="Tickers recherchés" aria-live="polite" hidden></div>   <!-- récap de la barre de recherche (03/11/2026) -->
+    <style id="srchCss"></style>   <!-- mise en avant des tickers recherchés dans les blocs (règles écrites par srchCss) -->
     <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
@@ -1166,8 +1176,7 @@
       <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
       <div id="rrgBody">
         <div class="rrgtab" id="rrgTab"></div>
-        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
-          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
+        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav></div>   <!-- tickers : barre de recherche en tête de l'onglet (03/11/2026) -->
         <div class="rrgchips" id="rrgChips"></div>
         <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgleg" id="rrgLeg"></div></div>
     </div>
@@ -3983,6 +3992,7 @@
   }
   const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir la Convergence des 9M (groupes et leurs 9M)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
+    if (!dHover) renderSrch();                         // récap de la barre de recherche et surbrillance (03/11/2026)
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
     box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
@@ -4248,10 +4258,12 @@
     });
     D.stk.set(F, items); return items;
   }
-  // tickers saisis au-dessus de la carte : leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant, les autres atténués
-  let rrgTkText = store.get('mm.rrgtk') || '';
+  // tickers de la barre de recherche (champ unique depuis le 03/11/2026 ; liste reprise de l'ancien champ de la carte, mm.rrgtk) :
+  // leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant sur la carte, les autres atténués
+  let srchText = (() => { const v = store.get('mm.srch'); return v != null ? v : store.get('mm.rrgtk') || ''; })();
+  var srchReady = false;                                 // barre de recherche prête (fin du script) : récap et surbrillance
   function rrgTickers() {
-    const syms = tkParse(rrgTkText); if (!syms.length) return { list: [] };
+    const syms = tkParse(srchText); if (!syms.length) return { list: [] };
     if (!window.TICKERS) { if (tkLoaded.tickers !== 'absent') tkLoad(() => drawRrg(rrgE)); return { list: [], wait: true }; }
     return { list: syms.map(s => { const r = tkRow(s); return { s, r }; }) };
   }
@@ -4514,11 +4526,8 @@
     else { tvNav = { lvl: 'ind', sec: secK, ind: null }; secSel = indK; }
     tvSave(); rrgHot = null; skMode = null; renderSectors();
   });
-  let rrgTkTimer = 0;
-  $('rrgTk').value = rrgTkText;
-  $('rrgTk').addEventListener('input', ev => { clearTimeout(rrgTkTimer); rrgTkTimer = setTimeout(() => { rrgTkText = ev.target.value; store.set('mm.rrgtk', rrgTkText); drawRrg(rrgE); }, 250); });
   $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : la carte (et la liste) descendent jusqu'à son industrie
-    const c = ev.target.closest('[data-tkclear]'); if (c) { rrgTkText = ''; $('rrgTk').value = ''; store.set('mm.rrgtk', ''); drawRrg(rrgE); return; }
+    const c = ev.target.closest('[data-tkclear]'); if (c) { srchSet(''); return; }   // ✕ : vide la barre de recherche
     const b = ev.target.closest('[data-tkgo]'); if (!b) return; const r = tkRow(b.dataset.tkgo); if (!r) return;
     tvNav = { lvl: 'stk', sec: r.secName, ind: r.indName }; tvSave(); secSel = r.kept ? r.s : null; rrgHot = null; skMode = null; renderSectors();
   });
@@ -5380,31 +5389,44 @@
         return `<button type="button" class="zp z-${z}" data-zshow="${escA(o.x.g.key)}" title="${escA(TPT.conv_tip)}"><i></i>${escH(o.x.g.k)} · ${escH(ZL[z])} · ${escH(tpl(TPT.conv_n, { n: o.m ? o.m.n : 0 }))}</button>`; }).join('')
         : `<span>${escH(TPT.conv_none)}</span>`);
     }
-    if (arr) {                                         // 9M de l'action (bougies du graphique, même règle que leur marque)
-      const W = MP.board.grid_sessions, F = nineFlags(arr), D = arr.slice(-W).map(b => b.d).filter(d => F.get(d));
-      const strong = D.filter(d => F.get(d) === 2).length;
-      h += it(TPT.nine, `<b>${escH(tpl(TPT.nine_n, { n: D.length, w: W }))}</b>${strong ? ' ' + escH(tpl(TPT.nine_strong, { n: strong })) : ''}` +
-        (D.length ? ' · ' + escH(tpl(TPT.nine_last, { d: fmtDate(D[D.length - 1], { day: 'numeric', month: 'short' }) })) : ''));
-    }
+    // 9M de l'action sur la fenêtre de la grille : bougies du graphique (même règle que leur marque) ; sans graphique (récap de la
+    // recherche), historique nine du robot (actions retenues)
+    const W = MP.board.grid_sessions;
+    let N9 = null;
+    if (arr) { const F = nineFlags(arr), D = arr.slice(-W).map(b => b.d).filter(d => F.get(d)); N9 = { n: D.length, strong: D.filter(d => F.get(d) === 2).length, last: D[D.length - 1] }; }
+    else if (r.kept) N9 = nineHist(r.s, e, W);
+    if (N9) h += it(TPT.nine, `<b>${escH(tpl(TPT.nine_n, { n: N9.n, w: W }))}</b>${N9.strong ? ' ' + escH(tpl(TPT.nine_strong, { n: N9.strong })) : ''}` +
+      (N9.last ? ' · ' + escH(tpl(TPT.nine_last, { d: fmtDate(N9.last, { day: 'numeric', month: 'short' }) })) : ''));
     const A = actAt(e);
     if (A && A.leaders.some(l => l.s === r.s)) h += `<span class="lead">${escH(TPT.leader)}</span>`;
-    return h + `<button type="button" class="gi" data-gind="1" title="${escA(TPT.go_ind_tip)}">${escH(TPT.go_ind)}</button>`;
+    return h + `<button type="button" class="gi" data-gind="${escA(r.s)}" title="${escA(TPT.go_ind_tip)}">${escH(TPT.go_ind)}</button>`;
   }
-  $('popTr').addEventListener('click', e => {
-    const b = e.target.closest('[data-zshow],[data-gind]'); if (!b) return;
-    const s = popSym, r = s ? tkRow(s) : null; closePop();
-    if (b.dataset.gind != null) { if (r) tvGoto(r.indName, r.s); return; }
+  function nineHist(sym, e, W) {                         // 9M d'une action retenue sur les W séances jusqu'à e (historique nine) ; null sans historique
+    const NI = IND && IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null; if (!NI) return null;
+    const o = { n: 0, strong: 0, last: null };
+    for (let k = Math.max(NI.start, e - W + 1); k <= e; k++) { const x = (NI.days[k - NI.start] || []).find(q => q[0] === sym); if (x) { o.n++; if (x[2] & 1) o.strong++; o.last = IND.dates[k]; } }
+    return o;
+  }
+  function trendAct(b) {                                 // ligne de tendance : une zone = le groupe dans la grille ; « Ouvrir l'industrie »
+    if (popSym) closePop();
+    if (b.dataset.gind != null) { const r = tkRow(b.dataset.gind); if (r) tvGoto(r.indName, r.s); return; }
     if (tab !== 'sec') setTab('sec');
     zoneShow(b.dataset.zshow);
-  });
-  // --- recherche d'un ticker (onglet Secteurs, demande de l'utilisateur du 03/11/2026) : champ dans l'en-tête de la frise →
-  //     fenêtre graphique. Suggestions : index Tickers (chargé au premier toucher du champ), symbole d'abord (exact, puis début,
-  //     plus grosse capitalisation d'abord), puis nom dès find.name_min lettres. Absent : ETF du classement ou hors index
+  }
+  $('popTr').addEventListener('click', e => { const b = e.target.closest('[data-zshow],[data-gind]'); if (b) trendAct(b); });
+  // --- barre de recherche de l'onglet Secteurs (03/11/2026, demandes de l'utilisateur) : un ou plusieurs tickers (« NVDA, TSLA »)
+  //     → récap sous la frise (#secSrch : industrie, secteur, rangs, chaud, zones de la Convergence, 9M, leader actif, 9M du jour ;
+  //     « Graphique » = la fenêtre, ‹ › dans la liste) et mise en avant dans les blocs de l'onglet (feuille #srchCss : pastilles des
+  //     tickers, lignes du Classement, de la grille et du tableau de la carte de rotation ; la carte suit la même liste). Un seul
+  //     champ : celui de la carte est retiré. Liste mémorisée (mm.srch). Suggestions pour le ticker en cours de frappe : index
+  //     Tickers (chargé au premier toucher du champ), symbole exact puis début (capitalisation décroissante), puis nom.
   const TPF = TPC.find;
-  let sfOpts = [], sfOn = -1, sfNav = false, sfMsgT = 0;   // sfNav : suggestion choisie aux flèches
+  let sfOpts = [], sfOn = -1, sfNav = false, sfTimer = 0, srchAll = false, srchCssKey = null;   // sfNav : suggestion choisie aux flèches
   $('secFindIn').placeholder = TPF.placeholder; $('secFindIn').setAttribute('aria-label', TPF.label); $('secFind').title = TPF.label;
-  function sfMatches(q) {
-    const T = window.TICKERS; q = tkParse(q)[0] || ''; if (!T || !q) return [];
+  $('secFindIn').value = srchText;
+  const sfTok = v => (String(v).match(/[^\s,;|]*$/) || [''])[0];   // ticker en cours de frappe (après le dernier séparateur)
+  function sfMatches(v) {
+    const T = window.TICKERS, q = tkParse(sfTok(v))[0] || ''; if (!T || !q) return [];
     const cs = T.cols.indexOf('s'), cn = T.cols.indexOf('n'), cc = T.cols.indexOf('cap'), alt = q.replace(/-/g, '.');
     const cap = r => r[cc] || 0, sc = r => { const s = r[cs]; return s === q || s === alt ? 0 : s.startsWith(q) || s.startsWith(alt) ? 1 : 2; };
     const byS = T.rows.filter(r => sc(r) < 2), seen = new Set(byS.map(r => r[cs]));
@@ -5418,33 +5440,85 @@
     L.innerHTML = sfOpts.map((o, i) => `<button type="button" class="sfo${i === sfOn ? ' on' : ''}" role="option" data-sfs="${escA(o.s)}" tabindex="-1"><b>${escH(o.s)}</b><span>${escH(o.n || '')}${o.ind ? ' · ' + escH(o.ind) : ''}</span></button>`).join('');
   }
   function sfClose() { sfOpts = []; sfOn = -1; sfNav = false; $('secFindList').hidden = true; $('secFindList').innerHTML = ''; $('secFindIn').setAttribute('aria-expanded', 'false'); }
-  function sfMsg(t) {
-    const m = $('secFindMsg'); m.textContent = t; m.hidden = !t; clearTimeout(sfMsgT);
-    if (t) sfMsgT = setTimeout(() => { m.hidden = true; }, 4000);
+  function sfPick(sym) {                               // suggestion : remplace le ticker en cours de frappe, la liste continue
+    const v = $('secFindIn').value; $('secFindIn').value = v.slice(0, v.length - sfTok(v).length) + sym + ', ';
+    sfClose(); srchSet($('secFindIn').value);
   }
-  function sfGo(raw) {                                 // un ticker → sa fenêtre graphique (BRK-B accepté pour BRK.B)
-    const s = tkParse(raw)[0]; sfClose(); sfMsg(''); if (!s) return;
-    if (!window.TICKERS) { if (tkLoaded.tickers === 'absent') sfMsg(TPC.no_index); else tkLoad(() => sfGo(s)); return; }
-    const r = tkLookup(s);
-    if (r) { $('secFindIn').value = ''; if ($('secFindIn').blur) $('secFindIn').blur(); openPop(r[window.TICKERS.cols.indexOf('s')]); return; }
-    sfMsg(tpl(SEC && SEC.symbols.some(x => x.s === s) ? TPF.etf : TPF.none, { s }));
+  function srchSet(text) {                             // nouvelle liste : mémorisée, récap, surbrillance, carte de rotation
+    clearTimeout(sfTimer); srchText = text; store.set('mm.srch', text); srchAll = false;
+    if ($('secFindIn').value !== text && document.activeElement !== $('secFindIn')) $('secFindIn').value = text;
+    if (IND && tab === 'sec') renderSecKpis(); else renderSrch();
   }
+  const srchOk = () => window.TICKERS ? tkParse(srchText).map(s => tkRow(s)).filter(Boolean).map(r => r.s) : [];   // tickers trouvés (ordre tapé)
+  function srchCss() {                                 // surbrillance : règles CSS sur les attributs déjà présents dans les blocs
+    const syms = tkParse(srchText), T = window.TICKERS, key = syms.join(',') + '|' + !!T + '|' + !!IND;
+    if (key === srchCssKey) return; srchCssKey = key;
+    const q = v => '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    const tk = new Set(syms), grp = new Set(), keys = new Set();
+    if (T) syms.forEach(s => { const r = tkRow(s); if (!r) return; tk.add(r.s); grp.add(r.secName); grp.add(r.indName); keys.add('i:' + r.indName); });
+    if (IND && Array.isArray(IND.themes)) IND.themes.forEach(t => { if ((t.m || []).some(m => tk.has(m))) keys.add('t:' + t.k); });
+    const chip = [], row = [], zr = [];
+    tk.forEach(s => { chip.push(`#view-sec [data-pop=${q(s)}]`, `#view-sec [data-bos=${q(s)}]`); row.push(`#secRows tr[data-s=${q(s)}]`); });
+    grp.forEach(g => row.push(`#secRows tr[data-s=${q(g)}]`, `#rrgTab tr[data-mv=${q(g)}]`));
+    keys.forEach(k => zr.push(`#secZone tr.zr[data-mapsel=${q(k)}]`));
+    $('srchCss').textContent = (chip.length ? chip.join(',') + '{outline:2px solid var(--hl)!important;outline-offset:1px}' : '') +
+      (row.length || zr.length ? row.concat(zr).map(x => x + '>td').join(',') + '{background-color:var(--hlbg)!important}' : '') +
+      (row.length ? row.map(x => x + '>td:first-child').join(',') + '{box-shadow:inset 3px 0 0 var(--hl)}' : '');
+  }
+  function renderSrch() {                              // récap sous la frise : une ligne par ticker tapé
+    if (!srchReady) return;
+    srchCss();
+    const box = $('secSrch'), syms = tkParse(srchText);
+    box.hidden = !syms.length || !IND; if (box.hidden) { box.innerHTML = ''; return; }
+    if (!window.TICKERS) {
+      box.innerHTML = `<div class="srhd"><b>${escH(TPF.recap_title)}</b><span class="note">${escH(tkLoaded.tickers === 'absent' ? TPC.no_index : TPC.loading)}</span></div>`;
+      if (!tkLoaded.tickers) tkLoad(() => { srchCssKey = null; if (tab === 'sec') renderSecKpis(); else renderSrch(); });
+      return;
+    }
+    const today = new Set(boNow && boNow.items ? boNow.items.map(x => x.s) : []);
+    const L = syms.map(s => ({ s, r: tkRow(s) })), shown = srchAll ? L : L.slice(0, TPF.recap_max), ok = L.filter(x => x.r).length;
+    const del = (s, lbl) => `<button type="button" class="srx" data-srdel="${escA(s)}" aria-label="${escA(tpl(TPF.remove, { s: lbl }))}" title="${escA(tpl(TPF.remove, { s: lbl }))}">✕</button>`;
+    const row = ({ s, r }) => r
+      ? `<div class="srow" data-srs="${escA(r.s)}"><div class="srh"><b>${escH(r.s)}</b><span class="srn">${escH([r.n, r.indName, tvSecLabel(r.secName)].filter(Boolean).join(' · '))}${r.kept ? '' : ' · ' + escH(TPF.not_kept)}</span>` +
+        `${today.has(r.s) ? `<span class="srtag">${escH(TPF.today)}</span>` : ''}<span class="asp"></span>` +
+        `<button type="button" class="gi" data-srpop="${escA(r.s)}" title="${escA(TPF.chart_tip)}">${escH(TPF.chart)}</button>${del(s, r.s)}</div>` +
+        `<div class="poptr">${popTrend(r, null)}</div></div>`
+      : `<div class="srow unk"><div class="srh"><b>${escH(s)}</b><span class="srn">${escH(tpl(SEC && SEC.symbols.some(x => x.s === s) ? TPF.etf : TPF.none, { s }))}</span><span class="asp"></span>${del(s, s)}</div></div>`;
+    box.innerHTML = `<div class="srhd"><b>${escH(TPF.recap_title)}</b><span class="note">${escH(tpl(TPF.count, { n: ok, t: L.length }))}</span><span class="asp"></span>` +
+      (ok ? `<button class="copybtn" type="button" data-srcopy="1" title="${escA(TPF.copy_tip)}"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` : '') +
+      `<button class="copybtn" type="button" data-srclear="1">${escH(TPF.clear)}</button></div>` + shown.map(row).join('') +
+      (L.length > TPF.recap_max ? `<button type="button" class="srmore" data-srall="1">${escH(srchAll ? TPF.less : tpl(TPF.more, { n: L.length - TPF.recap_max }))}</button>` : '');
+  }
+  $('secSrch').addEventListener('click', e => {
+    const b = e.target.closest('[data-srpop],[data-srdel],[data-srclear],[data-srcopy],[data-srall],[data-zshow],[data-gind]'); if (!b) return;
+    if (b.dataset.srpop != null) { openPop(b.dataset.srpop, null, srchOk()); return; }   // la fenêtre parcourt la liste tapée
+    if (b.dataset.srdel != null) { srchSet(tkParse(srchText).filter(x => x !== b.dataset.srdel).join(', ')); $('secFindIn').value = srchText; return; }
+    if (b.dataset.srclear != null) { srchSet(''); $('secFindIn').value = ''; return; }
+    if (b.dataset.srcopy != null) { copyTickers(b, srchOk()); return; }
+    if (b.dataset.srall != null) { srchAll = !srchAll; renderSrch(); return; }
+    trendAct(b);
+  });
   $('secFindIn').addEventListener('focus', () => { if (!window.TICKERS) tkLoad(() => { if ($('secFindIn').value) sfRender(); }); });
-  $('secFindIn').addEventListener('input', () => { sfMsg(''); sfRender(); });
+  $('secFindIn').addEventListener('input', () => {    // suggestions tout de suite ; liste appliquée après une courte pause
+    sfRender(); clearTimeout(sfTimer); sfTimer = setTimeout(() => srchSet($('secFindIn').value), 300);
+  });
   $('secFindIn').addEventListener('keydown', e => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (!sfOpts.length) return; e.preventDefault();
       sfOn = (sfOn + (e.key === 'ArrowDown' ? 1 : -1) + sfOpts.length) % sfOpts.length; sfNav = true; sfRender(true);
-    } else if (e.key === 'Escape') { if (sfOpts.length) { e.stopPropagation(); sfClose(); } else { $('secFindIn').value = ''; sfMsg(''); } }
+    } else if (e.key === 'Escape') { e.preventDefault(); if (sfOpts.length) { e.stopPropagation(); sfClose(); } }   // pas l'effacement natif du champ : la liste reste (✕ ou Effacer)
   });
-  $('secFind').addEventListener('submit', e => {       // Entrée : suggestion choisie aux flèches, sinon le ticker tapé s'il existe (action ou ETF), sinon la 1re suggestion
-    e.preventDefault(); const q = tkParse($('secFindIn').value)[0];
+  $('secFind').addEventListener('submit', e => {       // Entrée : suggestion choisie aux flèches, sinon le ticker tapé s'il existe, sinon la 1re suggestion ; puis la liste
+    e.preventDefault(); const v = $('secFindIn').value, q = tkParse(sfTok(v))[0];
     const exact = q && ((window.TICKERS && tkLookup(q)) || (SEC && SEC.symbols.some(x => x.s === q)));
-    sfGo(sfNav && sfOpts[sfOn] ? sfOpts[sfOn].s : exact || !sfOpts.length ? $('secFindIn').value : sfOpts[0].s);
+    if (sfNav && sfOpts[sfOn]) { sfPick(sfOpts[sfOn].s); return; }
+    if (q && !exact && sfOpts.length) { sfPick(sfOpts[0].s); return; }
+    sfClose(); srchSet(v);
   });
   $('secFindList').addEventListener('mousedown', e => e.preventDefault());   // garde le focus du champ jusqu'au clic
-  $('secFindList').addEventListener('click', e => { const b = e.target.closest('[data-sfs]'); if (b) sfGo(b.dataset.sfs); });
+  $('secFindList').addEventListener('click', e => { const b = e.target.closest('[data-sfs]'); if (b) sfPick(b.dataset.sfs); });
   $('secFindIn').addEventListener('blur', () => setTimeout(sfClose, 150));
+  srchReady = true;
   // --- fiche standard d'un ticker : mêmes informations, dans le même ordre, dans les onglets Tickers, Post-market et Secteurs
   //     (prix, tendance TI65 de l'action, de son industrie et de son secteur, taille, short interest, liens) ; chaque onglet
   //     ajoute ensuite ses informations propres (ex. post-market). Index et short interest chargés à la demande.

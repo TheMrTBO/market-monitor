@@ -146,9 +146,10 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
 colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 03/11/2026 : recherche d'un ticker dans Secteurs et ligne
-de tendance de la fenêtre graphique (§9, « Recherche d'un ticker »), à la demande de l'utilisateur, sans nouveau bloc, puis carte de rotation remise en fin d'onglet
+de tendance de la fenêtre graphique (§9, « Barre de recherche »), à la demande de l'utilisateur, sans nouveau bloc, puis carte de rotation remise en fin d'onglet
 (`[sectors.rrg] shown`), à la demande de l'utilisateur, puis tous les blocs sous la frise déplaçables et fenêtre graphique : ‹ › dans
-la liste d'origine, 6 mois, molette = zoom (§9, « Fenêtre graphique d'un ticker ») ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+la liste d'origine, 6 mois, molette = zoom (§9, « Fenêtre graphique d'un ticker »), puis barre de recherche multi-tickers (récap sous la frise, mise
+en avant dans les blocs, champ unique avec la carte de rotation ; §9, « Barre de recherche ») ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
 phases de marché maison affichées d'abord, Stockbee prioritaire dès sa publication (« tout calculer juste après la clôture »), avec
 l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
@@ -285,11 +286,20 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   pastille → `zoneShow`, le groupe ouvert dans la grille, fonction partagée avec « Ce matin »), 9M de l'action sur
   `grid_sessions` séances (`nineFlags` des bougies), « leader actif », « Ouvrir l'industrie › » (`tvGoto`). Des faits, aucun
   verdict « en tendance » (pas d'avance mesurée). Écran court : le graphique cède la hauteur (`min-height` 36vh).
-- **Recherche d'un ticker** (`#secFind`, 03/11/2026, demande de l'utilisateur ; `display.toml [ticker_popup.find]`) : champ dans
-  l'en-tête de la frise de Secteurs → fenêtre graphique. Suggestions (`sfMatches`) : index Tickers chargé au premier toucher
-  (`tkLoad`), symbole exact puis début (capitalisation décroissante), puis nom dès `name_min` lettres, `max` lignes ; ↑ ↓,
-  Entrée (suggestion choisie aux flèches, sinon le ticker tapé s'il existe, sinon la 1re), Échap ; `$NVDA`, `NASDAQ:MU`, `BRK-B`
-  acceptés (`tkParse`). ETF du classement ou titre hors index : message sous le champ (`#secFindMsg`), pas de fenêtre. Test 28.
+- **Barre de recherche** (`#secFind`, 03/11/2026, demandes de l'utilisateur ; `display.toml [ticker_popup.find]`) : champ
+  unique dans l'en-tête de la frise de Secteurs, **un ou plusieurs tickers** (« NVDA, TSLA » ; `$NVDA`, `NASDAQ:MU`, `BRK-B`
+  acceptés, `tkParse`), liste mémorisée (`mm.srch` ; l'ancien champ de la carte de rotation, `mm.rrgtk`, est repris puis retiré).
+  Suggestions (`sfMatches`) pour le ticker en cours de frappe (`sfTok`) : index Tickers chargé au premier toucher (`tkLoad`),
+  symbole exact puis début (capitalisation décroissante), puis nom dès `name_min` lettres ; ↑ ↓, Entrée (suggestion choisie aux
+  flèches, sinon le ticker tapé s'il existe, sinon la 1re, ajoutée avec « , » ; puis la liste s'applique), Échap = fermer les
+  suggestions (pas l'effacement natif du champ). **Récap** sous la frise (`#secSrch`, `renderSrch`, appelé par `renderSecKpis`
+  hors survol) : une ligne par ticker (nom, industrie, secteur, « 9M du jour », « Graphique » = la fenêtre avec ‹ › dans la liste
+  tapée, ✕ = retirer ; puis la ligne de tendance `popTrend(r, null)` : 9M lus dans l'historique `nine` via `nineHist`), ETF et
+  titre hors index signalés, `recap_max` lignes puis « + N autres », Copier, Effacer ; aucune fenêtre ouverte par défaut.
+  **Mise en avant** (`srchCss` → `<style id="srchCss">`, couleur `--hl` / `--hlbg`) : règles CSS sur les attributs déjà présents,
+  sans toucher aux rendus — pastilles `[data-pop]` / `[data-bos]` (Ce matin, grille, bloc 9M), lignes du Classement
+  (`#secRows tr[data-s]` : ticker, industrie, secteur), de la grille (`tr.zr[data-mapsel]` : industrie `i:`, thèmes suivis `t:`)
+  et du tableau de la carte de rotation (`#rrgTab tr[data-mv]`) ; la carte met en avant la même liste (`rrgTickers`). Tests 21, 28, 29.
 - **Bougies 9M sur les graphiques de prix** (`nineFlags`, `nineTag`, `config/display.toml [chart_nine]`, 01/11/2026) : seuils du
   scan 9M (`[tv_breadth.breakouts]` pct, min_volume, volume_up, min_price) recalculés sur les barres ; couleur `--c9m` (cyan) ;
   ▲ dessous plein = bougie forte (candle_close_pct, ADR 14 j en $, range de la veille), creux = faible ; « · 9M » dans la
@@ -483,7 +493,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   au-dessus du dessin (le fil décrit la carte, pas le tableau ; retour du 21/10/2026).
   **Arbre** : la carte suit le niveau de la liste (secteurs → industries d'un secteur → actions d'une industrie, clôtures du
   fichier de l'industrie, volume relatif recalculé), fil « ‹ Secteurs › secteur › industrie » pour remonter. **Survol** : point
-  et traînée (datée) en avant, les autres atténués. **Tickers** (champ au-dessus, `mm.rrgtk`, index `tickers_data.js` chargé à
+  et traînée (datée) en avant, les autres atténués. **Tickers** (barre de recherche de l'onglet depuis le 03/11/2026, `mm.srch` ; avant : champ au-dessus, `mm.rrgtk` ; index `tickers_data.js` chargé à
   la demande) : secteurs / industries / actions des tickers en avant ; pastille = descente jusqu'à l'industrie du ticker.
   **Tableau « Depuis la veille »** (au-dessus de la carte, demandes du 21/10/2026 : « repérer les changements majeurs assez
   rapidement », « confirmer un secteur hot et donner des pistes sur le prochain » ; remplace la liste « plus gros mouvements », son

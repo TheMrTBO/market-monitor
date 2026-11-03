@@ -53,10 +53,16 @@ ok('ligne de tendance du nouveau titre',strip(A.$('popTr')._h).includes(TPC.tren
 keyd('Escape');
 ok('Échap : fermée',A.$('tkPop').hidden===true);
 
-// --- ouverte seule (recherche) ou depuis une liste d'un seul titre : pas de navigation
-A.$('secFindIn').value='NVDA'; A.L.secFind.submit({preventDefault(){}});
-ok('ouverte par la recherche : pas de navigation',A.$('tkPop').hidden===false&&A.$('popNav').hidden===true);
+// --- ouverte depuis une liste d'un seul titre : pas de navigation
+const el1={dataset:{bos:'NVDA'},parentElement:{querySelectorAll:()=>[chips[0]]}};
+A.L.secBo.click({target:{closest:()=>el1}});
+ok('liste d\'un seul titre : pas de navigation',A.$('tkPop').hidden===false&&title()==='NVDA'&&A.$('popNav').hidden===true);
 ok('sans liste : les flèches ne font rien',!keyd('ArrowRight')&&title()==='NVDA');
+A.L.popX.click({});
+// --- depuis le récap de la barre de recherche : la liste tapée
+A.$('secFindIn').value='NVDA, AMD'; A.L.secFind.submit({preventDefault(){}});
+A.L.secSrch.click({target:{closest:()=>({dataset:{srpop:'AMD'}})}});
+ok('« Graphique » du récap : ‹ › dans la liste tapée (2 / 2)',A.$('tkPop').hidden===false&&title()==='AMD'&&A.$('popPos').textContent==='2 / 2');
 A.L.popX.click({});
 
 // --- molette : zoom direct dans la fenêtre ; ailleurs, Ctrl / ⌘ reste nécessaire (la page défile)

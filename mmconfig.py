@@ -241,9 +241,13 @@ def check():
     if not (all(isinstance(tt.get(k), str) and tt[k] for k in tt_need) and "{n}" in tt.get("conv_n", "") and "{w}" in tt.get("nine_n", "")
             and "{n}" in tt.get("nine_strong", "") and "{d}" in tt.get("nine_last", "")):
         errors.append("display.ticker_popup.trend : libellés de la ligne de tendance attendus (" + ", ".join(tt_need) + ")")
-    if not (all(isinstance(tf.get(k), str) and tf[k] for k in ("placeholder", "label")) and "{s}" in tf.get("etf", "") and "{s}" in tf.get("none", "")
-            and isinstance(tf.get("max"), int) and 1 <= tf["max"] <= 20 and isinstance(tf.get("name_min"), int) and tf["name_min"] >= 1):
-        errors.append("display.ticker_popup.find : placeholder, label, etf ({s}), none ({s}), max (1-20), name_min (≥ 1) attendus")
+    tf_need = ("placeholder", "label", "recap_title", "chart", "chart_tip", "clear", "copy_tip", "less", "today", "not_kept")
+    if not (all(isinstance(tf.get(k), str) and tf[k] for k in tf_need) and "{s}" in tf.get("etf", "") and "{s}" in tf.get("none", "")
+            and "{s}" in tf.get("remove", "") and "{n}" in tf.get("more", "") and "{n}" in tf.get("count", "") and "{t}" in tf.get("count", "")
+            and isinstance(tf.get("max"), int) and 1 <= tf["max"] <= 20 and isinstance(tf.get("name_min"), int) and tf["name_min"] >= 1
+            and isinstance(tf.get("recap_max"), int) and tf["recap_max"] >= 1):
+        errors.append("display.ticker_popup.find : " + ", ".join(tf_need) + ", etf ({s}), none ({s}), remove ({s}), more ({n}), count ({n}, {t}), "
+                      "max (1-20), name_min (≥ 1), recap_max (≥ 1) attendus")
     if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
         errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
     mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})
