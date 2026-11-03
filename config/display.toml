@@ -362,7 +362,7 @@ default_view_in = "all"       # vue dans un secteur ou une industrie (peu de mem
 # refonte du 27/10/2026 : la carte et son tableau ne prédisent rien sur 2019-2026 (tests 13 et 14 du document d'analyse) ;
 # gardés comme description, repliés par défaut (un toucher sur le titre les ouvre ; choix mémorisé)
 folded = true
-shown = false                 # retirée de la page le 27/10/2026 (aucune avance mesurée, tests 13-14 ; choix de l'utilisateur) : true = la remettre en fin d'onglet
+shown = true                  # retirée le 27/10/2026 (aucune avance mesurée, tests 13-14), remise le 03/11/2026 à la demande de l'utilisateur, en fin d'onglet ; false = la retirer
 
 [sectors.actifs]
 # Bloc « Groupes actifs » et niveau « Leaders actifs » de la vue TradingView (refonte du 27/10/2026, exception au gel accordée le

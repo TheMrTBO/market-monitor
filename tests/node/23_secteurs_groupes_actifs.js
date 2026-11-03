@@ -131,8 +131,8 @@ const th=kp(A).find(x=>x.k==='th'), thN=G.filter(g=>g.kind==='th').length, thHot
 ok('case « Thèmes chauds » : valeur = recalcul, après les cases existantes',!!th&&val(th)===thHot+' / '+thN&&kp(A).map(x=>x.k).pop()==='th',th&&val(th));
 ok('bulles d\'aide : groupes actifs, thèmes chauds, Leaders actifs',/Neuf/.test(tip(A,'act:neuf'))&&/thèmes suivis/i.test(tip(A,'skpi:th'))&&/triés par gain/.test(tip(A,'lvl:act')));
 
-// --- carte de rotation : retirée de la page (config shown = false) ; réactivée, repliée par défaut et reliée aux groupes actifs
-ok('carte de rotation retirée de la page par défaut (config [sectors.rrg] shown)',A.$('secRrg').hidden===true);
+// --- carte de rotation : affichée selon la config (retirée le 27/10/2026, remise le 03/11/2026) ; réactivée, repliée par défaut et reliée aux groupes actifs
+ok('carte de rotation : affichée ou non selon la config ([sectors.rrg] shown)',A.$('secRrg').hidden===!CFG.sectors.rrg.shown);
 const lsR={'mm.secview':'tv'}, RR=boot(lsR,{after:files+'MM_CONFIG.sectors.rrg.shown=true;'});tab(RR);
 ok('réactivée : repliée par défaut',RR.$('secRrg').hidden===false&&RR.$('rrgBody').hidden===true);
 RR.L.rrgHead.click({});
