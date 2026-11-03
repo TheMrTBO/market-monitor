@@ -146,7 +146,8 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 « Breakouts 9M +4 % » de l'onglet Secteurs (scan TC2000 de l'utilisateur, voir §9), puis ordre des blocs sous la frise
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
 colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 03/11/2026 : recherche d'un ticker dans Secteurs et ligne
-de tendance de la fenêtre graphique (§9, « Recherche d'un ticker »), à la demande de l'utilisateur, sans nouveau bloc ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+de tendance de la fenêtre graphique (§9, « Recherche d'un ticker »), à la demande de l'utilisateur, sans nouveau bloc, puis carte de rotation remise en fin d'onglet
+(`[sectors.rrg] shown`), à la demande de l'utilisateur ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
 phases de marché maison affichées d'abord, Stockbee prioritaire dès sa publication (« tout calculer juste après la clôture »), avec
 l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
@@ -406,7 +407,8 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   actifs », `data-tvback`) ; `secView` reste l'état interne ; cases, frise et Groupes actifs restent affichés au niveau ETF. La
   bascule unique de la mise à jour (`mm.secrefonte`) ouvre la vue TradingView, niveau Leaders actifs.
   **Carte de rotation retirée de la page** (`config/display.toml [sectors.rrg] shown = false`, réversible ; code et test 21
-  gardés) : aucune avance mesurée (tests 13-14).
+  gardés) : aucune avance mesurée (tests 13-14). **Remise le 03/11/2026** à la demande de l'utilisateur (`shown = true`), en fin
+  d'onglet, repliée par défaut (`folded`) ; mêmes résultats des tests 13-14 (description, pas de signal).
 - **Groupes actifs** (refonte du 27/10/2026 ; tests 5 à 16 du document d'analyse, sur 2019-2026) : le robot écrit, par industrie,
   les leaders par séance (`l` : actions à +`gain_pct` % sur `sessions` séances, `config/industries.toml [leaders]`) et la **grappe**
   (`g` : au moins `grappe_min` leaders et une part ≥ `grappe_ratio` × celle de l'univers) ; les **thèmes** de `config/themes.toml`
@@ -461,7 +463,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   courbe Industries TI65 > 1 est retirée, la case du même nom la donne) ; survol souris ou
   glisser au doigt = cases, flux et carte de rotation à cette séance (aperçu, comme le survol du MM) ; clic ou doigt levé = la
   séance devient celle de « Stats du » (`showDate`, le classement suit). `touch-action: pan-y` : la page défile toujours à la verticale.
-- **Carte de rotation** (retirée de la page le 27/10/2026, `shown = false` ; description gardée pour une réactivation) (type RRG, Secteurs / TradingView) : chaque secteur (ou industrie du secteur filtré) placé par sa force
+- **Carte de rotation** (retirée de la page le 27/10/2026, remise le 03/11/2026 : `shown = true`, fin d'onglet, repliée par défaut) (type RRG, Secteurs / TradingView) : chaque secteur (ou industrie du secteur filtré) placé par sa force
   relative au **marché** (x = 100 × TI65 de indice ÷ marché) et son accélération (y = 100 × x / x d'il y a `momentum` séances),
   traînée sur `trail` séances, taille = volume en dollars relatif au marché ; zones Meneur / S'affaiblit / En retard / S'améliore
   (`config/display.toml [sectors.rrg]`). Marché = série `stocks.c` de `industries_data.js` (indice équipondéré de toutes les actions
