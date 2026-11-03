@@ -26,7 +26,7 @@ function boot(ls,opts={}){
     addEventListener(e,f){(DL[e]=DL[e]||[]).push(f);}};
   const sb={document,devicePixelRatio:1,matchMedia:()=>({addEventListener(){}}),ResizeObserver:class{observe(){}},localStorage:{getItem:k=>ls[k]??null,setItem:(k,v)=>{ls[k]=v;}},
     requestAnimationFrame:f=>{f();return 1;},cancelAnimationFrame(){},addEventListener(){},
-    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,console};
+    getComputedStyle:()=>({getPropertyValue:k=>({'--cup':'#f6e24b','--cdown':'#cf5148','--cbg':'#000000','--cgrid':'#1c1c1c','--ctext':'#9aa0a6','--ccross':'#d6d6d6'})[k]||'#000'}),setTimeout,clearTimeout,console};
   sb.window=sb;vm.createContext(sb);
   for(const f of (opts.files||["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])))vm.runInContext(fs.readFileSync(f,'utf8'),sb);
   vm.runInContext('MM_CONFIG.sectors.rrg.shown=true;',sb);   // carte retirée de la page le 27/10/2026 (config shown = false) : testée réactivée
@@ -231,7 +231,8 @@ C.L.friseCv.pointermove({pointerType:'touch',pointerId:3,clientX:0.25*900,client
 ok('frise au doigt : glisser = aperçu, « Stats du » inchangé pendant le geste',/^Survol : /.test(C.$('secKpiNote')._t)&&C.$('dPick').value===dh);
 C.L.friseCv.pointerup({pointerType:'touch',pointerId:3,clientX:0.25*900,clientY:20});
 ok('frise au doigt : lever = « Stats du » à la séance relâchée',C.$('dPick').value===at(0.25),C.$('dPick').value+' / '+at(0.25));
-// tickers saisis : leurs secteurs en avant ; pastille = descente jusqu'à l'industrie (actions) ; fil et ‹ pour remonter
+// tickers de la barre de recherche (champ unique depuis le 03/11/2026 ; ici la liste de l'ancien champ de la carte, mm.rrgtk, reprise) :
+// leurs secteurs en avant ; pastille = industries de son secteur, la sienne en avant (on creuse soi-même) ; fil pour remonter
 const TK=A.sb.TICKERS, tc=Object.fromEntries(TK.cols.map((c,i)=>[c,i])), tkr=TK.rows.find(r=>r[tc.kept]&&IND.industries.some(i=>i.k===TK.inds[r[tc.ind]][0]&&i.n>=min));
 const sym=tkr[tc.s], [indName,secIx]=TK.inds[tkr[tc.ind]], secName=TK.secs[secIx], secLab=(CFG.sector_fr||{})[secName]||secName;
 const lsT={'mm.rrgtk':sym+', ZZZZQ','mm.secview':'tv','mm.rrg':'1'}, Dd=boot(lsT); tab(Dd);
@@ -239,15 +240,11 @@ const chipsH=strip(Dd.$('rrgChips')._h);
 ok('tickers : pastille « '+sym+' → secteur › industrie », ticker inconnu signalé',chipsH.includes(sym+' → '+secLab+' › '+indName)&&/ZZZZQ \?/.test(chipsH),chipsH);
 ok('tickers : leur secteur mis en avant sur la carte',strip(Dd.$('rrgInfo')._h).startsWith('En avant : '+secLab),strip(Dd.$('rrgInfo')._h).slice(0,80));
 Dd.L.rrgChips.click({target:{closest:s=>s==='[data-tkgo]'?{dataset:{tkgo:sym}}:null}});
-const fI=IND.industries.find(i=>i.k===indName).f, scr=Dd.document.body.children.find(c=>c.src&&c.src.includes(fI+'.js'));
-if(scr){vm.runInContext(fs.readFileSync(scr.src.split('?')[0],'utf8'),Dd.sb);scr.onload();}
 const navH=strip(Dd.$('rrgNav')._h);
-ok('pastille : la carte descend jusqu\'aux actions de l\'industrie (fil Secteurs › secteur › industrie, ‹)',/^‹ Secteurs › /.test(navH)&&navH.endsWith('› '+indName)&&/actions · /.test(Dd.$('rrgWhat')._t),navH);
-ok('niveau actions : le ticker lui-même en avant',strip(Dd.$('rrgInfo')._h).startsWith('En avant : '+sym),strip(Dd.$('rrgInfo')._h).slice(0,60));
-Dd.L.rrgNav.click({target:{closest:()=>({dataset:{up:'ind',sec:secName}})}});
-ok('‹ : retour aux industries du secteur, l\'industrie du ticker en avant',/industries · /.test(Dd.$('rrgWhat')._t)&&strip(Dd.$('rrgInfo')._h).startsWith('En avant : '+indName),Dd.$('rrgWhat')._t);
+ok('pastille : les industries du secteur du ticker, la sienne en avant (pas de descente aux actions, 03/11/2026)',/^‹ Secteurs › /.test(navH)&&navH.endsWith(secLab)&&/industries · /.test(Dd.$('rrgWhat')._t)&&strip(Dd.$('rrgInfo')._h).startsWith('En avant : '+indName),navH+' | '+strip(Dd.$('rrgInfo')._h).slice(0,60));
+ok('pastille : l\'industrie choisie dans le Classement',Dd.sb.localStorage.getItem('mm.tvnav')&&JSON.parse(Dd.sb.localStorage.getItem('mm.tvnav')).lvl==='ind');
 Dd.L.rrgNav.click({target:{closest:()=>({dataset:{up:'sec',sec:secName}})}});
 ok('fil « Secteurs » : retour aux secteurs',/· secteurs · /.test(Dd.$('rrgWhat')._t));
 Dd.L.rrgChips.click({target:{closest:s=>s==='[data-tkclear]'?{dataset:{tkclear:'1'}}:null}});
-ok('✕ : tickers effacés et mémorisation vidée',lsT['mm.rrgtk']===''&&strip(Dd.$('rrgChips')._h)==='');
+ok('✕ : barre de recherche vidée (liste mémorisée mm.srch vide)',lsT['mm.srch']===''&&strip(Dd.$('rrgChips')._h)===''&&Dd.$('secFindIn').value==='');
 if(bad) console.log('Error : '+bad+' contrôle(s) en échec');

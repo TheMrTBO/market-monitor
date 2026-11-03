@@ -320,7 +320,7 @@ copy = "Copier"
 
 [ticker_popup]
 # Fenêtre graphique d'un ticker (01/11/2026) : titres du tableau par zone et du bloc 9M
-range = "1A"                  # préréglage à l'ouverture (3M, 6M, YTD, 1A, 2A, 5A, Tout)
+range = "6M"                  # préréglage à l'ouverture (3M, 6M, YTD, 1A, 2A, 5A, Tout) ; 6M depuis le 03/11/2026 (demande de l'utilisateur ; molette = zoom)
 loading = "chargement…"
 no_index = "index des tickers indisponible"
 not_found = "pas dans l'index des tickers"
@@ -328,6 +328,8 @@ no_chart = "pas de graphique pour ce titre"
 fiche = "Fiche ›"
 fiche_tip = "Ouvrir la fiche complète dans l'onglet Tickers"
 close = "Fermer"
+prev = "Titre précédent de la liste (←)"   # ‹ › : passer d'un titre à l'autre de la liste d'où vient la fenêtre (03/11/2026)
+next = "Titre suivant de la liste (→)"
 mark = "pointillé = {d}, jour choisi dans la grille"   # séance marquée quand la fenêtre vient de la liste d'un jour (02/11/2026)
 
 [ticker_popup.trend]
@@ -350,12 +352,26 @@ go_ind = "Ouvrir l'industrie ›"
 go_ind_tip = "Ouvrir l'industrie dans le Classement (vue TradingView), le titre sélectionné"
 
 [ticker_popup.find]
-# Recherche d'un ticker (onglet Secteurs, demande de l'utilisateur du 03/11/2026) : champ dans l'en-tête de la frise → fenêtre
-# graphique ; suggestions tirées de l'index Tickers (symbole d'abord, puis nom), chargé au premier toucher du champ.
-placeholder = "Ticker…"
-label = "Chercher un ticker : secteur, industrie, tendance"
+# Barre de recherche de l'onglet Secteurs (03/11/2026, demandes de l'utilisateur) : un ou plusieurs tickers → récap sous la frise
+# (une ligne par ticker : industrie, secteur, rangs, chaud, zones de la Convergence, 9M, leader ; « Graphique » = la fenêtre) et
+# mise en avant dans les blocs (Convergence, Breakouts 9M, Ce matin, Classement, carte de rotation). Champ unique (celui de la
+# carte de rotation est retiré). Suggestions de l'index Tickers pour le ticker en cours de frappe (symbole d'abord, puis nom).
+placeholder = "Tickers… (NVDA, TSLA)"
+label = "Tickers : secteur, industrie, tendance, mis en avant dans l'onglet"
 max = 8                       # suggestions affichées
 name_min = 3                  # lettres avant de chercher aussi dans les noms
+recap_title = "Tickers recherchés"
+recap_max = 8                 # lignes du récap avant « + N autres »
+count = "{n} trouvé(s) sur {t}"
+chart = "Graphique"
+chart_tip = "Ouvrir le graphique (‹ › : les autres tickers de la liste)"
+remove = "Retirer {s} de la liste"
+clear = "Effacer"
+copy_tip = "Copier les tickers trouvés, séparés par des virgules"
+more = "+ {n} autres"
+less = "Moins"
+today = "9M du jour"          # le ticker est dans la liste 9M +4 % du jour (bloc Breakouts 9M)
+not_kept = "hors filtres (pas dans l'indice de son industrie)"
 etf = "{s} : ETF, voir le niveau ETF du Classement"
 none = "{s} : absent de l'index (fonds, OTC, hors NYSE / Nasdaq / AMEX)"
 

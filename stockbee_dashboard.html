@@ -19,18 +19,18 @@
   }
   :root { --panel2: #f0f2f6; --hover: #eef1f6; --faint: #98a2b3; --warn: #b7791f; --ok: #1f9d55; --g3: #1e7b3c; --g2: #3f8f58;
           --upbg: rgba(42,120,214,.12); --downbg: rgba(227,73,72,.12); --warnbg: rgba(183,121,31,.14); --neutralbg: rgba(102,112,133,.12); --r: 10px;
-          --zlo: #7c5cd6; --zrev: #64748b; }   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
+          --zlo: #7c5cd6; --zrev: #64748b; --hl: #d97706; --hlbg: rgba(217,119,6,.14); }   /* --hl : tickers de la barre de recherche mis en avant (03/11/2026) */   /* zones de Convergence des 9M : Réveil délaissée (violet), Réveil (ardoise) ; Thème qui dure = --up, Neuf = --warn */
   /* thème sombre : préférence du système, sauf si l'utilisateur force le clair (Réglages) ; ou forcé */
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; --hl: #fbbf24; --hlbg: rgba(251,191,36,.13); color-scheme: dark; }
   }
   :root[data-theme="dark"] { --bg: #0d1016; --panel: #151a22; --panel2: #1b212b; --hover: #1d2430; --text: #e3e7ee; --muted: #8b95a5; --faint: #5d6675;
             --grid: #1f252f; --axis: #383835; --border: #232a35; --up: #4c95ec; --down: #ec6a6a; --warn: #e0a33a; --ok: #3fbf74; --g3: #4fd27f; --g2: #9bd8ae;
             --upbg: rgba(76,149,236,.14); --downbg: rgba(236,106,106,.14); --warnbg: rgba(224,163,58,.15); --neutralbg: rgba(139,149,165,.12);
-            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; color-scheme: dark; }
+            --s10: #c98500; --s20: #d95926; --s50: #9085e9; --s200: #199e70; --t2108: #d55181; --vix: #d6dbe4; --zlo: #a78bfa; --zrev: #94a3b8; --hl: #fbbf24; --hlbg: rgba(251,191,36,.13); color-scheme: dark; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .wrap { width: 100%; max-width: none; margin: 0; padding: 12px 16px; }   /* affichage sur toute la largeur de l'écran */
@@ -154,8 +154,8 @@
   /* rythme vertical de l'onglet (retour UX du 27/10/2026 : « respecter les espaces entre les composants ») : un seul écart entre
      blocs (--blk), un seul écart dans un bloc (8 px) ; chaque bloc a un titre avec chevron et se replie (résumé d'une ligne) */
   #view-sec { --blk: 16px; }
-  #view-sec > .secact, #view-sec > .secsplit, #view-sec > .secflow { margin: 0 0 var(--blk); }
-  #view-sec > .secrrg { margin: 0 0 var(--blk); }
+  /* même écart sous chaque bloc, quel que soit l'ordre choisi (03/11/2026 : Ce matin et Convergence en avaient un autre) */
+  #view-sec > .secact, #view-sec > .secsplit, #view-sec > .secflow, #view-sec > .secnow, #view-sec > .maprow, #view-sec > .secrrg, #view-sec > .srchbar { margin: 0 0 var(--blk); }
   .foldh { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--text); padding: 2px 0; font: inherit; font-size: 13px; cursor: pointer; text-align: left; min-height: 28px; }
   .foldh b { font-weight: 600; }
   /* chevron dessiné (le glyphe ▾ était trop petit) : vers le bas = ouvert, vers la droite = replié ; le texte ▾ / ▸ reste pour les lecteurs */
@@ -297,6 +297,11 @@
   .ohlc .t9 { color: var(--c9m); font-weight: 600; }
   body.popopen { overflow: hidden; } body.popopen .tip { z-index: 61; }   /* fenêtre ouverte : page figée, infobulle du réticule au-dessus */
   @media (max-width: 640px) { .popov { padding: 0; align-items: stretch; } .popbox { border-radius: 0; width: 100%; } .popbox canvas { height: 62vh; } }
+  /* fenêtre graphique : titre précédent / suivant de la liste d'où elle a été ouverte (03/11/2026) */
+  .popnav { display: inline-flex; align-items: center; gap: 2px; } .popnav[hidden] { display: none; }
+  .popnav button { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 16px; line-height: 1; min-width: 34px; min-height: 32px; border-radius: 8px; cursor: pointer; }
+  .popnav button:disabled { opacity: .35; cursor: default; } .popnav button:not(:disabled):hover { border-color: var(--faint); }
+  .popnav .dpos { font-size: 12px; color: var(--muted); min-width: 48px; text-align: center; font-variant-numeric: tabular-nums; }
   /* ligne de tendance de la fenêtre graphique et recherche d'un ticker (Secteurs, 03/11/2026) */
   .popbox > :not(canvas) { flex-shrink: 0; } .popbox canvas { flex-shrink: 1; min-height: 36vh; }   /* écran court : le graphique cède la place, pas les lignes de texte */
   .poptr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 12px; color: var(--muted); }
@@ -308,19 +313,28 @@
   .poptr .lead { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 8px; background: var(--panel2); color: var(--text); margin-left: 6px; }
   .poptr .gi { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; min-height: 28px; border-radius: 8px; cursor: pointer; }
   .poptr .gi:hover, .poptr .gi:focus-visible { border-color: var(--faint); outline: none; }
-  .secfind { position: relative; display: inline-flex; align-items: center; align-self: center; }
+  .srchbar[hidden] { display: none; } .srchbar { display: flex; }
+  .secfind { position: relative; display: flex; align-items: center; width: min(460px, 100%); }
   .secfind > .i { position: absolute; left: 9px; width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
-  .secfind input { width: 150px; font: inherit; font-size: 13px; padding: 4px 8px 4px 29px; min-height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; -webkit-appearance: none; appearance: none; }
+  .secfind input { width: 100%; font: inherit; font-size: 13px; padding: 4px 8px 4px 29px; min-height: 34px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; -webkit-appearance: none; appearance: none; }
   .secfind input::placeholder { text-transform: none; color: var(--faint); } .secfind input:focus { outline: none; border-color: var(--faint); }
-  .secfind .sfl { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: min(320px, calc(100vw - 32px)); max-height: 60vh; overflow-y: auto; padding: 4px; border-radius: 10px;
+  .secfind .sfl { position: absolute; top: calc(100% + 4px); left: 0; z-index: 40; width: min(380px, calc(100vw - 32px)); max-height: 60vh; overflow-y: auto; padding: 4px; border-radius: 10px;
     border: 1px solid var(--border); background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; }
   .secfind .sfl[hidden] { display: none; }
   .secfind .sfo { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 12.5px; padding: 6px 8px; min-height: 34px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
   .secfind .sfo b { color: var(--text); min-width: 52px; } .secfind .sfo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .secfind .sfo.on, .secfind .sfo:hover { background: var(--panel2); }
-  .secfind .sfm { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: max-content; max-width: min(320px, calc(100vw - 32px)); font-size: 12px; color: var(--muted);
-    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); }
-  .secfind .sfm[hidden] { display: none; }
+  /* récap des tickers recherchés (sous la frise) */
+  #view-sec > .secsrch { margin: 0 0 var(--blk); padding: 10px 12px; border-color: color-mix(in srgb, var(--hl) 45%, var(--border)); }
+  .secsrch .srhd { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; margin-bottom: 4px; } .secsrch .srhd .note { color: var(--muted); font-size: 12px; }
+  .secsrch .asp { flex: 1 1 auto; }
+  .secsrch .srow { padding: 7px 0; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+  .secsrch .srh { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; } .secsrch .srh > b { color: var(--hl); font-size: 14px; }
+  .secsrch .srn { color: var(--muted); font-size: 12px; min-width: 0; } .secsrch .unk .srn { color: var(--faint); }
+  .secsrch .srtag { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 8px; background: color-mix(in srgb, var(--c9m) 20%, transparent); color: var(--text); }
+  .secsrch .srx { border: 0; background: none; color: var(--muted); font-size: 15px; min-width: 32px; min-height: 30px; cursor: pointer; border-radius: 6px; } .secsrch .srx:hover { color: var(--text); background: var(--hover); }
+  .secsrch .gi, .secsrch .srmore { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; min-height: 28px; border-radius: 8px; cursor: pointer; }
+  .secsrch .srmore { margin-top: 6px; }
   .secmap .mside { display: grid; gap: 16px; align-items: start; } .secmap .mside > div { min-width: 0; }
   .secmap .mboard { display: flex; flex-direction: column; }
   .secmap .mbz { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12.5px; margin: 10px 0 3px; } .secmap .mbz:first-child { margin-top: 0; }
@@ -462,6 +476,7 @@
   .rrghead { display: flex; align-items: baseline; gap: 6px; width: calc(100% - 28px); border: 0; background: none; color: var(--text); padding: 2px 0; font-size: 13px; cursor: pointer; text-align: left; }
   .rrghead span { color: var(--muted); font-size: 12px; } .rrghead { align-items: center; }
   .secrrg > .tipbtn { position: absolute; right: 10px; top: 8px; }
+  .rrgtop { display: flex; align-items: center; margin-right: 28px; } .rrgtop .rrghead { flex: 1 1 auto; width: auto; min-width: 0; }
   .rrgact { border: 1px solid var(--border); background: var(--panel); color: var(--text); border-radius: 999px; padding: 1px 8px 1px 2px; font-size: 12px; cursor: pointer; margin: 2px 0; }
   /* pleine largeur (demande du 20/10/2026) ; hauteur liée à la largeur pour que les points ne se tassent pas, plafonnée à l'écran */
   #rrgCv { width: 100%; aspect-ratio: 2 / 1; height: auto; min-height: 320px; max-height: min(640px, 70vh); display: block; margin-top: 6px; touch-action: manipulation; }
@@ -980,7 +995,10 @@
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
     .secfrise { padding: 12px; } #friseCv { height: 44px; } #secPhLeg { display: none; }   /* mobile : nom de la phase au toucher (étiquette de la frise) */
     #view-sec { --blk: 12px; } .secfrise .seckpinote { margin-left: 0; } .secact .acard { min-height: 44px; }
-    .secfrise .secfind { margin-left: auto; } .secfind input { width: 112px; font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
+    .secfind { width: 100%; } .secfind input { font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
+    /* récap : ticker et boutons sur une ligne, nom dessous ; en-tête sur une ligne */
+    .secsrch .srh .srn { order: 9; flex-basis: 100%; } .secsrch .srh .srtag { order: 8; }
+    .secsrch .srhd { flex-wrap: nowrap; } .secsrch .srhd b { white-space: nowrap; } .secsrch .srhd .note { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
     .seckpinote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -1091,9 +1109,12 @@
          séparateur net (titre de la phase, séance, bande) entre le contexte et ce qui en découle ; les blocs dessous se replient -->
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="secfrise" id="secFrise" hidden>
-      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
-        <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div><span class="sfm" id="secFindMsg" role="status" aria-live="polite" hidden></span></form></div>
+      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
+    <div class="srchbar" id="secSrchBar" hidden>   <!-- barre de recherche sous la frise (03/11/2026) -->
+      <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div></form></div>
+    <div class="card secsrch" id="secSrch" role="region" aria-label="Tickers recherchés" aria-live="polite" hidden></div>   <!-- récap de la barre de recherche (03/11/2026) -->
+    <style id="srchCss"></style>   <!-- mise en avant des tickers recherchés dans les blocs (règles écrites par srchCss) -->
     <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
     <div class="card secact secbo" id="secBo" role="region" aria-label="Breakouts 9M +4 %" hidden></div>
@@ -1155,16 +1176,16 @@
       <nav class="detnav" id="secNav" aria-label="Navigation dans la liste"><button id="secPrev" type="button">‹</button><span class="dpos" id="secPos"></span><button id="secNext" type="button">›</button></nav>
       </div>
     </div>
-    <div class="card secrrg" id="secRrg" hidden>   <!-- en fin d'onglet depuis le 27/10/2026 (description seulement) -->
-      <button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><span class="car">▾</span><b>Carte de rotation</b> <span id="rrgWhat"></span></button>
+    <div class="card secrrg" id="secRrg" hidden>   <!-- remise le 03/11/2026, déplaçable comme les autres blocs -->
+      <div class="rrgtop"><button class="dragh" type="button" data-drag="rrg" aria-label="Déplacer le bloc Carte de rotation (glisser, ou flèches haut et bas)" title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button><button class="rrghead" id="rrgHead" type="button" aria-expanded="true"><span class="car">▾</span><b>Carte de rotation</b> <span id="rrgWhat"></span></button></div>
       <span class="tipbtn" role="button" tabindex="0" data-tip="skpi:rrg" aria-label="Explication : carte de rotation" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
       <div id="rrgBody">
         <div class="rrgtab" id="rrgTab"></div>
-        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav>
-          <input id="rrgTk" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Tickers : NVDA, XOM…" aria-label="Tickers à mettre en avant"></div>
+        <div class="rrgbar"><nav class="rrgnav" id="rrgNav" aria-label="Niveau de la carte"></nav></div>   <!-- tickers : barre de recherche en tête de l'onglet (03/11/2026) -->
         <div class="rrgchips" id="rrgChips"></div>
         <canvas id="rrgCv"></canvas><div class="rrginfo" id="rrgInfo"></div><div class="rrgleg" id="rrgLeg"></div></div>
     </div>
+    <div id="secEnd" hidden></div>   <!-- repère de fin : les blocs déplaçables se rangent avant lui -->
   </div>
 
   <div id="view-pm" hidden>
@@ -1435,6 +1456,7 @@
 <div class="popov" id="tkPop" hidden>
   <div class="popbox" role="dialog" aria-modal="true" aria-labelledby="popTitle">
     <div class="pophead"><b id="popTitle"></b><span class="popsub" id="popSub"></span><span class="asp"></span>
+      <span class="popnav" id="popNav" hidden><button type="button" id="popPrev">‹</button><span class="dpos" id="popPos"></span><button type="button" id="popNext">›</button></span>
       <button type="button" class="go" id="popTk"></button>
       <button type="button" class="popx" id="popX">✕</button></div>
     <div class="poptr" id="popTr"></div>
@@ -2564,13 +2586,14 @@
     cv.addEventListener('mouseleave', () => withCtx(kind, () => { if (!drag) setHover(-1, kind); }));
     if (isPrice(kind)) cv.addEventListener('wheel', e => withCtx(kind, () => {   // seuls les graphiques de prix zooment
       // molette verticale seule = défilement de la page ; Ctrl / ⌘ + molette (ou pincement du trackpad) = zoom ; molette horizontale = déplacement
-      if (!e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
+      // fenêtre graphique (03/11/2026) : rien à faire défiler derrière, la molette seule zoome
+      if (kind !== 'pop' && !e.ctrlKey && !e.metaKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX)) { wheelHint(cv); return; }
       e.preventDefault();
       const r = cv.getBoundingClientRect(), pw = r.width - PAD.l - PAD.r, k = e.deltaMode === 1 ? 33 : 1;
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) { panBars(e.deltaX * k / (pw / (vp.to - vp.from + 1))); return; }
       zoomAt(anchorFrac((e.clientX - r.left - PAD.l) / pw), Math.exp(e.deltaY * k * 0.0015));   // molette vers le bas = dézoom
     }), { passive: false });
-    cv.addEventListener('dblclick', () => kind === 'pop' ? popPreset() : selectRange(isMobile() ? '3M' : '6M'));
+    cv.addEventListener('dblclick', () => kind === 'pop' ? (popSpan = null, popPreset()) : selectRange(isMobile() ? '3M' : '6M'));
   }
 
   // ------------------------------------------------------------------ onglet « Secteurs » : classement TI65
@@ -3319,14 +3342,19 @@
   const foldGet = id => store.get('mm.fold.' + id) !== '1', foldSet = (id, open) => store.set('mm.fold.' + id, open ? '0' : '1');
   let actOpen = foldGet('act'), listOpen = foldGet('list');   // les cases ne se replient pas : point d'ancrage (27/10/2026)
   // ordre des blocs sous la frise (exception au gel du 27/10/2026) : choisi par glisser-déposer, mémorisé (mm.secorder) ; par
-  // défaut, celui du HTML. La carte de rotation reste en fin d'onglet.
+  // défaut, celui du HTML. Depuis le 03/11/2026, « Ce matin » et la carte de rotation se déplacent aussi (demande de l'utilisateur) ;
+  // cases et frise restent en tête (point d'ancrage).
   // ordre par défaut = HTML ; Breakouts 9M avant Groupes actifs depuis le 31/10/2026 (seul bloc à l'avance mesurée, audit de l'onglet)
-  const SEC_BLK = { flow: 'secFlow', bo: 'secBo', map: 'secMapRow', list: 'secSplit' }, SEC_DEF = Object.keys(SEC_BLK);   // map : Convergence des 9M ; Leaders actifs dans le Classement (02/11/2026)
-  const SEC_BLK_LBL = { flow: 'Flux par secteur', act: 'Leaders actifs', bo: 'Breakouts 9M +4 %', map: 'Convergence des 9M', list: 'Classement' };
-  let secOrder = [...new Set([...(store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]), ...SEC_DEF])], secDrag = null;
+  const SEC_BLK = { now: 'secNow', flow: 'secFlow', bo: 'secBo', map: 'secMapRow', list: 'secSplit', rrg: 'secRrg' }, SEC_DEF = Object.keys(SEC_BLK);   // map : Convergence des 9M ; Leaders actifs dans le Classement (02/11/2026)
+  const SEC_BLK_LBL = { now: 'Ce matin', flow: 'Flux par secteur', act: 'Leaders actifs', bo: 'Breakouts 9M +4 %', map: 'Convergence des 9M', list: 'Classement', rrg: 'Carte de rotation' };
+  let secOrder = (() => {                              // ordre mémorisé ; un bloc qu'il ne connaît pas (ajouté depuis) reprend sa place par défaut
+    const o = [...new Set((store.get('mm.secorder') || '').split(',').filter(k => SEC_BLK[k]))];
+    SEC_DEF.forEach((k, i) => { if (o.includes(k)) return; const at = Math.max(-1, ...SEC_DEF.slice(0, i).map(x => o.indexOf(x))); o.splice(at + 1, 0, k); });   // après le plus bas de ceux qui le précèdent
+    return o;
+  })(), secDrag = null;
   const dragH = k => `<button type="button" class="dragh" data-drag="${k}" aria-label="Déplacer le bloc ${escA(SEC_BLK_LBL[k])} (glisser, ou flèches haut et bas)" ` +
     `title="Glisser pour déplacer le bloc (clavier : flèches ↑ ↓)"><svg class="i"><use href="#i-grip"/></svg></button>`;
-  function applySecOrder() { const p = $('view-sec'), end = $('secRrg'); secOrder.forEach(k => p.insertBefore($(SEC_BLK[k]), end)); }
+  function applySecOrder() { const p = $('view-sec'), end = $('secEnd'); secOrder.forEach(k => p.insertBefore($(SEC_BLK[k]), end)); }
   function moveSec(k, to) {                            // to : place parmi les autres blocs ; faux si l'ordre ne change pas
     const o = secOrder.filter(x => x !== k); o.splice(Math.max(0, Math.min(to, o.length)), 0, k);
     if (o.join() === secOrder.join()) return false;
@@ -3538,14 +3566,14 @@
     const G = first ? Z.filter(o => zk(o) === first).sort((a, b) => (b.m ? b.m.n : 0) - (a.m ? a.m.n : 0) || b.py - a.py) : [];
     const ZL = { lo: `${MP.zones.reveil} ${MP.board.low_label}`, rev: MP.zones.reveil, both: MP.zones.lasting, neuf: MP.board.neuf_label };
     const day = boNow && boNow.d ? fmtDate(boNow.d, { day: 'numeric', month: 'short' }) : '';
-    box.innerHTML = `<div class="nowh"><b>${escH(NW.label)}</b>${tipI('now', NW.label)}</div>` +
+    box.innerHTML = `<div class="nowh">${dragH('now')}<b>${escH(NW.label)}</b>${tipI('now', NW.label)}</div>` +
       `<div class="nowl"><span class="nowk">${escH(tpl(NW.tickers, { d: day }).replace(' ()', ''))}</span>${shown.length ? shown.map(tk).join('') + (more ? `<span class="note">+${more}</span>` : '') : `<span class="note">${escH(NW.none)}</span>`}</div>` +
       (G.length ? `<div class="nowl"><span class="nowk">${escH(tpl(NW.groups, { z: ZL[first] }))}</span>${G.slice(0, NW.groups_max).map(o => `<button type="button" class="nowg z-${first}" data-nowg="${escA(o.x.g.key)}">` +
         `<i></i>${escH(o.x.g.k)} <b>${o.m ? o.m.n : 0}</b></button>`).join('')}${G.length > NW.groups_max ? `<span class="note">+${G.length - NW.groups_max}</span>` : ''}</div>` : '');
   }
   $('secNow').addEventListener('click', e => {
     const b = e.target.closest('[data-pop],[data-nowg]'); if (!b) return;
-    if (b.dataset.pop != null) { openPop(b.dataset.pop, boNow && boNow.d); return; }
+    if (b.dataset.pop != null) { openPop(b.dataset.pop, boNow && boNow.d, popListAt(b, $('secNow'))); return; }
     zoneShow(b.dataset.nowg);
   });
   function zoneShow(key) {                             // un groupe ouvert dans la grille Convergence des 9M (« Ce matin », fenêtre graphique)
@@ -3969,9 +3997,10 @@
   }
   const SK_GO = { bo9: 'Voir les Breakouts 9M, couloir « À regarder en premier »', t9: 'Voir la Convergence des 9M (groupes et leurs 9M)', th: 'Afficher les leaders actifs (groupes neufs et chauds)', ind: 'Afficher les industries au-dessus de 1', sec: 'Afficher les secteurs au-dessus de 1', rot: 'Voir le flux par secteur : où arrive et d\'où part le mouvement', rr: `Afficher les industries entrées au-dessus de 1 ces ${SKP.rotation_ratio_sessions} séances et toujours au-dessus`, stk: 'Classer par % des actions au-dessus de 1' };
   function renderSecKpis(dHover) {
+    if (!dHover) renderSrch();                         // récap de la barre de recherche et surbrillance (03/11/2026)
     const box = $('secKpis'), note = $('secKpiNote'); if (!box || !note) return;
     const K = IND ? secKpiData() : null;              // cases et frise : aussi au niveau ETF (point d'ancrage)
-    box.hidden = $('secFrise').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
+    box.hidden = $('secFrise').hidden = $('secSrchBar').hidden = !K; if (!K) { $('secRrg').hidden = $('secFlow').hidden = $('secAct').hidden = $('secBo').hidden = $('secMap').hidden = $('secZone').hidden = $('secMapRow').hidden = true; return; }
     applyFolds();
     const Ds = IND.dates, want = dHover || pinned || Ds[Ds.length - 1];
     let e = Ds.length - 1; while (e > 0 && Ds[e] > want) e--;
@@ -4234,10 +4263,12 @@
     });
     D.stk.set(F, items); return items;
   }
-  // tickers saisis au-dessus de la carte : leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant, les autres atténués
-  let rrgTkText = store.get('mm.rrgtk') || '';
+  // tickers de la barre de recherche (champ unique depuis le 03/11/2026 ; liste reprise de l'ancien champ de la carte, mm.rrgtk) :
+  // leurs secteurs / industries (ou eux-mêmes au niveau actions) en avant sur la carte, les autres atténués
+  let srchText = (() => { const v = store.get('mm.srch'); return v != null ? v : store.get('mm.rrgtk') || ''; })();
+  var srchReady = false;                                 // barre de recherche prête (fin du script) : récap et surbrillance
   function rrgTickers() {
-    const syms = tkParse(rrgTkText); if (!syms.length) return { list: [] };
+    const syms = tkParse(srchText); if (!syms.length) return { list: [] };
     if (!window.TICKERS) { if (tkLoaded.tickers !== 'absent') tkLoad(() => drawRrg(rrgE)); return { list: [], wait: true }; }
     return { list: syms.map(s => { const r = tkRow(s); return { s, r }; }) };
   }
@@ -4259,7 +4290,7 @@
     const TKs = rrgTickers(), tkKey = t => !t.r ? null : lvl === 'sec' ? t.r.secName : lvl === 'ind' ? (t.r.secName === tvNav.sec ? t.r.indName : null) : (t.r.indName === tvNav.ind ? t.s : null);
     const tkFocus = new Set(TKs.list.map(tkKey).filter(Boolean));
     $('rrgChips').innerHTML = TKs.wait ? '<span class="unk">chargement de l\'index des tickers…</span>' : TKs.list.map(t => t.r
-      ? `<button data-tkgo="${escA(t.s)}" title="Ouvrir son industrie sur la carte${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
+      ? `<button data-tkgo="${escA(t.s)}" title="Les industries de son secteur, la sienne en avant (la toucher : ses actions)${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
       : `<span class="unk" title="Ticker absent de l'index (actions ordinaires NYSE / Nasdaq / AMEX)">${escH(t.s)} ?</span>`).join('') + (TKs.list.length ? '<button data-tkclear="1" title="Effacer les tickers">✕</button>' : '');
     if (lvl === 'stk' && !stkItems) { $('rrgInfo').textContent = 'Chargement des actions de l\'industrie…'; }
     const cv = $('rrgCv'), W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
@@ -4500,13 +4531,10 @@
     else { tvNav = { lvl: 'ind', sec: secK, ind: null }; secSel = indK; }
     tvSave(); rrgHot = null; skMode = null; renderSectors();
   });
-  let rrgTkTimer = 0;
-  $('rrgTk').value = rrgTkText;
-  $('rrgTk').addEventListener('input', ev => { clearTimeout(rrgTkTimer); rrgTkTimer = setTimeout(() => { rrgTkText = ev.target.value; store.set('mm.rrgtk', rrgTkText); drawRrg(rrgE); }, 250); });
-  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : la carte (et la liste) descendent jusqu'à son industrie
-    const c = ev.target.closest('[data-tkclear]'); if (c) { rrgTkText = ''; $('rrgTk').value = ''; store.set('mm.rrgtk', ''); drawRrg(rrgE); return; }
+  $('rrgChips').addEventListener('click', ev => {     // pastille d'un ticker : les industries de son secteur, la sienne en avant (03/11/2026 : on creuse soi-même)
+    const c = ev.target.closest('[data-tkclear]'); if (c) { srchSet(''); return; }   // ✕ : vide la barre de recherche
     const b = ev.target.closest('[data-tkgo]'); if (!b) return; const r = tkRow(b.dataset.tkgo); if (!r) return;
-    tvNav = { lvl: 'stk', sec: r.secName, ind: r.indName }; tvSave(); secSel = r.kept ? r.s : null; rrgHot = null; skMode = null; renderSectors();
+    tvNav = { lvl: 'ind', sec: r.secName, ind: null }; tvSave(); secSel = r.indName; rrgHot = null; skMode = null; renderSectors();
   });
   $('rrgCv').addEventListener('mousemove', ev => { const p = rrgPick(ev), k = p ? p.k : null; if (k !== rrgHot) { rrgHot = k; rrgTabHot = null; drawRrg(rrgE); } });
   $('secFlow').addEventListener('click', e => {        // un secteur du flux : ses industries (filtre de secteur), panneau refermé
@@ -4732,7 +4760,7 @@
   // tableau par zone : repli, copie (tout ou une zone), un titre = sa fenêtre graphique, une ligne = son point sur la carte
   function zoneAct(t) {
     const b = t.closest('[data-pop],[data-zonefold],[data-zcopy],[data-mapother],[data-zoneall],[data-otheropen],[data-zview],[data-zfilter],[data-zday],[data-mapsel]'); if (!b) return false;
-    if (b.dataset.pop != null) { openPop(b.dataset.pop, b.dataset.popd); return true; }   // depuis la liste d'un jour : ce jour en pointillé
+    if (b.dataset.pop != null) { openPop(b.dataset.pop, b.dataset.popd, popListAt(b, $('secZone'))); return true; }   // depuis la liste d'un jour : ce jour en pointillé
     if (b.dataset.zonefold != null) { zoneOpen = !zoneOpen; foldSet('zone', zoneOpen); renderSecKpis(); return true; }
     if (b.dataset.zcopy != null) { copyTickers(b, b.dataset.zcopy === 'all' ? zoneSyms : b.dataset.zcopy.split(',')); return true; }
     if (b.dataset.mapother != null) { mapOther = !mapOther; renderSecKpis(); return true; }
@@ -4755,7 +4783,7 @@
     if (b.dataset.boall != null) { boAll = !boAll; renderSecKpis(); return; }
     if (b.dataset.boweak != null) { boWeak = !boWeak; renderSecKpis(); return; }
     if (b.dataset.bocopy != null) { copyTickers(b, boShown); return; }
-    if (b.dataset.bos != null) { openPop(b.dataset.bos); return; }   // un titre : sa fenêtre graphique (01/11/2026)
+    if (b.dataset.bos != null) { openPop(b.dataset.bos, null, popListAt(b, $('secBo'))); return; }   // un titre : sa fenêtre graphique (01/11/2026), ‹ › dans sa liste
     if (b.dataset.bogo != null) { goBo(null); return; }              // bouton du bloc : la liste dans le Classement (tableau, graphique, fiche)
     if (b.dataset.botk == null || !boShown.length) return;
     $('tkInput').value = boShown.join(', '); store.set('mm.tklist', $('tkInput').value);
@@ -4804,7 +4832,7 @@
     secGroup = b.dataset.g; store.set('mm.secgrp', secGroup); renderSectors();
   });
   document.addEventListener('keydown', e => {          // ↑ ↓ : précédent / suivant · → ou Entrée : niveau suivant · ← : niveau précédent
-    if (tab !== 'sec' || !secD || !secRows.length) return;
+    if (tab !== 'sec' || !secD || !secRows.length || popSym) return;   // fenêtre graphique ouverte : ses flèches à elle
     const t = e.target && e.target.tagName;
     if (t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') { e.preventDefault(); secGo(e.key === 'ArrowDown' ? 1 : -1); return; }
@@ -5269,15 +5297,36 @@
   //     par-dessus l'onglet : bougies et MM de l'onglet Tickers (index des tickers, fichier de son industrie), bougies 9M ; zoom,
   //     déplacement et réticule du moteur commun (contexte popCtx) ; « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer
   const cvPop = $('popCanvas'), popCtx = { ALLT: [], vp: { from: 0, to: 0 }, T: [], offset: 0, bars: new Map(), hover: -1, sym: null };
-  let popSym = null, popFrom = null, popMark = null;   // popMark : séance marquée en pointillé (liste d'un jour de la grille)
+  let popSym = null, popFrom = null, popMark = null, popList = null, popSpan = null;   // popSpan : durée affichée gardée d'un titre à l'autre   // popMark : séance marquée en pointillé (liste d'un jour de la grille)
   $('popTk').textContent = TPC.fiche; $('popTk').title = TPC.fiche_tip; $('popX').setAttribute('aria-label', TPC.close);
-  function openPop(sym, mark) {
-    popFrom = document.activeElement; popSym = sym; popMark = mark || null; $('tkPop').hidden = false; document.body.classList.add('popopen');
+  // list : tickers de la liste d'où vient le titre (ordre affiché) → ‹ › et flèches du clavier passent de l'un à l'autre sans
+  // fermer la fenêtre (03/11/2026, demande de l'utilisateur), avec la même durée affichée (popSpan)
+  function openPop(sym, mark, list) {
+    popFrom = document.activeElement; popMark = mark || null; popSpan = null; $('tkPop').hidden = false; document.body.classList.add('popopen');
+    popList = Array.isArray(list) && list.length > 1 && list.includes(sym) ? list : null;
+    popShow(sym); if ($('popX').focus) $('popX').focus();
+  }
+  function popListAt(el, root) {                         // tickers de la plus petite liste affichée qui contient le titre touché et un autre
+    const sel = '[data-pop],[data-bos]'; let box = el && el.parentElement;
+    while (box && box !== root && !(box.querySelectorAll && box.querySelectorAll(sel).length > 1)) box = box.parentElement;
+    if (!box || !box.querySelectorAll) return null;
+    const out = []; box.querySelectorAll(sel).forEach(x => { const s = x.dataset.pop || x.dataset.bos; if (s && !out.includes(s)) out.push(s); });
+    return out.length > 1 ? out : null;
+  }
+  function popGo(d) {                                    // titre précédent (−1) ou suivant (+1) de la liste ; faux en bout de liste
+    const j = popList ? popList.indexOf(popSym) + d : -1; if (j < 0 || j >= popList.length) return false;
+    if (popCtx.sym) popSpan = popCtx.vp.to - popCtx.vp.from;
+    popShow(popList[j]); return true;
+  }
+  function popShow(sym) {                                // un titre dans la fenêtre ouverte (ouverture, ou ‹ › dans la liste)
+    popSym = sym; const n = popList ? popList.length : 0, i = n ? popList.indexOf(sym) : -1;
+    $('popNav').hidden = !n;
+    if (n) { $('popPos').textContent = `${i + 1} / ${n}`; $('popPrev').disabled = i <= 0; $('popNext').disabled = i >= n - 1; }
     $('popTitle').textContent = sym; $('popSub').textContent = TPC.loading; $('popOhlc').innerHTML = ''; $('popTr').innerHTML = '';
     $('popLeg').innerHTML = (CN9.shown ? `<span><i class="k9"></i>${escH(CN9.legend)}</span>` : '') +
       (popMark ? `<span><i class="kmk"></i>${escH(tpl(TPC.mark, { d: fmtDate(popMark, { day: 'numeric', month: 'short' }) }))}</span>` : '');
     inCtx(popCtx, () => { bars = new Map(); ALLT = []; T = []; hover = -1; }); popCtx.sym = null;
-    popLoad(); if ($('popX').focus) $('popX').focus();
+    popLoad();
   }
   function closePop() {
     if (!popSym) return; popSym = null; $('tkPop').hidden = true; document.body.classList.remove('popopen'); tip.style.display = 'none';
@@ -5295,7 +5344,7 @@
     inCtx(popCtx, () => { bars = new Map(arr.map(b => [b.d, b])); ALLT = arr.map(b => b.d); });
     popCtx.sym = popSym; popPreset();
   }
-  function popPreset() { inCtx(popCtx, () => { presetViewport(TPC.range); clampViewport(); }); popRedraw(); }   // config : [ticker_popup] range
+  function popPreset() { inCtx(popCtx, () => { presetViewport(TPC.range); if (popSpan) vp.from = vp.to - popSpan; clampViewport(); }); popRedraw(); }   // config : [ticker_popup] range
   function popRedraw() { if (popSym && popCtx.sym) inCtx(popCtx, () => { applyViewport(); drawPrice(cvPop); popOverlay(); }); }
   function popOverlay() {                                // légende : OHLC (séance survolée, sinon dernière) et marque 9M
     const d = hover >= 0 ? T[hover] : popMark && bars.get(popMark) ? popMark : null, b = (d && bars.get(d)) || [...bars.values()].pop();
@@ -5308,7 +5357,16 @@
   $('popX').addEventListener('click', closePop);
   $('tkPop').addEventListener('click', e => { if (e.target === $('tkPop')) closePop(); });
   $('popTk').addEventListener('click', () => { const s = popSym; closePop(); if (s) tkAdd([s], s); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && popSym) closePop(); });
+  $('popPrev').textContent = '‹'; $('popPrev').title = TPC.prev; $('popPrev').setAttribute('aria-label', TPC.prev);
+  $('popNext').textContent = '›'; $('popNext').title = TPC.next; $('popNext').setAttribute('aria-label', TPC.next);
+  $('popPrev').addEventListener('click', () => popGo(-1)); $('popNext').addEventListener('click', () => popGo(1));
+  document.addEventListener('keydown', e => {            // Échap : fermer · ← → (ou ↑ ↓) : titre précédent / suivant de la liste
+    if (!popSym) return;
+    if (e.key === 'Escape') { closePop(); return; }
+    const t = e.target && e.target.tagName; if (!popList || t === 'INPUT' || t === 'SELECT' || t === 'TEXTAREA') return;
+    const d = e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : 0;
+    if (d) { e.preventDefault(); popGo(d); }
+  });
   // ligne de tendance de la fenêtre (03/11/2026, avec la recherche d'un ticker) : ce que l'onglet Secteurs calcule déjà, à la
   // dernière séance : TI65 de l'action (sens, rang dans l'industrie, MM), de son industrie et de son secteur (rangs de l'onglet
   // Tickers), zones de la Convergence des 9M de son industrie et de ses thèmes suivis, ses 9M sur la fenêtre de la grille.
@@ -5336,31 +5394,44 @@
         return `<button type="button" class="zp z-${z}" data-zshow="${escA(o.x.g.key)}" title="${escA(TPT.conv_tip)}"><i></i>${escH(o.x.g.k)} · ${escH(ZL[z])} · ${escH(tpl(TPT.conv_n, { n: o.m ? o.m.n : 0 }))}</button>`; }).join('')
         : `<span>${escH(TPT.conv_none)}</span>`);
     }
-    if (arr) {                                         // 9M de l'action (bougies du graphique, même règle que leur marque)
-      const W = MP.board.grid_sessions, F = nineFlags(arr), D = arr.slice(-W).map(b => b.d).filter(d => F.get(d));
-      const strong = D.filter(d => F.get(d) === 2).length;
-      h += it(TPT.nine, `<b>${escH(tpl(TPT.nine_n, { n: D.length, w: W }))}</b>${strong ? ' ' + escH(tpl(TPT.nine_strong, { n: strong })) : ''}` +
-        (D.length ? ' · ' + escH(tpl(TPT.nine_last, { d: fmtDate(D[D.length - 1], { day: 'numeric', month: 'short' }) })) : ''));
-    }
+    // 9M de l'action sur la fenêtre de la grille : bougies du graphique (même règle que leur marque) ; sans graphique (récap de la
+    // recherche), historique nine du robot (actions retenues)
+    const W = MP.board.grid_sessions;
+    let N9 = null;
+    if (arr) { const F = nineFlags(arr), D = arr.slice(-W).map(b => b.d).filter(d => F.get(d)); N9 = { n: D.length, strong: D.filter(d => F.get(d) === 2).length, last: D[D.length - 1] }; }
+    else if (r.kept) N9 = nineHist(r.s, e, W);
+    if (N9) h += it(TPT.nine, `<b>${escH(tpl(TPT.nine_n, { n: N9.n, w: W }))}</b>${N9.strong ? ' ' + escH(tpl(TPT.nine_strong, { n: N9.strong })) : ''}` +
+      (N9.last ? ' · ' + escH(tpl(TPT.nine_last, { d: fmtDate(N9.last, { day: 'numeric', month: 'short' }) })) : ''));
     const A = actAt(e);
     if (A && A.leaders.some(l => l.s === r.s)) h += `<span class="lead">${escH(TPT.leader)}</span>`;
-    return h + `<button type="button" class="gi" data-gind="1" title="${escA(TPT.go_ind_tip)}">${escH(TPT.go_ind)}</button>`;
+    return h + `<button type="button" class="gi" data-gind="${escA(r.s)}" title="${escA(TPT.go_ind_tip)}">${escH(TPT.go_ind)}</button>`;
   }
-  $('popTr').addEventListener('click', e => {
-    const b = e.target.closest('[data-zshow],[data-gind]'); if (!b) return;
-    const s = popSym, r = s ? tkRow(s) : null; closePop();
-    if (b.dataset.gind != null) { if (r) tvGoto(r.indName, r.s); return; }
+  function nineHist(sym, e, W) {                         // 9M d'une action retenue sur les W séances jusqu'à e (historique nine) ; null sans historique
+    const NI = IND && IND.nine && Array.isArray(IND.nine.days) ? IND.nine : null; if (!NI) return null;
+    const o = { n: 0, strong: 0, last: null };
+    for (let k = Math.max(NI.start, e - W + 1); k <= e; k++) { const x = (NI.days[k - NI.start] || []).find(q => q[0] === sym); if (x) { o.n++; if (x[2] & 1) o.strong++; o.last = IND.dates[k]; } }
+    return o;
+  }
+  function trendAct(b) {                                 // ligne de tendance : une zone = le groupe dans la grille ; « Ouvrir l'industrie »
+    if (popSym) closePop();
+    if (b.dataset.gind != null) { const r = tkRow(b.dataset.gind); if (r) tvGoto(r.indName, r.s); return; }
     if (tab !== 'sec') setTab('sec');
     zoneShow(b.dataset.zshow);
-  });
-  // --- recherche d'un ticker (onglet Secteurs, demande de l'utilisateur du 03/11/2026) : champ dans l'en-tête de la frise →
-  //     fenêtre graphique. Suggestions : index Tickers (chargé au premier toucher du champ), symbole d'abord (exact, puis début,
-  //     plus grosse capitalisation d'abord), puis nom dès find.name_min lettres. Absent : ETF du classement ou hors index
+  }
+  $('popTr').addEventListener('click', e => { const b = e.target.closest('[data-zshow],[data-gind]'); if (b) trendAct(b); });
+  // --- barre de recherche de l'onglet Secteurs (03/11/2026, demandes de l'utilisateur) : un ou plusieurs tickers (« NVDA, TSLA »)
+  //     → récap sous la frise (#secSrch : industrie, secteur, rangs, chaud, zones de la Convergence, 9M, leader actif, 9M du jour ;
+  //     « Graphique » = la fenêtre, ‹ › dans la liste) et mise en avant dans les blocs de l'onglet (feuille #srchCss : pastilles des
+  //     tickers, lignes du Classement, de la grille et du tableau de la carte de rotation ; la carte suit la même liste). Un seul
+  //     champ : celui de la carte est retiré. Liste mémorisée (mm.srch). Suggestions pour le ticker en cours de frappe : index
+  //     Tickers (chargé au premier toucher du champ), symbole exact puis début (capitalisation décroissante), puis nom.
   const TPF = TPC.find;
-  let sfOpts = [], sfOn = -1, sfNav = false, sfMsgT = 0;   // sfNav : suggestion choisie aux flèches
+  let sfOpts = [], sfOn = -1, sfNav = false, sfTimer = 0, srchAll = false, srchCssKey = null;   // sfNav : suggestion choisie aux flèches
   $('secFindIn').placeholder = TPF.placeholder; $('secFindIn').setAttribute('aria-label', TPF.label); $('secFind').title = TPF.label;
-  function sfMatches(q) {
-    const T = window.TICKERS; q = tkParse(q)[0] || ''; if (!T || !q) return [];
+  $('secFindIn').value = srchText;
+  const sfTok = v => (String(v).match(/[^\s,;|]*$/) || [''])[0];   // ticker en cours de frappe (après le dernier séparateur)
+  function sfMatches(v) {
+    const T = window.TICKERS, q = tkParse(sfTok(v))[0] || ''; if (!T || !q) return [];
     const cs = T.cols.indexOf('s'), cn = T.cols.indexOf('n'), cc = T.cols.indexOf('cap'), alt = q.replace(/-/g, '.');
     const cap = r => r[cc] || 0, sc = r => { const s = r[cs]; return s === q || s === alt ? 0 : s.startsWith(q) || s.startsWith(alt) ? 1 : 2; };
     const byS = T.rows.filter(r => sc(r) < 2), seen = new Set(byS.map(r => r[cs]));
@@ -5374,33 +5445,85 @@
     L.innerHTML = sfOpts.map((o, i) => `<button type="button" class="sfo${i === sfOn ? ' on' : ''}" role="option" data-sfs="${escA(o.s)}" tabindex="-1"><b>${escH(o.s)}</b><span>${escH(o.n || '')}${o.ind ? ' · ' + escH(o.ind) : ''}</span></button>`).join('');
   }
   function sfClose() { sfOpts = []; sfOn = -1; sfNav = false; $('secFindList').hidden = true; $('secFindList').innerHTML = ''; $('secFindIn').setAttribute('aria-expanded', 'false'); }
-  function sfMsg(t) {
-    const m = $('secFindMsg'); m.textContent = t; m.hidden = !t; clearTimeout(sfMsgT);
-    if (t) sfMsgT = setTimeout(() => { m.hidden = true; }, 4000);
+  function sfPick(sym) {                               // suggestion : remplace le ticker en cours de frappe, la liste continue
+    const v = $('secFindIn').value; $('secFindIn').value = v.slice(0, v.length - sfTok(v).length) + sym + ', ';
+    sfClose(); srchSet($('secFindIn').value);
   }
-  function sfGo(raw) {                                 // un ticker → sa fenêtre graphique (BRK-B accepté pour BRK.B)
-    const s = tkParse(raw)[0]; sfClose(); sfMsg(''); if (!s) return;
-    if (!window.TICKERS) { if (tkLoaded.tickers === 'absent') sfMsg(TPC.no_index); else tkLoad(() => sfGo(s)); return; }
-    const r = tkLookup(s);
-    if (r) { $('secFindIn').value = ''; if ($('secFindIn').blur) $('secFindIn').blur(); openPop(r[window.TICKERS.cols.indexOf('s')]); return; }
-    sfMsg(tpl(SEC && SEC.symbols.some(x => x.s === s) ? TPF.etf : TPF.none, { s }));
+  function srchSet(text) {                             // nouvelle liste : mémorisée, récap, surbrillance, carte de rotation
+    clearTimeout(sfTimer); srchText = text; store.set('mm.srch', text); srchAll = false;
+    if ($('secFindIn').value !== text && document.activeElement !== $('secFindIn')) $('secFindIn').value = text;
+    if (IND && tab === 'sec') renderSecKpis(); else renderSrch();
   }
+  const srchOk = () => window.TICKERS ? tkParse(srchText).map(s => tkRow(s)).filter(Boolean).map(r => r.s) : [];   // tickers trouvés (ordre tapé)
+  function srchCss() {                                 // surbrillance : règles CSS sur les attributs déjà présents dans les blocs
+    const syms = tkParse(srchText), T = window.TICKERS, key = syms.join(',') + '|' + !!T + '|' + !!IND;
+    if (key === srchCssKey) return; srchCssKey = key;
+    const q = v => '"' + String(v).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+    const tk = new Set(syms), grp = new Set(), keys = new Set();
+    if (T) syms.forEach(s => { const r = tkRow(s); if (!r) return; tk.add(r.s); grp.add(r.secName); grp.add(r.indName); keys.add('i:' + r.indName); });
+    if (IND && Array.isArray(IND.themes)) IND.themes.forEach(t => { if ((t.m || []).some(m => tk.has(m))) keys.add('t:' + t.k); });
+    const chip = [], row = [], zr = [];
+    tk.forEach(s => { chip.push(`#view-sec [data-pop=${q(s)}]`, `#view-sec [data-bos=${q(s)}]`); row.push(`#secRows tr[data-s=${q(s)}]`); });
+    grp.forEach(g => row.push(`#secRows tr[data-s=${q(g)}]`, `#rrgTab tr[data-mv=${q(g)}]`));
+    keys.forEach(k => zr.push(`#secZone tr.zr[data-mapsel=${q(k)}]`));
+    $('srchCss').textContent = (chip.length ? chip.join(',') + '{outline:2px solid var(--hl)!important;outline-offset:1px}' : '') +
+      (row.length || zr.length ? row.concat(zr).map(x => x + '>td').join(',') + '{background-color:var(--hlbg)!important}' : '') +
+      (row.length ? row.map(x => x + '>td:first-child').join(',') + '{box-shadow:inset 3px 0 0 var(--hl)}' : '');
+  }
+  function renderSrch() {                              // récap sous la frise : une ligne par ticker tapé
+    if (!srchReady) return;
+    srchCss();
+    const box = $('secSrch'), syms = tkParse(srchText);
+    box.hidden = !syms.length || !IND; if (box.hidden) { box.innerHTML = ''; return; }
+    if (!window.TICKERS) {
+      box.innerHTML = `<div class="srhd"><b>${escH(TPF.recap_title)}</b><span class="note">${escH(tkLoaded.tickers === 'absent' ? TPC.no_index : TPC.loading)}</span></div>`;
+      if (!tkLoaded.tickers) tkLoad(() => { srchCssKey = null; if (tab === 'sec') renderSecKpis(); else renderSrch(); });
+      return;
+    }
+    const today = new Set(boNow && boNow.items ? boNow.items.map(x => x.s) : []);
+    const L = syms.map(s => ({ s, r: tkRow(s) })), shown = srchAll ? L : L.slice(0, TPF.recap_max), ok = L.filter(x => x.r).length;
+    const del = (s, lbl) => `<button type="button" class="srx" data-srdel="${escA(s)}" aria-label="${escA(tpl(TPF.remove, { s: lbl }))}" title="${escA(tpl(TPF.remove, { s: lbl }))}">✕</button>`;
+    const row = ({ s, r }) => r
+      ? `<div class="srow" data-srs="${escA(r.s)}"><div class="srh"><b>${escH(r.s)}</b><span class="srn">${escH([r.n, r.indName, tvSecLabel(r.secName)].filter(Boolean).join(' · '))}${r.kept ? '' : ' · ' + escH(TPF.not_kept)}</span>` +
+        `${today.has(r.s) ? `<span class="srtag">${escH(TPF.today)}</span>` : ''}<span class="asp"></span>` +
+        `<button type="button" class="gi" data-srpop="${escA(r.s)}" title="${escA(TPF.chart_tip)}">${escH(TPF.chart)}</button>${del(s, r.s)}</div>` +
+        `<div class="poptr">${popTrend(r, null)}</div></div>`
+      : `<div class="srow unk"><div class="srh"><b>${escH(s)}</b><span class="srn">${escH(tpl(SEC && SEC.symbols.some(x => x.s === s) ? TPF.etf : TPF.none, { s }))}</span><span class="asp"></span>${del(s, s)}</div></div>`;
+    box.innerHTML = `<div class="srhd"><b>${escH(TPF.recap_title)}</b><span class="note">${escH(tpl(TPF.count, { n: ok, t: L.length }))}</span><span class="asp"></span>` +
+      (ok ? `<button class="copybtn" type="button" data-srcopy="1" title="${escA(TPF.copy_tip)}"><svg class="i"><use href="#i-copy"/></svg><span>Copier</span></button>` : '') +
+      `<button class="copybtn" type="button" data-srclear="1">${escH(TPF.clear)}</button></div>` + shown.map(row).join('') +
+      (L.length > TPF.recap_max ? `<button type="button" class="srmore" data-srall="1">${escH(srchAll ? TPF.less : tpl(TPF.more, { n: L.length - TPF.recap_max }))}</button>` : '');
+  }
+  $('secSrch').addEventListener('click', e => {
+    const b = e.target.closest('[data-srpop],[data-srdel],[data-srclear],[data-srcopy],[data-srall],[data-zshow],[data-gind]'); if (!b) return;
+    if (b.dataset.srpop != null) { openPop(b.dataset.srpop, null, srchOk()); return; }   // la fenêtre parcourt la liste tapée
+    if (b.dataset.srdel != null) { srchSet(tkParse(srchText).filter(x => x !== b.dataset.srdel).join(', ')); $('secFindIn').value = srchText; return; }
+    if (b.dataset.srclear != null) { srchSet(''); $('secFindIn').value = ''; return; }
+    if (b.dataset.srcopy != null) { copyTickers(b, srchOk()); return; }
+    if (b.dataset.srall != null) { srchAll = !srchAll; renderSrch(); return; }
+    trendAct(b);
+  });
   $('secFindIn').addEventListener('focus', () => { if (!window.TICKERS) tkLoad(() => { if ($('secFindIn').value) sfRender(); }); });
-  $('secFindIn').addEventListener('input', () => { sfMsg(''); sfRender(); });
+  $('secFindIn').addEventListener('input', () => {    // suggestions tout de suite ; liste appliquée après une courte pause
+    sfRender(); clearTimeout(sfTimer); sfTimer = setTimeout(() => srchSet($('secFindIn').value), 300);
+  });
   $('secFindIn').addEventListener('keydown', e => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       if (!sfOpts.length) return; e.preventDefault();
       sfOn = (sfOn + (e.key === 'ArrowDown' ? 1 : -1) + sfOpts.length) % sfOpts.length; sfNav = true; sfRender(true);
-    } else if (e.key === 'Escape') { if (sfOpts.length) { e.stopPropagation(); sfClose(); } else { $('secFindIn').value = ''; sfMsg(''); } }
+    } else if (e.key === 'Escape') { e.preventDefault(); if (sfOpts.length) { e.stopPropagation(); sfClose(); } }   // pas l'effacement natif du champ : la liste reste (✕ ou Effacer)
   });
-  $('secFind').addEventListener('submit', e => {       // Entrée : suggestion choisie aux flèches, sinon le ticker tapé s'il existe (action ou ETF), sinon la 1re suggestion
-    e.preventDefault(); const q = tkParse($('secFindIn').value)[0];
+  $('secFind').addEventListener('submit', e => {       // Entrée : suggestion choisie aux flèches, sinon le ticker tapé s'il existe, sinon la 1re suggestion ; puis la liste
+    e.preventDefault(); const v = $('secFindIn').value, q = tkParse(sfTok(v))[0];
     const exact = q && ((window.TICKERS && tkLookup(q)) || (SEC && SEC.symbols.some(x => x.s === q)));
-    sfGo(sfNav && sfOpts[sfOn] ? sfOpts[sfOn].s : exact || !sfOpts.length ? $('secFindIn').value : sfOpts[0].s);
+    if (sfNav && sfOpts[sfOn]) { sfPick(sfOpts[sfOn].s); return; }
+    if (q && !exact && sfOpts.length) { sfPick(sfOpts[0].s); return; }
+    sfClose(); srchSet(v);
   });
   $('secFindList').addEventListener('mousedown', e => e.preventDefault());   // garde le focus du champ jusqu'au clic
-  $('secFindList').addEventListener('click', e => { const b = e.target.closest('[data-sfs]'); if (b) sfGo(b.dataset.sfs); });
+  $('secFindList').addEventListener('click', e => { const b = e.target.closest('[data-sfs]'); if (b) sfPick(b.dataset.sfs); });
   $('secFindIn').addEventListener('blur', () => setTimeout(sfClose, 150));
+  srchReady = true;
   // --- fiche standard d'un ticker : mêmes informations, dans le même ordre, dans les onglets Tickers, Post-market et Secteurs
   //     (prix, tendance TI65 de l'action, de son industrie et de son secteur, taille, short interest, liens) ; chaque onglet
   //     ajoute ensuite ses informations propres (ex. post-market). Index et short interest chargés à la demande.
