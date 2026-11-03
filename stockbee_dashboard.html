@@ -297,6 +297,30 @@
   .ohlc .t9 { color: var(--c9m); font-weight: 600; }
   body.popopen { overflow: hidden; } body.popopen .tip { z-index: 61; }   /* fenêtre ouverte : page figée, infobulle du réticule au-dessus */
   @media (max-width: 640px) { .popov { padding: 0; align-items: stretch; } .popbox { border-radius: 0; width: 100%; } .popbox canvas { height: 62vh; } }
+  /* ligne de tendance de la fenêtre graphique et recherche d'un ticker (Secteurs, 03/11/2026) */
+  .popbox > :not(canvas) { flex-shrink: 0; } .popbox canvas { flex-shrink: 1; min-height: 36vh; }   /* écran court : le graphique cède la place, pas les lignes de texte */
+  .poptr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 12px; color: var(--muted); }
+  .poptr:empty { display: none; } .poptr b { color: var(--text); font-weight: 600; } .poptr .k { color: var(--faint); margin-right: 5px; }
+  .poptr .zp { --zc: var(--zrev); display: inline-flex; align-items: center; gap: 5px; font: inherit; font-size: 12px; padding: 2px 8px; min-height: 26px; border-radius: 8px;
+    border: 1px solid var(--border); background: color-mix(in srgb, var(--zc) 12%, transparent); color: var(--text); cursor: pointer; margin-right: 4px; }
+  .poptr .zp i { width: 8px; height: 8px; border-radius: 50%; background: var(--zc); } .poptr .zp:hover, .poptr .zp:focus-visible { border-color: var(--faint); outline: none; }
+  .poptr .zp.z-lo { --zc: var(--zlo); } .poptr .zp.z-both { --zc: var(--up); } .poptr .zp.z-neuf { --zc: var(--warn); }
+  .poptr .lead { font-size: 10.5px; font-weight: 600; padding: 1px 7px; border-radius: 8px; background: var(--panel2); color: var(--text); margin-left: 6px; }
+  .poptr .gi { border: 1px solid var(--border); background: var(--panel2); color: var(--text); font: inherit; font-size: 12px; padding: 3px 10px; min-height: 28px; border-radius: 8px; cursor: pointer; }
+  .poptr .gi:hover, .poptr .gi:focus-visible { border-color: var(--faint); outline: none; }
+  .secfind { position: relative; display: inline-flex; align-items: center; align-self: center; }
+  .secfind > .i { position: absolute; left: 9px; width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
+  .secfind input { width: 150px; font: inherit; font-size: 13px; padding: 4px 8px 4px 29px; min-height: 32px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel2); color: var(--text); text-transform: uppercase; -webkit-appearance: none; appearance: none; }
+  .secfind input::placeholder { text-transform: none; color: var(--faint); } .secfind input:focus { outline: none; border-color: var(--faint); }
+  .secfind .sfl { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: min(320px, calc(100vw - 32px)); max-height: 60vh; overflow-y: auto; padding: 4px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--panel); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); display: flex; flex-direction: column; }
+  .secfind .sfl[hidden] { display: none; }
+  .secfind .sfo { display: flex; align-items: baseline; gap: 8px; text-align: left; font: inherit; font-size: 12.5px; padding: 6px 8px; min-height: 34px; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+  .secfind .sfo b { color: var(--text); min-width: 52px; } .secfind .sfo span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .secfind .sfo.on, .secfind .sfo:hover { background: var(--panel2); }
+  .secfind .sfm { position: absolute; top: calc(100% + 4px); right: 0; z-index: 40; width: max-content; max-width: min(320px, calc(100vw - 32px)); font-size: 12px; color: var(--muted);
+    padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel); }
+  .secfind .sfm[hidden] { display: none; }
   .secmap .mside { display: grid; gap: 16px; align-items: start; } .secmap .mside > div { min-width: 0; }
   .secmap .mboard { display: flex; flex-direction: column; }
   .secmap .mbz { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12.5px; margin: 10px 0 3px; } .secmap .mbz:first-child { margin-top: 0; }
@@ -956,6 +980,7 @@
     .rtab td.rtn { white-space: normal; } .rtab .rtn small { display: block; font-size: 11px; color: var(--muted); } .rtseg { margin-left: 0; }
     .secfrise { padding: 12px; } #friseCv { height: 44px; } #secPhLeg { display: none; }   /* mobile : nom de la phase au toucher (étiquette de la frise) */
     #view-sec { --blk: 12px; } .secfrise .seckpinote { margin-left: 0; } .secact .acard { min-height: 44px; }
+    .secfrise .secfind { margin-left: auto; } .secfind input { width: 112px; font-size: 16px; }   /* 16 px : pas de zoom automatique d'iOS au toucher */
     .seckpinote { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     /* cases de Secteurs : grille sur deux colonnes comme le MM (demande du 20/10/2026 : pas de défilement horizontal) ;
        nombre impair de cases : la dernière prend toute la largeur (comme le T2108 du MM) */
@@ -1066,7 +1091,8 @@
          séparateur net (titre de la phase, séance, bande) entre le contexte et ce qui en découle ; les blocs dessous se replient -->
     <div class="kpis secstrip" id="secKpis" role="group" aria-label="Résumé de la séance (vue TradingView)" hidden></div>
     <div class="secfrise" id="secFrise" hidden>
-      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span></div>
+      <div class="frh"><span class="frph" id="frisePh"></span><span class="seckpinote" id="secKpiNote"></span><span class="tipbtn mini" role="button" tabindex="0" data-tip="act:ctx" aria-label="Explication : frise des phases" aria-expanded="false"><svg class="i"><use href="#i-info"/></svg></span>
+        <form class="secfind" id="secFind" role="search" autocomplete="off"><svg class="i"><use href="#i-search"/></svg><input id="secFindIn" type="search" spellcheck="false" autocapitalize="characters" enterkeyhint="search" aria-autocomplete="list" aria-controls="secFindList"><div class="sfl" id="secFindList" role="listbox" hidden></div><span class="sfm" id="secFindMsg" role="status" aria-live="polite" hidden></span></form></div>
       <canvas id="friseCv" aria-label="Frise des phases de marché : survoler ou glisser pour remonter le temps"></canvas><div class="legend phleg" id="secPhLeg" hidden></div></div>
     <div class="card secnow" id="secNow" role="region" aria-label="Ce matin" hidden></div>
     <div class="card secflow" id="secFlow" hidden></div>
@@ -1411,6 +1437,7 @@
     <div class="pophead"><b id="popTitle"></b><span class="popsub" id="popSub"></span><span class="asp"></span>
       <button type="button" class="go" id="popTk"></button>
       <button type="button" class="popx" id="popX">✕</button></div>
+    <div class="poptr" id="popTr"></div>
     <div class="ovl"><span class="ohlc" id="popOhlc"></span></div>
     <canvas id="popCanvas"></canvas>
     <div class="popleg" id="popLeg"></div>
@@ -3519,9 +3546,12 @@
   $('secNow').addEventListener('click', e => {
     const b = e.target.closest('[data-pop],[data-nowg]'); if (!b) return;
     if (b.dataset.pop != null) { openPop(b.dataset.pop, boNow && boNow.d); return; }
-    mapSel = b.dataset.nowg; zoneDay = null; zoneFilter = 'all'; zoneOpen = true; foldSet('zone', true); renderSecKpis();   // le groupe ouvert dans la grille
-    setTimeout(() => { const r = document.querySelector(`#secZone tr.zr.on`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 0);
+    zoneShow(b.dataset.nowg);
   });
+  function zoneShow(key) {                             // un groupe ouvert dans la grille Convergence des 9M (« Ce matin », fenêtre graphique)
+    mapSel = key; zoneDay = null; zoneFilter = 'all'; zoneOpen = true; foldSet('zone', true); renderSecKpis();
+    setTimeout(() => { const r = document.querySelector(`#secZone tr.zr.on`); if (r && r.scrollIntoView) r.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 0);
+  }
   // carte des thèmes (31/10/2026, config/display.toml [sectors.map]) : industries placées par tendance (rang TI65, x) et demande
   // (part en 9M sur nine_window séances, y) ; taille = leaders ; couleur = neuf, chaud + 9M fort, 9M fort seul (Réveil), chaud, autre.
   // Zones mesurées hors dépôt 2008-2025 (notes de la config). SVG à la largeur du bloc : texte lisible sur mobile
@@ -5243,7 +5273,7 @@
   $('popTk').textContent = TPC.fiche; $('popTk').title = TPC.fiche_tip; $('popX').setAttribute('aria-label', TPC.close);
   function openPop(sym, mark) {
     popFrom = document.activeElement; popSym = sym; popMark = mark || null; $('tkPop').hidden = false; document.body.classList.add('popopen');
-    $('popTitle').textContent = sym; $('popSub').textContent = TPC.loading; $('popOhlc').innerHTML = '';
+    $('popTitle').textContent = sym; $('popSub').textContent = TPC.loading; $('popOhlc').innerHTML = ''; $('popTr').innerHTML = '';
     $('popLeg').innerHTML = (CN9.shown ? `<span><i class="k9"></i>${escH(CN9.legend)}</span>` : '') +
       (popMark ? `<span><i class="kmk"></i>${escH(tpl(TPC.mark, { d: fmtDate(popMark, { day: 'numeric', month: 'short' }) }))}</span>` : '');
     inCtx(popCtx, () => { bars = new Map(); ALLT = []; T = []; hover = -1; }); popCtx.sym = null;
@@ -5259,8 +5289,9 @@
     const r = tkRow(popSym); if (!r) { $('popSub').textContent = TPC.not_found; return; }
     const S = tkStock(r, popLoad); if (S.wait) return;
     $('popSub').textContent = [r.n, r.indName, tvSecLabel(r.secName), themesOf(popSym).length ? `${ETC.label} : ${themesOf(popSym).join(', ')}` : ''].filter(Boolean).join(' · ') + (S.none ? ' · ' + TPC.no_chart : '');
+    const arr = S.none ? null : secBarsFor(S.D, S.x);
+    $('popTr').innerHTML = popTrend(r, arr);
     if (S.none) return;
-    const arr = secBarsFor(S.D, S.x);
     inCtx(popCtx, () => { bars = new Map(arr.map(b => [b.d, b])); ALLT = arr.map(b => b.d); });
     popCtx.sym = popSym; popPreset();
   }
@@ -5278,6 +5309,98 @@
   $('tkPop').addEventListener('click', e => { if (e.target === $('tkPop')) closePop(); });
   $('popTk').addEventListener('click', () => { const s = popSym; closePop(); if (s) tkAdd([s], s); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && popSym) closePop(); });
+  // ligne de tendance de la fenêtre (03/11/2026, avec la recherche d'un ticker) : ce que l'onglet Secteurs calcule déjà, à la
+  // dernière séance : TI65 de l'action (sens, rang dans l'industrie, MM), de son industrie et de son secteur (rangs de l'onglet
+  // Tickers), zones de la Convergence des 9M de son industrie et de ses thèmes suivis, ses 9M sur la fenêtre de la grille.
+  // Des faits, aucun verdict (config/display.toml [ticker_popup.trend])
+  const TPT = TPC.trend;
+  function popTrend(r, arr) {
+    if (!IND) return '';
+    const R = tkRanks(), e = IND.dates.length - 1, it = (k, v) => `<span><span class="k">${escH(k)}</span>${v}</span>`;
+    const rk = (x, t) => x && x.rank != null ? `rang <b>${x.rank}</b>/${t}` : 'sans rang';
+    const dv = r.ti == null ? null : (r.ti - 1) * 100, last = arr && arr.length ? arr[arr.length - 1] : null;
+    const sens = r.ti != null && r.tiPrev != null ? (r.ti > r.tiPrev ? ' ↗' : r.ti < r.tiPrev ? ' ↘' : '') : '';
+    const idv = r.ind && r.ind.score != null ? (r.ind.score - 1) * 100 : null;
+    let h = it(TPT.stock, `${TIN} ${dv == null ? '—' : `<b class="${cls(dv)}">${pct(dv)}</b>${sens}`}${r.rankInd ? ` · <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : ''}` +
+      (last && last.tf ? ` · <span title="${escA(trendLong(last.tf))}">MM ${escH(trendShort(last.tf))}</span>` : '')) +
+      it(TPT.ind, `${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}${heatTag(r.ind && r.ind.heat)}`) +
+      it(TPT.sec, rk(r.sec, R.sec.total));
+    // zones de l'industrie et des thèmes suivis du titre (mêmes règles que la grille, phase de la séance comprise)
+    const M = mapAt(e);
+    if (M && M.ok9) {
+      const pd = IND.dates[e], pk = phaseKeyAt(pd) || (PHASES.length && pd > PHASES[PHASES.length - 1].d ? PHASES[PHASES.length - 1].k : null);
+      const PR = pk ? (MP.board.phase_rule || []).find(x => x.phases.includes(pk)) || null : null, low = PR ? PR.low : true;
+      const ZL = { lo: `${MP.zones.reveil} ${MP.board.low_label}`, rev: MP.zones.reveil, both: MP.zones.lasting, neuf: MP.board.neuf_label };
+      const G = [M.by.get('i:' + r.indName), ...M.th.filter(o => o.x.g.m && o.x.g.m.has(r.s))].filter(o => o && ZL[o.cl]);
+      h += it(TPT.conv, G.length ? G.map(o => { const z = low && o.cl === 'rev' && !o.th && o.px < MP.board.low_rank ? 'lo' : o.cl;
+        return `<button type="button" class="zp z-${z}" data-zshow="${escA(o.x.g.key)}" title="${escA(TPT.conv_tip)}"><i></i>${escH(o.x.g.k)} · ${escH(ZL[z])} · ${escH(tpl(TPT.conv_n, { n: o.m ? o.m.n : 0 }))}</button>`; }).join('')
+        : `<span>${escH(TPT.conv_none)}</span>`);
+    }
+    if (arr) {                                         // 9M de l'action (bougies du graphique, même règle que leur marque)
+      const W = MP.board.grid_sessions, F = nineFlags(arr), D = arr.slice(-W).map(b => b.d).filter(d => F.get(d));
+      const strong = D.filter(d => F.get(d) === 2).length;
+      h += it(TPT.nine, `<b>${escH(tpl(TPT.nine_n, { n: D.length, w: W }))}</b>${strong ? ' ' + escH(tpl(TPT.nine_strong, { n: strong })) : ''}` +
+        (D.length ? ' · ' + escH(tpl(TPT.nine_last, { d: fmtDate(D[D.length - 1], { day: 'numeric', month: 'short' }) })) : ''));
+    }
+    const A = actAt(e);
+    if (A && A.leaders.some(l => l.s === r.s)) h += `<span class="lead">${escH(TPT.leader)}</span>`;
+    return h + `<button type="button" class="gi" data-gind="1" title="${escA(TPT.go_ind_tip)}">${escH(TPT.go_ind)}</button>`;
+  }
+  $('popTr').addEventListener('click', e => {
+    const b = e.target.closest('[data-zshow],[data-gind]'); if (!b) return;
+    const s = popSym, r = s ? tkRow(s) : null; closePop();
+    if (b.dataset.gind != null) { if (r) tvGoto(r.indName, r.s); return; }
+    if (tab !== 'sec') setTab('sec');
+    zoneShow(b.dataset.zshow);
+  });
+  // --- recherche d'un ticker (onglet Secteurs, demande de l'utilisateur du 03/11/2026) : champ dans l'en-tête de la frise →
+  //     fenêtre graphique. Suggestions : index Tickers (chargé au premier toucher du champ), symbole d'abord (exact, puis début,
+  //     plus grosse capitalisation d'abord), puis nom dès find.name_min lettres. Absent : ETF du classement ou hors index
+  const TPF = TPC.find;
+  let sfOpts = [], sfOn = -1, sfNav = false, sfMsgT = 0;   // sfNav : suggestion choisie aux flèches
+  $('secFindIn').placeholder = TPF.placeholder; $('secFindIn').setAttribute('aria-label', TPF.label); $('secFind').title = TPF.label;
+  function sfMatches(q) {
+    const T = window.TICKERS; q = tkParse(q)[0] || ''; if (!T || !q) return [];
+    const cs = T.cols.indexOf('s'), cn = T.cols.indexOf('n'), cc = T.cols.indexOf('cap'), alt = q.replace(/-/g, '.');
+    const cap = r => r[cc] || 0, sc = r => { const s = r[cs]; return s === q || s === alt ? 0 : s.startsWith(q) || s.startsWith(alt) ? 1 : 2; };
+    const byS = T.rows.filter(r => sc(r) < 2), seen = new Set(byS.map(r => r[cs]));
+    const byN = q.length >= TPF.name_min ? T.rows.filter(r => !seen.has(r[cs]) && String(r[cn] || '').toUpperCase().includes(q)) : [];
+    return byS.sort((a, b) => sc(a) - sc(b) || cap(b) - cap(a)).concat(byN.sort((a, b) => cap(b) - cap(a))).slice(0, TPF.max)
+      .map(r => { const c = Object.fromEntries(T.cols.map((k, i) => [k, r[i]])); return { s: c.s, n: c.n, ind: T.inds[c.ind] ? T.inds[c.ind][0] : '' }; });
+  }
+  function sfRender(keep) {
+    const L = $('secFindList'); if (!keep) { sfOpts = sfMatches($('secFindIn').value); sfOn = sfOpts.length ? 0 : -1; sfNav = false; }
+    L.hidden = !sfOpts.length; $('secFindIn').setAttribute('aria-expanded', sfOpts.length ? 'true' : 'false');
+    L.innerHTML = sfOpts.map((o, i) => `<button type="button" class="sfo${i === sfOn ? ' on' : ''}" role="option" data-sfs="${escA(o.s)}" tabindex="-1"><b>${escH(o.s)}</b><span>${escH(o.n || '')}${o.ind ? ' · ' + escH(o.ind) : ''}</span></button>`).join('');
+  }
+  function sfClose() { sfOpts = []; sfOn = -1; sfNav = false; $('secFindList').hidden = true; $('secFindList').innerHTML = ''; $('secFindIn').setAttribute('aria-expanded', 'false'); }
+  function sfMsg(t) {
+    const m = $('secFindMsg'); m.textContent = t; m.hidden = !t; clearTimeout(sfMsgT);
+    if (t) sfMsgT = setTimeout(() => { m.hidden = true; }, 4000);
+  }
+  function sfGo(raw) {                                 // un ticker → sa fenêtre graphique (BRK-B accepté pour BRK.B)
+    const s = tkParse(raw)[0]; sfClose(); sfMsg(''); if (!s) return;
+    if (!window.TICKERS) { if (tkLoaded.tickers === 'absent') sfMsg(TPC.no_index); else tkLoad(() => sfGo(s)); return; }
+    const r = tkLookup(s);
+    if (r) { $('secFindIn').value = ''; if ($('secFindIn').blur) $('secFindIn').blur(); openPop(r[window.TICKERS.cols.indexOf('s')]); return; }
+    sfMsg(tpl(SEC && SEC.symbols.some(x => x.s === s) ? TPF.etf : TPF.none, { s }));
+  }
+  $('secFindIn').addEventListener('focus', () => { if (!window.TICKERS) tkLoad(() => { if ($('secFindIn').value) sfRender(); }); });
+  $('secFindIn').addEventListener('input', () => { sfMsg(''); sfRender(); });
+  $('secFindIn').addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (!sfOpts.length) return; e.preventDefault();
+      sfOn = (sfOn + (e.key === 'ArrowDown' ? 1 : -1) + sfOpts.length) % sfOpts.length; sfNav = true; sfRender(true);
+    } else if (e.key === 'Escape') { if (sfOpts.length) { e.stopPropagation(); sfClose(); } else { $('secFindIn').value = ''; sfMsg(''); } }
+  });
+  $('secFind').addEventListener('submit', e => {       // Entrée : suggestion choisie aux flèches, sinon le ticker tapé s'il existe (action ou ETF), sinon la 1re suggestion
+    e.preventDefault(); const q = tkParse($('secFindIn').value)[0];
+    const exact = q && ((window.TICKERS && tkLookup(q)) || (SEC && SEC.symbols.some(x => x.s === q)));
+    sfGo(sfNav && sfOpts[sfOn] ? sfOpts[sfOn].s : exact || !sfOpts.length ? $('secFindIn').value : sfOpts[0].s);
+  });
+  $('secFindList').addEventListener('mousedown', e => e.preventDefault());   // garde le focus du champ jusqu'au clic
+  $('secFindList').addEventListener('click', e => { const b = e.target.closest('[data-sfs]'); if (b) sfGo(b.dataset.sfs); });
+  $('secFindIn').addEventListener('blur', () => setTimeout(sfClose, 150));
   // --- fiche standard d'un ticker : mêmes informations, dans le même ordre, dans les onglets Tickers, Post-market et Secteurs
   //     (prix, tendance TI65 de l'action, de son industrie et de son secteur, taille, short interest, liens) ; chaque onglet
   //     ajoute ensuite ses informations propres (ex. post-market). Index et short interest chargés à la demande.
