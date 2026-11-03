@@ -320,7 +320,7 @@ copy = "Copier"
 
 [ticker_popup]
 # Fenêtre graphique d'un ticker (01/11/2026) : titres du tableau par zone et du bloc 9M
-range = "1A"                  # préréglage à l'ouverture (3M, 6M, YTD, 1A, 2A, 5A, Tout)
+range = "6M"                  # préréglage à l'ouverture (3M, 6M, YTD, 1A, 2A, 5A, Tout) ; 6M depuis le 03/11/2026 (demande de l'utilisateur ; molette = zoom)
 loading = "chargement…"
 no_index = "index des tickers indisponible"
 not_found = "pas dans l'index des tickers"
@@ -328,6 +328,8 @@ no_chart = "pas de graphique pour ce titre"
 fiche = "Fiche ›"
 fiche_tip = "Ouvrir la fiche complète dans l'onglet Tickers"
 close = "Fermer"
+prev = "Titre précédent de la liste (←)"   # ‹ › : passer d'un titre à l'autre de la liste d'où vient la fenêtre (03/11/2026)
+next = "Titre suivant de la liste (→)"
 mark = "pointillé = {d}, jour choisi dans la grille"   # séance marquée quand la fenêtre vient de la liste d'un jour (02/11/2026)
 
 [ticker_popup.trend]

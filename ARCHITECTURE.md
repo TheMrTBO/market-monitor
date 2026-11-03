@@ -38,7 +38,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 28 tests Node (dashboard en DOM simulé), 10 tests Python (dont `test_breadth_soir.py`, `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 29 tests Node (dashboard en DOM simulé), 10 tests Python (dont `test_breadth_soir.py`, `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -147,7 +147,8 @@ frise, voir §9) ; le 27/10/2026 : refonte de l'onglet Secteurs (groupes actifs,
 changé par glisser-déposer (§9, « Ordre de l'onglet Secteurs »), puis volume en dollars de la liste 9M (Secteurs et Tickers :
 colonne, tri, filtre ; §9, « Breakouts 9M +4 % »), puis la liste 9M en niveau du Classement (liste, graphique et fiche) ; le 03/11/2026 : recherche d'un ticker dans Secteurs et ligne
 de tendance de la fenêtre graphique (§9, « Recherche d'un ticker »), à la demande de l'utilisateur, sans nouveau bloc, puis carte de rotation remise en fin d'onglet
-(`[sectors.rrg] shown`), à la demande de l'utilisateur ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
+(`[sectors.rrg] shown`), à la demande de l'utilisateur, puis tous les blocs sous la frise déplaçables et fenêtre graphique : ‹ › dans
+la liste d'origine, 6 mois, molette = zoom (§9, « Fenêtre graphique d'un ticker ») ; le 02/11/2026 : grille de convergence des 9M dans le tableau par zone (§9, « Grille de convergence des 9M »), à la demande de l'utilisateur, sans retirer d'information ; le 31/10/2026 : repères de la liste 9M (couloirs, mini-bougie, étendu, « 9M ×n » ; §9, « Breakouts 9M +4 % »), à la demande de l'utilisateur après les tests hors dépôt 2008-2025 ; le 28/10/2026 : calcul maison du soir (`breadth_soir.py`) et
 phases de marché maison affichées d'abord, Stockbee prioritaire dès sa publication (« tout calculer juste après la clôture »), avec
 l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. Détail : proposition privée de l'utilisateur
 (hors dépôt) ; résumé ici.
@@ -271,7 +272,13 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
 - **Fenêtre graphique d'un ticker** (`#tkPop`, `openPop`, 01/11/2026) : titres du tableau par zone et du bloc 9M (le bloc garde
   son bouton vers le Classement). Bougies et MM de l'onglet Tickers (`tkRow`, `tkStock(r, after)`, fichier de l'industrie),
   moteur commun avec son contexte `popCtx` (genre `pop` dans `withCtx`, `isPrice`, `setHover`, la boucle des canvas, `render`) ;
-  « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer. Tests : 23, 24, 27, 28.
+  « Fiche › » = onglet Tickers ; Échap, ✕ ou fond = fermer. Tests : 23, 24, 27, 28, 29.
+  **Liste** (03/11/2026, demande de l'utilisateur) : ouverte depuis une liste de tickers (« Ce matin », ligne ou détail d'un groupe
+  de la grille, couloir du bloc 9M), la fenêtre garde cette liste (`popListAt` : plus petite liste affichée qui contient le titre et
+  un autre ; `openPop(sym, mark, list)`) ; « ‹ n / N › » (`#popNav`, `popGo`, `popShow`) et ← → (ou ↑ ↓) au clavier passent d'un
+  titre à l'autre sans fermer, en gardant la durée affichée (`popSpan` ; double-clic = retour au préréglage) ; ↑ ↓ du Classement
+  inactifs pendant ce temps. Ouverte seule (recherche) : pas de navigation. **6 mois à l'ouverture** (`[ticker_popup] range`) ;
+  **molette seule = zoom** dans la fenêtre (ailleurs, Ctrl / ⌘ + molette ; la molette fait défiler la page).
   **Ligne de tendance** (`#popTr`, `popTrend`, 03/11/2026, `display.toml [ticker_popup.trend]`) : à la dernière séance, TI65 de
   l'action (sens, rang dans l'industrie, MM `trendShort`), rangs de son industrie (chaud / émergent) et de son secteur (`tkRanks`),
   zones de la Convergence des 9M de son industrie et de ses thèmes suivis (`mapAt`, même règle « délaissée » selon la phase ;
@@ -398,8 +405,10 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   combien de séances, setups recommandés ; `#secKpiNote` = séance ; survol = aperçu, clic = « Stats du »), flux par secteur (au
   toucher de la case Rotation), **Breakouts 9M +4 %** (`mm.fold.bo`), **Groupes actifs** (ordre inversé le 31/10/2026), **Carte des thèmes** (`mm.fold.map`), **Classement** (liste et graphique) :
   ordre par défaut, que l'utilisateur change par glisser-déposer (exception au gel du 27/10/2026) : poignée ⠿ (`.dragh`,
-  `data-drag`) en tête de ces 4 blocs, au pointeur (souris, doigt) ou aux flèches ↑ ↓ ; ordre mémorisé (`mm.secorder`,
-  `SEC_BLK` / `applySecOrder` / `moveSec`), carte de rotation toujours en fin d'onglet ; test `tests/node/25_secteurs_ordre_blocs.js`. Retours UX du 27/10/2026 (règles NN/g :
+  `data-drag`) en tête de chaque bloc sous la frise (depuis le 03/11/2026 : Ce matin, flux, Breakouts 9M, Convergence des 9M,
+  Classement, carte de rotation ; cases et frise fixes en tête), au pointeur (souris, doigt) ou aux flèches ↑ ↓ ; ordre mémorisé (`mm.secorder`,
+  `SEC_BLK` / `applySecOrder` / `moveSec` ; blocs rangés avant le repère `#secEnd` ; un bloc absent d'un ordre mémorisé plus
+  ancien se place après le plus bas de ceux qui le précèdent par défaut : Ce matin en tête, la carte en dernier) ; test `tests/node/25_secteurs_ordre_blocs.js`. Retours UX du 27/10/2026 (règles NN/g :
   divulgation progressive, design minimaliste) : Groupes actifs et Classement se replient (titre à chevron, résumé d'une ligne ;
   `mm.fold.act`, `mm.fold.list`) ; un seul écart entre blocs (`--blk` : 16 px, 12 px sur mobile), 8 px dans un bloc ; consignes
   dans les bulles ⓘ. Côte à côte, la liste finit à la hauteur de la colonne de droite (`fitSecLayout`).
@@ -408,7 +417,7 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   bascule unique de la mise à jour (`mm.secrefonte`) ouvre la vue TradingView, niveau Leaders actifs.
   **Carte de rotation retirée de la page** (`config/display.toml [sectors.rrg] shown = false`, réversible ; code et test 21
   gardés) : aucune avance mesurée (tests 13-14). **Remise le 03/11/2026** à la demande de l'utilisateur (`shown = true`), en fin
-  d'onglet, repliée par défaut (`folded`) ; mêmes résultats des tests 13-14 (description, pas de signal).
+  d'onglet, repliée par défaut (`folded`), déplaçable comme les autres blocs ; mêmes résultats des tests 13-14 (description, pas de signal).
 - **Groupes actifs** (refonte du 27/10/2026 ; tests 5 à 16 du document d'analyse, sur 2019-2026) : le robot écrit, par industrie,
   les leaders par séance (`l` : actions à +`gain_pct` % sur `sessions` séances, `config/industries.toml [leaders]`) et la **grappe**
   (`g` : au moins `grappe_min` leaders et une part ≥ `grappe_ratio` × celle de l'univers) ; les **thèmes** de `config/themes.toml`

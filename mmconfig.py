@@ -234,8 +234,8 @@ def check():
         errors.append("display.sectors.map.text : libellés de la carte et du tableau attendus (" + ", ".join(need_tx) + ", paires "
                       + ", ".join(pairs) + ", legend et state)")
     tp = load("display").get("ticker_popup", {})
-    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close")) and "{d}" in tp.get("mark", "")):
-        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close, mark ({d})) attendus")
+    if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close", "prev", "next")) and "{d}" in tp.get("mark", "")):
+        errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close, prev, next, mark ({d})) attendus")
     tt, tf = tp.get("trend", {}), tp.get("find", {})
     tt_need = ("stock", "ind", "sec", "conv", "conv_none", "conv_tip", "conv_n", "nine", "nine_n", "nine_strong", "nine_last", "leader", "go_ind", "go_ind_tip")
     if not (all(isinstance(tt.get(k), str) and tt[k] for k in tt_need) and "{n}" in tt.get("conv_n", "") and "{w}" in tt.get("nine_n", "")
