@@ -600,3 +600,34 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-02,2026-11-03T01:52:40+00:00,true,NYSE:RVTY,RVTY,"Revvity, Inc.",Health Technology,Medical Specialties,151.6,-3.44,157.77,4.07,378381,0.21,16916497521,111062103,
 2026-11-02,2026-11-03T01:52:40+00:00,true,NYSE:TTI,TTI,"TETRA Technologies, Inc.",Process Industries,Chemicals: Specialty,5.53,-5.63,5.98,8.14,400392,0.19,818842516,139079045,amc
 2026-11-02,2026-11-03T01:52:40+00:00,true,OTC:HWLDF,HWLDF,H World Group Limited,Consumer Services,Hotels/Resorts/Cruise lines,4.235,-0.35,4.8466,14.44,3363000,,12795102261,1835662530,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:ACB,ACB,Aurora Cannabis Inc.,Process Industries,Agricultural Commodities/Milling,4.22,3.94,4.45,5.45,146488,0.12,277443099,65335801,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:ADEA,ADEA,Adeia Inc.,Technology Services,Packaged Software,20.67,-3.59,15.81,-23.51,507578,0.43,2279490785,107064566,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:AEHR,AEHR,Aehr Test Systems,Electronic Technology,Electronic Production Equipment,51.47,-6.23,58.6704,13.99,877207,0.32,1680986808,31068688,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:AEIS,AEIS,"Advanced Energy Industries, Inc.",Electronic Technology,Electronic Production Equipment,217.19,-2.19,238.35,9.74,141766,0.21,8698555345,39679533,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:BLZE,BLZE,"Backblaze, Inc. Class A",Electronic Technology,Computer Peripherals,7.4,-2.5,10.27,38.78,1621293,0.63,458060020,58570832,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:BMRN,BMRN,BioMarin Pharmaceutical Inc.,Health Technology,Biotechnology,57.44,-1.83,54.5,-5.12,549316,0.26,11118876511,191080379,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:BVS,BVS,"Bioventus, Inc. Class A",Health Technology,Medical Specialties,13.15,-1.31,10.35,-21.29,119297,0.19,1105808135,47249711,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,5.65,65.69,5.2,-7.96,243368,0.04,15116079,713828,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:EVER,EVER,"EverQuote, Inc. Class A",Technology Services,Internet Software/Services,24.27,3.23,26.2,7.95,106538,0.15,855268789,26496500,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:HLIT,HLIT,Harmonic Inc.,Electronic Technology,Telecommunications Equipment,10.19,-0.39,11.95,17.27,584021,0.36,1111387018,107066165,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:LIFE,LIFE,Ethos Technologies Inc. Class A,Technology Services,Packaged Software,42.62,-1.77,47.4239,11.27,449332,0.34,2769617645,16695971,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:LSCC,LSCC,Lattice Semiconductor Corporation,Electronic Technology,Semiconductors,95.44,2.66,103.9592,8.93,960154,0.51,13555368018,140849446,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:NBIX,NBIX,"Neurocrine Biosciences, Inc.",Health Technology,Biotechnology,145.35,-0.51,154.38,6.21,335754,0.26,14774708574,100421385,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:OCUL,OCUL,Ocular Therapeutix Inc,Health Technology,Pharmaceuticals: Major,6.73,-3.44,7.0,4.01,321876,0.11,1478014795,200764821,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:RMNI,RMNI,Rimini Street Inc Class A,Technology Services,Information Technology Services,4.88,-1.61,5.22,6.97,104375,0.24,452356479,47514208,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:SIBN,SIBN,"SI-BONE, Inc.",Health Technology,Medical Specialties,20.22,-4.76,19.25,-4.8,192691,0.32,906231526,42621009,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:UPWK,UPWK,"Upwork, Inc.",Commercial Services,Personnel Services,9.72,6.23,10.71,10.19,1403576,0.45,1214060667,118385061,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:UROY,UROY,Uranium Royalty Corporation,Non-Energy Minerals,Other Metals/Minerals,3.25,-2.99,3.4208,5.26,207346,0.07,1238468778,82100938,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:VCIG,VCIG,VCI Global Limited,Commercial Services,Miscellaneous Commercial Services,8.16,168.4,6.8285,-16.32,1143486,4.74,3850401,850265,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NASDAQ:XMAX,XMAX,"XMAX, Inc.",Consumer Durables,Home Furnishings,4.01,-37.49,4.29,6.98,176632,0.2,260151257,64875600,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:CWH,CWH,"Camping World Holdings, Inc. Class A",Retail Trade,Specialty Stores,5.35,7.0,4.7,-12.15,339824,0.16,552622656,59226192,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:EBS,EBS,Emergent BioSolutions Inc.,Health Technology,Pharmaceuticals: Major,6.44,-5.43,5.3217,-17.36,196443,0.18,330200271,48214898,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:FN,FN,Fabrinet,Electronic Technology,Semiconductors,314.7,-3.85,347.5,10.42,164827,0.17,11276917961,35681856,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:HBM,HBM,Hudbay Minerals Inc,Non-Energy Minerals,Other Metals/Minerals,21.7,0.0,22.76,4.88,146155,0.03,9638124498,427320489,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:HLF,HLF,Herbalife Ltd.,Consumer Non-Durables,Food: Major Diversified,13.28,1.76,13.88,4.52,335701,0.21,1391788944,101822507,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:NOV,NOV,NOV Inc.,Industrial Services,Oilfield Services/Equipment,18.68,-3.16,19.5211,4.5,697420,0.2,6659654044,353997164,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:PHIN,PHIN,PHINIA Inc.,Producer Manufacturing,Auto Parts: OEM,70.79,12.51,73.93,4.44,102047,0.26,2545585847,35225169,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:PUMP,PUMP,ProPetro Holding Corp.,Industrial Services,Oilfield Services/Equipment,6.99,-9.57,7.27,4.01,726838,0.17,858807724,112837935,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:RVTY,RVTY,"Revvity, Inc.",Health Technology,Medical Specialties,151.6,-3.44,157.77,4.07,378381,0.21,16916497521,111062103,
+2026-11-02,2026-11-03T02:14:13+00:00,true,NYSE:TTI,TTI,"TETRA Technologies, Inc.",Process Industries,Chemicals: Specialty,5.53,-5.63,5.98,8.14,400392,0.19,818842516,139079045,amc
+2026-11-02,2026-11-03T02:14:13+00:00,true,OTC:HWLDF,HWLDF,H World Group Limited,Consumer Services,Hotels/Resorts/Cruise lines,4.235,-0.35,4.8466,14.44,3363000,,12795102261,1835662530,
