@@ -236,6 +236,14 @@ def check():
     tp = load("display").get("ticker_popup", {})
     if not (tp.get("range") in ("3M", "6M", "YTD", "1A", "2A", "5A", "Tout") and all(tp.get(k) for k in ("loading", "no_index", "not_found", "no_chart", "fiche", "fiche_tip", "close")) and "{d}" in tp.get("mark", "")):
         errors.append("display.ticker_popup : range (3M, 6M, YTD, 1A, 2A, 5A, Tout) et libellés (loading, no_index, not_found, no_chart, fiche, fiche_tip, close, mark ({d})) attendus")
+    tt, tf = tp.get("trend", {}), tp.get("find", {})
+    tt_need = ("stock", "ind", "sec", "conv", "conv_none", "conv_tip", "conv_n", "nine", "nine_n", "nine_strong", "nine_last", "leader", "go_ind", "go_ind_tip")
+    if not (all(isinstance(tt.get(k), str) and tt[k] for k in tt_need) and "{n}" in tt.get("conv_n", "") and "{w}" in tt.get("nine_n", "")
+            and "{n}" in tt.get("nine_strong", "") and "{d}" in tt.get("nine_last", "")):
+        errors.append("display.ticker_popup.trend : libellés de la ligne de tendance attendus (" + ", ".join(tt_need) + ")")
+    if not (all(isinstance(tf.get(k), str) and tf[k] for k in ("placeholder", "label")) and "{s}" in tf.get("etf", "") and "{s}" in tf.get("none", "")
+            and isinstance(tf.get("max"), int) and 1 <= tf["max"] <= 20 and isinstance(tf.get("name_min"), int) and tf["name_min"] >= 1):
+        errors.append("display.ticker_popup.find : placeholder, label, etf ({s}), none ({s}), max (1-20), name_min (≥ 1) attendus")
     if not (isinstance(load("sources")["tv_breadth"]["breakouts"].get("adr_sessions"), int) and load("sources")["tv_breadth"]["breakouts"]["adr_sessions"] >= 2):
         errors.append("sources.tv_breadth.breakouts.adr_sessions : entier ≥ 2 attendu (ADR de la bougie forte)")
     mt = load("sources")["tv_breadth"]["breakouts"].get("marks_text", {})

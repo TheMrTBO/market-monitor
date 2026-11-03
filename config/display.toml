@@ -330,6 +330,35 @@ fiche_tip = "Ouvrir la fiche complète dans l'onglet Tickers"
 close = "Fermer"
 mark = "pointillé = {d}, jour choisi dans la grille"   # séance marquée quand la fenêtre vient de la liste d'un jour (02/11/2026)
 
+[ticker_popup.trend]
+# Ligne de tendance de la fenêtre (03/11/2026, avec la recherche d'un ticker) : faits déjà calculés par l'onglet Secteurs, à la
+# dernière séance (TI65 de l'action, de son industrie et de son secteur, MM, zones de la Convergence des 9M, 9M de l'action sur
+# [sectors.map.board] grid_sessions séances). Aucun verdict « en tendance » : pas d'avance mesurée pour un tel cumul.
+stock = "Action"
+ind = "Industrie"
+sec = "Secteur"
+conv = "Convergence"
+conv_none = "hors zone"
+conv_tip = "Toucher : le groupe dans la grille Convergence des 9M"
+conv_n = "{n} en 9M"           # titres du groupe en 9M (fenêtre de la grille)
+nine = "9M"
+nine_n = "{n} sur {w} s"       # bougies 9M de l'action sur la fenêtre de la grille
+nine_strong = "dont {n} forte(s)"
+nine_last = "dernière le {d}"
+leader = "leader actif"
+go_ind = "Ouvrir l'industrie ›"
+go_ind_tip = "Ouvrir l'industrie dans le Classement (vue TradingView), le titre sélectionné"
+
+[ticker_popup.find]
+# Recherche d'un ticker (onglet Secteurs, demande de l'utilisateur du 03/11/2026) : champ dans l'en-tête de la frise → fenêtre
+# graphique ; suggestions tirées de l'index Tickers (symbole d'abord, puis nom), chargé au premier toucher du champ.
+placeholder = "Ticker…"
+label = "Chercher un ticker : secteur, industrie, tendance"
+max = 8                       # suggestions affichées
+name_min = 3                  # lettres avant de chercher aussi dans les noms
+etf = "{s} : ETF, voir le niveau ETF du Classement"
+none = "{s} : absent de l'index (fonds, OTC, hors NYSE / Nasdaq / AMEX)"
+
 [sectors.rrg]
 # carte de rotation (type RRG, Julius de Kempenaer) de la vue TradingView, relative au marché = toutes les actions retenues :
 # x = TI65 de la force relative (indice ÷ marché) × 100 (> 100 : surperforme) ; y = 100 × x / x d'il y a `momentum` séances
