@@ -1,0 +1,27 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:ANGI,ANGI,Angi Inc Class A,Technology Services,Internet Software/Services,5.64,-2.59,5.9,4.61,124653,0.16,228737257,33181136,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:AQST,AQST,"Aquestive Therapeutics, Inc.",Health Technology,Pharmaceuticals: Major,3.88,2.92,3.6101,-6.96,239323,0.1,486985199,109873832,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:CAR,CAR,"Avis Budget Group, Inc.",Finance,Finance/Rental/Leasing,109.34,-1.95,96.093,-12.12,100078,0.22,3862517635,34763907,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:CHSN,CHSN,Chanson International Holding Class A,Consumer Non-Durables,Food: Specialty/Candy,3.38,241.24,3.14,-7.1,1523825,0.66,2300328,2096288,
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:CRCT,CRCT,"Cricut, Inc. Class A",Distribution Services,Wholesale Distributors,5.97,-1.16,6.5,8.88,111074,0.16,1250383165,45247373,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:DNLI,DNLI,Denali Therapeutics Inc.,Health Technology,Biotechnology,19.45,3.13,20.43,5.04,480070,0.3,3109032266,149709183,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:DUOL,DUOL,"Duolingo, Inc. Class A",Technology Services,Packaged Software,128.0,-5.37,143.0,11.72,312322,0.28,5988609786,39741858,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:FLYW,FLYW,Flywire Corp.,Commercial Services,Miscellaneous Commercial Services,19.15,-1.74,21.9,14.36,563172,0.33,2329935876,113341407,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:HRMY,HRMY,"Harmony Biosciences Holdings, Inc.",Health Technology,Pharmaceuticals: Major,37.02,-2.35,34.2488,-7.49,261330,0.28,2155911259,50196864,
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:MQ,MQ,"Marqeta, Inc. Class A",Commercial Services,Miscellaneous Commercial Services,17.8,-4.4,17.01,-4.44,190919,0.2,1852958526,88684749,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:NRIX,NRIX,"Nurix Therapeutics, Inc.",Health Technology,Biotechnology,25.82,0.47,17.52,-32.15,425259,0.26,2820830158,104049481,
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:NVTS,NVTS,Navitas Semiconductor Corporation,Electronic Technology,Semiconductors,8.56,7.94,8.9973,5.11,1793206,0.12,2234960100,225742313,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:OUST,OUST,"Ouster, Inc.",Electronic Technology,Semiconductors,28.98,2.69,31.4659,8.58,309503,0.1,2089815423,69213241,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:QDEL,QDEL,QuidelOrtho Corporation,Health Technology,Medical Specialties,14.09,0.43,12.95,-8.09,685281,0.4,966227815,67961307,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:RRR,RRR,"Red Rock Resorts, Inc. Class A",Consumer Services,Hotels/Resorts/Cruise lines,51.39,-0.29,49.0,-4.65,359165,0.42,5396782118,46785155,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:RXST,RXST,"RxSight, Inc.",Electronic Technology,Electronic Components,4.59,-4.38,4.06,-11.55,142766,0.15,190913061,38582028,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:SMCI,SMCI,"Super Micro Computer, Inc.",Electronic Technology,Computer Processing Hardware,31.39,3.12,33.15,5.61,4885352,0.11,20622144050,573856299,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:SPT,SPT,"Sprout Social, Inc. Class A",Technology Services,Packaged Software,11.93,-1.32,13.04,9.3,106713,0.1,723342284,50341496,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:SWKS,SWKS,"Skyworks Solutions, Inc.",Electronic Technology,Semiconductors,85.4,0.27,74.49,-12.78,870939,0.14,20083136906,233735720,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NASDAQ:SYRE,SYRE,"Spyre Therapeutics, Inc",Health Technology,Pharmaceuticals: Major,99.27,3.94,94.42,-4.89,195636,0.16,9161767951,82861987,
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:ANET,ANET,Arista Networks Inc,Electronic Technology,Computer Peripherals,169.91,3.52,182.9,7.65,1371174,0.21,214294672582,1051103270,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:FTK,FTK,"Flotek Industries, Inc.",Industrial Services,Oilfield Services/Equipment,24.84,5.84,26.38,6.2,154623,0.33,899715416,15062253,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:MOD,MOD,Modine Manufacturing Company,Producer Manufacturing,Industrial Machinery,125.45,1.71,131.55,4.86,336117,0.22,6673553225,51978850,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:PCOR,PCOR,Procore Technologies Inc,Technology Services,Packaged Software,63.17,0.96,69.5,10.02,1198344,0.38,9599018625,125463773,
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:RVLV,RVLV,"Revolve Group, Inc Class A",Retail Trade,Internet Retail,21.53,-2.14,20.06,-6.83,177307,0.22,1530469141,40776656,amc
+2026-11-03,2026-11-03T21:22:49+00:00,false,NYSE:TOST,TOST,"Toast, Inc. Class A",Technology Services,Packaged Software,33.53,0.33,30.84,-8.02,2036269,0.21,19480928932,483401700,amc
