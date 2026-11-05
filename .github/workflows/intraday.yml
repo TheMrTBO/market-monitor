@@ -1,0 +1,145 @@
+name: Relevés en séance (après l'ouverture, mi-séance, avant la clôture)
+
+# Relève le ±4 % et le T2108 provisoires de la séance en cours (fetch_intraday.py, screener public TradingView, aucune clé),
+# contrôle le fichier, le committe et republie le site. Heures des relevés (New York) : config/intraday.toml ; créneaux (UTC) :
+# config/schedule.toml [workflows.intraday], qui couvrent l'heure d'hiver et l'heure d'été (contrôlé par mmconfig.py --check).
+# Un créneau sans relevé dû, ou dont le relevé est déjà pris, ne fait rien : pas de requête, pas de commit, pas de déploiement.
+# Fichier à part (intraday_data.js) : jamais d'écriture dans les autres données ni dans l'historique (branche data).
+# Même groupe de concurrence que les autres workflows (jamais deux écritures en même temps).
+on:
+  schedule:
+    - cron: '0,30 14-17,19,20 * * 1-5'   # secours de cron-job.org (config/schedule.toml)
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: "Relevé à prendre maintenant (HH:MM de config/intraday.toml, ex. 12:00) ; vide = selon l'heure"
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: market-monitor
+  cancel-in-progress: false
+
+jobs:
+  intraday:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+      site: ${{ steps.site.outcome }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
+        with:
+          ref: main
+
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Relevé à prendre ?
+        id: due
+        env:
+          SLOT: ${{ inputs.slot }}         # passé par variable (jamais interpolé dans la commande) ; contrôlé par le script
+        run: |
+          if [ -n "$SLOT" ]; then python fetch_intraday.py --due --slot "$SLOT"; else python fetch_intraday.py --due; fi >> "$GITHUB_OUTPUT"
+
+      # ±25 % mois et trimestre, T2108 maison : calcul du soir (breadth_soir.provisional) aux cours du moment, avec l'historique
+      # Polygon de update.yml (cache restauré en lecture seule, jamais sauvegardé ici) ; absent : ±4 % et T2108 TradingView seuls.
+      - name: Restaurer l'historique des clôtures (cache de update.yml, lecture seule)
+        if: steps.due.outputs.due == 'true'
+        continue-on-error: true
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}   # jamais trouvée : on prend le plus récent (restore-keys)
+          restore-keys: historique-
+
+      - name: Relever la séance en cours (TradingView)
+        id: fetch
+        if: steps.due.outputs.due == 'true'
+        continue-on-error: true            # TradingView indisponible : on garde le fichier publié
+        env:
+          SLOT: ${{ inputs.slot }}
+        run: |
+          if [ -n "$SLOT" ]; then python fetch_intraday.py --slot "$SLOT"; else python fetch_intraday.py; fi
+
+      - name: Contrôler le fichier (sinon retour à la dernière version valide)
+        run: python validate_data.py intraday || git checkout -- intraday_data.js 2>/dev/null || rm -f intraday_data.js
+
+      - name: Enregistrer le relevé
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -f intraday_data.js ]; then git add intraday_data.js; fi
+          if git diff --cached --quiet; then
+            echo "Aucun changement."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git commit -m "Relevé en séance du $(date -u '+%Y-%m-%d %H:%M UTC')"
+          for i in 1 2 3; do
+            if git pull --rebase -X theirs origin main && git push origin HEAD:main; then
+              echo "changed=true" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((i * 10))
+          done
+          echo "::error::Relevé non poussé : main a changé pendant l'exécution (3 essais)."
+          exit 1
+
+      # Fichiers générés (config/storage.toml [generated] : vue TradingView, index Tickers), jamais commités : repris du
+      # cache de update.yml (mêmes chemins), sinon du site publié ; sans eux la republication les perdrait.
+      - name: Restaurer les fichiers générés (cache hors dépôt)
+        if: steps.commit.outputs.changed == 'true'
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: |
+            industries_data.js
+            tickers_data.js
+            industries
+          key: generes-${{ github.run_id }}   # jamais trouvée : on prend le plus récent (restore-keys)
+          restore-keys: generes-
+
+      - name: Secours si le cache manque (version du site publié)
+        if: steps.commit.outputs.changed == 'true'
+        continue-on-error: true
+        run: python generated.py fetch     # ne télécharge que s'il manque un fichier
+
+      - name: Préparer le site
+        id: site
+        if: steps.commit.outputs.changed == 'true'
+        run: python generated.py check && python build_site.py   # liste des fichiers publiés : config/storage.toml [site]
+
+      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b  # v5
+        if: steps.commit.outputs.changed == 'true'
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa  # v3
+        if: steps.commit.outputs.changed == 'true'
+        with:
+          path: _site
+
+      - name: Signaler un échec de TradingView (le fichier publié est gardé)
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          echo "::error::Le relevé en séance n'a pas pu être pris (voir « Relever la séance en cours »)."
+          exit 1
+
+  deploy:
+    needs: intraday
+    if: ${{ !cancelled() && needs.intraday.outputs.site == 'success' }}
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e  # v4

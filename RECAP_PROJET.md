@@ -348,6 +348,15 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
   et les secteurs : corrigé (`session_still_open`, pas de bougie du jour avant 16 h à New York ; le BTC garde la sienne).
 - **Yahoo, le soir** : la bougie du jour revient parfois sans clôture (NaN) → la source « recule » d'une séance. update_all garde
   alors la version précédente (plus récente) et marque l'étape OK avec une note « source en retard » (avant : 3 essais puis échec).
+- **Relevés en séance** (05/11/2026) : décision de l'utilisateur, relevés à 10 h 00, 12 h 00 et 15 h 30 (New York ; 10 h 00 ajouté le même jour) sur le screener
+  TradingView ; l'onglet MM passe au **jour du calendrier** (provisoire, 4e source « en séance », jamais dans l'historique). Le ±4 %
+  de séance sous-compte celui du soir (volume partiel) ; ±25 % et T2108 maison = calcul du soir aux cours du moment (cache Polygon à
+  la veille, sinon absents : le garde-fou de `breadth_soir.provisional` a refusé un cache local du 30/10). Le contrôle du fichier n'a
+  ni limite d'âge ni seuil de config, pour ne jamais faire annuler les autres sources dans `update.yml`. Règle de l'utilisateur :
+  tout chiffre affiché est de la séance en cours, sinon calculé ou vide (jamais la veille) ; VIX relevé aussi (CBOE). ⚠️ La phase en séance peut
+  différer de celle du soir (05/11 à 11 h : Lessivage en séance après Contraction la veille) : affichée « la phase se lit à la
+  clôture ». ⚠️ La fenêtre graphique (`openPop`) ouverte hors de Secteurs, Tickers ou Post-market reste sur « chargement… »
+  (`industries_data.js` jamais demandé) : sans usage aujourd'hui.
 - **Planification GitHub** : au 1er soir (13/10), aucun créneau planifié avant 00:15 UTC, puis des créneaux sautés et un passage
   de 22:17 UTC parti à 01:13 UTC. Relais manuel depuis la session ce soir-là ; solution retenue le 14/10 : **cron-job.org** déclenche les
   deux workflows (voir AUTOMATISATION.md), les créneaux GitHub restent en secours.

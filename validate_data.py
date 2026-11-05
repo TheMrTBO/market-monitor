@@ -375,7 +375,35 @@ def check_etf_themes(data, today):
     return errors
 
 
-CHECKS = {"postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "tv_breadth": check_tv_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
+def check_intraday(data, today):
+    """Relevés en séance (fetch_intraday.py) : structure seulement, aucune limite d'âge (un relevé ancien n'est plus affiché, ce
+    n'est pas une erreur) et aucun seuil lu dans la config (la modifier ne doit jamais invalider le fichier publié : update.yml
+    contrôle tous les fichiers et annulerait les autres sources)."""
+    errors, d, snaps = [], data.get("date"), data["snaps"]
+    if d is None:
+        return [] if not snaps else ["intraday : relevés sans date de séance"]
+    if _age_days(d, today) < -1:
+        errors.append(f"intraday : séance dans le futur ({d})")
+    slots = [s["slot"] for s in snaps]
+    if None in map(mmconfig.hhmm_minutes, slots) or slots != sorted(set(slots), key=mmconfig.hhmm_minutes):
+        errors.append(f"intraday : heures de relevé invalides, en double ou dans le désordre ({', '.join(map(str, slots))})")
+    for s in snaps:
+        lab = f"intraday {s['slot']}"
+        if not (isinstance(s["n"], int) and s["n"] > 0 and s["t2108"] is not None and 0 <= s["t2108"] <= 100):
+            errors.append(f"{lab} : T2108 ou nombre d'actions incohérent ({s['t2108']} % sur {s['n']})")
+        if not all(isinstance(s[k], int) and 0 <= s[k] <= s["n"] for k in ("up4", "down4")):
+            errors.append(f"{lab} : ±4 % incohérent (+{s['up4']} / -{s['down4']} sur {s['n']} actions)")
+        lg = s.get("long")                   # calcul maison aux cours du moment (facultatif)
+        if lg is not None and not (isinstance(lg.get("n"), int) and lg["n"] > 0 and lg.get("t2108") is not None and 0 <= lg["t2108"] <= 100
+                                   and all(isinstance(lg.get(k), int) and 0 <= lg[k] <= lg["n"] for k in ("up25m", "down25m", "up25q", "down25q"))):
+            errors.append(f"{lab} : valeurs maison incohérentes ({lg})")
+        for name, b in (s.get("idx") or {}).items():   # bougies partielles des indices (facultatives)
+            if not (isinstance(b, list) and len(b) == 5 and None not in b[:4] and 0 < b[2] <= min(b[0], b[3]) and b[1] >= max(b[0], b[3])):
+                errors.append(f"{lab} : bougie partielle de {name} incohérente ({b})")
+    return errors
+
+
+CHECKS = {"intraday": check_intraday, "postmarket": check_postmarket, "stockbee": check_stockbee, "breadth": check_breadth, "tv_breadth": check_tv_breadth, "vix": check_vix, "prices": check_prices, "sectors": check_sectors,
           "industries": check_industries, "short": check_short, "etf_themes": check_etf_themes}
 
 

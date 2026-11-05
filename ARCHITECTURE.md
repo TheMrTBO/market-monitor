@@ -24,6 +24,7 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `fetch_tv_breadth.py` | T2108 (champ SMA40) et **±4 % du jour** (formule TC2000 de `breadth_own.count_breadth`, appliquée à close / close[1] / volume / volume[1]) relevés sur le screener TradingView (actions ordinaires des 3 bourses) → `tv_breadth_data.js`, un relevé par séance ; même relevé, **liste « 9M +4 % »** de l'onglet Secteurs (clé `breakouts` : tickers par séance, `[tv_breadth.breakouts]` ; depuis le 02/11/2026 colonnes `kind` et `ep` = type du titre et EP probable du soir) (TradingView n'a pas d'historique de cet agrégat ; série depuis le 20/10/2026). Séance = date de la bougie journalière (juste un jour férié) ; refusé en séance, en pre-market et pendant le différé de 15 min. Lancé par `update_all.py` et par `postmarket.yml` (dès la fin de séance). |
 | `fetch_industries.py` | Vue TradingView de l'onglet Secteurs : classification du scanner TradingView + cours Polygon du cache → `industries_data.js` (indices équipondérés des secteurs et industries, affichés en courbe de tendance ; % de titres au TI65 > 1 ; même % pour toutes les actions retenues, série `stocks`) et `industries/<industrie>.js` (actions retenues, OHLC, chargé à l'ouverture d'une industrie) et `tickers_data.js` (toutes les actions US, retenues ou non : secteur, industrie, cap, flottant, TI65, rang dans l'industrie ; onglet Tickers ; sert aussi de composition publiée et de secours si TradingView ne répond pas). |
 | `config/themes.toml` | Thèmes suivis de l'onglet Secteurs (refonte du 27/10/2026) : un panier d'actions par thème, suivi comme une industrie (indice, TI65, largeur, leaders) ; liste de départ = paniers des tests 2024-2026 ; le 02/11/2026, l'utilisateur a validé 4 ajouts (Mineurs bitcoin, Hydrogène, compléments Espace et Quantique) : je propose, il accepte ou retire. |
+| `fetch_intraday.py` | **Relevés en séance** (05/11/2026) : la séance du **jour du calendrier**, provisoire, pour l'onglet MM → `intraday_data.js` (séance du jour seulement, un relevé par heure de `config/intraday.toml`, chiffres seuls). Même relevé que `fetch_tv_breadth.py` (`screener()`, `common()`) : ±4 % (formule TC2000 de `breadth_own.count_breadth`) et T2108 TradingView ; `long` = ±25 % mois / trimestre, T2108 maison, `n` par `breadth_soir.provisional` aux cours du moment (`recent_history()`, cache Polygon jusqu'à la veille ; sinon absent) ; `idx` = bougies partielles de QQQ / IWM / VIX (`[indices]`, VIX = `CBOE:VIX`, même source que `vix_data.js`). Relevé dû = le plus récent parti depuis moins de `tolerance_minutes` (New York) ; aucun relevé dû ou déjà pris : sortie sans requête (`--due` pour le workflow) ; écrit seulement en séance régulière avec la bougie du jour. Jamais dans `breadth_data.js`, `tv_breadth_data.js` ni la branche `data`. Lancé seul par `intraday.yml` ; `--slot HH:MM`, `--force`. |
 | `fetch_short.py` | Short interest de l'onglet Tickers (flottant, actions à découvert, % du flottant, days to cover ; Yahoo via yfinance) → `short_data.js`, par lots (`config/short.toml`), lancé seul par `short.yml` l'après-midi. |
 | `build_site.py` | Prépare `_site` (GitHub Pages) depuis la liste unique `config/storage.toml [site]` ; appelé par les trois workflows. |
 | `generated.py` | Fichiers **générés non versionnés** (`config/storage.toml [generated]` : `industries_data.js`, `tickers_data.js`, `industries/`) : `check` (absents ?), `fetch` (secours : version du site publié, installée en bloc), `snapshot` / `restore` (annulation dans `update.yml`). |
@@ -37,8 +38,9 @@ récupérées par des workflows GitHub Actions déclenchés par **cron-job.org**
 | `.github/workflows/update.yml` | Mise à jour complète + publication. |
 | `.github/workflows/postmarket.yml` | Scan post-market seul + publication si changement. |
 | `.github/workflows/short.yml` | Short interest seul (12:17 UTC, lun-sam) + publication si changement. |
+| `.github/workflows/intraday.yml` | Relevés en séance seuls (créneaux de `[workflows.intraday]`, lun-ven) + publication si changement ; `workflow_dispatch` avec `slot` facultatif (essai manuel). |
 | `.github/workflows/ci.yml` | Tests sur chaque pull request. |
-| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 29 tests Node (dashboard en DOM simulé), 10 tests Python (dont `test_breadth_soir.py`, `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
+| `tests/` | `run_all.sh` (tout) : config, syntaxe YAML des workflows, 30 tests Node (dashboard en DOM simulé), 12 tests Python (dont `test_intraday.py`, `test_breadth_soir.py`, `test_industries.py`, `test_short.py`, `test_tv_breadth.py`, `test_store.py`, `test_store_sync.py`, `test_generated.py`). |
 | `tests/fixtures/` | Copie figée des fichiers générés lue par les tests (`tests/node/lib/fixtures.js` redirige les lectures ; ~2 Mo, une fois) : mêmes résultats en local et en CI. Format changé dans `fetch_industries.py` → `python tests/make_fixtures.py` (`test_generated.py` le signale). |
 | `breadth_long.py` | Exploration non versionnée (ignorée). |
 
@@ -48,6 +50,7 @@ cron-job.org (heure exacte, UTC)  ─┐            créneaux `schedule` GitHub 
                                    ▼                         │
   workflow_dispatch → update.yml : fetch_history.py → update_all.py (étapes de config/sources.toml) ─┐
                     → postmarket.yml : fetch_postmarket.py, fetch_tv_breadth.py, breadth_soir.py ────┤
+                    → intraday.yml : fetch_intraday.py (en séance ; cache `historique-` en lecture seule ; intraday_data.js seul, hors historique) ─┤
                       (breadth_soir : seulement si la séance manque ; cache `historique-` de update.yml restauré en lecture seule)
                                                                                                       ▼
             validate_data.py (contrôle) → commit des *_data.js sur main (rebase, 3 essais) → déploiement Pages
@@ -57,13 +60,15 @@ cron-job.org (heure exacte, UTC)  ─┐            créneaux `schedule` GitHub 
             python -m mm.store sync → branche `data` (historique, journal `runs`) ; échec signalé, n'empêche pas la publication
                                                                                                       ▼
   navigateur : stockbee_dashboard.html charge config_data.js + *_data.js (?v=horodatage pour casser le cache), sauf
-               industries_data.js (~140 Ko compressés), chargé à la 1re ouverture de Secteurs, Tickers ou Post-market (indLoad) ;
+               industries_data.js (~140 Ko compressés), chargé à la 1re ouverture de Secteurs, Tickers ou Post-market (indLoad)
+               ; intraday_data.js chargé avec les autres données (séance du jour en cours, onglet MM) ;
                industries/<industrie>.js à l'ouverture d'une industrie (onglet Secteurs, vue TradingView) ou des Leaders
                actifs (fichiers des industries de leurs leaders, chargés à la demande)
 ```
 Restauration d'une étape en échec : `restore` de `config/sources.toml` accepte un dossier (entrée finissant par `/`, ex. `industries/`).
 Contrôle global en échec (`update.yml`) : `*_data.js` commités → `git checkout` ; fichiers générés → `generated.py restore` (copie d'avant `update_all.py`).
-Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais deux écritures simultanées).
+Concurrence : tous les workflows qui écrivent partagent le groupe `market-monitor` (jamais deux écritures simultanées ; GitHub
+ne garde qu'une exécution en attente par groupe : créneaux d'`intraday.yml` aux minutes 0 et 30, à l'écart du post-market).
 
 ## 4. Configuration (`config/`)
 | Fichier | Contenu | Lu par |
@@ -78,6 +83,7 @@ Concurrence : les deux workflows partagent le groupe `market-monitor` (jamais de
 | `display.toml` | `[adr]` : fenêtre de l'ADR des listes de tickers (lu aussi par `fetch_industries.py`) ; `[tickers]` : règle des thèmes chauds / émergents, limite de la liste ; seuils du breadth, T2108, fenêtre des records « ▲ / ▼ 3M » du MM (`[breadth] record_sessions`), contrôle croisé avec Stockbee (`compare_sessions`, `compare_min`), sources dont le T2108 déclenche l'alerte, étiquettes de source, repères VIX, couleurs, filtres de l'onglet Secteurs et leur bulle (`group_tips`), cases de la vue TradingView (`[sectors.kpis]` : `tiles` = ind, rot, bo9, t9 depuis le 31/10/2026 ; th, sec, rr, stk réactivables), groupes actifs et Leaders actifs (`[sectors.actifs]` : fraîcheur, fenêtre du neuf, limite de la liste, 9M par groupe `nine_*`, Réveil `reveil_*`, phases d'alerte, familles refuges, libellés), carte des thèmes (`[sectors.map]` : seuil `x_hot`, `y_max`, zones et notes mesurées, bulle), carte de rotation (`[sectors.rrg]` : repliée `folded`, traînée, momentum, tableau « Depuis la veille » `delta_windows` / `major_factor` / `zone_margin` / `table_rows` / `confirm_ti65` / `confirm_breadth` / `pistes_max_rs` / `views` / `tags` / `measure_sessions` / `measure_streak` / `streak_max` / `default_view`), bascule ETF / TradingView, phases de marché `[phases]` (seuils de la spec, signaux, `[[phases.phase]]` : nom, couleur, setups, précision, règle ; `[[phases.signal]]` ; `[phases.own]` : priorité `primary` (sb / own), série maison, choc rapporté à `n`, début `since`, libellés de source, fenêtre du contrôle), indicateur `[ti65]` (nom, fenêtres 7 / 65, miniature `spark` = 63 séances ≈ 3 mois, fenêtre du Δ `delta`, repère `breadth_ref` de la carte « % > 1 » ; `--check` vérifie `spark + long − 1` ≤ `stock_sessions` ≤ `sources.history.sessions`), traductions | front, `fetch_industries.py` (`ti65`) |
 | `datasets.toml` | **modèle logique** : jeux de données (= futures tables SQL), clé primaire, colonnes typées, partition | `mm/store/` |
 | `storage.toml` | `serving` (ce que lit le site : `js_files`), `[store]` (historique : backend `git_csv`, dossier, branche), `[site]` (fichiers publiés : liste unique), `[generated]` (publiés sans être commités : fichiers, dossiers, URL du site, préfixe du cache ; `--check` vérifie `.gitignore`, `[site]` et les mêmes chemins de cache dans les trois workflows) | `mm/store/`, `build_site.py`, `generated.py` |
+| `intraday.toml` | relevés en séance : heures (New York) `snapshots`, `tolerance_minutes`, différé, état attendu du screener, `[indices]` (bougies partielles : nom → symbole TradingView), textes `[text]` (bandeau, pastilles, note, source « en séance », phase, « Stats du ») ; `--check` : relevés pendant la séance, tolérance < écart, `{day}` / `{prev}` / `{t}` dans les textes, et **créneaux de `[workflows.intraday]` couvrant chaque relevé en heure d'hiver et d'été** | `fetch_intraday.py`, front |
 | `short.toml` | short interest : taille du lot, pauses, arrêt sur erreurs, ancienneté, correspondance des champs Yahoo | `fetch_short.py`, front |
 Après toute modification : `python mmconfig.py --js --check` puis `bash tests/run_all.sh`.
 ⚠️ `schedule.toml` → `cron_job_org` doit être **recopié à la main** dans cron-job.org (aucune API utilisée) ;
@@ -136,7 +142,8 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 | 2 | Paquet Python `mm/` (une interface commune par source, `python -m mm run`) | à faire |
 | 4 | Front découpé en modules ES natifs (un par onglet + moteur de graphique) | à faire |
 | 5 | Alertes (source muette, pas de liste post-market un jour de semaine), journal des passages | à faire |
-Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exceptions accordées le 18/10/2026 : vue TradingView de
+Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exception du 05/11/2026 : relevés en séance (après l'ouverture,
+mi-séance et avant la clôture, `fetch_intraday.py`, `intraday.yml`), à la demande de l'utilisateur, isolés (fichier à part, hors historique). Exceptions accordées le 18/10/2026 : vue TradingView de
 l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers (short interest Yahoo par lots, accord de l'utilisateur) ;
 le 20/10/2026 : breadth affiché dès que possible depuis nos sources + T2108 TradingView (voir §9, « Sources du breadth »), puis cases en
 tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-market) ; le 21/10/2026 : tableau « Depuis la veille »
@@ -169,6 +176,21 @@ l'historique Polygon allongé à 490 séances pour caler les seuils sur 2025. D�
   regrouper avec les autres en phase 2 (le scan post-market et Stockbee lisent déjà les leurs dans `config/`).
 
 ## 9. Pièges principaux (détail : `RECAP_PROJET.md` §9)
+- **Séance en cours** (05/11/2026, `fetch_intraday.py`, `config/intraday.toml`) : pendant la séance, l'onglet MM passe au **jour du
+  calendrier** (demande de l'utilisateur : « aujourd'hui le 05/11 et non le 04/11 »). Le relevé est une **4e source** (`srcOf` →
+  `intra`, étiquette « en séance ») après Stockbee, le calcul maison et TradingView du soir, qui le remplacent dès qu'ils ont la séance
+  (`INTRA` n'est créé que si aucune n'a la date). Cases (ratios 5 / 10 j recalculés comme pour TradingView), phase (moteur maison,
+  `INTRA_PH`, seulement si le calcul maison va jusqu'à la veille et que le relevé a les ±25 % ; titrée « Phase provisoire · si la
+  séance clôturait au relevé (marché de HH:MM) », cadre orange en pointillés, jamais « vaut pour la prochaine séance »), bougies partielles QQQ / IWM
+  (7e valeur `1` dans `PRICES`, 6e dans `VIX`, dessinées pâles avec un contour en pointillés). **Aucun record 3 mois** ni alerte T2108 sur la séance en
+  cours (`recMap`). Repères : bandeau orange au-dessus de la phase (séance en cours **et** séance close d'avant, relevés du jour ; masqué
+  si une séance passée est choisie), « Stats du » = « séance en cours (provisoire) », badge du haut, note sous les cases. Le ±4 % est
+  sous-compté (volume partiel ; relevé réel du 05/11/2026 à 11 h 01 : +34 / −108). VIX : bougie partielle CBOE dans `window.VIX`.
+  **Règle (demande de l'utilisateur) : tout chiffre affiché est de la séance en cours ; sinon il est calculé ou laissé VIDE**, jamais
+  repris de la veille : `phaseIdx` ne renvoie pas la phase de la veille pour la séance en cours (bandeau de phase « — » avec la raison,
+  frise et légende sans phase), case Indices, en-tête et légende du graphique vides sans bougie du jour (`lastBar`), encadrés
+  T2108 / VIX de l'onglet SA « — », ±25 % « en attente » sans calcul maison.
+  `check_intraday` ne contrôle que la structure (aucune limite d'âge ni seuil de config : `update.yml` valide tous les fichiers).
 - **Phases de marché** (onglet MM, spec du 26/10/2026, `config/display.toml [phases]`) : une phase par séance, calculée une fois
   au chargement (`PHASES`). Deux moteurs séparés (`phaseSeries`) : `PH_SB` (Stockbee, univers Worden) et `PH_OWN` (série maison
   `breadth_data.js`, provisoire le soir puis Polygon ; paramètres `[phases.own]` : choc = part de `n`, titres cotés la séance et la
