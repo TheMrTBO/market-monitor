@@ -24,6 +24,8 @@ echo "--- test Python : calcul maison du soir (cache Polygon + clotures TradingV
 python3 tests/test_breadth_soir.py || fail=1
 echo "--- test Python : T2108 TradingView (seance de la bougie, differe, filtre, controle)"
 python3 tests/test_tv_breadth.py || fail=1
+echo "--- test Python : releves en seance (heure du releve, formule du soir, ecriture, controle, creneaux)"
+python3 tests/test_intraday.py || fail=1
 echo "--- test Python : scan post-market (seance, resultats, lendemain, controle)"
 python3 tests/test_postmarket.py || fail=1
 echo "--- test Python : vue TradingView de l'onglet Secteurs (indices, filtres, fichiers, controle)"

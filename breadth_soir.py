@@ -83,28 +83,37 @@ def needed():
     return bool(days) and days[-1] not in bo.load_existing(bo.OUT)
 
 
-def main():
-    import argparse
+def recent_history():
+    """(dates, history, universe, splits) du cache Polygon : seules les QUARTER dernières séances (fenêtre la plus longue), lues
+    depuis la fin sans ouvrir tout le cache. Aussi lu par fetch_intraday.py (relevés en séance). Stale si l'univers manque."""
     import fetch_data as fd
     import fetch_history as fh
+    history = {}
+    for p in sorted(fh.HISTORY.glob("*.json.gz"), reverse=True):
+        rows = fh.read_day(date.fromisoformat(p.name[:10]))
+        if rows:                                 # jour férié : fichier vide
+            history[p.name[:10]] = rows
+        if len(history) == bo.QUARTER:
+            break
+    try:
+        universe = set(json.loads(fd.UNIVERSE_FILE.read_text())["tickers"])
+    except (OSError, ValueError, KeyError):
+        raise Stale("univers introuvable (cache/universe.json) : cache Polygon de update.yml non restauré ?")
+    return sorted(history), history, universe, fh.load_splits_file()
+
+
+def main():
+    import argparse
     from fetch_tv_breadth import measure, screener
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--needed", action="store_true", help="écrit needed=true|false (sortie GitHub Actions) et s'arrête")
     if ap.parse_args().needed:
         print(f"needed={'true' if needed() else 'false'}")
         return
-    history = {}                                 # seules les QUARTER dernières séances servent (fenêtre la plus longue) :
-    for p in sorted(fh.HISTORY.glob("*.json.gz"), reverse=True):   # lues depuis la fin, sans ouvrir tout le cache
-        rows = fh.read_day(date.fromisoformat(p.name[:10]))
-        if rows:                                 # jour férié : fichier vide
-            history[p.name[:10]] = rows
-        if len(history) == bo.QUARTER:
-            break
-    dates = sorted(history)
     try:
-        universe = set(json.loads(fd.UNIVERSE_FILE.read_text())["tickers"])
-    except (OSError, ValueError, KeyError):
-        sys.exit("Univers introuvable (cache/universe.json) : cache Polygon de update.yml non restauré ?")
+        dates, history, universe, splits = recent_history()
+    except Stale as e:
+        sys.exit(str(e)[:1].upper() + str(e)[1:])
     items = screener()
     day, res = measure(items, datetime.now(timezone.utc))
     if day is None:
@@ -115,7 +124,7 @@ def main():
         print(f"Calcul du soir : séance {day} déjà calculée depuis Polygon.")
         return
     try:
-        vals = provisional(day, snapshot(items), dates, history, universe, fh.load_splits_file())
+        vals = provisional(day, snapshot(items), dates, history, universe, splits)
     except Stale as e:
         print(f"::warning::Calcul du soir impossible : {e}. La séance attendra le calcul Polygon du matin.")
         return

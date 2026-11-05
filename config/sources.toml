@@ -199,6 +199,19 @@ separate = "short.yml"            # lancé par son propre workflow l'après-midi
 freshness = { max_age = 10, min_rows = 500 }
 
 [[step]]
+name = "intraday"
+label = "En séance"
+label_inline = "relevés en séance"   # dans une phrase (« … en échec »)
+script = "fetch_intraday.py"         # screener TradingView pendant la séance : config/intraday.toml
+output = "intraday_data.js"
+restore = ["intraday_data.js"]
+attempts = 1
+waits = [0]
+separate = "intraday.yml"            # lancé par son propre workflow pendant la séance, pas par update_all.py
+freshness = {}                       # aucune limite d'âge : un relevé ancien n'est simplement plus affiché (jamais une erreur qui
+                                     # annulerait les autres fichiers dans update.yml)
+
+[[step]]
 name = "etf_themes"
 label = "Thèmes ETF"
 label_inline = "thèmes ETF"       # dans une phrase (« … en échec »)

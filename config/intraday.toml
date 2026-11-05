@@ -1,0 +1,47 @@
+# Relevés en cours de séance (fetch_intraday.py, workflow intraday.yml) : demande de l'utilisateur du 05/11/2026, exception au
+# gel de la refonte. Même relevé que fetch_tv_breadth.py (screener public TradingView, sans compte ni clé, différé de 15 min) :
+# univers, T2108 et formule TC2000 du ±4 % repris de config/sources.toml [tv_breadth] et de breadth_own.count_breadth, jamais
+# recopiés ici.
+# PROVISOIRE : le volume du jour est partiel, donc la condition « volume > veille » de la formule TC2000 compte moins de titres
+# qu'à la clôture. Fichier à part (intraday_data.js), séance du jour seulement : jamais écrit dans breadth_data.js, dans
+# tv_breadth_data.js ni dans l'historique (branche data) ; le soir, le relevé de fin de séance et le calcul maison prennent le relais.
+# Horaires de déclenchement : config/schedule.toml [workflows.intraday] (UTC) ; mmconfig.py --check vérifie qu'ils couvrent
+# chaque relevé ci-dessous en heure d'hiver ET en heure d'été (New York).
+
+snapshots = ["12:00", "15:30"]   # heures des relevés (New York, "HH:MM", pendant la séance) ; un relevé de plus = une valeur de plus
+tolerance_minutes = 40           # un passage vaut pour le relevé prévu le plus récent s'il part moins de N min après lui (retards
+                                 # GitHub, nouvel essai) ; plus petit que l'écart entre deux relevés (contrôlé)
+delay_minutes = 15               # différé TradingView sans compte : le relevé de 15 h 30 montre le marché de 15 h 15 (affiché)
+sessions_ok = ["market"]         # état attendu du screener (séance régulière) ; sinon (jour férié, week-end) rien n'est écrit
+
+# bougies partielles du jour (onglet MM : cases Indices, graphique ; VIX : case T2108, onglet SA) : nom → symbole TradingView
+[indices]
+QQQ = "NASDAQ:QQQ"
+IWM = "AMEX:IWM"
+VIX = "CBOE:VIX"                 # case T2108 et onglet SA (même source que vix_data.js : CBOE)
+
+# Onglet MM : le relevé est la séance du JOUR DU CALENDRIER (demande de l'utilisateur du 05/11/2026 : « aujourd'hui le 05/11 et
+# non le 04/11 »). Il complète la séance comme une 4e source (« en séance »), après Stockbee, le calcul maison et TradingView du
+# soir, qui le remplacent dès qu'ils ont la séance. Cases, phase (provisoire, sans record 3 mois ni alerte) et bougies partielles de
+# QQQ / IWM / VIX (contour en pointillés) passent au jour même ; un bandeau au-dessus de la phase le rappelle, avec la séance close d'avant.
+# Règle : tout chiffre affiché est de la séance en cours ; ce qui n'est pas calculable est laissé VIDE (« — »), jamais repris de la veille.
+[text]
+# {day} = séance en cours (jeudi 5 novembre), {prev} = séance close d'avant (mercredi 4 novembre) : les deux dates sont toujours
+# écrites ; {t} = heure des données (relevé − différé, New York) ; {pct}, {vol}, {delay} : formule et différé
+banner = "Séance du {day}"
+badge = "en séance · provisoire"
+badge_closed = "séance close · chiffres du soir à venir"   # après 16 h (New York), tant qu'aucune autre source n'a la séance
+data_at = "marché de {t} (New York)"
+snap = "{slot} : +{up} / −{down}"   # évolution des relevés du jour dans le bandeau ({slot} = heure prévue, New York)
+note = "Séance pas encore close : ces chiffres remplacent ceux de la veille jusqu'à la clôture. Dernière séance close : {prev} (‹ dans « Stats du »). ±4 % et ratio 5 j sous-comptés (volume du jour partiel)."
+source = "en séance"             # étiquette de source des cases
+source_txt = "relevé en séance (screener TradingView, marché de {t} à New York ; volume du jour partiel, provisoire)"
+phase = "relevé en séance, provisoire : la phase se lit à la clôture"
+datebar = "séance en cours (provisoire)"   # à côté de « Aujourd'hui » dans « Stats du »
+tip_src = "Source : screener TradingView (différé de {delay} min)."
+phase_prov = "Phase provisoire"
+phase_when = "· si la séance clôturait au relevé (marché de {t}, New York)"   # {t} = heure des données
+phase_label = "Phase · séance en cours"
+phase_empty = "Pas calculable pour la séance en cours (±25 % du jour ou calcul maison de la veille absents) : la phase de la veille n'est pas reprise."
+no_px = "pas de cours du jour"   # indice sans bougie du jour pendant la séance : champ vide
+tip = "Pendant la séance, le screener TradingView est relevé aux heures de config/intraday.toml (données différées de {delay} min). La séance du {day} devient celle de l'onglet MM : ±4 % (même formule TC2000 que le soir : hausse ou baisse d'au moins {pct} %, volume ≥ {vol} et supérieur à celui de la veille), ratios 5 / 10 j, ±25 % mois et trimestre et T2108 (calcul du soir appliqué aux cours du moment), bougies de QQQ et IWM (contour en pointillés : bougie pas close). Le volume du jour étant partiel, le ±4 % et le ratio 5 j sous-comptent ceux de la clôture. Phase provisoire, sans record 3 mois ni alerte. Rien n'est enregistré dans l'historique : le soir, le relevé TradingView, puis le calcul maison et Stockbee remplacent ces chiffres."

@@ -15,7 +15,7 @@ import json
 import re
 import sys
 import tomllib
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage", "etf_themes")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage", "etf_themes", "intraday")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -84,6 +84,7 @@ def front_config():
         "themes": [{"name": t["name"], "etf": t.get("etf")} for t in themes()],
         "sector_fr": d["postmarket"]["sector_fr"],
         "sources": {s["name"]: {"label": s["label"], "inline": s["label_inline"]} for s in steps()},
+        "intraday": {**{k: load("intraday")[k] for k in ("snapshots", "delay_minutes", "indices", "text")}, "file": step("intraday")["output"]},
     }
 
 
@@ -98,6 +99,45 @@ CRON_FIELD = re.compile(r"^(\*|\d+(-\d+)?)(/\d+)?(,(\*|\d+(-\d+)?)(/\d+)?)*$")
 def _cron_ok(expr):
     parts = expr.split()
     return len(parts) == 5 and all(CRON_FIELD.match(p) for p in parts)
+
+
+def hhmm_minutes(s):
+    """« 15:30 » → 930 (minutes depuis minuit) ; None si le format n'est pas HH:MM."""
+    m = re.fullmatch(r"([01]\d|2[0-3]):([0-5]\d)", str(s))
+    return int(m[1]) * 60 + int(m[2]) if m else None
+
+
+def _cron_values(field, lo, hi):
+    """« 0,30 », « 16-20 », « */15 », « * » → ensemble des valeurs (jour de semaine : 7 = dimanche = 0), comme le dashboard."""
+    out = set()
+    for part in field.split(","):
+        rng, _, step_ = part.partition("/")
+        a, b = (lo, hi) if rng == "*" else map(int, rng.split("-")) if "-" in rng else (int(rng), hi if step_ else int(rng))
+        out |= {0 if (v == 7 and hi == 7) else v for v in range(a, b + 1, int(step_ or 1))}
+    return out
+
+
+def cron_hits(expr, t):
+    """Vrai si l'expression cron (UTC) se déclenche à la minute `t` (datetime UTC) ; même règle jour du mois / de semaine que cron."""
+    mi, h, dom, mo, dow = expr.split()
+    dm, dw = t.day in _cron_values(dom, 1, 31), t.isoweekday() % 7 in _cron_values(dow, 0, 7)
+    return (t.minute in _cron_values(mi, 0, 59) and t.hour in _cron_values(h, 0, 23) and t.month in _cron_values(mo, 1, 12)
+            and (dm and dw if "*" in (dom, dow) else dm or dw))
+
+
+def intraday_uncovered(exprs, snapshots, tolerance, tz, year):
+    """Relevés (New York) qu'aucune expression ne déclenche dans [heure, heure + tolérance[ un jour de semaine, en heure d'hiver
+    (semaine du 15 janvier) ou d'été (semaine du 15 juillet) : liste de « HH:MM (date) », vide si tout est couvert."""
+    out = []
+    for ref in (date(year, 1, 15), date(year, 7, 15)):
+        monday = ref - timedelta(days=ref.weekday())
+        for d in (monday + timedelta(days=i) for i in range(5)):
+            for s in snapshots:
+                m = hhmm_minutes(s)
+                start = datetime(d.year, d.month, d.day, m // 60, m % 60, tzinfo=tz).astimezone(ZoneInfo("UTC"))
+                if not any(cron_hits(e, start + timedelta(minutes=k)) for e in exprs for k in range(tolerance)):
+                    out.append(f"{s} ({d.isoformat()})")
+    return out
 
 
 def _workflow_crons(file):
@@ -391,6 +431,26 @@ def check():
             errors.append(f"datasets.{key} : partition « {ds.get('partition')} » (attendus : month, day)")
         if ds["columns"].get(ds.get("partition_by", ""), "").rstrip("?") not in {"date", "timestamp"} or ds["columns"][ds["partition_by"]].endswith("?"):
             errors.append(f"datasets.{key} : partition_by doit nommer une colonne date ou timestamp obligatoire")
+    it, m = load("intraday"), load("market")
+    snaps = [hhmm_minutes(s) for s in it.get("snapshots", [])]
+    gaps = [b - a for a, b in zip(snaps, snaps[1:])] if None not in snaps else []
+    if not (snaps and None not in snaps and all(g > 0 for g in gaps)
+            and isinstance(it.get("delay_minutes"), int) and it["delay_minutes"] >= 0
+            and all(m["open_hour"] * 60 <= s - it["delay_minutes"] and s < m["close_hour"] * 60 for s in snaps)
+            and isinstance(it.get("tolerance_minutes"), int) and 0 < it["tolerance_minutes"] < min(gaps, default=24 * 60)
+            and it.get("sessions_ok") and all(it.get("text", {}).get(k) for k in ("banner", "badge", "badge_closed", "data_at", "snap", "note", "source", "source_txt", "phase", "datebar", "tip", "phase_label", "phase_empty", "no_px", "phase_prov", "phase_when", "tip_src"))
+            and "{day}" in it["text"]["banner"] and "{prev}" in it["text"]["note"] and "{t}" in it["text"]["data_at"]
+            and isinstance(it.get("indices"), dict) and it["indices"] and all(re.fullmatch(r"[A-Z]+:[A-Z.]+", str(v)) for v in it["indices"].values())):
+        errors.append("intraday : snapshots HH:MM croissants pendant la séance (heure − delay_minutes ≥ ouverture, heure < clôture), "
+                      "delay_minutes ≥ 0, 0 < tolerance_minutes < écart entre deux relevés, "
+                      "sessions_ok non vide, [indices] (nom → BOURSE:SYMBOLE) et textes de [text] attendus ({day} dans banner, {prev} dans note, {t} dans data_at)")
+    else:
+        wf = next((w for w in load("schedule")["workflows"].values() if w["file"] == step("intraday").get("separate")), None)
+        for key, exprs in (("cron_job_org", [wf["cron_job_org"]] if wf else []), ("github_fallback", wf["github_fallback"] if wf else [])):
+            miss = intraday_uncovered(exprs, it["snapshots"], it["tolerance_minutes"], ZoneInfo(m["timezone"]), datetime.now().year) if wf else ["workflow absent"]
+            if miss:
+                errors.append(f"schedule (relevés en séance) : {key} ne déclenche pas {', '.join(miss[:4])}{' …' if len(miss) > 4 else ''} "
+                              f"dans les {it['tolerance_minutes']} min (heure d'hiver et d'été à New York)")
     for s_ in steps():                           # étape à passage séparé : son workflow existe et la lance
         wf = s_.get("separate")
         if wf and (not (WORKFLOWS / wf).exists() or s_["script"] not in (WORKFLOWS / wf).read_text()):
