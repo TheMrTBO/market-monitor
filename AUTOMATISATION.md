@@ -33,14 +33,14 @@ attend la fin du premier (groupe `concurrency: market-monitor`) ou apparaît « 
 | Scan post-market | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/postmarket.yml/dispatches` | `7,22,37,52 0,1,20,21,22,23 * * 1-6` |
 | Mise à jour des données | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/update.yml/dispatches` | `17 1,3,5-8,22 * * *` : 00:17, 03:17, 05:17, 08:17, 09:17, 10:17 (heure d'été de Paris ; Polygon et Stockbee publient la séance précédente pendant la nuit, à une heure variable), tous les jours |
 | Short interest (onglet Tickers) | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/short.yml/dispatches` | `17 12 * * 1-6` : 12:17 UTC du lundi au samedi (**à créer** ; sans elle, le créneau `schedule` GitHub sert de secours) |
-| Relevés en séance (onglet MM) | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/intraday.yml/dispatches` | `0,30 16,17,19,20 * * 1-5` : relevés de 12 h 00 et 15 h 30 à New York (16:00 / 19:30 UTC l'été, 17:00 / 20:30 UTC l'hiver) ; les autres créneaux servent de nouvel essai (+30 min) ou ne font rien (**à créer** après une semaine d'observation ; d'ici là, le créneau `schedule` GitHub sert de secours) |
+| Relevés en séance (onglet MM) | `https://api.github.com/repos/TheMrTBO/market-monitor/actions/workflows/intraday.yml/dispatches` | `0,30 14-17,19,20 * * 1-5` : relevés de 10 h 00, 12 h 00 et 15 h 30 à New York (14:00 / 16:00 / 19:30 UTC l'été, 15:00 / 17:00 / 20:30 UTC l'hiver) ; les autres créneaux servent de nouvel essai (+30 min) ou ne font rien (**à créer** après une semaine d'observation ; d'ici là, le créneau `schedule` GitHub sert de secours) |
 
 Réglages communs : en-têtes `Authorization: Bearer <jeton>`, `Accept: application/vnd.github+json`,
 `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` ; corps `{"ref":"main"}` ; réponse attendue **204** ; notification en cas d'échec activée.
 Hors fenêtre (ex. samedi soir), `fetch_postmarket.py` ne fait rien : pas de commit.
 **Relevés en séance** (05/11/2026) : heures dans `config/intraday.toml` (New York) ; `fetch_intraday.py` choisit le relevé dû et
 ne fait rien hors des relevés, ni pour un relevé déjà pris (pas de requête, pas de commit). Essai manuel en séance : Actions >
-« Relevés en séance » > Run workflow, champ `slot` = `12:00` ou `15:30`. Changer une heure : `config/intraday.toml` +
+« Relevés en séance » > Run workflow, champ `slot` = `10:00`, `12:00` ou `15:30`. Changer une heure : `config/intraday.toml` +
 `config/schedule.toml` + workflow + cron-job.org (`mmconfig.py --check` signale un relevé non couvert, hiver ou été).
 Mis en service le 14/10/2026 : « Test run » des deux tâches = réponse 204, exécutions `workflow_dispatch` réussies sur GitHub.
 Piège : coller la commande `curl` dans *Request body* donne une erreur 400 ; le corps doit être exactement `{"ref":"main"}`

@@ -2,7 +2,7 @@
 """Relevés en cours de séance (screener public TradingView, sans compte ni clé) -> intraday_data.js : la séance du jour du
 calendrier, provisoire, pour tout l'onglet MM (chiffres seuls, pas de liste de titres : choix de l'utilisateur du 05/11/2026).
 
-Demande de l'utilisateur du 05/11/2026 (exception au gel de la refonte) : un relevé à mi-séance et un avant la clôture, aux
+Demande de l'utilisateur du 05/11/2026 (exception au gel de la refonte) : un relevé peu après l'ouverture, un à mi-séance et un avant la clôture, aux
 heures de config/intraday.toml (heure de New York). Même relevé que fetch_tv_breadth.py (même requête, mêmes colonnes, même
 univers d'actions ordinaires) et même formule TC2000 du ±4 % (breadth_own.count_breadth, appelée telle quelle, comme le soir). T2108 = part des actions au-dessus de leur SMA 40, cours du moment inclus.
 ±25 % mois et trimestre, T2108 maison, n : breadth_soir.provisional, le calcul du soir appliqué aux cours du moment (cache Polygon

@@ -142,8 +142,8 @@ Après toute modification : `python mmconfig.py --js --check` puis `bash tests/r
 | 2 | Paquet Python `mm/` (une interface commune par source, `python -m mm run`) | à faire |
 | 4 | Front découpé en modules ES natifs (un par onglet + moteur de graphique) | à faire |
 | 5 | Alertes (source muette, pas de liste post-market un jour de semaine), journal des passages | à faire |
-Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exception du 05/11/2026 : relevés en séance (mi-séance et
-avant la clôture, `fetch_intraday.py`, `intraday.yml`), à la demande de l'utilisateur, isolés (fichier à part, hors historique). Exceptions accordées le 18/10/2026 : vue TradingView de
+Gel des nouvelles fonctions (Benzinga, pre-market) jusqu'à la phase 3. Exception du 05/11/2026 : relevés en séance (après l'ouverture,
+mi-séance et avant la clôture, `fetch_intraday.py`, `intraday.yml`), à la demande de l'utilisateur, isolés (fichier à part, hors historique). Exceptions accordées le 18/10/2026 : vue TradingView de
 l'onglet Secteurs (secteurs → industries → actions, TI65) et onglet Tickers (short interest Yahoo par lots, accord de l'utilisateur) ;
 le 20/10/2026 : breadth affiché dès que possible depuis nos sources + T2108 TradingView (voir §9, « Sources du breadth »), puis cases en
 tête de la vue TradingView de Secteurs (puis, dans une PR suivante, du Post-market) ; le 21/10/2026 : tableau « Depuis la veille »

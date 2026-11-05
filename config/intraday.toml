@@ -8,7 +8,8 @@
 # Horaires de déclenchement : config/schedule.toml [workflows.intraday] (UTC) ; mmconfig.py --check vérifie qu'ils couvrent
 # chaque relevé ci-dessous en heure d'hiver ET en heure d'été (New York).
 
-snapshots = ["12:00", "15:30"]   # heures des relevés (New York, "HH:MM", pendant la séance) ; un relevé de plus = une valeur de plus
+snapshots = ["10:00", "12:00", "15:30"]   # heures des relevés (New York, "HH:MM", pendant la séance) : après l'ouverture, mi-séance,
+                                           # avant la clôture (demande du 05/11/2026) ; un relevé de plus = une valeur de plus
 tolerance_minutes = 40           # un passage vaut pour le relevé prévu le plus récent s'il part moins de N min après lui (retards
                                  # GitHub, nouvel essai) ; plus petit que l'écart entre deux relevés (contrôlé)
 delay_minutes = 15               # différé TradingView sans compte : le relevé de 15 h 30 montre le marché de 15 h 15 (affiché)

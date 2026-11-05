@@ -348,7 +348,7 @@ python3 validate_data.py    # valide les 4 fichiers de données courants
   et les secteurs : corrigé (`session_still_open`, pas de bougie du jour avant 16 h à New York ; le BTC garde la sienne).
 - **Yahoo, le soir** : la bougie du jour revient parfois sans clôture (NaN) → la source « recule » d'une séance. update_all garde
   alors la version précédente (plus récente) et marque l'étape OK avec une note « source en retard » (avant : 3 essais puis échec).
-- **Relevés en séance** (05/11/2026) : décision de l'utilisateur, relevés à 12 h 00 et 15 h 30 (New York) sur le screener
+- **Relevés en séance** (05/11/2026) : décision de l'utilisateur, relevés à 10 h 00, 12 h 00 et 15 h 30 (New York ; 10 h 00 ajouté le même jour) sur le screener
   TradingView ; l'onglet MM passe au **jour du calendrier** (provisoire, 4e source « en séance », jamais dans l'historique). Le ±4 %
   de séance sous-compte celui du soir (volume partiel) ; ±25 % et T2108 maison = calcul du soir aux cours du moment (cache Polygon à
   la veille, sinon absents : le garde-fou de `breadth_soir.provisional` a refusé un cache local du 30/10). Le contrôle du fichier n'a

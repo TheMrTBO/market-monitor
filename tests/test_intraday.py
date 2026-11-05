@@ -50,6 +50,10 @@ d, s = fi.due_slot(utc(2026, 7, 15, 16, 5))
 check("heure d'été : 16:05 UTC = relevé de 12:00", (d, s) == ("2026-07-15", "12:00"))
 d, s = fi.due_slot(utc(2026, 11, 5, 20, 30))
 check("heure d'hiver : 20:30 UTC = relevé de 15:30", s == "15:30")
+d, s = fi.due_slot(utc(2026, 11, 5, 15, 2))
+check("heure d'hiver : 15:02 UTC = relevé de 10:00 (après l'ouverture)", (d, s) == ("2026-11-05", "10:00"))
+d, s = fi.due_slot(utc(2026, 7, 15, 14, 0))
+check("heure d'été : 14:00 UTC = relevé de 10:00", (d, s) == ("2026-07-15", "10:00"))
 d, s = fi.due_slot(utc(2026, 11, 5, 16, 59))
 check("une minute avant le relevé : rien", d is None)
 d, s = fi.due_slot(utc(2026, 11, 5, 17, fi.CFG["tolerance_minutes"]))
@@ -116,7 +120,7 @@ def run(at, items, *argv, long=(LONG, None), idx=IDX):
 
 with tempfile.TemporaryDirectory() as tmp:
     fi.OUT = out = Path(tmp) / "intraday_data.js"
-    run(utc(2026, 11, 5, 15, 0), market())
+    run(utc(2026, 11, 5, 14, 0), market())             # 9 h 00 à New York : avant le premier relevé
     data = validate_data.load_js(out)
     check("premier passage hors relevé : fichier vide, aucune requête", data["date"] is None and data["snaps"] == [] and not calls)
     check("fichier vide : valide", validate_data.validate("intraday", out, date(2026, 11, 5)) == [])

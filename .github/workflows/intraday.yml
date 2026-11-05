@@ -1,4 +1,4 @@
-name: Relevés en séance (mi-séance et avant la clôture)
+name: Relevés en séance (après l'ouverture, mi-séance, avant la clôture)
 
 # Relève le ±4 % et le T2108 provisoires de la séance en cours (fetch_intraday.py, screener public TradingView, aucune clé),
 # contrôle le fichier, le committe et republie le site. Heures des relevés (New York) : config/intraday.toml ; créneaux (UTC) :
@@ -8,7 +8,7 @@ name: Relevés en séance (mi-séance et avant la clôture)
 # Même groupe de concurrence que les autres workflows (jamais deux écritures en même temps).
 on:
   schedule:
-    - cron: '0,30 16,17,19,20 * * 1-5'   # secours de cron-job.org (config/schedule.toml)
+    - cron: '0,30 14-17,19,20 * * 1-5'   # secours de cron-job.org (config/schedule.toml)
   workflow_dispatch:
     inputs:
       slot:

@@ -25,8 +25,8 @@ github_fallback = ["17 12 * * 1-6"]
 [workflows.intraday]
 file = "intraday.yml"
 label = "Relevés en séance"
-# relevés de config/intraday.toml (12 h 00 et 15 h 30 à New York) : 16:00 / 19:30 UTC en heure d'été, 17:00 / 20:30 UTC en heure
-# d'hiver ; les autres créneaux (+30 min) servent de nouvel essai ou ne font rien (fetch_intraday.py sort sans requête ni commit).
+# relevés de config/intraday.toml (10 h 00, 12 h 00 et 15 h 30 à New York) : 14:00 / 16:00 / 19:30 UTC en heure d'été,
+# 15:00 / 17:00 / 20:30 UTC en heure d'hiver ; les autres créneaux (+30 min) servent de nouvel essai ou ne font rien (fetch_intraday.py sort sans requête ni commit).
 # Minutes 0 et 30 : à l'écart du scan post-market (7, 22, 37, 52). Couverture contrôlée par mmconfig.py --check.
-cron_job_org = "0,30 16,17,19,20 * * 1-5"
-github_fallback = ["0,30 16,17,19,20 * * 1-5"]
+cron_job_org = "0,30 14-17,19,20 * * 1-5"
+github_fallback = ["0,30 14-17,19,20 * * 1-5"]
