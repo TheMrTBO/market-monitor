@@ -455,3 +455,72 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-05,2026-11-05T22:52:38+00:00,false,NYSE:WK,WK,Workiva Inc. Class A,Technology Services,Information Technology Services,85.5,0.26,78.51,-8.18,107913,0.11,4652609636,48240182,amc
 2026-11-05,2026-11-05T22:52:38+00:00,false,NYSE:YELP,YELP,Yelp Inc.,Technology Services,Internet Software/Services,20.52,-6.94,19.5,-4.97,406264,0.33,1113489490,51846319,amc
 2026-11-05,2026-11-05T22:52:38+00:00,false,OTC:FMCKJ,FMCKJ,Freddie Mac 8.375 % Non-Cum Perp Fixed Floating Rt Pfd,Finance,Finance/Rental/Leasing,6.945,2.13,6.6,-4.97,265000,1.16,2836535012,650058049,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:AAOI,AAOI,"Applied Optoelectronics, Inc.",Electronic Technology,Semiconductors,46.89,-20.89,41.75,-10.96,4714500,0.45,3981255881,80529634,bmo
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:ABNB,ABNB,"Airbnb, Inc. Class A",Consumer Services,Hotels/Resorts/Cruise lines,170.13,-3.54,188.5,10.8,1928760,0.44,101871407900,404799462,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:ACAD,ACAD,ACADIA Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,21.24,-1.07,22.1481,4.28,488982,0.27,3659768946,170042760,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:AEHL,AEHL,Antelope Enterprise Holdings Limited Class A,Producer Manufacturing,Building Products,17.44,178.15,24.5881,40.99,815101,0.46,119223154,16457836,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:AFRM,AFRM,"Affirm Holdings, Inc. Class A",Finance,Finance/Rental/Leasing,69.66,-7.84,63.29,-9.14,847794,0.2,23615975222,285375711,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:AGLT,AGLT,Churchill Capital Corp XI,,,11.51,,11.01,-4.34,131715,,,,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:AXON,AXON,Axon Enterprise Inc,Electronic Technology,Aerospace & Defense,382.56,-9.81,346.9999,-9.3,593644,0.6,31078183606,76307914,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:BHF,BHF,"Brighthouse Financial, Inc.",Finance,Life/Health Insurance,41.1,-3.18,43.5,5.84,142245,0.16,2363725255,56712188,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:BJRI,BJRI,"BJ's Restaurants, Inc.",Consumer Services,Restaurants,58.45,-5.34,54.0,-7.61,181717,0.39,1243451597,19533752,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:CRSR,CRSR,"Corsair Gaming, Inc.",Technology Services,Packaged Software,12.8,-3.9,11.56,-9.69,476143,0.32,1384665105,47273781,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:CYRX,CYRX,"CryoPort, Inc.",Transportation,Air Freight/Couriers,16.05,-3.89,17.66,10.03,158251,0.22,812918112,48425807,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:DKNG,DKNG,"DraftKings, Inc. Class A",Consumer Services,Movies/Entertainment,23.52,1.77,17.709,-24.71,4763030,0.38,11676600059,412198805,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:ETON,ETON,"Eton Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,47.15,-7.04,58.4,23.86,101352,0.18,1347694876,27174839,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:FIVN,FIVN,"Five9, Inc.",Technology Services,Packaged Software,34.14,-6.08,26.25,-23.11,481595,0.21,2551061330,71498433,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:FROG,FROG,JFrog Ltd.,Technology Services,Packaged Software,74.62,-13.57,93.91,25.85,630370,0.31,9200743757,109685733,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:FWONK,FWONK,Liberty Media Corporation Series C,Technology Services,Internet Software/Services,106.52,7.67,100.0,-6.12,305159,0.14,26484654333,221193949,bmo
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:GH,GH,"Guardant Health, Inc.",Health Technology,Medical Specialties,153.43,-8.99,135.01,-12.01,398688,0.19,20589718125,128763477,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:GO,GO,Grocery Outlet Holding Corp.,Retail Trade,Food Retail,13.14,-4.02,12.2944,-6.44,382591,0.16,1301970231,90393798,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:GPRE,GPRE,Green Plains Inc.,Process Industries,Chemicals: Specialty,13.7,0.29,14.69,7.23,277027,0.2,960306000,68548787,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:HALO,HALO,"Halozyme Therapeutics, Inc.",Health Technology,Biotechnology,122.96,-5.66,115.25,-6.27,481133,0.22,13955713823,112270065,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:HNST,HNST,"Honest Company, Inc.",Retail Trade,Specialty Stores,4.44,0.0,4.75,6.98,376229,0.18,476342678,90354477,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:INOD,INOD,Innodata Inc.,Technology Services,Data Processing Services,38.62,-10.81,42.08,8.96,464043,0.32,1327858008,32722221,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:IREN,IREN,IREN Limited,Technology Services,Data Processing Services,18.03,-16.95,19.3,7.04,18081326,0.38,7295181591,354999818,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:IRTC,IRTC,"iRhythm Holdings, Inc.",Health Technology,Medical Specialties,130.19,-2.84,110.0,-15.51,115613,0.2,4291453629,32273183,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:JANX,JANX,"Janux Therapeutics, Inc.",Health Technology,Biotechnology,16.06,-11.66,14.54,-9.46,144223,0.17,981856576,57830155,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:LASR,LASR,"nLIGHT, Inc.",Electronic Technology,Semiconductors,29.34,-11.06,34.5,17.59,213992,0.18,1692630466,54238941,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:LFST,LFST,"Lifestance Health Group, Inc.",Health Services,Medical/Nursing Services,13.43,-5.49,14.6118,8.8,894804,0.22,5132330171,259349576,bmo
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:LRCX,LRCX,Lam Research Corporation,Producer Manufacturing,Industrial Machinery,185.2,-16.36,193.19,4.31,5798328,0.56,231346465345,1245216376,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:LYFT,LYFT,"Lyft, Inc. Class A",Transportation,Other Transportation,17.84,-4.8,16.35,-8.35,2778379,0.26,6753158025,360618402,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:MCHP,MCHP,Microchip Technology Incorporated,Electronic Technology,Semiconductors,64.85,-13.92,62.0,-4.39,9321142,0.91,35214110343,533293482,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:MNKD,MNKD,MannKind Corporation,Health Technology,Pharmaceuticals: Major,3.76,-4.33,3.56,-5.32,666102,0.15,1209007205,306972902,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:MNST,MNST,Monster Beverage Corporation,Consumer Non-Durables,Beverages: Non-Alcoholic,47.83,-1.89,45.14,-5.62,3645141,0.35,93701445575,1389708929,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:NRDS,NRDS,"NerdWallet, Inc. Class A",Technology Services,Packaged Software,11.43,-3.22,10.4,-9.01,101555,0.14,730641905,29519512,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:NTRA,NTRA,"Natera, Inc.",Health Technology,Biotechnology,363.76,-6.97,303.0,-16.7,398932,0.26,52433881310,134885486,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:OSPN,OSPN,OneSpan Inc.,Technology Services,Information Technology Services,21.9,-7.44,20.9,-4.57,186860,0.33,807995909,36148602,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:PRAA,PRAA,"PRA Group, Inc.",Commercial Services,Miscellaneous Commercial Services,20.42,1.19,17.9,-12.34,102527,0.25,768772302,36280172,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:RLAY,RLAY,"Relay Therapeutics, Inc.",Health Technology,Biotechnology,17.0,-5.71,16.1986,-4.71,704757,0.25,3725407887,171657654,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:SOUN,SOUN,"SoundHound AI, Inc Class A",Technology Services,Packaged Software,4.26,-1.39,3.8404,-9.85,2667415,0.11,1916477748,405134309,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:STLN,STLN,Starling Oncology Inc.,Health Services,Medical/Nursing Services,6.7,-3.46,5.35,-20.15,372978,0.25,669885656,70038821,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:STTK,STTK,"Shattuck Labs, Inc.",Health Technology,Biotechnology,4.49,-12.82,4.1,-8.69,172961,0.15,450631004,86215931,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TEAM,TEAM,Atlassian Corp Class A,Technology Services,Packaged Software,183.29,-3.47,150.01,-18.16,1255956,0.33,46161946021,155630129,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TMDX,TMDX,"TransMedics Group, Inc.",Health Technology,Medical Specialties,68.98,-5.19,78.6055,13.95,229248,0.27,2391891356,33335011,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TNDM,TNDM,"Tandem Diabetes Care, Inc.",Health Technology,Medical Specialties,17.99,-5.56,18.75,4.22,398749,0.19,1251720849,68718428,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TRUP,TRUP,"Trupanion, Inc.",Finance,Multi-Line Insurance,34.72,3.1,31.42,-9.5,111254,0.25,1523256921,30688006,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TSSI,TSSI,"TSS, Inc.",Technology Services,Information Technology Services,5.95,-13.14,6.6,10.92,126953,0.15,167903466,25690471,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:TXG,TXG,10x Genomics Inc Class A,Health Technology,Biotechnology,58.06,-14.01,52.0,-10.44,470845,0.14,7564704810,116149195,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:WLTH,WLTH,Wealthfront Corporation,Technology Services,Packaged Software,10.6,-5.06,10.0,-5.66,180323,0.09,1655470230,105636182,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NASDAQ:XRAY,XRAY,"DENTSPLY SIRONA, Inc.",Health Technology,Medical Specialties,10.09,-5.26,8.6,-14.77,1110939,0.23,2011480596,197655304,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:ARLO,ARLO,"Arlo Technologies, Inc.",Electronic Technology,Telecommunications Equipment,14.84,-2.5,13.91,-6.27,356371,0.24,1596981461,104544845,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:ATEN,ATEN,"A10 Networks, Inc.",Technology Services,Information Technology Services,22.6,-5.08,24.31,7.57,325001,0.27,1640963906,69332591,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:CALY,CALY,Callaway Golf Company,Consumer Durables,Recreational Products,15.92,-4.1,17.504,9.95,398319,0.21,2841887437,154702273,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:CTOS,CTOS,Custom Truck One Source Inc,Finance,Finance/Rental/Leasing,9.3,-8.19,8.55,-8.06,226764,0.22,2112712084,59984121,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:DB,DB,Deutsche Bank Aktiengesellschaft,Finance,Investment Banks/Brokers,36.42,-0.84,37.9,4.06,136379,0.06,66923973527,1661906487,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:DOCS,DOCS,"Doximity, Inc. Class A",Technology Services,Packaged Software,33.18,-4.3,31.15,-6.12,372449,0.09,5914201179,122531005,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:ECG,ECG,"Everus Construction Group, Inc.",Industrial Services,Engineering & Construction,72.44,-9.12,76.51,5.62,164995,0.27,3699064175,50846251,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:EPAM,EPAM,"EPAM Systems, Inc.",Technology Services,Information Technology Services,165.7,20.63,159.0,-4.04,214932,0.16,8547962443,49776141,bmo
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:EVC,EVC,Entravision Communications Corporation Class A,Consumer Services,Broadcasting,7.5,3.02,8.26,10.13,362438,0.25,692162317,59956301,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:FLUT,FLUT,Flutter Entertainment Plc,Consumer Services,Casinos/Gaming,82.97,1.44,78.8,-5.03,642573,0.22,14398539975,140910460,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:GMED,GMED,Globus Medical Inc Class A,Health Technology,Medical Specialties,81.44,-6.5,77.25,-5.14,608144,0.4,10934290135,111004107,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:JHX,JHX,James Hardie Industries PLC,Non-Energy Minerals,Construction Materials,28.66,-2.91,26.7,-6.84,1069917,0.12,16637775737,578173788,bmo
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:KRMN,KRMN,Karman Holdings Inc.,Electronic Technology,Aerospace & Defense,32.09,-6.09,34.64,7.95,348686,0.1,4253006418,117881039,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:LAZ,LAZ,Lazard Inc,Finance,Investment Banks/Brokers,38.53,-5.24,42.6666,10.74,196876,0.12,3762929290,96767420,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:NET,NET,Cloudflare Inc Class A,Technology Services,Information Technology Services,244.51,-8.28,282.0,15.33,1246774,0.37,87065046585,319569927,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:PAR,PAR,PAR Technology Corporation,Technology Services,Packaged Software,19.18,0.95,20.0816,4.7,324264,0.36,793336685,40606631,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,87.18,-2.43,81.05,-7.03,366467,0.34,14840105367,144135573,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:WK,WK,Workiva Inc. Class A,Technology Services,Information Technology Services,85.5,0.26,78.51,-8.18,107913,0.11,4652609636,48240182,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:WTRG,WTRG,"Essential Utilities, Inc.",Utilities,Water Utilities,46.05,2.04,42.2806,-8.19,428017,0.19,13068004607,283114957,
+2026-11-05,2026-11-05T23:07:38+00:00,false,NYSE:YELP,YELP,Yelp Inc.,Technology Services,Internet Software/Services,20.52,-6.94,19.5,-4.97,406264,0.33,1113489490,51846319,amc
+2026-11-05,2026-11-05T23:07:38+00:00,false,OTC:FMCKJ,FMCKJ,Freddie Mac 8.375 % Non-Cum Perp Fixed Floating Rt Pfd,Finance,Finance/Rental/Leasing,6.945,2.13,6.6,-4.97,265000,1.16,2836535012,650058049,
