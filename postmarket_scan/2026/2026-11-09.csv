@@ -16,3 +16,36 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-09,2026-11-09T21:22:42+00:00,false,NYSE:ONTO,ONTO,"Onto Innovation, Inc.",Electronic Technology,Electronic Equipment/Instruments,194.04,11.98,207.0,6.68,151764,0.14,9522366520,48769400,amc
 2026-11-09,2026-11-09T21:22:42+00:00,false,NYSE:ZETA,ZETA,Zeta Global Holdings Corp. Class A,Technology Services,Packaged Software,32.42,4.48,34.2935,5.78,787263,0.11,8137860892,223516446,amc
 2026-11-09,2026-11-09T21:22:42+00:00,false,NYSE:ZIP,ZIP,"ZipRecruiter, Inc. Class A",Technology Services,Internet Software/Services,4.29,14.1,4.49,4.66,109574,0.14,352752448,64492985,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:AAON,AAON,"AAON, Inc.",Producer Manufacturing,Industrial Machinery,62.87,9.93,71.38,13.54,241053,0.2,5183860461,68905896,bmo
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:ACAD,ACAD,ACADIA Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,16.5,-22.28,15.31,-7.21,732306,0.38,2851677848,170558891,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:ALOY,ALOY,REalloys Inc.,Non-Energy Minerals,Other Metals/Minerals,6.85,11.84,6.55,-4.38,147638,0.06,477216700,50884836,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:APPS,APPS,"Digital Turbine, Inc.",Technology Services,Packaged Software,11.3,8.86,8.76,-22.48,1311615,0.41,1375456979,107470423,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:CRBP,CRBP,Corbus Pharmaceuticals Holdings Inc,Health Technology,Pharmaceuticals: Major,3.52,14.66,3.6659,4.14,130876,0.16,68081350,17364561,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:CWST,CWST,"Casella Waste Systems, Inc. Class A",Industrial Services,Environmental Services,99.02,0.82,89.54,-9.57,228114,0.38,6301617674,62234225,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:EQPT,EQPT,"EquipmentShare.com, Inc. Class A",Technology Services,Internet Software/Services,16.21,10.42,15.07,-7.03,459744,0.14,4114211913,107744244,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:GRPN,GRPN,"Groupon, Inc.",Retail Trade,Internet Retail,16.25,4.91,13.49,-16.98,222220,0.18,660811090,32906442,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:GSHD,GSHD,"Goosehead Insurance, Inc. Class A",Finance,Insurance Brokers/Services,54.685,-1.56,48.83,-10.71,101942,0.22,1942181767,22190231,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:HROW,HROW,"Harrow, Inc.",Health Technology,Pharmaceuticals: Major,27.47,2.16,31.6,15.03,160244,0.27,1029791221,31797049,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:LCID,LCID,"Lucid Group, Inc.",Consumer Durables,Motor Vehicles,3.6,9.42,3.41,-5.28,1319890,0.09,1418652668,157825035,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:LUMN,LUMN,"Lumen Technologies, Inc.",Communications,Major Telecommunications,4.32,8.27,4.5293,4.84,4182402,0.31,4454104580,947470083,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,25.84,251.09,27.15,5.07,339350,0.16,15543534,2111893,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:OPTX,OPTX,"Syntec Optics Holdings, Inc. Class A",Electronic Technology,Electronic Components,5.25,7.8,5.5697,6.09,163646,0.39,211469368,10565089,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:PAYS,PAYS,"Paysign, Inc.",Commercial Services,Miscellaneous Commercial Services,12.51,-14.84,14.3094,14.38,251996,0.32,706341530,41038703,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:QLYS,QLYS,"Qualys, Inc.",Technology Services,Packaged Software,202.46,6.33,188.0,-7.14,156359,0.21,7004104081,34225871,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:QMCO,QMCO,Quantum Corporation,Electronic Technology,Computer Peripherals,16.99,17.42,20.7367,22.05,423863,0.26,669575909,24449136,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:QUBT,QUBT,Quantum Computing Inc.,Technology Services,Information Technology Services,6.86,8.37,6.55,-4.52,1246374,0.16,1552739459,200657520,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:RKLB,RKLB,Rocket Lab Corporation,Electronic Technology,Aerospace & Defense,58.86,10.91,54.0,-8.26,4581430,0.23,35225342320,589338272,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:SANM,SANM,Sanmina Corporation,Electronic Technology,Electronic Production Equipment,149.64,11.11,185.11,23.7,260360,0.35,8020307749,50769333,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:SMX,SMX,SMX (Security Matters) Public Limited Company,Technology Services,Packaged Software,9.35,89.73,11.0101,17.76,717670,4.21,5364660,314483,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:TTD,TTD,"Trade Desk, Inc. Class A",Technology Services,Packaged Software,14.93,15.47,18.45,23.58,23025955,1.07,7058836420,418426078,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:USAR,USAR,"USA Rare Earth, Inc. Class A",Producer Manufacturing,Metal Fabrication,8.76,6.5,8.28,-5.48,2038274,0.16,3285670893,249668218,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:WCT,WCT,Wellchange Holdings Company Limited,Technology Services,Packaged Software,4.47,92.18,4.15,-7.16,233997,0.95,28391410,10181863,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,65.72,5.37,60.0,-8.7,229026,0.3,1959937314,28897167,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:AADX,AADX,"Applied Aerospace & Defense, Inc.",Electronic Technology,Aerospace & Defense,10.9,12.72,10.26,-5.87,280070,0.16,1879089261,45533610,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:ACHR,ACHR,Archer Aviation Inc Class A,Electronic Technology,Aerospace & Defense,4.81,8.33,4.55,-5.41,2505264,0.09,3703814544,644612501,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:ETD,ETD,Ethan Allen Interiors Inc.,Consumer Durables,Home Furnishings,20.34,1.35,18.73,-7.92,131411,0.25,512657819,22252511,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:JBS,JBS,JBS N.V. Class A,Consumer Non-Durables,Food: Meat/Fish/Dairy,13.12,5.13,12.4778,-4.89,974357,0.17,14062793958,348794384,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:NVT,NVT,nVent Electric plc,Electronic Technology,Electronic Components,114.44,7.74,108.4,-5.28,1004604,0.41,18493283141,160027267,
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:ONTO,ONTO,"Onto Innovation, Inc.",Electronic Technology,Electronic Equipment/Instruments,194.04,11.98,205.5,5.91,169822,0.16,9522366520,48769400,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:SECZ,SECZ,Securitize Corp.,Technology Services,Packaged Software,6.97,0.14,7.74,11.05,230437,0.08,1137961837,139353307,amc
+2026-11-09,2026-11-09T21:37:35+00:00,false,NYSE:SMA,SMA,"SmartStop Self Storage REIT, Inc.",Finance,Real Estate Investment Trusts,39.69,1.98,38.0,-4.26,126349,0.17,2355298281,55125364,
