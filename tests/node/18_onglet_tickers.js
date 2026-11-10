@@ -113,7 +113,8 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
     for(let i=0;i<c.length;i++){ if(c[i]==null)continue; if(p>=0&&v[i]){ const V=v[i]*vu, V1=(v[p]||0)*vu; if(c[i]/c[p]-1>=BO.pct/100&&V>BO.min_volume&&(!BO.volume_up||V>V1)&&c[i]>BO.min_price&&i>=c.length-100)n9r++; } p=i; }
     const cyan=(F.R.tkCanvas||[]).filter(r=>r[0]==='#22d3ee'&&r[3]>0&&r[3]<20).length;
     ok('bougies 9M en cyan, même règle que le scan ('+n9r+' sur les 100 dernières séances de NVDA)',n9r?cyan>0:cyan===0,cyan+' rectangles cyan'); }
-  ok('fiche : capitalisation, flottant, short, secteur, industrie, lien Finviz',/Capitalisation/.test(F.$('tkFacts')._h)&&/Days to cover/.test(F.$('tkFacts')._h)&&/Industrie/.test(F.$('tkFacts')._h)&&/finviz/.test(F.$('tkLinks')._h));
+  ok('fiche : capitalisation, flottant, short, secteur, groupe, lien Finviz',/Capitalisation/.test(F.$('tkFacts')._h)&&/Days to cover/.test(F.$('tkFacts')._h)&&/Groupe/.test(F.$('tkFacts')._h)&&/finviz/.test(F.$('tkLinks')._h));
+  ok('fiche d\'une action classée : pas de marque de groupe provisoire',!F.$('tkFacts')._h.includes(F.sb.MM_CONFIG.groups.mark));
   // navigation ‹ › dans l'ordre affiché
   const order=rows(F).map(x=>x.s);
   F.L.tkRows.click({target:{closest:sel=>sel==='[data-open]'?null:sel==='tr'?{dataset:{s:order[0]}}:null}});
@@ -125,6 +126,9 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
   ok('mobile : toucher une ligne ouvre la fiche (vue détail)',F.$('view-tk').classList._s.has('detail')&&ls2['mm.tksel']==='AMD');
   F.L.tkBack.click({});
   ok('mobile : « ‹ Liste » revient à la liste',!F.$('view-tk').classList._s.has('detail'));
+  // groupe provisoire (config/groups.toml, 10/11/2026) : action absente de la liste validée, marque ≈ avec sa bulle
+  { F.sb.innerWidth=1200; const ga=T.rows.find(x=>x[col.ga]); F.$('tkInput').value=ga[0]; F.L.tkGo.click();
+    const G=F.sb.MM_CONFIG.groups; ok('fiche d\'une action non classée : marque du groupe provisoire et sa bulle ('+ga[0]+')',F.$('tkFacts')._h.includes('>'+G.mark+'<')&&F.$('tkFacts')._h.includes(G.tip.slice(0,30)),F.$('tkFacts')._h.slice(0,200)); }
   // action hors filtres : graphique depuis le fichier « hors filtres » de son industrie, chargé pour sa fiche
   const hr=T.rows.find(x=>!x[col.kept]&&x[col.ti]!=null&&T.inds[x[col.ind]][2]), hors=hr[0], xf=T.inds[hr[col.ind]][2];
   F.sb.innerWidth=1200; F.$('tkInput').value=hors; F.L.tkGo.click();
@@ -143,7 +147,7 @@ ok('index pas encore chargé : message de chargement, fichier demandé',/Chargem
   const P=boot(ls3,{files:["config_data.js","stockbee_data.js","prices_data.js","vix_data.js","sectors_data.js","industries_data.js","tickers_data.js","postmarket_data.js","status_data.js"].concat(fs.existsSync("short_data.js")?["short_data.js"]:[])});
   tab(P,'pm');
   const f=strip(P.$('pmFacts')._h);
-  ok('post-market : fiche standard (TI65, industrie, secteur, short) + infos du scan',/TI65 de l'action/.test(f)&&/Industrie/.test(f)&&/Days to cover/.test(f)&&/Post-market/.test(f)&&/Lendemain/.test(f),f.slice(0,120));
+  ok('post-market : fiche standard (TI65, groupe, secteur, short) + infos du scan',/TI65 de l'action/.test(f)&&/Groupe/.test(f)&&/Days to cover/.test(f)&&/Post-market/.test(f)&&/Lendemain/.test(f),f.slice(0,120));
   ok('post-market : liens Finviz, Secteurs, Tickers',/finviz/.test(P.$('pmNote')._h)&&/data-goto=/.test(P.$('pmNote')._h)&&/data-addtk=/.test(P.$('pmNote')._h));
   const pmSyms=[...P.$('pmRows')._h.matchAll(/<tr data-s="([^"]+)"/g)].map(m=>m[1]);
   P.L.pmToTk.click();

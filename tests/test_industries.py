@@ -276,6 +276,33 @@ except SystemExit:
 check("scanner : liste tronquée (limite atteinte) refusée, fichiers non modifiés", truncated)
 del sys.modules["fetch_postmarket"]
 
+# groupes de l'onglet Secteurs (config/groups.toml, 10/11/2026) : liste validée, puis description, puis groupe le plus fréquent
+# de l'industrie TradingView, puis industrie TradingView ; idempotent (relecture de la composition publiée)
+import re as _re
+tvr = [{"name": "AAA", "industry": "Semis TV", "sector": "Tech"}, {"name": "BBB", "industry": "Semis TV", "sector": "Tech"},
+       {"name": "CCC", "industry": "Semis TV", "sector": "Tech"}, {"name": "QQQX", "industry": "Logiciel TV", "sector": "Tech"},
+       {"name": "NEW", "industry": "Semis TV", "sector": "Tech"}, {"name": "ODD", "industry": "Inconnue TV", "sector": "Tech"}]
+val = {"AAA": "Optique", "BBB": "Optique", "CCC": "Mémoire"}
+rul = [("Quantique", _re.compile("quantum", _re.I))]
+g = {r["name"]: r for r in fi.regroup(tvr, {"QQQX": {"d": "Post-quantum encryption"}}, val, rul, pct=50)}
+check("groupes : liste validée d'abord, groupe non provisoire", g["AAA"]["industry"] == "Optique" and not g["AAA"]["group_auto"]
+      and g["CCC"]["industry"] == "Mémoire" and g["AAA"]["tv_industry"] == "Semis TV")
+check("groupes : règle de description (BTQ « post-quantum » → Quantique), provisoire", g["QQQX"]["industry"] == "Quantique" and g["QQQX"]["group_auto"])
+check("groupes : sans description, groupe le plus fréquent de l'industrie TradingView (2 / 3 ≥ 50 %)", g["NEW"]["industry"] == "Optique" and g["NEW"]["group_auto"])
+check("groupes : industrie sans action validée → industrie TradingView, provisoire", g["ODD"]["industry"] == "Inconnue TV" and g["ODD"]["group_auto"])
+g2 = {r["name"]: r for r in fi.regroup(list(g.values()), {}, val, rul, pct=50)}
+check("groupes : idempotent (industrie TradingView gardée)", g2["NEW"]["industry"] == "Optique" and g2["ODD"]["tv_industry"] == "Inconnue TV")
+check("groupes : seuil non atteint (2 / 3 < 80 %) → industrie TradingView",
+      {r["name"]: r for r in fi.regroup(tvr, {}, val, rul, pct=80)}["NEW"]["industry"] == "Semis TV")
+
+# descriptions Polygon (fetch_descriptions.py) : actions non validées, retenues d'abord puis par capitalisation ; cache récent écarté
+import fetch_descriptions as fdesc
+from datetime import date as _date
+tk = {"cols": ["s", "kept", "cap"], "rows": [["VAL", 1, 9e9], ["HORS", 0, 5e9], ["PETIT", 1, 1e8], ["GROS", 1, 8e9], ["VU", 1, 7e9], ["VIEUX", 0, 9e9]]}
+cache = {"VU": {"d": "x", "at": "2026-11-01"}, "VIEUX": {"d": "", "at": "2024-01-01"}}
+check("descriptions : non validées, retenues d'abord (cap décroissante), cache récent écarté, ancien relu",
+      fdesc.candidates(tk, cache, {"VAL"}, _date(2026, 11, 10), refresh_days=365) == ["GROS", "PETIT", "VIEUX", "HORS"])
+
 for label, good in checks.items():
     print(("ok     " if good else "ECHEC  ") + label)
 sys.exit(0 if all(checks.values()) else 1)

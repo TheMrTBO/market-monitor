@@ -24,7 +24,7 @@ HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config"
 JS = HERE / "config_data.js"
 WORKFLOWS = HERE / ".github" / "workflows"
-FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage", "etf_themes", "intraday")
+FILES = ("market", "schedule", "sources", "postmarket", "display", "sectors", "industries", "themes", "short", "datasets", "storage", "etf_themes", "intraday", "groups")
 BACKENDS = {"git_csv", "postgres", "sqlite"}
 TYPES = {"date", "timestamp", "int", "float", "text", "bool"}
 
@@ -52,6 +52,16 @@ def themes():
     return load("themes").get("theme", [])
 
 
+def groups():
+    """Groupes validés de l'onglet Secteurs (config/groups.toml [groups], 10/11/2026) : {ticker: groupe}."""
+    return {t: g for g, ts in load("groups").get("groups", {}).items() for t in ts}
+
+
+def auto_rules():
+    """Règles du groupe provisoire (config/groups.toml [[auto.rule]]), dans l'ordre : [(groupe, regex compilée)]."""
+    return [(r["group"], re.compile(r["words"], re.I)) for r in load("groups").get("auto", {}).get("rule", [])]
+
+
 def sectors():
     """Univers de l'onglet Secteurs (config/sectors.toml), dans l'ordre."""
     return load("sectors")["etf"]
@@ -73,6 +83,7 @@ def front_config():
                     "kpis": d["sectors"]["kpis"], "rrg": d["sectors"]["rrg"], "actifs": d["sectors"]["actifs"], "map": d["sectors"]["map"], "now": d["sectors"]["now"],
                     "breakouts": load("sources")["tv_breadth"]["breakouts"],
                     "labels": {e["symbol"]: e["label"] for e in sectors()}},
+        "groups": {k: load("groups")["auto"][k] for k in ("mark", "tip")},
         "ti65": d["ti65"],
         "adr": d["adr"],
         "phases": d["phases"],
@@ -413,6 +424,31 @@ def check():
             and isinstance(ac.get("refuges"), dict) and all(isinstance(v, list) and v for v in ac["refuges"].values())):
         errors.append("display.sectors.actifs : séances entières > 0, 0 < nine_share < nine_intense ≤ 100, "
                       "fresh_sessions + neuf_window ≤ leaders.list_sessions, libellés et familles refuges attendus")
+    gr = load("groups")
+    gnames, seen, dup = set(gr.get("groups", {})), set(), set()
+    for g, ts in gr.get("groups", {}).items():
+        if not (g and isinstance(ts, list) and ts and all(isinstance(x, str) and re.fullmatch(r"[A-Z][A-Z0-9.\-]*", x) for x in ts)):
+            errors.append(f"groups : « {g} » : liste de symboles en majuscules attendue")
+        dup |= seen & set(ts)
+        seen |= set(ts)
+    if dup:
+        errors.append(f"groups : symboles dans plusieurs groupes ({', '.join(sorted(dup)[:5])})")
+    au, de = gr.get("auto", {}), gr.get("descriptions", {})
+    bad_rules = []
+    for r in au.get("rule", []):
+        try:
+            re.compile(r.get("words", ""))
+            if r.get("group") not in gnames or not r.get("words"):
+                bad_rules.append(str(r.get("group")))
+        except re.error:
+            bad_rules.append(str(r.get("group")))
+    if bad_rules or not (0 < au.get("min_share_pct", 0) <= 100 and au.get("mark") and au.get("tip")):
+        errors.append(f"groups.auto : min_share_pct (0-100], mark, tip et règles vers un groupe de [groups] attendus ({', '.join(bad_rules[:3])})")
+    if not (de.get("file") and all(isinstance(de.get(k), (int, float)) and de[k] > 0 for k in ("max_per_run", "pause", "refresh_days"))):
+        errors.append("groups.descriptions : file, max_per_run, pause, refresh_days > 0 attendus")
+    unknown = sorted({k for v in load("display")["sectors"].get("actifs", {}).get("refuges", {}).values() for k in v} - gnames)
+    if unknown:
+        errors.append(f"display.sectors.actifs.refuges : groupes absents de config/groups.toml ({', '.join(unknown[:5])})")
     if "th" in load("display")["sectors"]["kpis"]["tiles"] and not themes():
         errors.append("display.sectors.kpis : case « th » sans thème dans config/themes.toml")
     for key, ds in load("datasets")["datasets"].items():
