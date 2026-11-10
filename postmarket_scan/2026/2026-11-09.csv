@@ -879,3 +879,53 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-09,2026-11-10T01:52:36+00:00,true,NYSE:SPG,SPG,"Simon Property Group, Inc.",Finance,Real Estate Investment Trusts,233.01,2.01,222.3926,-4.56,609957,0.45,75390737595,320388612,
 2026-11-09,2026-11-10T01:52:36+00:00,true,NYSE:ZETA,ZETA,Zeta Global Holdings Corp. Class A,Technology Services,Packaged Software,32.42,4.48,30.75,-5.15,3744321,0.53,8137860892,223516446,amc
 2026-11-09,2026-11-10T01:52:36+00:00,true,NYSE:ZIP,ZIP,"ZipRecruiter, Inc. Class A",Technology Services,Internet Software/Services,4.29,14.1,4.52,5.36,139429,0.18,352752448,64492985,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:AAON,AAON,"AAON, Inc.",Producer Manufacturing,Industrial Machinery,62.87,9.93,72.57,15.43,284253,0.24,5183860461,68905896,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:APPS,APPS,"Digital Turbine, Inc.",Technology Services,Packaged Software,11.3,8.86,8.37,-25.93,2205391,0.69,1375456979,107470423,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:CWST,CWST,"Casella Waste Systems, Inc. Class A",Industrial Services,Environmental Services,99.02,0.82,92.7,-6.38,233948,0.39,6301617674,62234225,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:FA,FA,First Advantage Corp.,Technology Services,Packaged Software,23.52,-0.04,22.1,-6.04,236942,0.13,4044740647,77922014,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:FWRD,FWRD,Forward Air Corporation,Transportation,Trucking,17.65,6.07,19.0,7.65,153181,0.28,596232240,28805513,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:GRPN,GRPN,"Groupon, Inc.",Retail Trade,Internet Retail,16.25,4.91,13.2317,-18.57,338196,0.28,660811090,32906442,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:GSHD,GSHD,"Goosehead Insurance, Inc. Class A",Finance,Insurance Brokers/Services,54.685,-1.56,51.44,-5.93,103024,0.22,1942181767,22190231,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:HROW,HROW,"Harrow, Inc.",Health Technology,Pharmaceuticals: Major,27.47,2.16,31.81,15.8,205285,0.35,1029791221,31797049,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:IMXI,IMXI,"International Money Express, Inc.",Commercial Services,Miscellaneous Commercial Services,7.57,3.13,7.25,-4.23,183119,0.3,228702014,28175156,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:KLRA,KLRA,"Kailera Therapeutics, Inc.",Health Technology,Biotechnology,13.7,5.63,14.9,8.76,190823,0.21,1778951600,56798288,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:LIF,LIF,"Life360, Inc.",Technology Services,Packaged Software,45.02,-4.96,41.93,-6.86,208120,0.29,3668246154,78604194,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:LINE,LINE,"Lineage, Inc.",Finance,Real Estate Investment Trusts,39.66,1.35,37.8,-4.69,422089,0.43,9030979717,71202412,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,25.84,251.09,22.6508,-12.34,731713,0.34,15543534,2111893,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:OPTX,OPTX,"Syntec Optics Holdings, Inc. Class A",Electronic Technology,Electronic Components,5.25,7.8,5.4672,4.14,174092,0.42,211469368,10565089,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:PAYS,PAYS,"Paysign, Inc.",Commercial Services,Miscellaneous Commercial Services,12.51,-14.84,13.5001,7.91,394889,0.5,706341530,41038703,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:PUBM,PUBM,"PubMatic, Inc. Class A",Technology Services,Internet Software/Services,19.03,6.85,17.79,-6.52,100586,0.16,866817690,36877107,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:QLYS,QLYS,"Qualys, Inc.",Technology Services,Packaged Software,202.46,6.33,188.0,-7.14,158777,0.21,7004104081,34225871,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:QMCO,QMCO,Quantum Corporation,Electronic Technology,Computer Peripherals,16.99,17.42,19.7,15.95,656337,0.39,669575909,24449136,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:QUBT,QUBT,Quantum Computing Inc.,Technology Services,Information Technology Services,6.86,8.37,6.5746,-4.16,1503860,0.19,1552739459,200657520,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:RKLB,RKLB,Rocket Lab Corporation,Electronic Technology,Aerospace & Defense,58.86,10.91,54.94,-6.66,7220348,0.37,35225342320,589338272,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:SANM,SANM,Sanmina Corporation,Electronic Technology,Electronic Production Equipment,149.64,11.11,179.8776,20.21,286405,0.39,8020307749,50769333,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:SENS,SENS,"Senseonics Holdings, Inc.",Electronic Technology,Electronic Components,9.8,14.09,10.4836,6.98,135026,0.2,518165738,46568440,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:SMX,SMX,SMX (Security Matters) Public Limited Company,Technology Services,Packaged Software,9.35,89.73,10.42,11.44,2091399,10.55,5364660,,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:STGW,STGW,"Stagwell, Inc. Class A",Commercial Services,Miscellaneous Commercial Services,11.5,-1.2,12.39,7.74,427156,0.27,2851693176,107712775,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:TANH,TANH,Tantech Holdings Ltd. Class A,Process Industries,Chemicals: Specialty,19.34,65.72,30.12,55.74,341398,3.35,12912736,667624,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:TNDM,TNDM,"Tandem Diabetes Care, Inc.",Health Technology,Medical Specialties,18.17,7.45,16.6,-8.64,323472,0.15,1268154172,68930869,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:TNXP,TNXP,Tonix Pharmaceuticals Holding Corp.,Health Technology,Pharmaceuticals: Major,4.49,-5.27,4.7,4.68,160260,0.25,77008093,17089770,bmo
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:TTWO,TTWO,"Take-Two Interactive Software, Inc.",Technology Services,Packaged Software,207.4,-3.48,216.37,4.32,1563340,0.64,38779742008,163763067,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:WCT,WCT,Wellchange Holdings Company Limited,Technology Services,Packaged Software,4.47,92.18,3.76,-15.88,867755,3.4,28391410,10181863,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NASDAQ:WGS,WGS,GeneDx Holdings Corp. Class A,Health Services,Medical/Nursing Services,65.72,5.37,58.7,-10.68,350783,0.46,1959937314,28897167,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:AADX,AADX,"Applied Aerospace & Defense, Inc.",Electronic Technology,Aerospace & Defense,10.9,12.72,10.26,-5.87,280070,0.16,1879089261,45533610,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:ACHR,ACHR,Archer Aviation Inc Class A,Electronic Technology,Aerospace & Defense,4.81,8.33,4.56,-5.2,3556888,0.12,3703814544,644612501,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:AMPY,AMPY,Amplify Energy Corp.,Energy Minerals,Integrated Oil,3.2,-3.9,3.42,6.87,138834,0.21,132660628,31014063,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:BMO,BMO,Bank of Montreal,Finance,Major Banks,174.08,1.72,142.385,-18.21,282578,0.37,120952247207,694364712,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:BRSL,BRSL,Brightstar Lottery PLC,Consumer Services,Casinos/Gaming,10.01,1.11,10.54,5.29,337807,0.16,1841839929,94805816,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:BW,BW,Babcock & Wilcox Enterprises Inc,Electronic Technology,Electronic Equipment/Instruments,3.79,16.62,4.39,15.83,2506733,0.53,564577566,143611793,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:CSQR,CSQR,"Csquare, Inc.",Technology Services,Data Processing Services,15.27,6.49,16.1,5.44,240350,,2544501014,58752145,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:ETD,ETD,Ethan Allen Interiors Inc.,Consumer Durables,Home Furnishings,20.34,1.35,18.09,-11.06,178968,0.34,512657819,22252511,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:FF,FF,FutureFuel Corp.,Process Industries,Chemicals: Specialty,5.07,-4.7,3.95,-22.09,316728,0.75,222387016,25756091,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:GMRS,GMRS,"GMR Solutions, Inc. Class A",Health Services,Medical/Nursing Services,11.27,-9.41,12.01,6.57,145125,0.18,608824645,35277311,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:JBS,JBS,JBS N.V. Class A,Consumer Non-Durables,Food: Meat/Fish/Dairy,13.12,5.13,12.2,-7.01,1077326,0.19,14062793958,348794384,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:KNTK,KNTK,Kinetik Holdings Inc. Class A,Industrial Services,Oil & Gas Pipelines,50.33,3.2,52.4577,4.23,186874,0.17,8172541910,62868794,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:MUX,MUX,McEwen Inc.,Non-Energy Minerals,Precious Metals,16.23,4.84,15.3,-5.73,118433,0.11,995849501,51268423,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:ONTO,ONTO,"Onto Innovation, Inc.",Electronic Technology,Electronic Equipment/Instruments,194.04,11.98,206.13,6.23,187534,0.18,9522366520,48769400,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:SB,SB,"Safe Bulkers, Inc.",Transportation,Marine Shipping,7.22,1.55,7.75,7.34,194189,0.18,821877692,63424560,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:SECZ,SECZ,Securitize Corp.,Technology Services,Packaged Software,6.97,0.14,7.88,13.06,550349,0.2,1137961837,139353307,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:SMA,SMA,"SmartStop Self Storage REIT, Inc.",Finance,Real Estate Investment Trusts,39.69,1.98,38.0542,-4.12,145439,0.2,2355298281,55125364,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:SPG,SPG,"Simon Property Group, Inc.",Finance,Real Estate Investment Trusts,233.01,2.01,222.3926,-4.56,609957,0.45,75390737595,320388612,
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:ZETA,ZETA,Zeta Global Holdings Corp. Class A,Technology Services,Packaged Software,32.42,4.48,30.75,-5.15,3744321,0.53,8137860892,223516446,amc
+2026-11-09,2026-11-10T02:41:18+00:00,true,NYSE:ZIP,ZIP,"ZipRecruiter, Inc. Class A",Technology Services,Internet Software/Services,4.29,14.1,4.52,5.36,139429,0.18,352752448,64492985,amc
