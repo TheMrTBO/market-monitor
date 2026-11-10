@@ -15,3 +15,23 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-10,2026-11-10T21:22:40+00:00,false,NYSE:HGTY,HGTY,Hagerty Inc Class A,Finance,Property/Casualty Insurance,16.94,-1.63,15.99,-5.61,195738,0.55,5822316712,116910590,
 2026-11-10,2026-11-10T21:22:40+00:00,false,NYSE:MAIR,MAIR,Madison Air Solutions Corp. Class A,Producer Manufacturing,Industrial Machinery,23.94,-2.41,22.87,-4.47,127689,0.05,12011239426,108330356,
 2026-11-10,2026-11-10T21:22:40+00:00,false,NYSE:NRGV,NRGV,"Energy Vault Holdings, Inc.",Producer Manufacturing,Electrical Products,3.53,-2.49,3.8,7.65,518364,0.12,641893658,127911711,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:AEVA,AEVA,"Aeva Technologies, Inc.",Electronic Technology,Semiconductors,12.27,-0.24,11.76,-4.16,199542,0.12,857627255,50296748,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:ATRO,ATRO,Astronics Corporation,Electronic Technology,Aerospace & Defense,62.0,5.1,52.01,-16.11,126255,0.21,2662935361,35208477,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:FOSL,FOSL,"Fossil Group, Inc.",Consumer Durables,Other Consumer Specialties,7.87,-2.36,9.96,26.56,450937,0.53,465416477,56046005,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:GO,GO,Grocery Outlet Holding Corp.,Retail Trade,Food Retail,14.02,1.08,12.7,-9.42,543910,0.23,1389164616,90393798,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:LPTH,LPTH,"LightPath Technologies, Inc. Class A",Electronic Technology,Electronic Components,7.99,-0.25,7.3843,-7.58,329341,0.11,560008967,67192705,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:NN,NN,NextNav Inc.,Technology Services,Packaged Software,8.4,-5.83,9.0683,7.96,514864,0.18,1418003222,107030604,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:NVCR,NVCR,NovoCure Ltd.,Health Technology,Medical Specialties,11.81,-5.75,12.29,4.06,278450,0.18,1380777484,105092986,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:NXPI,NXPI,NXP Semiconductors NV,Electronic Technology,Semiconductors,261.56,2.0,250.92,-4.07,869235,0.21,65926980512,251719785,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,16.615,-35.7,18.48,11.22,350085,0.14,35089105,2111893,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:PEPG,PEPG,PepGen Inc.,Health Technology,Biotechnology,4.61,92.89,4.95,7.38,582358,0.27,165530245,61798117,bmo
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:RGTI,RGTI,"Rigetti Computing, Inc.",Electronic Technology,Computer Processing Hardware,12.15,-6.39,11.37,-6.42,3113154,0.18,4055290021,326926067,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:SATL,SATL,Satellogic Inc. Class A,Electronic Technology,Aerospace & Defense,3.9,-1.64,4.06,4.1,582500,0.12,599585652,113105625,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:SPRY,SPRY,"ARS Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,3.57,13.33,3.35,-6.16,217625,0.11,358886386,65962754,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:STAK,STAK,STAK INC. Class A,Industrial Services,Oilfield Services/Equipment,4.915,20.17,2.6,-47.1,1345322,0.25,49200863,,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NASDAQ:VELO,VELO,"Velo3D, Inc.",Producer Manufacturing,Industrial Machinery,6.04,-3.05,5.44,-9.93,207711,0.14,194180664,14861596,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NYSE:AMPX,AMPX,Amprius Technologies Inc,Producer Manufacturing,Electrical Products,9.17,-3.68,8.15,-11.12,772252,0.14,1339559417,136202200,bmo
+2026-11-10,2026-11-10T21:37:38+00:00,false,NYSE:BV,BV,"BrightView Holdings, Inc.",Commercial Services,Miscellaneous Commercial Services,11.43,-3.54,9.4,-17.76,270589,0.26,1058418016,67676154,amc
+2026-11-10,2026-11-10T21:37:38+00:00,false,NYSE:HGTY,HGTY,Hagerty Inc Class A,Finance,Property/Casualty Insurance,16.94,-1.63,15.35,-9.39,198143,0.56,5822316712,116910590,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NYSE:MAIR,MAIR,Madison Air Solutions Corp. Class A,Producer Manufacturing,Industrial Machinery,23.94,-2.41,22.87,-4.47,127689,0.05,12011239426,108330356,
+2026-11-10,2026-11-10T21:37:38+00:00,false,NYSE:REZI,REZI,"Resideo Technologies, Inc.",Distribution Services,Electronics Distributors,19.45,-2.99,18.45,-5.14,386288,0.17,2953431459,132728247,amc
