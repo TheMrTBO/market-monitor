@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Vue « TradingView » de l'onglet Secteurs : secteurs -> industries -> actions, chaque niveau classé par TI65 (dans le navigateur).
 
-Classification : scanner public TradingView (secteur, industrie, nom, capitalisation ; sans compte ni clé).
+Classification : secteur du scanner public TradingView (sans compte ni clé) ; groupe = config/groups.toml à la place de son
+industrie depuis le 10/11/2026 (regroup : liste validée, sinon groupe provisoire, colonne ga de tickers_data.js).
 Clôtures : historique Polygon du cache (fetch_history.py, lancé avant par le workflow), ajustées des splits comme breadth_own.py.
 Actions retenues : filtres de config/industries.toml (sous-type, bourses, prix, volume moyen, capitalisation).
 Indice d'un secteur / d'une industrie (équipondéré par action) : base 100, puis × (1 + moyenne des variations du jour des
@@ -37,7 +38,7 @@ import json
 import math
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import mmconfig
@@ -49,7 +50,9 @@ TI = mmconfig.load("display")["ti65"]
 LD = CFG["leaders"]
 FOLDER = HERE / CFG["output"]["folder"]
 TICKERS_OUT = HERE / CFG["output"]["tickers_file"]
-TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av", "adr"]
+TK_COLS = ["s", "n", "ind", "cap", "flt", "kept", "ti", "ti_prev", "rank_ind", "c", "av", "adr", "tvi", "ga"]
+GR = mmconfig.load("groups")
+DESCRIPTIONS = HERE / GR["descriptions"]["file"]   # descriptions Polygon des actions non classées (fetch_descriptions.py)
 ADR = mmconfig.load("display")["adr"]           # ADR des actions (toutes les listes de tickers du dashboard)
 TV_COLS = ["name", "description", "exchange", "subtype", "sector", "industry", "market_cap_basic", "float_shares_outstanding"]
 
@@ -94,6 +97,45 @@ def series(dates, history, universe, splits):
                         if arr[k] is not None:
                             arr[k] /= r
     return close, vol, ohlc
+
+
+def load_descriptions(path=None):
+    """{symbole: {d: description, at: date}} lu dans le cache (fetch_descriptions.py) ; {} s'il manque."""
+    try:
+        return json.loads(Path(path or DESCRIPTIONS).read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def regroup(tv_rows, descriptions=None, valid=None, rules=None, pct=GR["auto"]["min_share_pct"]):
+    """Lignes du scanner avec le groupe de l'onglet Secteurs à la place de l'industrie TradingView (10/11/2026) :
+    industry = groupe, tv_industry = industrie TradingView d'origine, group_auto = groupe provisoire. Groupe : liste validée
+    (config/groups.toml [groups]) ; sinon 1. première règle [[auto.rule]] trouvée dans la description, 2. groupe le plus
+    fréquent parmi les actions validées de la même industrie TradingView (au moins pct % d'entre elles), 3. industrie TradingView. Idempotent (tv_industry gardée)."""
+    valid = mmconfig.groups() if valid is None else valid
+    rules = mmconfig.auto_rules() if rules is None else rules
+    descriptions = descriptions or {}
+    tvi = lambda r: r.get("tv_industry") or r.get("industry")
+    votes = defaultdict(Counter)
+    for r in tv_rows:
+        if r.get("name") in valid and tvi(r):
+            votes[tvi(r)][valid[r["name"]]] += 1
+    major = {}
+    for ind, c in votes.items():
+        g, k = c.most_common(1)[0]
+        if 100 * k >= pct * sum(c.values()):
+            major[ind] = g
+    out = []
+    for r in tv_rows:
+        t, ind = r.get("name"), tvi(r)
+        if t in valid:
+            g, auto = valid[t], False
+        else:
+            d = (descriptions.get(t) or {}).get("d") or ""
+            g = next((name for name, rx in rules if d and rx.search(d)), None) or major.get(ind) or ind
+            auto = True
+        out.append({**r, "industry": g, "tv_industry": ind, "group_auto": auto})
+    return out
 
 
 def select(tv_rows, close, vol, cfg=CFG["universe"]):
@@ -323,11 +365,13 @@ def compute(dates, close, vol, members, keep=CFG["output"]["stock_sessions"], oh
     volumes k, ouvertures, plus hauts, plus bas] (bougies ; OHLC seulement s'il est en cache)."""
     ohlc, unit = ohlc or {}, CFG["output"]["volume_unit"]
     n = len(dates)
-    by_sec, by_ind, sec_of = defaultdict(list), defaultdict(list), {}
+    by_sec, by_ind, secs_of = defaultdict(list), defaultdict(list), defaultdict(Counter)
     for m in members:
         by_sec[m["sec"]].append(m["s"])
         by_ind[m["ind"]].append(m)
-        sec_of.setdefault(m["ind"], m["sec"])
+        secs_of[m["ind"]][m["sec"]] += 1
+    # secteur d'un groupe = secteur TradingView le plus fréquent de ses actions (égalité : ordre alphabétique)
+    sec_of = {k: min(c.items(), key=lambda kv: (-kv[1], kv[0]))[0] for k, c in secs_of.items()}
     scores = {m["s"]: ti65_series(close[m["s"]]) for m in members}
     rnd = lambda xs: [None if v is None else round(v, 3) for v in xs]
     sectors = [{"k": s, "n": len(ts), "c": rnd(build_index(ts, close, n)), "b": breadth(ts, scores, n),
@@ -363,8 +407,9 @@ def published_universe(path=None):
         text = Path(path or TICKERS_OUT).read_text()
         d = json.loads(text[text.index("=") + 1:].strip().rstrip(";"))
         col = {k: i for i, k in enumerate(d["cols"])}
+        tvi = lambda r: d["tvinds"][r[col["tvi"]]] if "tvi" in col and d.get("tvinds") and r[col["tvi"]] is not None else None
         rows = [{"name": r[col["s"]], "description": r[col["n"]], "subtype": CFG["universe"]["subtype"],
-                 "industry": d["inds"][r[col["ind"]]][0], "sector": d["secs"][d["inds"][r[col["ind"]]][1]],
+                 "industry": tvi(r) or d["inds"][r[col["ind"]]][0], "sector": d["secs"][d["inds"][r[col["ind"]]][1]],
                  "market_cap_basic": r[col["cap"]], "float_shares_outstanding": r[col["flt"]]} for r in d["rows"]]
         return (d["scan"], rows) if rows else (None, None)
     except (OSError, ValueError, KeyError, IndexError, TypeError):
@@ -380,6 +425,8 @@ def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=Non
     inds = sorted(by_ind)
     secs = sorted({max(set(v), key=v.count) for v in by_ind.values()})
     ind_ix = {k: i for i, k in enumerate(inds)}
+    tvinds = sorted({r["tv_industry"] for r in rows if r.get("tv_industry")})
+    tvi_ix = {k: i for i, k in enumerate(tvinds)}
     n, delta = len(dates), TI["delta"]
     kept = {m["s"]: m for m in members}
     score = {t: ti65(close[t], n - 1) for t in {r["name"] for r in rows} if t in close}
@@ -402,10 +449,11 @@ def tickers(dates, close, vol, tv_rows, members, scan, fallback, extra_names=Non
                     None if score.get(t) is None else round(score[t], 4),
                     None if not c or ti65(c, n - 1 - delta) is None else round(ti65(c, n - 1 - delta), 4),
                     rank.get(t), num(c[-1]) if c and c[-1] else None, round(sum(vs) / len(vs)) if vs else None,
-                    adr((ohlc or {}).get(t, (None, None, None))[1:] if (ohlc or {}).get(t) else None, n - 1)])
+                    adr((ohlc or {}).get(t, (None, None, None))[1:] if (ohlc or {}).get(t) else None, n - 1),
+                    tvi_ix.get(r.get("tv_industry")), 1 if r.get("group_auto") else 0])
     return {"asof": dates[-1], "scan": scan, "fallback": fallback, "secs": secs,
             "inds": [[k, secs.index(max(set(by_ind[k]), key=by_ind[k].count)), (extra_names or {}).get(k)] for k in inds],
-            "cols": TK_COLS, "rows": out}
+            "tvinds": tvinds, "cols": TK_COLS, "rows": out}
 
 
 def composition(asof, scan, prev, scanner=None):
@@ -461,6 +509,7 @@ def main():
         sys.exit("Univers introuvable (cache/universe.json) : lance python fetch_history.py.")
     close, vol, ohlc = series(dates, history, universe, fh.load_splits_file())
     tv, scan, fallback = composition(dates[-1], *((None, None) if args.rescan else published_universe()))
+    tv = regroup(tv, load_descriptions())          # groupes de config/groups.toml à la place des industries TradingView
     members = select(tv, close, vol)
     payload, files = compute(dates, close, vol, members, ohlc=ohlc)
     payload["comp"] = {"asof": scan, "fallback": fallback}     # date de la composition (secours si TradingView a échoué)

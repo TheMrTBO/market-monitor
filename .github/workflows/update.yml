@@ -39,29 +39,6 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r requirements.txt
 
-      # Historique des clôtures (agrégé en breadth_data.js) : jamais committé, seulement mis en cache entre deux exécutions.
-      - name: Restaurer l'historique des clôtures (cache hors dépôt)
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
-        with:
-          path: cache
-          key: historique-${{ github.run_id }}-${{ github.run_attempt }}
-          restore-keys: historique-        # le plus récent cache, quel que soit le passage
-
-      - name: Compléter l'historique des clôtures (Polygon / Massive)
-        id: history
-        continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
-        env:
-          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
-        run: python fetch_history.py   # profondeur et plafond par passage : config/sources.toml [history] (490 séances depuis le 28/10/2026, 100 par passage)
-        # cache d'avant l'OHLC (ouverture, plus haut, plus bas) : chaque séance est retéléchargée une fois (~27 min au 1er passage)
-
-      - name: Sauvegarder l'historique des clôtures
-        if: always() && hashFiles('cache/**') != ''   # rien à sauvegarder si le téléchargement a échoué avant de créer le dossier
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
-        with:
-          path: cache
-          key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
-
       # Fichiers générés (config/storage.toml [generated] : vue TradingView, index Tickers) : jamais commités (~2,7 Mo
       # d'historique Git par séance), gardés d'un passage à l'autre par ce cache. fetch_industries.py y relit la composition
       # publiée (séance déjà publiée, secours si TradingView ne répond pas). Mêmes chemins dans les trois workflows.
@@ -78,6 +55,37 @@ jobs:
       - name: Secours si le cache manque (version du site publié)
         continue-on-error: true            # site injoignable : fetch_industries.py refait un scan TradingView complet
         run: python generated.py fetch     # ne télécharge que s'il manque un fichier
+
+      # Historique des clôtures (agrégé en breadth_data.js) : jamais committé, seulement mis en cache entre deux exécutions.
+      - name: Restaurer l'historique des clôtures (cache hors dépôt)
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: historique-        # le plus récent cache, quel que soit le passage
+
+      - name: Compléter l'historique des clôtures (Polygon / Massive)
+        id: history
+        continue-on-error: true            # sans ce téléchargement, les autres sources et l'ancien calcul maison restent publiés
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: python fetch_history.py   # profondeur et plafond par passage : config/sources.toml [history] (490 séances depuis le 28/10/2026, 100 par passage)
+        # cache d'avant l'OHLC (ouverture, plus haut, plus bas) : chaque séance est retéléchargée une fois (~27 min au 1er passage)
+
+      # Groupes de l'onglet Secteurs (config/groups.toml, 10/11/2026) : descriptions Polygon de quelques actions pas encore
+      # classées (groupe provisoire « ≈ »), gardées dans cache/ avec l'historique ; lit l'index Tickers restauré plus haut.
+      - name: Lire quelques descriptions d'actions non classées (Polygon)
+        continue-on-error: true            # sans elles, le groupe provisoire vient de l'industrie TradingView
+        env:
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+        run: python fetch_descriptions.py  # max_per_run par passage : config/groups.toml [descriptions]
+
+      - name: Sauvegarder l'historique des clôtures
+        if: always() && hashFiles('cache/**') != ''   # rien à sauvegarder si le téléchargement a échoué avant de créer le dossier
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
+        with:
+          path: cache
+          key: historique-${{ github.run_id }}-${{ github.run_attempt }}   # une clé par tentative : un « Re-run » ne bute plus sur un cache existant (409)
 
       - name: Copier les fichiers générés (annulation possible si le contrôle échoue)
         run: python generated.py snapshot "$RUNNER_TEMP/generes"

@@ -4348,7 +4348,7 @@
     const TKs = rrgTickers(), tkKey = t => !t.r ? null : lvl === 'sec' ? t.r.secName : lvl === 'ind' ? (t.r.secName === tvNav.sec ? t.r.indName : null) : (t.r.indName === tvNav.ind ? t.s : null);
     const tkFocus = new Set(TKs.list.map(tkKey).filter(Boolean));
     $('rrgChips').innerHTML = TKs.wait ? '<span class="unk">chargement de l\'index des tickers…</span>' : TKs.list.map(t => t.r
-      ? `<button data-tkgo="${escA(t.s)}" title="Les industries de son secteur, la sienne en avant (la toucher : ses actions)${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${t.r.kept ? '' : ' · hors filtres'}</button>`
+      ? `<button data-tkgo="${escA(t.s)}" title="Les industries de son secteur, la sienne en avant (la toucher : ses actions)${t.r.kept ? '' : ' (action hors filtres : pas dans l\'indice de son industrie)'}"><b>${escH(t.s)}</b> → ${escH(tvSecLabel(t.r.secName))} › ${escH(t.r.indName)}${grpTag(t.r)}${t.r.kept ? '' : ' · hors filtres'}</button>`
       : `<span class="unk" title="Ticker absent de l'index (actions ordinaires NYSE / Nasdaq / AMEX)">${escH(t.s)} ?</span>`).join('') + (TKs.list.length ? '<button data-tkclear="1" title="Effacer les tickers">✕</button>' : '');
     if (lvl === 'stk' && !stkItems) { $('rrgInfo').textContent = 'Chargement des actions de l\'industrie…'; }
     const cv = $('rrgCv'), W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
@@ -5097,6 +5097,9 @@
   // Yahoo, par lots), chargés à la première ouverture de l'onglet. Classements de secteurs / industries : ceux de la vue
   // TradingView (industries_data.js), à la dernière séance.
   const TKC = CFG.tickers;
+  const GRC = CFG.groups;                                  // groupe provisoire (config/groups.toml [auto], 10/11/2026)
+  const grpTag = r => r && r.ga ? ` <span class="tag" title="${escA(GRC.tip)}">${escH(GRC.mark)}</span>` : '';
+  const grpTxt = r => r && r.ga ? ` ${GRC.mark}` : '';
   let tkLoaded = { tickers: !!window.TICKERS, short: !!window.SHORT }, tkLoading = false, tkSort = { k: 'ind', dir: 1 }, tkRendered = false;
   let tkSel = store.get('mm.tksel'), tkShown = [];
   // liste venue du scan 9M +4 % (exception au gel du 27/10/2026) : séance du relevé → colonne « Vol $ » (volume en dollars du
@@ -5179,13 +5182,13 @@
     const S = window.SHORT, sh = S && S.rows[c.s] ? Object.fromEntries(S.cols.map((k, i) => [k, S.rows[c.s][i]])) : null;
     const old = sh && sh.date && (Date.parse(IND ? IND.asof : sh.at) - Date.parse(sh.date)) / 864e5 > TKC.short_stale_days;
     const bm = tkBoMap();
-    return { s: c.s, n: c.n, c: c.c, cap: c.cap, dv: bm ? bm.get(c.s) ?? bm.get(sym) ?? null : null, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr,
+    return { s: c.s, n: c.n, c: c.c, cap: c.cap, dv: bm ? bm.get(c.s) ?? bm.get(sym) ?? null : null, flt: (sh && sh.flt) || c.flt, kept: !!c.kept, ti: c.ti, tiPrev: c.ti_prev, rankInd: c.rank_ind, adr: c.adr == null ? null : c.adr, ga: !!c.ga,
              secName, indName, sec: R ? R.sec.map.get(secName) : null, ind: R ? R.ind.map.get(indName) : null, sh, old };
   }
   const TK_DEFS = {
     sym:  { label: 'Ticker', k: 'sym', dir: 1, left: true },
     sec:  { label: 'Secteur', k: 'sec', dir: 1, left: true },
-    ind:  { label: 'Industrie', k: 'ind', dir: 1, left: true },
+    ind:  { label: 'Groupe', k: 'ind', dir: 1, left: true },
     ti:   { label: TIN, k: 'ti', dir: -1 },
     dv:   { label: 'Vol $', k: 'dv', dir: -1 },
     adr:  { label: 'ADR', k: 'adr', dir: -1 },
@@ -5253,7 +5256,7 @@
       return `<tr data-s="${escA(r.s)}"${r.s === tkSel ? ' class="sel"' : ''}>` +
         `<td class="sym l" title="${escA(r.n)}">${escH(r.s)}<span class="tsub">${escH(r.n)}${r.kept ? '' : ' · hors filtres'}</span></td>` +
         `<td class="l c-sec" title="${escA(r.secName)}">${escH(tvSecLabel(r.secName))}<span class="tsub">rang ${rk(r.sec, R.sec.total)}</span></td>` +
-        `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
+        `<td class="l c-ind" title="${escA(r.indName)}">${escH(r.indName)}${grpTag(r)}${heatTag(r.ind && r.ind.heat)}<span class="tsub">rang ${rk(r.ind, R.ind.total)}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % > 1' : ''}</span></td>` +
         `<td class="c-ti">${dv == null ? '<span class="tag">—</span>' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}`}<span class="tsub">${r.rankInd ? `${r.rankInd}/${r.ind ? r.ind.n : '?'}<span class="dsk"> de l'industrie</span>` : r.kept ? '' : 'hors filtres'}${r.adr != null ? `<span class="mob"> · ADR ${nf(r.adr, 1)} %</span>` : ''}</span></td>` +
         (dvOn ? `<td class="c-dv">${usdFmt(r.dv)}</td>` : '') +
         `<td class="c-adr">${adrTxt(r.adr)}</td>` +
@@ -5395,7 +5398,7 @@
     if (!window.TICKERS) { if (tkLoaded.tickers) $('popSub').textContent = TPC.no_index; else tkLoad(popLoad); return; }
     const r = tkRow(popSym); if (!r) { $('popSub').textContent = TPC.not_found; return; }
     const S = tkStock(r, popLoad); if (S.wait) return;
-    $('popSub').textContent = [r.n, r.indName, tvSecLabel(r.secName), themesOf(popSym).length ? `${ETC.label} : ${themesOf(popSym).join(', ')}` : ''].filter(Boolean).join(' · ') + (S.none ? ' · ' + TPC.no_chart : '');
+    $('popSub').textContent = [r.n, r.indName + grpTxt(r), tvSecLabel(r.secName), themesOf(popSym).length ? `${ETC.label} : ${themesOf(popSym).join(', ')}` : ''].filter(Boolean).join(' · ') + (S.none ? ' · ' + TPC.no_chart : '');
     const arr = S.none ? null : secBarsFor(S.D, S.x);
     $('popTr').innerHTML = popTrend(r, arr);
     if (S.none) return;
@@ -5542,7 +5545,7 @@
     const L = syms.map(s => ({ s, r: tkRow(s) })), shown = srchAll ? L : L.slice(0, TPF.recap_max), ok = L.filter(x => x.r).length;
     const del = (s, lbl) => `<button type="button" class="srx" data-srdel="${escA(s)}" aria-label="${escA(tpl(TPF.remove, { s: lbl }))}" title="${escA(tpl(TPF.remove, { s: lbl }))}">✕</button>`;
     const row = ({ s, r }) => r
-      ? `<div class="srow" data-srs="${escA(r.s)}"><div class="srh"><b>${escH(r.s)}</b><span class="srn">${escH([r.n, r.indName, tvSecLabel(r.secName)].filter(Boolean).join(' · '))}${r.kept ? '' : ' · ' + escH(TPF.not_kept)}</span>` +
+      ? `<div class="srow" data-srs="${escA(r.s)}"><div class="srh"><b>${escH(r.s)}</b><span class="srn">${escH([r.n, r.indName + grpTxt(r), tvSecLabel(r.secName)].filter(Boolean).join(' · '))}${r.kept ? '' : ' · ' + escH(TPF.not_kept)}</span>` +
         `${today.has(r.s) ? `<span class="srtag">${escH(TPF.today)}</span>` : ''}<span class="asp"></span>` +
         `<button type="button" class="gi" data-srpop="${escA(r.s)}" title="${escA(TPF.chart_tip)}">${escH(TPF.chart)}</button>${del(s, r.s)}</div>` +
         `<div class="poptr">${popTrend(r, null)}</div></div>`
@@ -5605,7 +5608,7 @@
     const facts =
       fact('Clôture', close == null ? '—' : `${nf(close, pxd(close))}${o.chg != null ? ` <span class="${cls(o.chg)}">${pct(o.chg)}</span>` : ''}`) +
       fact(`${TIN} de l'action`, dv == null ? '—' : `<span class="${cls(dv)}">${pct(dv)}</span>${trend}${r.rankInd ? ` · <b>${r.rankInd}</b>/${r.ind ? r.ind.n : '?'} de l'industrie` : r.kept ? '' : ' · hors filtres'}`) +
-      fact('Industrie', `${escH(r.indName)}${heatTag(r.ind && r.ind.heat)}<br>${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`) +
+      fact('Groupe', `${escH(r.indName)}${grpTag(r)}${heatTag(r.ind && r.ind.heat)}<br>${rk(r.ind, R.ind.total)}${idv != null ? ` · <span class="${cls(idv)}">${pct(idv)}</span>` : ''}${r.ind && r.ind.brd != null ? ' · ' + nf(r.ind.brd, 0) + ' % &gt; 1' : ''}`) +
       fact('Secteur', `${escH(tvSecLabel(r.secName))}<br>${rk(r.sec, R.sec.total)}`) +
       fact(`ADR ${CFG.adr.sessions} j`, adrTxt(o.adr != null ? o.adr : r.adr)) +
       fact('Capitalisation', r.cap == null ? '—' : capFmt(r.cap) + ' $') +
@@ -5631,7 +5634,7 @@
     if (!r) { ['tkTitle', 'tkInfo', 'tkWhen', 'tkScoreNow'].forEach(i => { $(i).textContent = ''; }); $('tkFacts').innerHTML = ''; $('tkLinks').innerHTML = ''; tkRedraw(); return; }
     const last = tkCtx.bars.size ? [...tkCtx.bars.values()].pop() : null;
     $('tkTitle').textContent = `${r.s} · ${r.n}`;
-    $('tkInfo').textContent = `${r.indName} (${tvSecLabel(r.secName)})` + (r.kept ? '' : ' · hors filtres (ne compte pas dans l\'indice de l\'industrie)')
+    $('tkInfo').textContent = `${r.indName}${grpTxt(r)} (${tvSecLabel(r.secName)})` + (r.kept ? '' : ' · hors filtres (ne compte pas dans l\'indice de l\'industrie)')
       + (S.wait ? ' · chargement du graphique…' : S.none ? ' · graphique indisponible (pas d\'historique de cours : introduction récente ou titre absent de Polygon)' : '');
     $('tkWhen').textContent = `séance du ${fmtDate(window.TICKERS.asof, { day: 'numeric', month: 'short' })}`;
     $('tkScoreName').textContent = 'Score ' + TIN;
