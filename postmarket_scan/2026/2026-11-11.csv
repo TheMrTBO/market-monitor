@@ -7,3 +7,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-11,2026-11-11T21:37:33+00:00,false,NASDAQ:PRME,PRME,"Prime Medicine, Inc.",Health Technology,Biotechnology,4.3,10.26,4.1123,-4.37,888269,0.22,779920523,97438913,bmo
 2026-11-11,2026-11-11T21:37:33+00:00,false,NASDAQ:TTEK,TTEK,"Tetra Tech, Inc.",Industrial Services,Engineering & Construction,37.61,-7.48,40.18,6.83,1358517,0.54,9629831508,254727677,amc
 2026-11-11,2026-11-11T21:37:33+00:00,false,NYSE:RVLV,RVLV,"Revolve Group, Inc Class A",Retail Trade,Internet Retail,19.9,-0.25,20.7861,4.45,188127,0.22,1414803479,40786785,
+2026-11-11,2026-11-11T21:52:41+00:00,false,NASDAQ:DGII,DGII,Digi International Inc.,Electronic Technology,Telecommunications Equipment,66.96,2.94,59.0,-11.89,139933,0.36,2541006241,36750951,amc
+2026-11-11,2026-11-11T21:52:41+00:00,false,NASDAQ:EZPW,EZPW,"EZCORP, Inc. Class A",Finance,Finance/Rental/Leasing,28.3,-1.63,30.4,7.42,126058,0.14,1738847584,54224478,amc
+2026-11-11,2026-11-11T21:52:41+00:00,false,NASDAQ:TTEK,TTEK,"Tetra Tech, Inc.",Industrial Services,Engineering & Construction,37.61,-7.48,40.8,8.48,1433847,0.57,9629831508,254727677,amc
+2026-11-11,2026-11-11T21:52:41+00:00,false,NYSE:CTVA,CTVA,Corteva Inc,Process Industries,Agricultural Commodities/Milling,12.14,-0.25,11.36,-6.43,2898558,0.09,8101021902,664789617,amc
+2026-11-11,2026-11-11T21:52:41+00:00,false,NYSE:RVLV,RVLV,"Revolve Group, Inc Class A",Retail Trade,Internet Retail,19.9,-0.25,20.7861,4.45,188127,0.22,1414803479,40786785,
