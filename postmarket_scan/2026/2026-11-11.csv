@@ -36,3 +36,14 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-11,2026-11-11T22:23:13+00:00,false,NYSE:AVEX,AVEX,AEVEX Corp. Class A,Electronic Technology,Aerospace & Defense,12.13,4.57,13.4,10.47,453046,0.25,1537707728,32444129,amc
 2026-11-11,2026-11-11T22:23:13+00:00,false,NYSE:CTVA,CTVA,Corteva Inc,Process Industries,Agricultural Commodities/Milling,12.14,-0.25,11.34,-6.59,3168525,0.1,8101021902,664789617,amc
 2026-11-11,2026-11-11T22:23:13+00:00,false,NYSE:RVLV,RVLV,"Revolve Group, Inc Class A",Retail Trade,Internet Retail,19.9,-0.25,20.7861,4.45,188127,0.22,1414803479,40786785,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:BULL,BULL,Webull Corporation,Finance,Investment Banks/Brokers,5.06,3.9,5.3307,5.35,1213073,0.09,2735797750,308637042,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:DGII,DGII,Digi International Inc.,Electronic Technology,Telecommunications Equipment,66.96,2.94,58.1,-13.23,164670,0.43,2541006241,36750951,amc
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:EZPW,EZPW,"EZCORP, Inc. Class A",Finance,Finance/Rental/Leasing,28.3,-1.63,30.11,6.4,138637,0.16,1738847584,54224478,amc
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:NVDA,NVDA,NVIDIA Corporation,Electronic Technology,Semiconductors,173.73,2.87,166.285,-4.29,26533321,0.2,4186892984869,23188513900,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,8.0,-51.85,7.04,-12.0,1290622,0.47,35089105,2111893,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,6.19,65.95,5.91,-4.52,116075,0.51,11857112,,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NASDAQ:TTEK,TTEK,"Tetra Tech, Inc.",Industrial Services,Engineering & Construction,37.61,-7.48,41.4,10.08,1648813,0.65,9629831508,254727677,amc
+2026-11-11,2026-11-11T22:37:33+00:00,false,NYSE:AVEX,AVEX,AEVEX Corp. Class A,Electronic Technology,Aerospace & Defense,12.13,4.57,13.2,8.82,485047,0.26,1537707728,32444129,amc
+2026-11-11,2026-11-11T22:37:33+00:00,false,NYSE:CTVA,CTVA,Corteva Inc,Process Industries,Agricultural Commodities/Milling,12.14,-0.25,11.33,-6.67,3174153,0.1,8101021902,664789617,amc
+2026-11-11,2026-11-11T22:37:33+00:00,false,NYSE:INGM,INGM,Ingram Micro Holding Corporation,Technology Services,Information Technology Services,28.0,2.04,29.45,5.18,279292,0.16,6441412173,65450963,
+2026-11-11,2026-11-11T22:37:33+00:00,false,NYSE:RVLV,RVLV,"Revolve Group, Inc Class A",Retail Trade,Internet Retail,19.9,-0.25,20.7861,4.45,188127,0.22,1414803479,40786785,
