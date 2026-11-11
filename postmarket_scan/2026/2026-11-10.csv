@@ -327,3 +327,36 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-10,2026-11-10T23:52:42+00:00,false,NYSE:NRGV,NRGV,"Energy Vault Holdings, Inc.",Producer Manufacturing,Electrical Products,3.53,-2.49,3.35,-5.1,844618,0.19,641893658,127911711,amc
 2026-11-10,2026-11-10T23:52:42+00:00,false,NYSE:PBH,PBH,Prestige Consumer Healthcare Inc,Health Technology,Pharmaceuticals: Major,44.97,2.98,47.6303,5.92,160430,0.28,2131447775,46701263,
 2026-11-10,2026-11-10T23:52:42+00:00,false,NYSE:SPIR,SPIR,"Spire Global, Inc. Class A",Technology Services,Packaged Software,9.35,-1.16,8.1512,-12.82,105455,0.17,379819200,33423102,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:ATRO,ATRO,Astronics Corporation,Electronic Technology,Aerospace & Defense,62.0,5.1,57.43,-7.37,186942,0.32,2662935361,35208477,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:AZTA,AZTA,"Azenta, Inc.",Health Services,Medical/Nursing Services,40.48,-1.15,44.2,9.19,111365,0.13,1773363877,43118373,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:CRWV,CRWV,"CoreWeave, Inc. Class A",Technology Services,Packaged Software,48.73,-0.51,51.4757,5.63,25487022,0.68,26876377563,349311034,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:DPRO,DPRO,Draganfly Inc,Consumer Durables,Motor Vehicles,3.21,-4.18,2.9,-9.66,119214,0.11,125648245,38710976,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:FOSL,FOSL,"Fossil Group, Inc.",Consumer Durables,Other Consumer Specialties,7.87,-2.36,9.56,21.47,680870,0.79,465416477,56046005,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:GO,GO,Grocery Outlet Holding Corp.,Retail Trade,Food Retail,14.02,1.08,12.9467,-7.66,623523,0.26,1389164616,90393798,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:INVA,INVA,"Innoviva, Inc.",Health Technology,Pharmaceuticals: Major,19.08,0.42,20.022,4.94,160917,0.2,1356234529,70172083,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:KURA,KURA,"Kura Oncology, Inc.",Health Technology,Biotechnology,7.57,0.0,8.0,5.68,368893,0.2,673431885,86489096,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:LPTH,LPTH,"LightPath Technologies, Inc. Class A",Electronic Technology,Electronic Components,7.99,-0.25,7.4,-7.38,482742,0.16,560008967,67192705,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:LWLG,LWLG,"Lightwave Logic, Inc.",Process Industries,Chemicals: Specialty,4.39,-10.59,3.1246,-28.82,1386635,0.44,676794213,151110022,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:NB,NB,NioCorp Developments Ltd.,Non-Energy Minerals,Other Metals/Minerals,3.005,-8.1,3.1278,4.09,145000,0.05,440150695,143111835,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:NBIS,NBIS,Nebius Group N.V. Class A,Technology Services,Packaged Software,134.0,-5.27,141.6,5.67,2457797,0.12,36428600034,222545208,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:NN,NN,NextNav Inc.,Technology Services,Packaged Software,8.4,-5.83,8.91,6.07,577438,0.2,1418003222,107030604,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:NNBR,NNBR,"NN, Inc.",Producer Manufacturing,Metal Fabrication,3.04,-1.62,2.9096,-4.29,138548,0.06,284982481,80930305,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,16.615,-35.7,22.417,34.92,1188444,0.49,35089105,2111893,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:PEPG,PEPG,PepGen Inc.,Health Technology,Biotechnology,4.61,92.89,5.11,10.85,3260651,1.5,165530245,61798117,bmo
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:PHAT,PHAT,"Phathom Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,5.445,2.16,5.73,5.23,150600,0.1,442632357,51476297,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:RGTI,RGTI,"Rigetti Computing, Inc.",Electronic Technology,Computer Processing Hardware,12.15,-6.39,11.29,-7.08,4177091,0.24,4055290021,326926067,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:SATL,SATL,Satellogic Inc. Class A,Electronic Technology,Aerospace & Defense,3.9,-1.64,4.18,7.18,799206,0.16,599585652,113105625,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:SMX,SMX,SMX (Security Matters) Public Limited Company,Technology Services,Packaged Software,19.25,105.88,18.0,-6.49,594814,1.11,3635173,,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:STAK,STAK,STAK INC. Class A,Industrial Services,Oilfield Services/Equipment,4.915,20.17,2.24,-54.43,4099309,0.75,49200863,,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:STLN,STLN,Starling Oncology Inc.,Health Services,Medical/Nursing Services,4.34,8.5,4.52,4.15,342223,0.18,442641027,71445511,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:TWST,TWST,Twist Bioscience Corp.,Health Technology,Biotechnology,132.13,-2.37,138.8,5.05,202475,0.1,8698437465,64007657,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NASDAQ:VELO,VELO,"Velo3D, Inc.",Producer Manufacturing,Industrial Machinery,6.04,-3.05,5.36,-11.26,365854,0.24,194180664,14861596,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:ALC,ALC,Alcon AG,Health Technology,Medical Specialties,74.06,-1.44,69.97,-5.52,488342,0.25,37007783641,481568243,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:AMPX,AMPX,Amprius Technologies Inc,Producer Manufacturing,Electrical Products,9.17,-3.68,8.51,-7.2,981705,0.17,1339559417,136202200,bmo
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:BV,BV,"BrightView Holdings, Inc.",Commercial Services,Miscellaneous Commercial Services,11.43,-3.54,9.6,-16.01,344112,0.33,1058418016,67676154,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:FUN,FUN,Six Flags Entertainment Corporation,Consumer Services,Movies/Entertainment,10.16,-5.58,10.9598,7.87,648524,0.18,1039467814,99263822,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:HGTY,HGTY,Hagerty Inc Class A,Finance,Property/Casualty Insurance,16.94,-1.63,15.5,-8.5,201856,0.57,5822316712,116910590,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:MAIR,MAIR,Madison Air Solutions Corp. Class A,Producer Manufacturing,Industrial Machinery,23.94,-2.41,22.87,-4.47,127689,0.05,12011239426,108330356,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:NRGV,NRGV,"Energy Vault Holdings, Inc.",Producer Manufacturing,Electrical Products,3.53,-2.49,3.34,-5.38,850718,0.19,641893658,127911711,amc
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:PBH,PBH,Prestige Consumer Healthcare Inc,Health Technology,Pharmaceuticals: Major,44.97,2.98,47.6303,5.92,160430,0.28,2131447775,46701263,
+2026-11-10,2026-11-11T00:07:36+00:00,false,NYSE:SPIR,SPIR,"Spire Global, Inc. Class A",Technology Services,Packaged Software,9.35,-1.16,8.1512,-12.82,105455,0.17,379819200,33423102,amc
