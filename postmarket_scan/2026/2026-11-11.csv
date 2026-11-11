@@ -123,3 +123,22 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-11,2026-11-11T23:37:32+00:00,false,NYSE:INGM,INGM,Ingram Micro Holding Corporation,Technology Services,Information Technology Services,28.0,2.04,29.19,4.25,285492,0.17,6441412173,65450963,
 2026-11-11,2026-11-11T23:37:32+00:00,false,NYSE:SMHI,SMHI,SEACOR Marine Holdings Inc.,Transportation,Marine Shipping,9.59,5.15,9.16,-4.48,318052,2.81,260379248,20306932,
 2026-11-11,2026-11-11T23:37:32+00:00,false,NYSE:WOLF,WOLF,Wolfspeed Inc,Electronic Technology,Semiconductors,27.68,5.53,26.3759,-4.71,236714,0.06,1483146375,35332052,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:AIRO,AIRO,"Airo Group Holdings, Inc.",Electronic Technology,Aerospace & Defense,5.46,-2.5,5.75,5.31,123033,0.29,172295307,18620074,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:AMPL,AMPL,Amplitude Inc Class A,Technology Services,Packaged Software,17.21,2.26,16.4857,-4.21,172822,0.09,2146614084,83717343,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:CDNL,CDNL,"Cardinal Infrastructure Group, Inc.",Industrial Services,Engineering & Construction,14.99,2.67,14.0,-6.6,132490,0.16,711621170,18528299,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:CRBP,CRBP,Corbus Pharmaceuticals Holdings Inc,Health Technology,Pharmaceuticals: Major,4.0,1.78,4.18,4.5,102747,0.12,77365174,17364561,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:CRWV,CRWV,"CoreWeave, Inc. Class A",Technology Services,Packaged Software,60.77,24.71,57.4243,-5.51,12339575,0.31,33516877991,349311034,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:DGII,DGII,Digi International Inc.,Electronic Technology,Telecommunications Equipment,66.96,2.94,56.02,-16.34,198392,0.51,2541006241,36750951,amc
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:GLXY,GLXY,Galaxy Digital Inc. Class A,Finance,Investment Banks/Brokers,15.97,13.18,15.211,-4.75,1056489,0.16,6204025429,186007563,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:LTBR,LTBR,Lightbridge Corporation,Process Industries,Chemicals: Specialty,4.5,-0.66,4.78,6.22,104879,0.13,174439569,35697268,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:MXL,MXL,"MaxLinear, Inc.",Electronic Technology,Semiconductors,59.95,11.37,57.5,-4.09,215592,0.07,5455450642,85514793,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:NVDA,NVDA,NVIDIA Corporation,Electronic Technology,Semiconductors,173.73,2.87,160.68,-7.51,61722408,0.47,4186892984869,23188513900,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,8.0,-51.85,7.44,-7.0,1649811,0.6,35089105,2111893,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,6.19,65.95,5.75,-7.11,133516,0.58,11857112,,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:SMCI,SMCI,"Super Micro Computer, Inc.",Electronic Technology,Computer Processing Hardware,30.43,9.5,29.0,-4.7,3894501,0.09,20060289103,575832147,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NASDAQ:TTEK,TTEK,"Tetra Tech, Inc.",Industrial Services,Engineering & Construction,37.61,-7.48,41.03,9.09,1693633,0.67,9629831508,254727677,amc
+2026-11-11,2026-11-11T23:52:44+00:00,false,NYSE:AVEX,AVEX,AEVEX Corp. Class A,Electronic Technology,Aerospace & Defense,12.13,4.57,13.47,11.05,544455,0.3,1537707728,32444129,amc
+2026-11-11,2026-11-11T23:52:44+00:00,false,NYSE:CTVA,CTVA,Corteva Inc,Process Industries,Agricultural Commodities/Milling,12.14,-0.25,11.1746,-7.95,3252804,0.11,8101021902,664789617,amc
+2026-11-11,2026-11-11T23:52:44+00:00,false,NYSE:INGM,INGM,Ingram Micro Holding Corporation,Technology Services,Information Technology Services,28.0,2.04,29.19,4.25,285492,0.17,6441412173,65450963,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NYSE:NRGV,NRGV,"Energy Vault Holdings, Inc.",Producer Manufacturing,Electrical Products,3.87,9.63,3.71,-4.13,733129,0.16,703719127,127911711,
+2026-11-11,2026-11-11T23:52:44+00:00,false,NYSE:SMHI,SMHI,SEACOR Marine Holdings Inc.,Transportation,Marine Shipping,9.59,5.15,9.16,-4.48,318052,2.81,260379248,20306932,
