@@ -77,3 +77,19 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-12,2026-11-12T22:37:36+00:00,false,NYSE:HAWK,HAWK,"HawkEye 360, Inc.",Technology Services,Data Processing Services,14.67,-3.87,15.6,6.34,147733,0.11,1437154688,70888263,amc
 2026-11-12,2026-11-12T22:37:36+00:00,false,NYSE:HBM,HBM,Hudbay Minerals Inc,Non-Energy Minerals,Other Metals/Minerals,21.62,-1.46,22.5,4.07,223025,0.05,9602592075,427320489,bmo
 2026-11-12,2026-11-12T22:37:36+00:00,false,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.32,14.13,311236,0.33,941581078,65826114,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,AMEX:POAS,POAS,Phaos Technology Holdings (Cayman) Ltd. Class A,Electronic Technology,Electronic Components,3.01,234.18,2.8512,-5.28,1624235,1.29,1895793,767697,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:ACCV,ACCV,Accelevation Holdings Corp. Class A,Producer Manufacturing,Electrical Products,12.21,2.52,12.9,5.65,456285,,2747249923,,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:CADL,CADL,"Candel Therapeutics, Inc.",Health Technology,Biotechnology,8.39,-9.0,4.9399,-41.12,780067,0.66,641990756,61344655,bmo
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:CBRS,CBRS,"Cerebras Systems, Inc. Class A",Technology Services,Packaged Software,97.75,-3.29,113.2,15.81,4049457,0.5,21881194444,98909683,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:CRVS,CRVS,"Corvus Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,10.62,-7.41,11.26,6.03,163231,0.16,895830224,64974493,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:GLBE,GLBE,Global-e Online Ltd.,Retail Trade,Internet Retail,41.05,-2.75,35.5,-13.52,172368,0.12,6895061290,116014302,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:INIO,INIO,INNIO N.V.,Producer Manufacturing,Electrical Products,15.16,0.4,14.4901,-4.42,272870,0.05,11370000287,405060000,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:LFTO,LFTO,"Liftoff Mobile, Inc.",Technology Services,Packaged Software,18.71,0.86,21.6,15.45,158971,0.2,3168192753,31124659,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:RLMD,RLMD,Relmada Therapeutics Inc,Health Technology,Pharmaceuticals: Major,4.16,-6.09,4.65,11.78,184510,0.13,443746540,92788286,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:STTK,STTK,"Shattuck Labs, Inc.",Health Technology,Biotechnology,4.81,-4.75,4.6,-4.37,147286,0.13,489862694,87487312,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:VIR,VIR,"Vir Biotechnology, Inc.",Health Technology,Biotechnology,12.12,-7.69,10.56,-12.87,445759,0.23,2075801716,135702637,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NASDAQ:WSE,WSE,Wise Group plc Class A,Commercial Services,Miscellaneous Commercial Services,10.93,-1.97,11.56,5.76,144125,0.09,12914253574,794461158,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NYSE:AMPX,AMPX,Amprius Technologies Inc,Producer Manufacturing,Electrical Products,8.35,-2.34,8.7,4.19,677188,0.12,1219773265,136202200,
+2026-11-12,2026-11-12T22:52:43+00:00,false,NYSE:FLO,FLO,"Flowers Foods, Inc.",Consumer Non-Durables,Food: Specialty/Candy,6.01,-3.84,5.3718,-10.62,1630001,0.25,1274465087,196099286,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,NYSE:HAWK,HAWK,"HawkEye 360, Inc.",Technology Services,Data Processing Services,14.67,-3.87,15.5,5.66,148033,0.11,1437154688,70888263,amc
+2026-11-12,2026-11-12T22:52:43+00:00,false,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.1877,12.31,315583,0.33,941581078,65826114,amc
