@@ -144,3 +144,25 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-12,2026-11-12T23:37:34+00:00,false,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.25,13.17,327532,0.34,941581078,65826114,amc
 2026-11-12,2026-11-12T23:37:34+00:00,false,NYSE:NU,NU,Nu Holdings Ltd. Class A,Finance,Regional Banks,11.83,-3.98,12.3507,4.4,7283634,0.09,57144630065,3598960447,amc
 2026-11-12,2026-11-12T23:37:34+00:00,false,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,10.18,0.99,9.5562,-6.13,107131,0.2,427464854,20185873,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,AMEX:POAS,POAS,Phaos Technology Holdings (Cayman) Ltd. Class A,Electronic Technology,Electronic Components,3.01,234.18,2.7699,-7.98,1813690,1.44,1895793,767697,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:ACCV,ACCV,Accelevation Holdings Corp. Class A,Producer Manufacturing,Electrical Products,12.21,2.52,12.9,5.65,456285,,2747249923,,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:BLMN,BLMN,"Bloomin' Brands, Inc.",Consumer Services,Restaurants,10.12,-1.08,10.72,5.93,641512,0.28,867814204,84593199,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:CADL,CADL,"Candel Therapeutics, Inc.",Health Technology,Biotechnology,8.39,-9.0,5.18,-38.26,990561,0.84,641990756,61344655,bmo
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:CBRS,CBRS,"Cerebras Systems, Inc. Class A",Technology Services,Packaged Software,97.75,-3.29,115.359,18.01,4612613,0.57,21881194444,98909683,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:CLGN,CLGN,CollPlant Biotechnologies Ltd,Health Technology,Medical Specialties,4.64,17.17,4.84,4.31,312411,1.16,8773410,1559143,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:CRVS,CRVS,"Corvus Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,10.62,-7.41,11.26,6.03,163231,0.16,895830224,64974493,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:LFTO,LFTO,"Liftoff Mobile, Inc.",Technology Services,Packaged Software,18.71,0.86,21.51,14.97,171831,0.22,3168192753,31124659,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:NKTR,NKTR,Nektar Therapeutics,Health Technology,Pharmaceuticals: Major,37.25,-3.1,35.5,-4.7,123842,0.13,1271826478,33048580,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,5.06,-36.75,4.67,-7.71,750008,0.25,10686179,2111893,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:RLMD,RLMD,Relmada Therapeutics Inc,Health Technology,Pharmaceuticals: Major,4.16,-6.09,4.79,15.14,187999,0.13,443746540,92788286,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:SAIL,SAIL,"SailPoint, Inc.",Technology Services,Packaged Software,20.58,-1.01,19.61,-4.71,361030,0.09,11749361679,75338065,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:SLS,SLS,"SELLAS Life Sciences Group, Inc.",Health Technology,Pharmaceuticals: Major,8.03,-4.63,8.64,7.6,525883,0.08,1621624059,199701572,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:STTK,STTK,"Shattuck Labs, Inc.",Health Technology,Biotechnology,4.81,-4.75,4.6,-4.37,147286,0.13,489862694,87487312,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:VIR,VIR,"Vir Biotechnology, Inc.",Health Technology,Biotechnology,12.12,-7.69,10.95,-9.65,499007,0.26,2075801716,135702637,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NASDAQ:WSE,WSE,Wise Group plc Class A,Commercial Services,Miscellaneous Commercial Services,10.93,-1.97,11.68,6.86,144575,0.09,12914253574,794461158,
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:FLO,FLO,"Flowers Foods, Inc.",Consumer Non-Durables,Food: Specialty/Candy,6.01,-3.84,5.53,-7.99,1677566,0.26,1274465087,196099286,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:HAWK,HAWK,"HawkEye 360, Inc.",Technology Services,Data Processing Services,14.67,-3.87,15.5,5.66,148033,0.11,1437154688,70888263,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.25,13.17,328603,0.35,941581078,65826114,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:NU,NU,Nu Holdings Ltd. Class A,Finance,Regional Banks,11.83,-3.98,12.36,4.48,7348013,0.09,57144630065,3598960447,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,10.18,0.99,9.649,-5.22,119974,0.22,427464854,20185873,amc
+2026-11-12,2026-11-12T23:52:38+00:00,false,NYSE:YSS,YSS,"York Space Systems, Inc.",Electronic Technology,Aerospace & Defense,6.6,-8.84,6.3,-4.55,139035,0.05,906560164,87171253,amc
