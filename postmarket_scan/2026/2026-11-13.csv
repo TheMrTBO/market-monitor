@@ -1,0 +1,4 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:FCUV,FCUV,"Focus Universal, Inc.",Commercial Services,Advertising/Marketing Services,7.08,136.0,5.87,-17.09,1240191,0.46,2946036,880222,
+2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:LRMR,LRMR,"Larimar Therapeutics, Inc.",Health Technology,Biotechnology,3.02,11.85,2.82,-6.62,244417,0.18,313726467,48004645,bmo
+2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:REAL,REAL,"RealReal, Inc.",Retail Trade,Internet Retail,14.53,1.54,13.89,-4.4,419865,0.12,1812080348,113443683,
