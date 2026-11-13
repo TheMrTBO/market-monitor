@@ -2,3 +2,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:FCUV,FCUV,"Focus Universal, Inc.",Commercial Services,Advertising/Marketing Services,7.08,136.0,5.87,-17.09,1240191,0.46,2946036,880222,
 2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:LRMR,LRMR,"Larimar Therapeutics, Inc.",Health Technology,Biotechnology,3.02,11.85,2.82,-6.62,244417,0.18,313726467,48004645,bmo
 2026-11-13,2026-11-13T21:22:42+00:00,false,NASDAQ:REAL,REAL,"RealReal, Inc.",Retail Trade,Internet Retail,14.53,1.54,13.89,-4.4,419865,0.12,1812080348,113443683,
+2026-11-13,2026-11-13T21:37:42+00:00,false,NASDAQ:CD,CD,Chaince Digital Holdings Inc.,Technology Services,Information Technology Services,4.26,-18.7,4.0,-6.1,181796,0.67,468616165,82186298,
+2026-11-13,2026-11-13T21:37:42+00:00,false,NASDAQ:FCUV,FCUV,"Focus Universal, Inc.",Commercial Services,Advertising/Marketing Services,7.08,136.0,5.41,-23.59,2140259,0.79,2946036,880222,
+2026-11-13,2026-11-13T21:37:42+00:00,false,NASDAQ:MMED,MMED,"MiniMed Group, Inc.",Health Technology,Medical Specialties,17.99,0.64,16.9946,-5.53,427821,0.07,5061485511,279797179,
+2026-11-13,2026-11-13T21:37:42+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,5.0,-1.19,4.72,-5.6,128008,0.04,10559465,2111893,
+2026-11-13,2026-11-13T21:37:42+00:00,false,NYSE:CNC,CNC,Centene Corporation,Health Services,Managed Health Care,71.27,1.42,74.62,4.7,823706,0.17,35283494187,486258264,
