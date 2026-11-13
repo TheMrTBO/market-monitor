@@ -423,3 +423,23 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-12,2026-11-13T03:22:06+00:00,true,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.25,13.17,348956,0.37,941581078,65826114,amc
 2026-11-12,2026-11-13T03:22:06+00:00,true,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,10.18,0.99,9.4054,-7.61,204044,0.38,427464854,20185873,amc
 2026-11-12,2026-11-13T03:22:06+00:00,true,NYSE:YSS,YSS,"York Space Systems, Inc.",Electronic Technology,Aerospace & Defense,6.6,-8.84,6.06,-8.18,151555,0.06,906560164,87171253,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,AMEX:POAS,POAS,Phaos Technology Holdings (Cayman) Ltd. Class A,Electronic Technology,Electronic Components,3.01,234.18,2.66,-11.63,1965831,1.56,1895793,767697,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:AAON,AAON,"AAON, Inc.",Producer Manufacturing,Industrial Machinery,78.8,3.24,82.0,4.06,187319,0.15,6498047681,68913334,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:ACCV,ACCV,Accelevation Holdings Corp. Class A,Producer Manufacturing,Electrical Products,12.21,2.52,12.9,5.65,456285,,2747249923,,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:BKHA,BKHA,Black Hawk Acquisition Corporation Class A,Finance,Financial Conglomerates,5.375,3.37,8.9677,66.84,339874,11.71,22325476,3677078,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:CADL,CADL,"Candel Therapeutics, Inc.",Health Technology,Biotechnology,8.39,-9.0,5.1103,-39.09,1087253,0.92,641990756,61344655,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:CBRS,CBRS,"Cerebras Systems, Inc. Class A",Technology Services,Packaged Software,97.75,-3.29,115.6776,18.34,4905824,0.6,21881194444,98909683,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:LFTO,LFTO,"Liftoff Mobile, Inc.",Technology Services,Packaged Software,18.71,0.86,21.94,17.26,211594,0.27,3168192753,31124659,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:NKTR,NKTR,Nektar Therapeutics,Health Technology,Pharmaceuticals: Major,37.25,-3.1,35.5656,-4.52,125542,0.13,1271826478,33048580,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,5.06,-36.75,5.53,9.29,1049876,0.36,10686179,2111893,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:PAL,PAL,"Proficient Auto Logistics, Inc.",Transportation,Trucking,3.06,-3.47,2.67,-12.75,100186,0.15,85841947,24228159,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:RLMD,RLMD,Relmada Therapeutics Inc,Health Technology,Pharmaceuticals: Major,4.16,-6.09,4.67,12.26,189503,0.13,443746540,92788286,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:SLS,SLS,"SELLAS Life Sciences Group, Inc.",Health Technology,Pharmaceuticals: Major,8.03,-4.63,9.6465,20.13,970288,0.14,1621624059,199701572,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:STTK,STTK,"Shattuck Labs, Inc.",Health Technology,Biotechnology,4.81,-4.75,4.6,-4.37,147286,0.13,489862694,87487312,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:VIR,VIR,"Vir Biotechnology, Inc.",Health Technology,Biotechnology,12.12,-7.69,10.5613,-12.86,539362,0.28,2075801716,135702637,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NASDAQ:WSE,WSE,Wise Group plc Class A,Commercial Services,Miscellaneous Commercial Services,10.93,-1.97,11.5,5.22,145825,0.09,12914253574,794461158,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NYSE:FLO,FLO,"Flowers Foods, Inc.",Consumer Non-Durables,Food: Specialty/Candy,6.01,-3.84,5.54,-7.82,1751654,0.27,1274465087,196099286,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NYSE:MOD,MOD,Modine Manufacturing Company,Producer Manufacturing,Industrial Machinery,106.1,-0.53,135.1982,27.43,242071,0.14,5644192954,51978850,
+2026-11-12,2026-11-13T05:22:14+00:00,true,NYSE:NMAX,NMAX,Newsmax Inc. Class B,Consumer Services,Broadcasting,7.29,-5.81,8.25,13.17,348956,0.37,941581078,65826114,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,10.18,0.99,9.4054,-7.61,204044,0.38,427464854,20185873,amc
+2026-11-12,2026-11-13T05:22:14+00:00,true,NYSE:YSS,YSS,"York Space Systems, Inc.",Electronic Technology,Aerospace & Defense,6.6,-8.84,6.06,-8.18,151555,0.06,906560164,87171253,amc
