@@ -48,3 +48,15 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-16,2026-11-16T22:21:39+00:00,false,NYSE:CPRI,CPRI,Capri Holdings Limited,Retail Trade,Apparel/Footwear Retail,20.55,-4.24,19.26,-6.28,533459,0.13,2123836263,100715918,
 2026-11-16,2026-11-16T22:21:39+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
 2026-11-16,2026-11-16T22:21:39+00:00,false,NYSE:TRLV,TRLV,Trulieve Cannabis Corp.,Process Industries,Agricultural Commodities/Milling,10.33,-5.23,10.7648,4.21,149498,0.1,1991768015,162852029,
+2026-11-16,2026-11-16T22:23:01+00:00,false,AMEX:EGG,EGG,Enigmatig Limited Class A,Commercial Services,Miscellaneous Commercial Services,6.76,18.8,6.2,-8.28,148300,0.36,189315156,8255200,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:ASND,ASND,Ascendis Pharma A/S,Health Technology,Pharmaceuticals: Major,271.73,-1.33,260.02,-4.31,114995,0.17,16949661350,64836601,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:OMER,OMER,Omeros Corporation,Health Technology,Pharmaceuticals: Major,16.68,-4.63,15.08,-9.59,410862,0.26,1207437049,69284941,amc
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,3.98,-20.4,3.65,-8.29,159432,0.05,8405334,2111893,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:PAX,PAX,Patria Investments Ltd. Class A,Finance,Investment Managers,8.94,-2.51,9.4822,6.06,140845,0.11,1457733090,64431245,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:RCAT,RCAT,Red Cat Holdings Inc,Technology Services,Packaged Software,3.53,-7.11,2.73,-22.66,3068929,0.4,539081667,139542570,amc
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,20.13,-10.77,19.1237,-5.0,284051,0.14,720724535,31110576,amc
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,5.42,-1.63,4.92,-9.23,137771,0.14,484113674,67561036,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NASDAQ:TEM,TEM,"Tempus AI, Inc. Class A",Technology Services,Packaged Software,64.76,-9.55,68.0001,5.0,576705,0.09,11812329832,109412944,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,76.77,5.89,568096,0.32,9330490913,127836439,amc
+2026-11-16,2026-11-16T22:23:01+00:00,false,NYSE:CPRI,CPRI,Capri Holdings Limited,Retail Trade,Apparel/Footwear Retail,20.55,-4.24,19.26,-6.28,533459,0.13,2123836263,100715918,
+2026-11-16,2026-11-16T22:23:01+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
