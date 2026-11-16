@@ -11,3 +11,16 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,20.13,-10.77,18.81,-6.56,199272,0.1,720724535,31110576,amc
 2026-11-16,2026-11-16T21:37:47+00:00,false,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,76.91,6.08,543165,0.31,9330490913,127836439,amc
 2026-11-16,2026-11-16T21:37:47+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
+2026-11-16,2026-11-16T21:52:56+00:00,false,AMEX:EGG,EGG,Enigmatig Limited Class A,Commercial Services,Miscellaneous Commercial Services,6.76,18.8,6.2,-8.28,148300,0.36,189315156,8255200,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:ASND,ASND,Ascendis Pharma A/S,Health Technology,Pharmaceuticals: Major,271.73,-1.33,260.02,-4.31,114995,0.17,16949661350,64836601,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,4.78,41.84,4.58,-4.18,120236,0.03,12788470,713828,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:OMER,OMER,Omeros Corporation,Health Technology,Pharmaceuticals: Major,16.68,-4.63,14.9958,-10.1,384695,0.25,1207437049,69284941,amc
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,3.98,-20.4,3.78,-5.03,127120,0.04,8405334,2111893,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:RCAT,RCAT,Red Cat Holdings Inc,Technology Services,Packaged Software,3.53,-7.11,2.9,-17.85,2402253,0.31,539081667,139542570,amc
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,20.13,-10.77,18.55,-7.85,246359,0.12,720724535,31110576,amc
+2026-11-16,2026-11-16T21:52:56+00:00,false,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,5.42,-1.63,4.92,-9.23,137771,0.14,484113674,67561036,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,77.2,6.48,555419,0.32,9330490913,127836439,amc
+2026-11-16,2026-11-16T21:52:56+00:00,false,NYSE:AMPX,AMPX,Amprius Technologies Inc,Producer Manufacturing,Electrical Products,7.12,-10.21,7.4215,4.23,802336,0.14,1044102521,136727138,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NYSE:CPRI,CPRI,Capri Holdings Limited,Retail Trade,Apparel/Footwear Retail,20.55,-4.24,19.6695,-4.28,527480,0.12,2123836263,100715918,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
+2026-11-16,2026-11-16T21:52:56+00:00,false,NYSE:TRLV,TRLV,Trulieve Cannabis Corp.,Process Industries,Agricultural Commodities/Milling,10.33,-5.23,10.7648,4.21,149498,0.1,1991768015,162852029,
