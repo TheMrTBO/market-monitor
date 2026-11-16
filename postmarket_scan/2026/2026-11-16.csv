@@ -3,3 +3,11 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-16,2026-11-16T21:22:56+00:00,false,NASDAQ:OMER,OMER,Omeros Corporation,Health Technology,Pharmaceuticals: Major,16.68,-4.63,15.87,-4.86,307719,0.2,1207437049,69284941,amc
 2026-11-16,2026-11-16T21:22:56+00:00,false,NASDAQ:RCAT,RCAT,Red Cat Holdings Inc,Technology Services,Packaged Software,3.53,-7.11,3.14,-11.05,870214,0.11,539081667,139542570,amc
 2026-11-16,2026-11-16T21:22:56+00:00,false,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,77.0,6.21,497078,0.28,9330490913,127836439,amc
+2026-11-16,2026-11-16T21:37:47+00:00,false,AMEX:EGG,EGG,Enigmatig Limited Class A,Commercial Services,Miscellaneous Commercial Services,6.76,18.8,6.0,-11.24,105200,0.26,189315156,8255200,
+2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:ASND,ASND,Ascendis Pharma A/S,Health Technology,Pharmaceuticals: Major,271.73,-1.33,260.02,-4.31,114995,0.17,16949661350,64836601,
+2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:CCOI,CCOI,Cogent Communications Holdings Inc,Communications,Major Telecommunications,3.73,-6.98,3.9225,5.16,782349,0.39,190990498,48414618,
+2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:OMER,OMER,Omeros Corporation,Health Technology,Pharmaceuticals: Major,16.68,-4.63,15.0,-10.07,358110,0.23,1207437049,69284941,amc
+2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:RCAT,RCAT,Red Cat Holdings Inc,Technology Services,Packaged Software,3.53,-7.11,3.0143,-14.61,1763578,0.23,539081667,139542570,amc
+2026-11-16,2026-11-16T21:37:47+00:00,false,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,20.13,-10.77,18.81,-6.56,199272,0.1,720724535,31110576,amc
+2026-11-16,2026-11-16T21:37:47+00:00,false,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,76.91,6.08,543165,0.31,9330490913,127836439,amc
+2026-11-16,2026-11-16T21:37:47+00:00,false,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
