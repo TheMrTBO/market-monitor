@@ -410,3 +410,19 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-16,2026-11-17T07:22:11+00:00,true,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
 2026-11-16,2026-11-17T07:22:11+00:00,true,NYSE:SITE,SITE,"SiteOne Landscape Supply, Inc.",Distribution Services,Wholesale Distributors,110.9,-1.48,116.75,5.28,133880,0.15,4783332015,42326109,
 2026-11-16,2026-11-17T07:22:11+00:00,true,NYSE:SPG,SPG,"Simon Property Group, Inc.",Finance,Real Estate Investment Trusts,232.78,-0.08,222.3305,-4.49,580680,0.44,75316321747,320388612,
+2026-11-16,2026-11-17T07:35:55+00:00,true,AMEX:EGG,EGG,Enigmatig Limited Class A,Commercial Services,Miscellaneous Commercial Services,6.76,18.8,6.2,-8.28,148300,0.36,189315156,8255200,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:ADAM,ADAM,"Adamas Trust, Inc.",Finance,Real Estate Investment Trusts,5.08,-3.24,5.3818,5.94,173393,0.15,458748084,84320300,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:ARQT,ARQT,Arcutis Biotherapeutics Inc,Health Technology,Pharmaceuticals: Major,27.15,-3.93,25.7875,-5.02,269910,0.12,3433254155,110171895,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:ASND,ASND,Ascendis Pharma A/S,Health Technology,Pharmaceuticals: Major,271.73,-1.33,260.02,-4.31,114995,0.17,16949661350,64836601,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:CLRO,CLRO,"ClearOne, Inc.",Consumer Durables,Electronics/Appliances,4.78,41.84,4.4638,-6.62,262210,0.07,12788470,713828,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:OMER,OMER,Omeros Corporation,Health Technology,Pharmaceuticals: Major,16.68,-4.63,15.4,-7.67,470492,0.3,1207437049,69284941,amc
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,3.98,-20.4,3.55,-10.8,337766,0.11,8405334,2111893,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:RCAT,RCAT,Red Cat Holdings Inc,Technology Services,Packaged Software,3.53,-7.11,2.6054,-26.19,4623357,0.59,539081667,139542570,amc
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:SLS,SLS,"SELLAS Life Sciences Group, Inc.",Health Technology,Pharmaceuticals: Major,7.47,-4.96,7.99,6.96,1587625,0.23,1522827961,201593311,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:SRTA,SRTA,"Strata Critical Medical, Inc. Class A",Health Services,Medical/Nursing Services,5.42,-1.63,4.92,-9.23,137771,0.14,484113674,67561036,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NASDAQ:USDE,USDE,"StablecoinX, Inc. Class A",Technology Services,Packaged Software,4.03,-23.96,4.21,4.47,100889,0.03,109564133,20727810,bmo
+2026-11-16,2026-11-17T07:35:55+00:00,true,NYSE:ACM,ACM,AECOM,Industrial Services,Engineering & Construction,72.5,2.84,77.45,6.83,587569,0.34,9330490913,127836439,amc
+2026-11-16,2026-11-17T07:35:55+00:00,true,NYSE:CPRI,CPRI,Capri Holdings Limited,Retail Trade,Apparel/Footwear Retail,20.55,-4.24,19.65,-4.38,553096,0.13,2123836263,100715918,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NYSE:DFH,DFH,"Dream Finders Homes, Inc. Class A",Consumer Durables,Homebuilding,10.84,1.69,10.2,-5.9,142370,0.13,981400651,26541431,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NYSE:SITE,SITE,"SiteOne Landscape Supply, Inc.",Distribution Services,Wholesale Distributors,110.9,-1.48,116.75,5.28,133880,0.15,4783332015,42326109,
+2026-11-16,2026-11-17T07:35:55+00:00,true,NYSE:SPG,SPG,"Simon Property Group, Inc.",Finance,Real Estate Investment Trusts,232.78,-0.08,222.3305,-4.49,580680,0.44,75316321747,320388612,
