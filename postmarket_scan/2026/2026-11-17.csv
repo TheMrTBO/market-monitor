@@ -58,3 +58,18 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-17,2026-11-17T22:07:38+00:00,false,NYSE:DLB,DLB,"Dolby Laboratories, Inc. Class A",Technology Services,Packaged Software,58.82,-3.83,55.9,-4.96,956522,1.06,5509598449,58298614,amc
 2026-11-17,2026-11-17T22:07:38+00:00,false,NYSE:IBTA,IBTA,"Ibotta, Inc. Class A",Technology Services,Packaged Software,56.87,-1.49,61.3035,7.8,161311,0.51,1334297481,8400606,
 2026-11-17,2026-11-17T22:07:38+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,72.9,0.77,68.25,-6.38,190394,0.24,6830034759,75587035,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:AAOI,AAOI,"Applied Optoelectronics, Inc.",Electronic Technology,Semiconductors,45.22,0.13,39.773,-12.05,2406661,0.22,4104652699,86091742,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:ACMR,ACMR,"ACM Research, Inc. Class A",Producer Manufacturing,Industrial Machinery,44.12,0.27,46.0,4.26,258682,0.23,3088892208,58505951,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:AVAH,AVAH,Aveanna Healthcare Holdings Inc,Health Services,Medical/Nursing Services,11.65,0.17,11.1703,-4.12,667638,0.24,2544471767,115743758,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:BEAM,BEAM,"Beam Therapeutics, Inc.",Health Technology,Biotechnology,20.65,-1.38,21.54,4.31,1080229,0.56,2137185095,95418033,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:CORZ,CORZ,Core Scientific Inc,Technology Services,Packaged Software,13.51,-0.52,14.3373,6.12,686413,0.05,4353410706,309295838,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:FWDI,FWDI,Forward Industries Inc.,Finance,Financial Conglomerates,4.11,-3.63,4.28,4.14,196147,0.11,313544556,66051010,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:GTM,GTM,ZoomInfo Technologies Inc,Technology Services,Packaged Software,3.06,-4.67,3.38,10.46,659044,0.11,897932954,236917441,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:NBIS,NBIS,Nebius Group N.V. Class A,Technology Services,Packaged Software,106.035,-1.02,111.9999,5.63,2947455,0.13,28810263324,222545208,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:PEPG,PEPG,PepGen Inc.,Health Technology,Biotechnology,3.88,-7.4,4.14,6.7,231079,0.09,268733784,61799696,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:PSIX,PSIX,"Power Solutions International, Inc.",Producer Manufacturing,Auto Parts: OEM,32.77,-4.18,34.41,5.0,181089,0.38,755854772,8335351,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NASDAQ:SLS,SLS,"SELLAS Life Sciences Group, Inc.",Health Technology,Pharmaceuticals: Major,19.15,156.36,16.9,-11.75,5125070,0.64,1522827893,201593311,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NYSE:ARDT,ARDT,"Ardent Health, Inc.",Health Services,Hospital/Nursing Management,17.75,-1.93,15.1,-14.93,106038,0.2,2501620905,21968036,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NYSE:DLB,DLB,"Dolby Laboratories, Inc. Class A",Technology Services,Packaged Software,58.82,-3.83,55.56,-5.54,980857,1.09,5509598449,58298614,amc
+2026-11-17,2026-11-17T22:21:49+00:00,false,NYSE:IBTA,IBTA,"Ibotta, Inc. Class A",Technology Services,Packaged Software,56.87,-1.49,61.3035,7.8,161311,0.51,1334297481,8400606,
+2026-11-17,2026-11-17T22:21:49+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,72.9,0.77,69.65,-4.46,229043,0.28,6830034759,75587035,
