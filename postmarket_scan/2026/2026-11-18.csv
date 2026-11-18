@@ -3,3 +3,12 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-18,2026-11-18T21:22:54+00:00,false,NASDAQ:KARD,KARD,"Kardigan, Inc.",Health Technology,Biotechnology,12.32,-6.6,13.0,5.52,109745,0.22,1153119892,63954822,
 2026-11-18,2026-11-18T21:22:54+00:00,false,NASDAQ:WWD,WWD,"Woodward, Inc.",Producer Manufacturing,Industrial Machinery,319.07,3.01,296.0,-7.23,146748,0.22,18839749877,58670209,amc
 2026-11-18,2026-11-18T21:22:54+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,18.7,-15.15,279937,0.18,1214298905,53479037,amc
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:AKAN,AKAN,Akanda Corp,Process Industries,Agricultural Commodities/Milling,4.03,96.59,3.65,-9.43,1517341,0.33,5397703,2388212,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:CRWD,CRWD,"CrowdStrike Holdings, Inc. Class A",Technology Services,Packaged Software,237.03,7.95,249.6,5.3,1238642,0.13,242703271093,991642415,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:KARD,KARD,"Kardigan, Inc.",Health Technology,Biotechnology,12.32,-6.6,13.0,5.52,109745,0.22,1153119892,63954822,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:LRMR,LRMR,"Larimar Therapeutics, Inc.",Health Technology,Biotechnology,3.225,7.86,3.3719,4.56,103924,0.08,337446652,48352147,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:NTSK,NTSK,"Netskope, Inc. Class A",Technology Services,Packaged Software,23.505,12.73,24.57,4.53,569749,0.1,9603854619,250121195,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:PANW,PANW,"Palo Alto Networks, Inc.",Technology Services,Packaged Software,339.92,9.9,368.24,8.33,2231509,0.36,278316852152,810983021,amc
+2026-11-18,2026-11-18T21:37:50+00:00,false,NASDAQ:SKYA,SKYA,"SkyAI, Inc.",Technology Services,Packaged Software,4.13,90.32,4.7,13.8,779088,0.63,110353615,29702717,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NYSE:EROC,EROC,"ERock, Inc. Class A",Producer Manufacturing,Electrical Products,7.35,-2.78,7.65,4.08,117601,0.04,1612590573,28772416,
+2026-11-18,2026-11-18T21:37:50+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,19.82,-10.07,310432,0.2,1214298905,53479037,amc
