@@ -1,0 +1,5 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-18,2026-11-18T21:22:54+00:00,false,NASDAQ:ERAS,ERAS,"Erasca, Inc.",Health Technology,Pharmaceuticals: Major,13.76,-0.94,13.1,-4.8,925095,0.2,4829160471,248026220,
+2026-11-18,2026-11-18T21:22:54+00:00,false,NASDAQ:KARD,KARD,"Kardigan, Inc.",Health Technology,Biotechnology,12.32,-6.6,13.0,5.52,109745,0.22,1153119892,63954822,
+2026-11-18,2026-11-18T21:22:54+00:00,false,NASDAQ:WWD,WWD,"Woodward, Inc.",Producer Manufacturing,Industrial Machinery,319.07,3.01,296.0,-7.23,146748,0.22,18839749877,58670209,amc
+2026-11-18,2026-11-18T21:22:54+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,18.7,-15.15,279937,0.18,1214298905,53479037,amc
