@@ -55,3 +55,13 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-18,2026-11-18T22:37:48+00:00,false,NASDAQ:SNEX,SNEX,StoneX Group Inc.,Finance,Investment Banks/Brokers,53.83,-1.97,51.024,-5.21,203758,0.21,6492798954,109168396,amc
 2026-11-18,2026-11-18T22:37:48+00:00,false,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,11.38,-2.4,12.08,6.15,130750,0.22,480836336,20311870,
 2026-11-18,2026-11-18T22:37:48+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,20.45,-7.21,332193,0.21,1214298905,53479037,amc
+2026-11-18,2026-11-18T22:52:50+00:00,false,AMEX:IE,IE,Ivanhoe Electric Inc.,Non-Energy Minerals,Other Metals/Minerals,5.98,-5.08,6.4,7.02,346327,0.15,954567566,116624210,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:AKAN,AKAN,Akanda Corp,Process Industries,Agricultural Commodities/Milling,4.03,96.59,3.68,-8.68,2801490,0.61,5397703,2388212,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:CRWD,CRWD,"CrowdStrike Holdings, Inc. Class A",Technology Services,Packaged Software,237.03,7.95,247.2843,4.33,1439264,0.15,242703271093,991642415,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:CUE,CUE,"Cue Biopharma, Inc.",Health Technology,Biotechnology,4.76,68.2,5.18,8.82,615551,1.45,39791332,6706918,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:METC,METC,"Ramaco Resources, Inc. Class A",Energy Minerals,Coal,6.03,1.17,6.3,4.48,217519,0.1,352589933,42393065,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:PANW,PANW,"Palo Alto Networks, Inc.",Technology Services,Packaged Software,339.92,9.9,365.67,7.58,3843465,0.62,278316852152,810983021,amc
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:RRGB,RRGB,"Red Robin Gourmet Burgers, Inc.",Consumer Services,Restaurants,7.95,-2.57,6.66,-16.23,101566,0.38,150284820,15697205,amc
+2026-11-18,2026-11-18T22:52:50+00:00,false,NASDAQ:SNEX,SNEX,StoneX Group Inc.,Finance,Investment Banks/Brokers,53.83,-1.97,51.01,-5.24,204177,0.21,6492798954,109168396,amc
+2026-11-18,2026-11-18T22:52:50+00:00,false,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,11.38,-2.4,12.08,6.15,130750,0.22,480836336,20311870,
+2026-11-18,2026-11-18T22:52:50+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,20.55,-6.76,332865,0.21,1214298905,53479037,amc
