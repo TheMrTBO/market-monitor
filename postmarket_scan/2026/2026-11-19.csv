@@ -80,3 +80,11 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-19,2026-11-19T23:22:52+00:00,false,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
 2026-11-19,2026-11-19T23:22:52+00:00,false,NYSE:KRP,KRP,Kimbell Royalty Partners LP,Miscellaneous,Investment Trusts/Mutual Funds,14.14,-0.14,14.8517,5.03,206365,0.23,2021394684,99048964,
 2026-11-19,2026-11-19T23:22:52+00:00,false,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
+2026-11-19,2026-11-19T23:37:49+00:00,false,NASDAQ:BSP,BSP,Bending Spoons S.p.A.,Technology Services,Packaged Software,41.7,-2.55,43.5,4.32,279359,0.11,27386023521,245664296,amc
+2026-11-19,2026-11-19T23:37:49+00:00,false,NASDAQ:FGI,FGI,FGI Industries Ltd.,Producer Manufacturing,Building Products,5.26,14.1,6.2,17.87,108277,0.09,10158485,522484,
+2026-11-19,2026-11-19T23:37:49+00:00,false,NASDAQ:INTU,INTU,Intuit Inc.,Technology Services,Packaged Software,310.02,-1.03,279.5,-9.84,1160464,0.32,82848499791,261289731,amc
+2026-11-19,2026-11-19T23:37:49+00:00,false,NASDAQ:MATW,MATW,Matthews International Corporation Class A,Producer Manufacturing,Miscellaneous Manufacturing,19.37,-0.87,18.52,-4.39,193700,0.27,604599187,28485853,amc
+2026-11-19,2026-11-19T23:37:49+00:00,false,NASDAQ:ROST,ROST,"Ross Stores, Inc.",Retail Trade,Apparel/Footwear Retail,219.88,-3.41,208.23,-5.3,783014,0.35,70241352936,312583482,amc
+2026-11-19,2026-11-19T23:37:49+00:00,false,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
+2026-11-19,2026-11-19T23:37:49+00:00,false,NYSE:KRP,KRP,Kimbell Royalty Partners LP,Miscellaneous,Investment Trusts/Mutual Funds,14.14,-0.14,14.8517,5.03,206365,0.23,2021394684,99048964,
+2026-11-19,2026-11-19T23:37:49+00:00,false,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
