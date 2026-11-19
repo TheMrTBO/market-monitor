@@ -156,3 +156,16 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-18,2026-11-19T00:52:46+00:00,false,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,11.38,-2.4,12.02,5.62,131772,0.22,480836336,20311870,
 2026-11-18,2026-11-19T00:52:46+00:00,false,NYSE:P,P,"Everpure, Inc. Class A",Electronic Technology,Computer Peripherals,100.74,-1.03,105.2474,4.47,1034266,0.24,33569314918,317498352,amc
 2026-11-18,2026-11-19T00:52:46+00:00,false,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,20.5,-6.99,341637,0.22,1214298905,53479037,amc
+2026-11-18,2026-11-19T01:07:41+00:00,true,AMEX:IE,IE,Ivanhoe Electric Inc.,Non-Energy Minerals,Other Metals/Minerals,5.98,-5.08,6.4,7.02,346327,0.15,954567566,116624210,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:AKAN,AKAN,Akanda Corp,Process Industries,Agricultural Commodities/Milling,4.03,96.59,4.21,4.47,3740375,0.81,5397703,2388212,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:CGON,CGON,"CG Oncology, Inc.",Health Technology,Biotechnology,80.0,1.34,84.5501,5.69,290635,0.27,7145513526,59547226,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:CRWD,CRWD,"CrowdStrike Holdings, Inc. Class A",Technology Services,Packaged Software,237.03,7.95,251.3,6.02,1526209,0.16,242703271093,991642415,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:METC,METC,"Ramaco Resources, Inc. Class A",Energy Minerals,Coal,6.03,1.17,6.3,4.48,217519,0.1,352589933,42393065,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:PANW,PANW,"Palo Alto Networks, Inc.",Technology Services,Packaged Software,339.92,9.9,370.0,8.85,4133962,0.67,278316852152,810983021,amc
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:RRGB,RRGB,"Red Robin Gourmet Burgers, Inc.",Consumer Services,Restaurants,7.95,-2.57,6.5,-18.24,127465,0.47,150284820,15697205,amc
+2026-11-18,2026-11-19T01:07:41+00:00,true,NASDAQ:SHAZ,SHAZ,"SharonAI Holdings, Inc. Class A",Technology Services,Data Processing Services,21.99,-2.66,23.39,6.37,148203,0.07,787319076,31110576,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NYSE:AESI,AESI,Atlas Energy Solutions Inc.,Industrial Services,Oilfield Services/Equipment,5.1,4.08,4.8465,-4.97,570870,0.14,638814817,80162111,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NYSE:CRGY,CRGY,Crescent Energy Company Class A,Energy Minerals,Integrated Oil,10.77,-5.19,11.2601,4.55,571605,0.08,4549858802,314309474,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NYSE:OFRM,OFRM,"Once Upon a Farm, PBC",Consumer Non-Durables,Food: Specialty/Candy,11.38,-2.4,12.02,5.62,131772,0.22,480836336,20311870,
+2026-11-18,2026-11-19T01:07:41+00:00,true,NYSE:P,P,"Everpure, Inc. Class A",Electronic Technology,Computer Peripherals,100.74,-1.03,105.7,4.92,1039394,0.24,33569314918,317498352,amc
+2026-11-18,2026-11-19T01:07:41+00:00,true,NYSE:UTI,UTI,"Universal Technical Institute, Inc.",Commercial Services,Miscellaneous Commercial Services,22.04,0.82,20.5,-6.99,341637,0.22,1214298905,53479037,amc
