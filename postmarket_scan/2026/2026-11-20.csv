@@ -1,0 +1,10 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-20,2026-11-20T21:22:38+00:00,false,AMEX:TGB,TGB,Trekor Metals Limited,Non-Energy Minerals,Other Metals/Minerals,5.34,-4.81,5.5997,4.86,484891,0.09,1958582043,360555479,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:AKAN,AKAN,Akanda Corp,Process Industries,Agricultural Commodities/Milling,4.23,23.32,4.41,4.26,166465,0.03,11137699,2388212,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:CRWD,CRWD,"CrowdStrike Holdings, Inc. Class A",Technology Services,Packaged Software,229.44,-5.76,205.24,-10.55,2271732,0.24,234931610306,991642415,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:FNKO,FNKO,"Funko, Inc. Class A",Consumer Durables,Recreational Products,5.87,-12.78,6.44,9.71,240141,0.21,331311796,40208448,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:KYMR,KYMR,"Kymera Therapeutics, Inc.",Health Technology,Biotechnology,115.31,-3.42,130.0,12.74,271597,0.34,9844175960,76680762,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:PSQL,PSQL,Pasqal Holding SA,Electronic Technology,Computer Processing Hardware,3.28,9.33,3.45,5.18,753327,1.09,696323290,151815039,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NASDAQ:ZS,ZS,"Zscaler, Inc.",Technology Services,Packaged Software,194.82,-5.29,231.96,19.06,422375,0.16,31766318228,106156142,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NYSE:BKSY,BKSY,BlackSky Technology Inc Class A,Technology Services,Packaged Software,16.37,-12.88,18.1094,10.63,160872,0.16,677696888,35886380,
+2026-11-20,2026-11-20T21:22:38+00:00,false,NYSE:VOYG,VOYG,"Voyager Technologies, Inc. Class A",Technology Services,Information Technology Services,18.74,-14.9,19.5014,4.06,287239,0.16,1163723793,53698440,
