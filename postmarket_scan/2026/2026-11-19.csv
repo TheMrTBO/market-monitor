@@ -121,3 +121,13 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-19,2026-11-20T00:22:37+00:00,false,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
 2026-11-19,2026-11-20T00:22:37+00:00,false,NYSE:KRP,KRP,Kimbell Royalty Partners LP,Miscellaneous,Investment Trusts/Mutual Funds,14.14,-0.14,14.8517,5.03,206365,0.23,2021394684,99048964,
 2026-11-19,2026-11-20T00:22:37+00:00,false,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,4.175,-8.04,4.0,-4.19,159274,0.06,350053458,34443661,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:FGI,FGI,FGI Industries Ltd.,Producer Manufacturing,Building Products,5.26,14.1,6.0753,15.5,122023,0.1,10158485,522484,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:INTU,INTU,Intuit Inc.,Technology Services,Packaged Software,310.02,-1.03,279.2,-9.94,1180850,0.33,82848499791,261289731,amc
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,4.22,3.18,4.05,-4.03,106919,0.03,8912189,2111893,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:ROST,ROST,"Ross Stores, Inc.",Retail Trade,Apparel/Footwear Retail,219.88,-3.41,208.25,-5.29,785256,0.35,70241352936,312583482,amc
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:SPRY,SPRY,"ARS Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,3.36,-8.94,3.0744,-8.5,109831,0.06,337775417,65962754,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,218.26,-1.99,209.37,-4.07,176671,0.17,31040388293,132557763,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NYSE:KRP,KRP,Kimbell Royalty Partners LP,Miscellaneous,Investment Trusts/Mutual Funds,14.14,-0.14,14.8517,5.03,206365,0.23,2021394684,99048964,
+2026-11-19,2026-11-20T00:37:35+00:00,false,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
