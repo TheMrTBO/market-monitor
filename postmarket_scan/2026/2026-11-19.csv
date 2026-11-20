@@ -308,3 +308,16 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-19,2026-11-20T08:21:41+00:00,true,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
 2026-11-19,2026-11-20T08:21:41+00:00,true,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,17.18,-1.43,16.2325,-5.52,836203,0.2,4217554857,231157031,
 2026-11-19,2026-11-20T08:21:41+00:00,true,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:AKAN,AKAN,Akanda Corp,Process Industries,Agricultural Commodities/Milling,3.43,-14.89,3.05,-11.08,477138,0.1,9031279,2388212,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:ANT,ANT,"Anthropic, PBC Class A",Technology Services,Packaged Software,97.17,,92.6,-4.7,19219077,,,,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:BSP,BSP,Bending Spoons S.p.A.,Technology Services,Packaged Software,41.7,-2.55,43.8,5.04,290252,0.11,27386023521,245664296,amc
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:FGI,FGI,FGI Industries Ltd.,Producer Manufacturing,Building Products,5.26,14.1,6.18,17.49,132815,0.11,10158485,522484,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:INTU,INTU,Intuit Inc.,Technology Services,Packaged Software,310.02,-1.03,279.74,-9.77,1197117,0.33,82848499791,261289731,amc
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:OMH,OMH,Ohmyhome Limited Class A,Finance,Real Estate Development,4.22,3.18,4.0,-5.21,117175,0.03,8912189,2111893,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:ROST,ROST,"Ross Stores, Inc.",Retail Trade,Apparel/Footwear Retail,219.88,-3.41,208.53,-5.16,789312,0.35,70241352936,312583482,amc
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:SPRY,SPRY,"ARS Pharmaceuticals, Inc.",Health Technology,Pharmaceuticals: Major,3.36,-8.94,3.12,-7.14,111331,0.06,337775417,65962754,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,218.26,-1.99,209.37,-4.07,176671,0.17,31040388293,132557763,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NYSE:GENI,GENI,Genius Sports Limited,Technology Services,Internet Software/Services,5.82,-4.75,6.0677,4.26,516486,0.07,1617478528,244256713,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NYSE:GRND,GRND,Grindr Inc.,Technology Services,Internet Software/Services,14.0,-4.24,14.5824,4.16,214638,0.12,2474213512,26952208,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NYSE:MIR,MIR,"Mirion Technologies, Inc. Class A",Electronic Technology,Aerospace & Defense,17.18,-1.43,16.2325,-5.52,836203,0.2,4217554857,231157031,
+2026-11-19,2026-11-20T08:24:22+00:00,true,NYSE:SOLV,SOLV,Solventum Corporation,Health Services,Medical/Nursing Services,85.8,-0.79,82.0903,-4.32,231031,0.21,14563635431,143725419,
