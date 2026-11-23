@@ -5,3 +5,7 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-23,2026-11-23T21:22:44+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,111.01,6.61,397946,0.13,9717996771,92837787,amc
 2026-11-23,2026-11-23T21:22:44+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,186.9,6.17,508238,0.23,49630753184,281036130,amc
 2026-11-23,2026-11-23T21:22:44+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,45.95,-4.31,4212146,0.22,63744855696,1322394412,amc
+2026-11-23,2026-11-23T21:37:48+00:00,false,NASDAQ:HYMC,HYMC,Hycroft Mining Holding Corporation Class A,Non-Energy Minerals,Precious Metals,13.11,3.97,14.0,6.79,264433,0.12,1221636380,48812365,
+2026-11-23,2026-11-23T21:37:48+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,95.76,-8.04,660807,0.21,9717996771,92837787,amc
+2026-11-23,2026-11-23T21:37:48+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,189.76,7.79,595680,0.27,49630753184,281036130,amc
+2026-11-23,2026-11-23T21:37:48+00:00,false,NYSE:EROC,EROC,"ERock, Inc. Class A",Producer Manufacturing,Electrical Products,6.26,2.29,6.6515,6.25,180095,0.06,1373444472,28772416,
