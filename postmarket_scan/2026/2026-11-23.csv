@@ -60,3 +60,17 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-23,2026-11-23T22:23:09+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,45.6139,-5.01,7614828,0.39,63744855696,1322394412,amc
 2026-11-23,2026-11-23T22:23:09+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,63.5,-0.22,68.4633,7.82,192861,0.23,5949344650,75587035,
 2026-11-23,2026-11-23T22:23:09+00:00,false,NYSE:USFD,USFD,US Foods Holding Corp.,Distribution Services,Food Distributors,109.11,1.64,102.0,-6.52,288612,0.13,23425018960,212994000,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:CUE,CUE,"Cue Biopharma, Inc.",Health Technology,Biotechnology,5.75,38.55,6.16,7.13,133540,0.24,48067262,6706918,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:FLNC,FLNC,"Fluence Energy, Inc. Class A",Producer Manufacturing,Electrical Products,3.8,9.83,4.37,15.0,2115877,0.29,701466215,110703966,amc
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:KYMR,KYMR,"Kymera Therapeutics, Inc.",Health Technology,Biotechnology,150.37,30.4,157.0,4.41,315758,0.36,12837296985,76680762,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:NNE,NNE,Nano Nuclear Energy Inc.,Producer Manufacturing,Electrical Products,9.47,4.07,9.88,4.33,201755,0.1,508521435,44819265,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,97.7,-6.17,798405,0.25,9717996771,92837787,amc
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:SSYS,SSYS,Stratasys Ltd.,Electronic Technology,Computer Peripherals,5.32,5.14,5.1,-4.14,132038,0.17,468600013,64002827,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,215.52,4.64,206.0,-4.42,218070,0.2,30650713047,132557763,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,188.59,7.13,614951,0.28,49630753184,281036130,amc
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:ALTG,ALTG,"Alta Equipment Group, Inc.",Distribution Services,Wholesale Distributors,4.61,6.47,4.91,6.51,164186,0.75,151361201,19601289,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:AMTM,AMTM,"Amentum Holdings, Inc.",Electronic Technology,Aerospace & Defense,20.65,1.52,22.21,7.55,921152,0.47,5049057377,197279021,bmo
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:FLUT,FLUT,Flutter Entertainment Plc,Consumer Services,Casinos/Gaming,67.42,0.34,70.5,4.57,275843,0.09,11722399854,141180151,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,45.394,-5.47,7840642,0.4,63744855696,1322394412,amc
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,63.5,-0.22,68.4633,7.82,192861,0.23,5949344650,75587035,
+2026-11-23,2026-11-23T22:37:35+00:00,false,NYSE:USFD,USFD,US Foods Holding Corp.,Distribution Services,Food Distributors,109.11,1.64,102.0,-6.52,288612,0.13,23425018960,212994000,
