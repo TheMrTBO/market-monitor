@@ -1,0 +1,7 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-23,2026-11-23T21:22:44+00:00,false,NASDAQ:BNAI,BNAI,Brand Engagement Network Inc.,Technology Services,Packaged Software,7.32,117.86,7.66,4.64,449514,0.63,25159833,5101848,bmo
+2026-11-23,2026-11-23T21:22:44+00:00,false,NASDAQ:FLNC,FLNC,"Fluence Energy, Inc. Class A",Producer Manufacturing,Electrical Products,3.8,9.83,4.02,5.79,944250,0.13,701466215,110703966,amc
+2026-11-23,2026-11-23T21:22:44+00:00,false,NASDAQ:HYMC,HYMC,Hycroft Mining Holding Corporation Class A,Non-Energy Minerals,Precious Metals,13.11,3.97,14.0,6.79,264433,0.12,1221636380,48812365,
+2026-11-23,2026-11-23T21:22:44+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,111.01,6.61,397946,0.13,9717996771,92837787,amc
+2026-11-23,2026-11-23T21:22:44+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,186.9,6.17,508238,0.23,49630753184,281036130,amc
+2026-11-23,2026-11-23T21:22:44+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,45.95,-4.31,4212146,0.22,63744855696,1322394412,amc
