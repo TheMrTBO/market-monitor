@@ -129,3 +129,17 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-23,2026-11-23T23:37:37+00:00,false,NYSE:KSS,KSS,Kohl's Corporation,Retail Trade,Department Stores,21.2,-4.72,22.15,4.48,844169,0.21,2403580569,108199818,
 2026-11-23,2026-11-23T23:37:37+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,63.5,-0.22,68.4633,7.82,192861,0.23,5949344650,75587035,
 2026-11-23,2026-11-23T23:37:37+00:00,false,NYSE:USFD,USFD,US Foods Holding Corp.,Distribution Services,Food Distributors,109.11,1.64,102.0,-6.52,288612,0.13,23425018960,212994000,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:BNAI,BNAI,Brand Engagement Network Inc.,Technology Services,Packaged Software,7.32,117.86,6.64,-9.29,2113065,2.85,25159833,5101848,bmo
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:CUE,CUE,"Cue Biopharma, Inc.",Health Technology,Biotechnology,5.75,38.55,6.33,10.09,155809,0.27,48067262,6706918,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:FLNC,FLNC,"Fluence Energy, Inc. Class A",Producer Manufacturing,Electrical Products,3.8,9.83,4.32,13.68,2377256,0.32,701466215,110703966,amc
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,99.24,-4.7,848823,0.27,9717996771,92837787,amc
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:SSYS,SSYS,Stratasys Ltd.,Electronic Technology,Computer Peripherals,5.32,5.14,5.1,-4.14,132038,0.17,468600013,64002827,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NASDAQ:STLD,STLD,"Steel Dynamics, Inc.",Non-Energy Minerals,Steel,215.52,4.64,206.0,-4.42,218070,0.2,30650713047,132557763,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,189.0,7.36,621315,0.28,49630753184,281036130,amc
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:ALTG,ALTG,"Alta Equipment Group, Inc.",Distribution Services,Wholesale Distributors,4.61,6.47,5.0,8.46,174335,0.8,151361201,19601289,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:AMTM,AMTM,"Amentum Holdings, Inc.",Electronic Technology,Aerospace & Defense,20.65,1.52,21.9687,6.39,924204,0.47,5049057377,197279021,bmo
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:BKSY,BKSY,BlackSky Technology Inc Class A,Technology Services,Packaged Software,17.6,7.51,18.4999,5.11,124424,0.12,728617303,35886380,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:FLUT,FLUT,Flutter Entertainment Plc,Consumer Services,Casinos/Gaming,67.42,0.34,70.5,4.57,275843,0.09,11722399854,141180151,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,44.096,-8.17,8536060,0.44,63744855696,1322394412,amc
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,63.5,-0.22,68.4633,7.82,192861,0.23,5949344650,75587035,
+2026-11-23,2026-11-23T23:57:25+00:00,false,NYSE:USFD,USFD,US Foods Holding Corp.,Distribution Services,Food Distributors,109.11,1.64,102.0,-6.52,288612,0.13,23425018960,212994000,
