@@ -9,3 +9,14 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-23,2026-11-23T21:37:48+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,95.76,-8.04,660807,0.21,9717996771,92837787,amc
 2026-11-23,2026-11-23T21:37:48+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,189.76,7.79,595680,0.27,49630753184,281036130,amc
 2026-11-23,2026-11-23T21:37:48+00:00,false,NYSE:EROC,EROC,"ERock, Inc. Class A",Producer Manufacturing,Electrical Products,6.26,2.29,6.6515,6.25,180095,0.06,1373444472,28772416,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NASDAQ:CUE,CUE,"Cue Biopharma, Inc.",Health Technology,Biotechnology,5.75,38.55,6.32,9.91,106685,0.19,48067262,6706918,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NASDAQ:FLNC,FLNC,"Fluence Energy, Inc. Class A",Producer Manufacturing,Electrical Products,3.8,9.83,4.1704,9.75,1599533,0.22,701466215,110703966,amc
+2026-11-23,2026-11-23T21:52:47+00:00,false,NASDAQ:HYMC,HYMC,Hycroft Mining Holding Corporation Class A,Non-Energy Minerals,Precious Metals,13.11,3.97,13.72,4.65,264613,0.12,1221636380,48812365,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NASDAQ:SMTC,SMTC,Semtech Corporation,Electronic Technology,Semiconductors,104.13,18.83,95.3,-8.48,720661,0.23,9717996771,92837787,amc
+2026-11-23,2026-11-23T21:52:47+00:00,false,NASDAQ:SSYS,SSYS,Stratasys Ltd.,Electronic Technology,Computer Peripherals,5.32,5.14,5.1,-4.14,132038,0.17,468600013,64002827,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:A,A,"Agilent Technologies, Inc.",Health Technology,Medical Specialties,176.04,3.32,188.5,7.08,603997,0.28,49630753184,281036130,amc
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:AMTM,AMTM,"Amentum Holdings, Inc.",Electronic Technology,Aerospace & Defense,20.65,1.52,21.8,5.57,897434,0.46,5049057377,197279021,bmo
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:EROC,EROC,"ERock, Inc. Class A",Producer Manufacturing,Electrical Products,6.26,2.29,6.6515,6.25,180095,0.06,1373444472,28772416,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:FLUT,FLUT,Flutter Entertainment Plc,Consumer Services,Casinos/Gaming,67.42,0.34,70.5,4.57,275843,0.09,11722399854,141180151,
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:HPE,HPE,Hewlett Packard Enterprise Co.,Electronic Technology,Computer Processing Hardware,48.02,17.38,45.3,-5.66,7023061,0.36,63744855696,1322394412,amc
+2026-11-23,2026-11-23T21:52:47+00:00,false,NYSE:LOAR,LOAR,Loar Holdings Inc.,Electronic Technology,Aerospace & Defense,63.5,-0.22,68.4633,7.82,192861,0.23,5949344650,75587035,
