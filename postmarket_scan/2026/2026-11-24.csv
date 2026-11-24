@@ -32,3 +32,10 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-24,2026-11-24T22:21:53+00:00,false,NASDAQ:STGW,STGW,"Stagwell, Inc. Class A",Commercial Services,Miscellaneous Commercial Services,10.8,0.65,11.91,10.28,261306,0.16,2678111659,107712775,
 2026-11-24,2026-11-24T22:21:53+00:00,false,NASDAQ:URBN,URBN,"Urban Outfitters, Inc.",Retail Trade,Apparel/Footwear Retail,85.58,0.34,74.0,-13.53,610909,0.56,7330798209,48414545,
 2026-11-24,2026-11-24T22:21:53+00:00,false,NASDAQ:WDAY,WDAY,"Workday, Inc. Class A",Technology Services,Information Technology Services,179.23,1.79,164.0605,-8.46,885251,0.27,43194430448,193958856,amc
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:AMBA,AMBA,"Ambarella, Inc.",Electronic Technology,Semiconductors,44.47,-19.96,27.49,-38.18,2567879,1.55,1962949079,42123314,amc
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:JAGX,JAGX,"Jaguar Health, Inc.",Health Technology,Pharmaceuticals: Major,12.8,109.24,12.09,-5.55,292830,1.44,3265760,500721,
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:NTNX,NTNX,"Nutanix, Inc. Class A",Technology Services,Data Processing Services,54.59,-5.16,50.54,-7.42,1020445,0.4,14888454935,262317728,amc
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:PYPD,PYPD,PolyPid Ltd.,Health Technology,Pharmaceuticals: Major,5.545,-3.9,4.959,-10.57,810755,3.61,117142027,7623800,
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:STGW,STGW,"Stagwell, Inc. Class A",Commercial Services,Miscellaneous Commercial Services,10.8,0.65,11.91,10.28,261306,0.16,2678111659,107712775,
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:URBN,URBN,"Urban Outfitters, Inc.",Retail Trade,Apparel/Footwear Retail,85.58,0.34,73.11,-14.57,624351,0.57,7330798209,48414545,
+2026-11-24,2026-11-24T22:23:18+00:00,false,NASDAQ:WDAY,WDAY,"Workday, Inc. Class A",Technology Services,Information Technology Services,179.23,1.79,164.0605,-8.46,885251,0.27,43194430448,193958856,amc
