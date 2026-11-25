@@ -115,3 +115,17 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-24,2026-11-25T00:07:41+00:00,false,NYSE:APG,APG,APi Group Corporation,Industrial Services,Engineering & Construction,45.04,-1.23,43.0,-4.53,666525,0.21,19333798718,379755538,
 2026-11-24,2026-11-25T00:07:41+00:00,false,NYSE:CTRI,CTRI,"Centuri Holdings, Inc.",Utilities,Gas Distributors,20.87,-5.61,22.25,6.61,221657,0.11,2107193668,85994508,
 2026-11-24,2026-11-25T00:07:41+00:00,false,NYSE:OC,OC,Owens Corning,Process Industries,Containers/Packaging,115.87,1.76,103.1895,-10.94,185430,0.18,8936811660,76214088,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:AMBA,AMBA,"Ambarella, Inc.",Electronic Technology,Semiconductors,44.47,-19.96,27.8001,-37.49,3800363,2.27,1962949079,42123314,amc
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:BRUN,BRUN,Boost Run Inc. Class A,Technology Services,Packaged Software,4.04,-3.35,3.87,-4.21,129162,0.04,340091787,34656747,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:JAGX,JAGX,"Jaguar Health, Inc.",Health Technology,Pharmaceuticals: Major,12.8,109.24,12.1,-5.47,404318,1.97,3265760,500721,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:LXEO,LXEO,"Lexeo Therapeutics, Inc.",Health Technology,Biotechnology,3.79,16.62,3.6066,-4.84,228574,0.13,313768811,69682667,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:NTNX,NTNX,"Nutanix, Inc. Class A",Technology Services,Data Processing Services,54.59,-5.16,49.9606,-8.48,1048157,0.41,14888454935,262317728,amc
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:PYPD,PYPD,PolyPid Ltd.,Health Technology,Pharmaceuticals: Major,5.545,-3.9,4.94,-10.91,990912,4.37,117142027,7623800,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:STGW,STGW,"Stagwell, Inc. Class A",Commercial Services,Miscellaneous Commercial Services,10.8,0.65,11.91,10.28,261306,0.16,2678111659,107712775,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:URBN,URBN,"Urban Outfitters, Inc.",Retail Trade,Apparel/Footwear Retail,85.58,0.34,75.36,-11.94,728713,0.67,7330798209,48414545,amc
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:VNDA,VNDA,Vanda Pharmaceuticals Inc.,Health Technology,Pharmaceuticals: Major,3.75,7.45,3.98,6.13,214177,0.2,226761332,57205545,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NASDAQ:WDAY,WDAY,"Workday, Inc. Class A",Technology Services,Information Technology Services,179.23,1.79,165.5,-7.66,923533,0.28,43194430448,193958856,amc
+2026-11-24,2026-11-25T00:22:48+00:00,false,NYSE:APG,APG,APi Group Corporation,Industrial Services,Engineering & Construction,45.04,-1.23,43.0,-4.53,666525,0.21,19333798718,379755538,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NYSE:CTRI,CTRI,"Centuri Holdings, Inc.",Utilities,Gas Distributors,20.87,-5.61,22.25,6.61,221657,0.11,2107193668,85994508,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NYSE:MNTN,MNTN,"MNTN, Inc Class A",Technology Services,Packaged Software,4.88,4.5,4.5764,-6.22,141889,0.12,369853799,37284024,
+2026-11-24,2026-11-25T00:22:48+00:00,false,NYSE:OC,OC,Owens Corning,Process Industries,Containers/Packaging,115.87,1.76,103.1895,-10.94,185430,0.18,8936811660,76214088,
