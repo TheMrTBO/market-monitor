@@ -1,0 +1,5 @@
+session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct,pm_price,pm_change_pct,pm_volume,rvol,market_cap,float_shares,earnings
+2026-11-25,2026-11-25T21:22:47+00:00,false,NASDAQ:VERA,VERA,"Vera Therapeutics, Inc. Class A",Health Technology,Biotechnology,29.5,1.76,37.1,25.76,228926,0.12,2132813837,58701636,
+2026-11-25,2026-11-25T21:22:47+00:00,false,NASDAQ:VRTX,VRTX,Vertex Pharmaceuticals Incorporated,Health Technology,Pharmaceuticals: Major,564.12,0.04,525.0,-6.93,336623,0.26,143025668294,252958412,
+2026-11-25,2026-11-25T21:22:47+00:00,false,NYSE:CSTM,CSTM,Constellium SE Class A,Non-Energy Minerals,Aluminum,20.4,-0.54,19.5,-4.41,171162,0.11,2744546789,122451944,
+2026-11-25,2026-11-25T21:22:47+00:00,false,NYSE:KNTK,KNTK,Kinetik Holdings Inc. Class A,Industrial Services,Oil & Gas Pipelines,54.7,1.5,61.35,12.16,134102,0.11,8883380517,64449613,
