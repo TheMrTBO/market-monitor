@@ -18,3 +18,8 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-27,2026-11-27T21:52:40+00:00,false,NASDAQ:GDEV,GDEV,GDEV Inc.,Technology Services,Packaged Software,7.5,-7.98,8.133,8.44,122226,13.83,136324518,2090254,
 2026-11-27,2026-11-27T21:52:40+00:00,false,NASDAQ:POM,POM,PomDoctor Ltd. Class A,Distribution Services,Medical Distributors,3.12,93.79,2.85,-8.65,806209,0.39,57905480,,
 2026-11-27,2026-11-27T21:52:40+00:00,false,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,5.48,43.46,4.97,-9.31,361377,0.78,10497087,,
+2026-11-27,2026-11-27T22:07:44+00:00,false,NASDAQ:AEHL,AEHL,Antelope Enterprise Holdings Limited Class A,Producer Manufacturing,Building Products,12.9,80.67,14.35,11.24,666813,0.37,245291651,16457836,
+2026-11-27,2026-11-27T22:07:44+00:00,false,NASDAQ:EQPT,EQPT,"EquipmentShare.com, Inc. Class A",Technology Services,Internet Software/Services,16.29,10.07,15.4045,-5.44,126197,0.04,4140450451,107926115,
+2026-11-27,2026-11-27T22:07:44+00:00,false,NASDAQ:GDEV,GDEV,GDEV Inc.,Technology Services,Packaged Software,7.5,-7.98,8.32,10.93,122462,13.83,136324518,2090254,
+2026-11-27,2026-11-27T22:07:44+00:00,false,NASDAQ:POM,POM,PomDoctor Ltd. Class A,Distribution Services,Medical Distributors,3.12,93.79,2.89,-7.37,849636,0.41,57905480,,
+2026-11-27,2026-11-27T22:07:44+00:00,false,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,5.48,43.46,4.9,-10.58,371975,0.81,10497087,,
