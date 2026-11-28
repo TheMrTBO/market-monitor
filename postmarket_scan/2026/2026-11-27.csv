@@ -103,3 +103,7 @@ session_date,taken_at,closed,ticker,symbol,name,sector,industry,close,change_pct
 2026-11-27,2026-11-28T03:58:19+00:00,true,NASDAQ:EQPT,EQPT,"EquipmentShare.com, Inc. Class A",Technology Services,Internet Software/Services,16.29,10.07,15.4045,-5.44,126197,0.04,4140450451,107926115,
 2026-11-27,2026-11-28T03:58:19+00:00,true,NASDAQ:POM,POM,PomDoctor Ltd. Class A,Distribution Services,Medical Distributors,3.12,93.79,2.8515,-8.61,874026,0.42,57905480,,
 2026-11-27,2026-11-28T03:58:19+00:00,true,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,5.48,43.46,5.0,-8.76,376067,0.82,10497087,,
+2026-11-27,2026-11-28T05:22:10+00:00,true,NASDAQ:AEHL,AEHL,Antelope Enterprise Holdings Limited Class A,Producer Manufacturing,Building Products,12.9,80.67,14.1876,9.98,671871,0.37,245291651,16457836,
+2026-11-27,2026-11-28T05:22:10+00:00,true,NASDAQ:EQPT,EQPT,"EquipmentShare.com, Inc. Class A",Technology Services,Internet Software/Services,16.29,10.07,15.4045,-5.44,126197,0.04,4140450451,107926115,
+2026-11-27,2026-11-28T05:22:10+00:00,true,NASDAQ:POM,POM,PomDoctor Ltd. Class A,Distribution Services,Medical Distributors,3.12,93.79,2.8515,-8.61,874026,0.42,57905480,,
+2026-11-27,2026-11-28T05:22:10+00:00,true,NASDAQ:RETO,RETO,"ReTo Eco-Solutions, Inc. Class A",Non-Energy Minerals,Other Metals/Minerals,5.48,43.46,5.0,-8.76,376067,0.82,10497087,,
